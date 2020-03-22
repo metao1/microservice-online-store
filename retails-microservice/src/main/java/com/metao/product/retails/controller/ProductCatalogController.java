@@ -33,8 +33,17 @@ public class ProductCatalogController implements ProductController {
     }
 
     @GetMapping(value = "/products", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<ProductDTO>> getAllProductsWithOffset(@Param("limit") int limit,
-                                                                     @Param("offset") int offset) {
+    public ResponseEntity<List<ProductDTO>> getAllProductsWithOffset(@Param("limit") Integer limit,
+                                                                     @Param("offset") Integer offset) {
+        if (limit == null && offset == null) {
+            return ResponseEntity.ok(productService.findAllProductsPageable(10, 0));
+        }
+        if (limit == null) {
+            return ResponseEntity.ok(productService.findAllProductsPageable(10, offset));
+        }
+        if (offset == null) {
+            return ResponseEntity.ok(productService.findAllProductsPageable(limit, 0));
+        }
         if (limit <= 0 || offset < 0) {
             return ResponseEntity.badRequest().build();
         }

@@ -22,7 +22,7 @@ public class OffsetBasedPageRequest implements Pageable, Serializable {
      * @param limit  the size of the elements to be returned.
      * @param sort   can be {@literal null}.
      */
-    public OffsetBasedPageRequest(long offset, int limit, Sort sort) {
+    public OffsetBasedPageRequest(int limit, long offset, Sort sort) {
         if (offset < 0) {
             throw new IllegalArgumentException("Offset index must not be less than zero!");
         }
@@ -38,23 +38,11 @@ public class OffsetBasedPageRequest implements Pageable, Serializable {
     /**
      * Creates a new {@link OffsetBasedPageRequest} with sort parameters applied.
      *
-     * @param offset     zero-based offset.
-     * @param limit      the size of the elements to be returned.
-     * @param direction  the direction of the {@link Sort} to be specified, can be {@literal null}.
-     * @param properties the properties to sort by, must not be {@literal null} or empty.
-     */
-    public OffsetBasedPageRequest(int offset, int limit, Sort.Direction direction, String... properties) {
-        this(offset, limit, Sort.by(direction, properties));
-    }
-
-    /**
-     * Creates a new {@link OffsetBasedPageRequest} with sort parameters applied.
-     *
      * @param offset zero-based offset.
      * @param limit  the size of the elements to be returned.
      */
-    public OffsetBasedPageRequest(int offset, int limit) {
-        this(offset, limit, Sort.by(Sort.Direction.ASC, "id"));
+    public OffsetBasedPageRequest(int limit, int offset) {
+        this(limit, offset, Sort.by(Sort.Direction.ASC, "id"));
     }
 
     @Override
@@ -79,11 +67,11 @@ public class OffsetBasedPageRequest implements Pageable, Serializable {
 
     @Override
     public Pageable next() {
-        return new OffsetBasedPageRequest(getOffset() + getPageSize(), getPageSize(), getSort());
+        return new OffsetBasedPageRequest(getPageSize(), getOffset() + getPageSize(), getSort());
     }
 
     public OffsetBasedPageRequest previous() {
-        return hasPrevious() ? new OffsetBasedPageRequest(getOffset() - getPageSize(), getPageSize(), getSort()) : this;
+        return hasPrevious() ? new OffsetBasedPageRequest(getPageSize(), getOffset() - getPageSize(), getSort()) : this;
     }
 
 
@@ -94,7 +82,7 @@ public class OffsetBasedPageRequest implements Pageable, Serializable {
 
     @Override
     public Pageable first() {
-        return new OffsetBasedPageRequest(0, getPageSize(), getSort());
+        return new OffsetBasedPageRequest(getPageSize(), 0, getSort());
     }
 
     @Override

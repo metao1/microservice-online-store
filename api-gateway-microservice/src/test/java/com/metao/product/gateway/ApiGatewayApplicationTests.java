@@ -33,7 +33,7 @@ class ApiGatewayApplicationTests {
     public static void beforeAllSetup() {
         managementPort = SocketUtils.findAvailableTcpPort();
         System.setProperty("test.port", String.valueOf(managementPort));
-        String baseUrl = "http://localhost:" + 8082;
+        String baseUrl = "http://localhost:" + 8081;
         webTestClient = WebTestClient.bindToServer().responseTimeout(Duration.ofSeconds(10)).baseUrl(baseUrl).build();
     }
 
