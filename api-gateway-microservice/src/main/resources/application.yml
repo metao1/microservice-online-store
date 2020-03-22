@@ -6,11 +6,20 @@ spring:
       config: classpath:ehcache.xml
   cloud:
     gateway:
+      default-filters:
+        - name: SCGWGlobalFilter
       routes:
-        - id: product-ms
-          uri: http://localhost:8082/
+        - id: product-route
+          uri: lb://product-ms/
           predicates:
-            - Path=/product-ms/**
+            - Path=/products/**
+          filters:
+            - name: ThrottleGatewayFilter
+              args:
+                capacity: 12
+                refillTokens: 1
+                refillPeriod: 10
+
 
 eureka:
   client:
@@ -33,3 +42,12 @@ management:
           - env
           - health
           - info
+
+
+logging:
+  level:
+    org.springframework.cloud.gateway: TRACE
+    org.springframework.http.server.reactive: DEBUG
+    org.springframework.web.reactive: DEBUG
+    reactor.ipc.netty: DEBUG
+    reactor.netty: DEBUG
