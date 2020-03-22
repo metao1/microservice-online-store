@@ -10,8 +10,8 @@ import org.mapstruct.ReportingPolicy;
 
 @Mapper(componentModel = "spring",
         config = BaseMappingConfig.class,
-        unmappedSourcePolicy = ReportingPolicy.ERROR,
-        unmappedTargetPolicy = ReportingPolicy.ERROR)
+        unmappedSourcePolicy = ReportingPolicy.WARN,
+        unmappedTargetPolicy = ReportingPolicy.WARN)
 public interface ProductMapper {
 
     @Mappings(@Mapping(source = "id", target = "id"))

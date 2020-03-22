@@ -2,21 +2,23 @@ package com.metao.product.retails.persistence;
 
 import com.metao.product.retails.domain.ProductEntity;
 import com.metao.product.retails.model.ProductDTO;
-import org.springframework.data.cassandra.repository.CassandraRepository;
-import org.springframework.data.cassandra.repository.Query;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ProductRepository extends CassandraRepository<ProductEntity, String> {
+public interface ProductRepository extends JpaRepository<ProductEntity, String> {
 
     Optional<ProductEntity> findProductEntityById(String productId);
 
-    @Query("SELECT * FROM product limit ?0 offset ?1")
-    Optional<List<ProductEntity>> findAllProductsWithOffset(int limit, int offset);
+        @Query(value = "SELECT u FROM ProductEntity u")
+    List<ProductEntity> findAllProductsWithOffset(Pageable pageable);
 
-    @Query("SELECT * FROM product where category =?0 limit ?1 offset ?2")
-    List<ProductDTO> findAllProductsWithCategoryAndOffset(String category, int limit, int offset);
+    @Query("SELECT distinct u FROM ProductEntity u where u.categories IN :category")
+    List<ProductDTO> findAllProductsWithCategoryAndOffset(@Param("category") String category, Pageable pageable);
 }

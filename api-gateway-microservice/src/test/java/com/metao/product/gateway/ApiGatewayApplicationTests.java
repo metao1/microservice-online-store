@@ -33,7 +33,7 @@ class ApiGatewayApplicationTests {
     public static void beforeAllSetup() {
         managementPort = SocketUtils.findAvailableTcpPort();
         System.setProperty("test.port", String.valueOf(managementPort));
-        String baseUrl = "http://localhost: " + localPort;
+        String baseUrl = "http://localhost:" + 8082;
         webTestClient = WebTestClient.bindToServer().responseTimeout(Duration.ofSeconds(10)).baseUrl(baseUrl).build();
     }
 
@@ -44,7 +44,7 @@ class ApiGatewayApplicationTests {
 
     @Test
     public void contextLoad() {
-        webTestClient.get().uri("/get").exchange().expectStatus().isOk();
+        webTestClient.get().uri("/product-ms/products/?limit=1&offset=1").exchange().expectStatus().isOk();
     }
 
     @Test

@@ -3,18 +3,20 @@ package com.metao.product.retails.domain;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.cassandra.core.mapping.PrimaryKey;
-import org.springframework.data.cassandra.core.mapping.Table;
+import org.springframework.data.annotation.Id;
 
+import javax.persistence.Column;
+import javax.persistence.Table;
 import java.time.Instant;
 
 @Data
-@Table(value = "auto_item")
+@Table(name = "auto_item")
 @AllArgsConstructor
 @NoArgsConstructor
 public class AutoAwareItemEntity {
 
-    @PrimaryKey(value="id")
+    @Id
+    @Column(name="id")
     private String id;
 
     private String createdBy;

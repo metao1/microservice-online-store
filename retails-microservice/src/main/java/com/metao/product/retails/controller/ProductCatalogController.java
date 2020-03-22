@@ -18,7 +18,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-public class ProductCatalogController {
+public class ProductCatalogController implements ProductController {
 
     private final ProductServiceImplementation productService;
 
@@ -35,6 +35,9 @@ public class ProductCatalogController {
     @GetMapping(value = "/products", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<ProductDTO>> getAllProductsWithOffset(@Param("limit") int limit,
                                                                      @Param("offset") int offset) {
+        if (limit <= 0 || offset < 0) {
+            return ResponseEntity.badRequest().build();
+        }
         return ResponseEntity.ok(productService.findAllProductsPageable(limit, offset));
     }
 

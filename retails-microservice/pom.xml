@@ -14,6 +14,8 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
     <dependencies>
+
+        <!--Spring Boot-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -22,33 +24,18 @@
             <groupId>org.springframework.hateoas</groupId>
             <artifactId>spring-hateoas</artifactId>
         </dependency>
-
-        <!-- cassandra-->
-        <!--        <dependency>-->
-        <!--            <groupId>com.yugabyte</groupId>-->
-        <!--            <artifactId>cassandra-driver-core</artifactId>-->
-        <!--            <version>3.2.0-yb-19</version>-->
-        <!--        </dependency>-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.springframework.data</groupId>-->
-        <!--            <artifactId>spring-data-cassandra</artifactId>-->
-        <!--        </dependency>-->
-
+        <!--Database-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-cassandra</artifactId>
-
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.yugabyte</groupId>
-            <artifactId>cassandra-driver-core</artifactId>
-            <version>3.2.0-yb-19</version>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-jpa</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.yugabyte</groupId>
-            <artifactId>cassandra-driver-extras</artifactId>
-            <version>3.2.0-yb-19</version>
-            <optional>true</optional>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
         </dependency>
     </dependencies>
 </project>

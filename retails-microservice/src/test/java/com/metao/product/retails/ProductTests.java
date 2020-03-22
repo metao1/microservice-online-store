@@ -27,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @WebFluxTest(controllers = ProductCatalogController.class)
 public class ProductTests extends BaseTest {
 
+    public static final String PRODUCT_URL = "/product-ms/product/";
     @MockBean
     ProductRepository productRepository;
 
@@ -73,7 +74,7 @@ public class ProductTests extends BaseTest {
     @Test
     public void testLoadOneProduct() {
         Mockito.when(productRepository.findProductEntityById(productId)).thenReturn(Optional.of(productEntity));
-        webTestClient.get().uri("/product/" + productId)
+        webTestClient.get().uri(PRODUCT_URL + productId)
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(ProductDTO.class)
@@ -87,7 +88,7 @@ public class ProductTests extends BaseTest {
 
     @Test
     public void testLoadAnonymousProduct_raisesError() {
-        webTestClient.get().uri("/product/" + productId)
+        webTestClient.get().uri(PRODUCT_URL + productId)
                 .exchange()
                 .expectStatus().isNotFound();
     }
@@ -95,7 +96,7 @@ public class ProductTests extends BaseTest {
     @Test
     public void testSaveProduct_isOk() {
         webTestClient.post()
-                .uri("/product")
+                .uri(PRODUCT_URL)
                 .body(Mono.just(productDTO), ProductDTO.class)
                 .exchange()
                 .expectBody().isEmpty();

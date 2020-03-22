@@ -1,15 +1,6 @@
 server:
   port: ${PORT:8082}
 
-spring:
-  data:
-    cassandra:
-      port: 24000
-      username: test
-      password: test
-      cluster-name: thoughtfulness-pear-kyi8
-      contact-points: 35.247.31.132
-
 eureka:
   client:
     registerWithEureka: true
@@ -31,3 +22,28 @@ management:
           - env
           - health
           - info
+spring:
+  datasource:
+    url: jdbc:h2:mem:product-app;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    platform: h2
+    driverClassName: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        show_sql: true
+        use_sql_comments: true
+        format_sql: true
+
+  ###
+  #   H2 Settings
+  ###
+  h2:
+    console:
+      enabled: true
+      path: /console
+      settings:
+        trace: false
+        web-allow-others: false

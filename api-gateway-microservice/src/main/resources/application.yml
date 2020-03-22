@@ -1,9 +1,16 @@
 server:
   port: ${PORT:8081}
-
 spring:
-  application:
-    name: api-gateway
+  cache:
+    jcache:
+      config: classpath:ehcache.xml
+  cloud:
+    gateway:
+      routes:
+        - id: product-ms
+          uri: http://localhost:8082/
+          predicates:
+            - Path=/product-ms/**
 
 eureka:
   client:

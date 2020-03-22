@@ -28,6 +28,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <dependencies>
+        <!--Spring Boot-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
@@ -46,7 +47,7 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <!--Eureka Client-->
+        <!--Spring Cloud Global Dependencies-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
@@ -68,7 +69,6 @@
         </dependency>
 
         <!--Tests-->
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

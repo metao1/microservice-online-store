@@ -5,9 +5,10 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.springframework.data.cassandra.core.mapping.PrimaryKey;
 
-import java.time.Instant;
+import javax.persistence.Column;
+import javax.persistence.Id;
+import java.util.Date;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -16,15 +17,12 @@ import java.time.Instant;
 @SuperBuilder
 public class BaseEntity {
 
-    @PrimaryKey("asin")
-    private String id;
+    protected String createdBy;
 
-    private String createdBy;
+    protected String modifiedBy;
 
-    private String modifiedBy;
+    protected Date createdAt;
 
-    private Instant createdAt;
-
-    private Instant modifiedAt;
+    protected Date modifiedAt;
 
 }

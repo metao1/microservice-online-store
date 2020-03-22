@@ -4,11 +4,13 @@ import com.metao.product.retails.domain.ProductEntity;
 import com.metao.product.retails.exception.ProductNotFoundException;
 import com.metao.product.retails.mapper.ProductMapper;
 import com.metao.product.retails.model.ProductDTO;
+import com.metao.product.retails.persistence.OffsetBasedPageRequest;
 import com.metao.product.retails.persistence.ProductRepository;
 import com.metao.product.retails.service.ProductService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,9 +34,9 @@ public class ProductServiceImplementation implements ProductService {
 
     @Override
     public List<ProductDTO> findAllProductsPageable(int limit, int offset) {
-        Optional<List<ProductEntity>> productEntities = productRepository.findAllProductsWithOffset(limit, offset);
-        List<ProductEntity> entities = productEntities.orElseThrow(() -> new ProductNotFoundException(""));
-        return entities.stream()
+        Pageable pageable = new OffsetBasedPageRequest(limit, offset);
+        List<ProductEntity> productEntities = productRepository.findAllProductsWithOffset(pageable);
+        return productEntities.stream()
                 .filter(Objects::nonNull)
                 .map(productMapper::toDto)
                 .collect(Collectors.toList());
@@ -42,7 +44,8 @@ public class ProductServiceImplementation implements ProductService {
 
     @Override
     public List<ProductDTO> findAllProductsWithCategory(String category, int limit, int offset) {
-        return this.productRepository.findAllProductsWithCategoryAndOffset(category, limit, offset);
+        Pageable pageable = new OffsetBasedPageRequest(limit, offset);
+        return this.productRepository.findAllProductsWithCategoryAndOffset(category, pageable);
     }
 
     @Override

@@ -1,4 +1,4 @@
-package com.metao.product.gateway.config;
+package com.metao.product.gateway.filter;
 
 import lombok.Builder;
 import lombok.Getter;
