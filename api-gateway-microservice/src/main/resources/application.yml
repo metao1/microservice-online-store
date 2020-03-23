@@ -10,15 +10,15 @@ spring:
         - name: SCGWGlobalFilter
       routes:
         - id: product-route
-          uri: lbproduct-ms:///
+          uri: lb://product-ms
           predicates:
             - Path=/products/**
           filters:
             - name: ThrottleGatewayFilter
               args:
-                capacity: 12
-                refillTokens: 1
-                refillPeriod: 10
+                capacity: 120
+                refillTokens: 10
+                refillPeriod: 1
 
 
 eureka:

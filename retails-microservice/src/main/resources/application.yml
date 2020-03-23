@@ -22,28 +22,21 @@ management:
           - env
           - health
           - info
+
 spring:
-  datasource:
-    url: jdbc:h2:mem:product-app;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    platform: h2
-    driverClassName: org.h2.Driver
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database: POSTGRESQL
+    show-sql: true
+    generate-ddl: true
     hibernate:
       ddl-auto: create-drop
-    properties:
+    database-platform: org.hibernate.dialect.PostgreSQL9Dialect # disable clob warning
+    properties: # disable clob warning
       hibernate:
-        show_sql: true
-        use_sql_comments: true
-        format_sql: true
-
-  ###
-  #   H2 Settings
-  ###
-  h2:
-    console:
-      enabled: true
-      path: /console
-      settings:
-        trace: false
-        web-allow-others: false
+        temp:
+          use_jdbc_metadata_defaults: false
+    open-in-view: false
+  datasource:
+    url: jdbc:postgresql://localhost:5432/product
+    username: postgres
+    password: secset

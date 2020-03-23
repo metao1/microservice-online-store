@@ -14,10 +14,10 @@ import org.mapstruct.ReportingPolicy;
         unmappedTargetPolicy = ReportingPolicy.WARN)
 public interface ProductMapper {
 
-    @Mappings(@Mapping(source = "id", target = "id"))
+    @Mappings(@Mapping(source = "id", target = "asin"))
     ProductDTO toDto(ProductEntity productEntity);
 
-    @Mappings(@Mapping(source = "id", target = "id"))
-    ProductEntity toEntity(ProductDTO productEntity);
+    @Mappings(@Mapping(source = "asin", target = "id"))
+    ProductEntity toEntity(ProductDTO productDTO);
 
 }

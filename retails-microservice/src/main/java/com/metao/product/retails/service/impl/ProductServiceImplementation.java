@@ -45,11 +45,15 @@ public class ProductServiceImplementation implements ProductService {
     @Override
     public List<ProductDTO> findAllProductsWithCategory(String category, int limit, int offset) {
         Pageable pageable = new OffsetBasedPageRequest(limit, offset);
-        return this.productRepository.findAllProductsWithCategoryAndOffset(category, pageable);
+        List<ProductEntity> allProductsWithCategoryAndOffset = this.productRepository.findAllProductsWithCategoryAndOffset(category, pageable);
+        return allProductsWithCategoryAndOffset.stream()
+                .filter(Objects::nonNull)
+                .map(productMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
     public void saveProduct(ProductDTO obj) {
-        this.productRepository.save(productMapper.toEntity(obj));
+        this.productRepository.saveAndFlush(productMapper.toEntity(obj));
     }
 }

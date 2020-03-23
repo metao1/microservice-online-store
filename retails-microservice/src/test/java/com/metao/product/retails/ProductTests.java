@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @WebFluxTest(controllers = ProductCatalogController.class)
 public class ProductTests extends BaseTest {
 
-    public static final String PRODUCT_URL = "/product-ms/product/";
+    public static final String PRODUCT_URL = "/products/";
     @MockBean
     ProductRepository productRepository;
 
@@ -51,7 +51,7 @@ public class ProductTests extends BaseTest {
             .build();
 
     private ProductDTO productDTO = ProductDTO.builder()
-            .id(UUID.randomUUID().toString())
+            .asin(UUID.randomUUID().toString())
             .brand(productEntity.getBrand())
             .categories(productEntity.getCategories())
             .createdAt(productEntity.getCreatedAt())

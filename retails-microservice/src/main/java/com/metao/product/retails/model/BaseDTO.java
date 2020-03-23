@@ -19,7 +19,7 @@ import java.util.Date;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class BaseDTO {
 
-    private String id;
+    private String asin;
 
     private String createdBy;
 
