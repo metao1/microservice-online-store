@@ -9,3 +9,5 @@ eureka:
     fetchRegistry: false
   server:
     enableSelfPreservation: false
+    renewal-threshold-update-interval-ms: 5000
+    renewal-percent-threshold: 0.33

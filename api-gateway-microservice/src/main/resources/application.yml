@@ -10,7 +10,7 @@ spring:
         - name: SCGWGlobalFilter
       routes:
         - id: product-route
-          uri: lb://product-ms/
+          uri: lbproduct-ms:///
           predicates:
             - Path=/products/**
           filters:
