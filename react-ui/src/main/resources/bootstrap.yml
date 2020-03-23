@@ -1,3 +1,3 @@
 spring:
   application:
-    name: product-ms
+    name: product-ui-ms

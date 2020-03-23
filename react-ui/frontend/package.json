@@ -1,0 +1,38 @@
+{
+  "name": "ui",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "amazon-product-api": "^0.4.4",
+    "axios": "^0.19.2",
+    "bootstrap": "^4.4.1",
+    "http-proxy-middleware": "^1.0.3",
+    "lodash": "^4.17.15",
+    "prop-types": "^15.7.2",
+    "react": "^16.13.1",
+    "react-animate-css": "0.0.1",
+    "react-bootstrap": "0.32.4",
+    "react-dom": "^16.13.1",
+    "react-materialize": "^3.5.9",
+    "react-router-dom": "^5.1.2",
+    "react-scripts": "3.4.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
