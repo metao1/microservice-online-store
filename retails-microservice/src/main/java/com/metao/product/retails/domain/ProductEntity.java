@@ -18,12 +18,12 @@ import java.util.Set;
 
 @Table(name = "product")
 @Entity
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
 @SuperBuilder
+@AllArgsConstructor
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class ProductEntity extends BaseEntity {
+public class ProductEntity extends AutoAwareItemEntity {
 
     @Id
     @Column(name = "asin")

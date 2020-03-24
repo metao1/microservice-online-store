@@ -1,6 +1,6 @@
 spring:
   application:
-    name: product-ms
+    name: cart-ms
 
 eureka:
   client:

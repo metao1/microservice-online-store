@@ -38,7 +38,8 @@ public class ProductTests extends BaseTest {
     WebTestClient webTestClient;
 
     private String productId = UUID.randomUUID().toString();
-    private ProductEntity productEntity = ProductEntity.builder().brand("brand")
+    private ProductEntity productEntity = ProductEntity.builder()
+            .brand("brand")
             .categories(Collections.singleton("Clothes"))
             .description("clothes")
             .id(productId)

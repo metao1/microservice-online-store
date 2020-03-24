@@ -13,7 +13,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class ProductDTO extends BaseDTO {
+public class ProductDTO extends AutoAwareItemDTO {
 
     private String description;
 

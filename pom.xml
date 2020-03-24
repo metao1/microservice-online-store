@@ -21,6 +21,7 @@
     <modules>
         <module>api-gateway-microservice</module>
         <module>retails-microservice</module>
+        <module>shared-lib</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>

@@ -1,7 +1,6 @@
 package com.metao.product.retails.config;
 
-import com.metao.product.retails.domain.AutoAwareItemEntity;
-import com.metao.product.retails.model.BaseDTO;
+import com.metao.product.retails.model.AutoAwareItemDTO;
 import org.mapstruct.MapperConfig;
 import org.mapstruct.MappingInheritanceStrategy;
 import org.mapstruct.ReportingPolicy;
@@ -14,7 +13,7 @@ import org.mapstruct.ReportingPolicy;
 )
 public interface BaseMappingConfig {
 
-    AutoAwareItemEntity fromDto(BaseDTO baseDTO);
+    com.metao.product.retails.domain.AutoAwareItemEntity fromDto(AutoAwareItemDTO autoAwareItemDTO);
 
-    BaseDTO toDto(AutoAwareItemEntity autoAwareItem);
+    AutoAwareItemDTO toDto(com.metao.product.retails.domain.AutoAwareItemEntity autoAwareItem);
 }

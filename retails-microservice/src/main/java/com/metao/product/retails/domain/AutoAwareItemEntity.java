@@ -2,29 +2,29 @@ package com.metao.product.retails.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
-import javax.persistence.Column;
-import javax.persistence.Table;
-import java.time.Instant;
+import javax.persistence.Embeddable;
+import java.util.Date;
 
+@Getter
+@Embeddable
 @Data
-@Table(name = "auto_item")
+@SuperBuilder
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class AutoAwareItemEntity {
-
-    @Id
-    @Column(name="id")
-    private String id;
 
     private String createdBy;
 
     private String modifiedBy;
 
-    private Instant createdAt;
+    private Date createdAt;
 
-    private Instant modifiedAt;
+    private Date modifiedAt;
 
 }

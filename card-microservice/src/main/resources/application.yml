@@ -1,5 +1,5 @@
 server:
-  port: ${PORT:8082}
+  port: ${PORT:8083}
 
 spring:
   jpa:
