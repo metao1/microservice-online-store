@@ -1,8 +1,6 @@
 package com.metao.product.models;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.metao.product.utils.EventDateDeserializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -11,7 +9,7 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDate;
 
 @Getter
 @Data
@@ -30,10 +28,8 @@ public class AutoAwareItemDTO implements Serializable {
 
     private String modifiedBy;
 
-    @JsonDeserialize(using = EventDateDeserializer.class)
-    private Date createdAt;
+    private LocalDate createdAt;
 
-    @JsonDeserialize(using = EventDateDeserializer.class)
-    private Date modifiedAt;
+    private LocalDate modifiedAt;
 
 }

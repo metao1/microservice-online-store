@@ -7,6 +7,7 @@ spring:
       default-filters:
         - name: SCGWGlobalFilter
       routes:
+        # =================RETAILS MICROSERVICE========================
         - id: product-route
           uri: lb://product-ms
           predicates:
@@ -17,12 +18,12 @@ spring:
                 capacity: 120
                 refillTokens: 100
                 refillPeriod: 1
-        # =====================================
+        # =================CART MICROSERVICE========================
         - id: cart-route
           uri: lb://cart-ms
           predicates:
             - Path=/cart/**
-        # =====================================
+        # =================CHECKOUT MICROSERVICE====================
         - id: checkout-route
           uri: lb://checkout-ms
           predicates:

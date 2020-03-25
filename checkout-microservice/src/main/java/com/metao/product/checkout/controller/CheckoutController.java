@@ -3,6 +3,7 @@ package com.metao.product.checkout.controller;
 import com.metao.product.checkout.domain.OrderEntity;
 import com.metao.product.checkout.exception.NotEnoughProductsInStockException;
 import com.metao.product.checkout.model.CheckoutStatus;
+import com.metao.product.checkout.service.CheckoutService;
 import com.metao.product.checkout.service.impl.CheckoutServiceImplementation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class CheckoutController {
 
-    CheckoutServiceImplementation checkoutService;
+    CheckoutService checkoutService;
 
     public CheckoutController(CheckoutServiceImplementation checkoutService) {
         this.checkoutService = checkoutService;

@@ -9,7 +9,7 @@ import lombok.experimental.SuperBuilder;
 
 import javax.persistence.Embeddable;
 import javax.persistence.MappedSuperclass;
-import java.util.Date;
+import java.time.LocalDate;
 
 @Getter
 @Embeddable
@@ -25,8 +25,8 @@ public class AutoAwareItemEntity {
 
     private String modifiedBy;
 
-    private Date createdAt;
+    private LocalDate createdAt;
 
-    private Date modifiedAt;
+    private LocalDate modifiedAt;
 
 }
