@@ -14,10 +14,11 @@ import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Date;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static com.metao.product.utils.DateFormatter.now;
 
 @Component
 @Slf4j
@@ -42,8 +43,8 @@ public class DataStoreConfig {
                                     if (productDTO != null) {
                                         productDTO.setBrand("Some brand");
                                         productDTO.setDescription(productDTO.getDescription() != null ? productDTO.getDescription().length() > 255 ? productDTO.getDescription().substring(0, 255) : productDTO.getDescription() : "The description is not provided for this product. Please consider looking at the other websites in the internet for more information about this product.");
-                                        productDTO.setCreatedAt(new Date());
-                                        productDTO.setModifiedAt(new Date());
+                                        productDTO.setCreatedAt(now());
+                                        productDTO.setModifiedAt(now());
                                         productDTO.setCreatedBy("Mehrdad");
                                         productDTO.setModifiedBy("Mehrdad");
                                         productDTO.setPrice(12d);

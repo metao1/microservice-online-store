@@ -5,10 +5,9 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 
 import java.io.IOException;
-import java.text.ParseException;
-import java.util.Date;
+import java.time.LocalDate;
 
-public class EventDateDeserializer extends StdDeserializer<Date> {
+public class EventDateDeserializer extends StdDeserializer<LocalDate> {
 
     public EventDateDeserializer() {
         this(null);
@@ -19,15 +18,11 @@ public class EventDateDeserializer extends StdDeserializer<Date> {
     }
 
     @Override
-    public Date deserialize(
+    public LocalDate deserialize(
             JsonParser jsonparser, DeserializationContext context)
             throws IOException {
 
         String date = jsonparser.getText();
-        try {
-            return DateFormatter.formatter.parse(date);
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
+        return LocalDate.parse(date);
     }
 }

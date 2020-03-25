@@ -6,21 +6,20 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Map;
 
-@FeignClient("card-ms")
-@RequestMapping("/card")
+@FeignClient("cart-ms")
 public interface ShoppingCartRestClient {
-	
-	@RequestMapping("/addProduct")
+
+    @RequestMapping("/cart/addProduct")
     String addProductToCart(@RequestParam("userid") String userId,
                             @RequestParam("asin") String asin);
 
-	@RequestMapping("/productsInCart")
+    @RequestMapping("/cart/productsInCart")
     Map<String, Integer> getProductsInCart(@RequestParam("userid") String userId);
 
-	@RequestMapping("/removeProduct")
+    @RequestMapping("/cart/removeProduct")
     String removeProductFromCart(@RequestParam("userid") String userId,
                                  @RequestParam("asin") String asin);
 	
-	@RequestMapping("/clearCart")
+	@RequestMapping("/cart/clearCart")
     String clearCart(@RequestParam("userid") String userId);
 }

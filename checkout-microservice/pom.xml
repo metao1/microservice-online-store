@@ -33,6 +33,12 @@
             <version>42.2.11</version>
         </dependency>
 
+        <!--Spring Boot-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
         <!--Spring Cloud Client-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>

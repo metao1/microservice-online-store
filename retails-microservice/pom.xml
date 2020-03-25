@@ -2,17 +2,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.metao.product.retails</groupId>
-    <artifactId>retails</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>retails-microservice</name>
-    <description>Product Retails Microservice</description>
-
     <parent>
         <groupId>com.metao.product</groupId>
         <artifactId>product</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
+    <groupId>com.metao.product.retails</groupId>
+    <artifactId>retails</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>retails-microservice</name>
+    <description>Product Retails Microservice</description>
     <dependencies>
         <!--Shared library-->
         <dependency>
@@ -36,12 +35,6 @@
         <dependency>
             <groupId>org.springframework.hateoas</groupId>
             <artifactId>spring-hateoas</artifactId>
-        </dependency>
-
-        <!--Spring Cloud Stream-->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-stream-binder-rabbit</artifactId>
         </dependency>
 
         <!--Database-->

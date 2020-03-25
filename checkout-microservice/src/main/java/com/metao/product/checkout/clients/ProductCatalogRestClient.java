@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@FeignClient("products-ms")
+@FeignClient("product-ms")
 @RequestMapping("/products")
 public interface ProductCatalogRestClient {
 
@@ -19,7 +19,7 @@ public interface ProductCatalogRestClient {
   @GetMapping
   List<ProductDTO> getProducts(@RequestParam("limit") int limit, @RequestParam("offset") int offset);
 
-  @GetMapping("/products/category/{category}")
+  @GetMapping("/category/{category}")
   List<ProductDTO> getProductsByCategory(@PathVariable("category") String category,
                                          @RequestParam("limit") int limit,
                                          @RequestParam("offset") int offset);

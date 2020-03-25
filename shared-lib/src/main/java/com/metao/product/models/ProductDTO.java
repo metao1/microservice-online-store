@@ -1,5 +1,6 @@
 package com.metao.product.models;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -13,6 +14,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
+@JsonDeserialize(builder = ProductDTO.ProductDTOBuilder.class)
 public class ProductDTO extends AutoAwareItemDTO {
 
     private String description;

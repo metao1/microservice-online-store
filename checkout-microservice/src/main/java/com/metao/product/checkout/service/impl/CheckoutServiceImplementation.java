@@ -6,27 +6,21 @@ import com.metao.product.checkout.domain.OrderEntity;
 import com.metao.product.checkout.domain.ProductInventoryEntity;
 import com.metao.product.checkout.exception.NotEnoughProductsInStockException;
 import com.metao.product.checkout.repository.ProductInventoryRepository;
+import com.metao.product.checkout.service.CheckoutService;
 import com.metao.product.models.ProductDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.WebApplicationContext;
 
-import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.UUID;
 
-
+@Slf4j
 @Service
-@Scope(value = WebApplicationContext.SCOPE_SESSION, proxyMode = ScopedProxyMode.TARGET_CLASS)
 @Transactional
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-@Slf4j
-public class CheckoutServiceImplementation {
+public class CheckoutServiceImplementation implements CheckoutService {
 
 	private final ShoppingCartRestClient shoppingCartRestClient;
 	private final ProductCatalogRestClient productCatalogRestClient;
@@ -70,7 +64,6 @@ public class CheckoutServiceImplementation {
 		shoppingCartRestClient.clearCart(userId);
 		log.debug("*** Checkout complete, cart cleared ***");
 		return currentOrder;
-
 	}
 
 	private Double getTotal(Map<String, Integer> products) {
@@ -83,16 +76,6 @@ public class CheckoutServiceImplementation {
 			price = price + productDetails.getPrice() * entry.getValue();
 		}
 		return price;
-	}
-
-	private OrderEntity createOrder(String userId, String orderDetails, double orderTotal) {
-		return OrderEntity.builder()
-				.orderTime(LocalDateTime.now().toString())
-				.userId(userId)
-				.orderDetails(orderDetails)
-				.id(UUID.randomUUID().toString())
-				.orderTotal(orderTotal)
-				.build();
 	}
 
 }
