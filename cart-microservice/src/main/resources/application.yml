@@ -1,0 +1,20 @@
+server:
+  port: ${PORT:8083}
+
+spring:
+  jpa:
+    database: POSTGRESQL
+    show-sql: true
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.PostgreSQL9Dialect
+    properties:
+      hibernate:
+        temp:
+          use_jdbc_metadata_defaults: false
+    open-in-view: false
+  datasource:
+    url: jdbc:postgresql://localhost:5432/product
+    username: postgres
+    password: secset

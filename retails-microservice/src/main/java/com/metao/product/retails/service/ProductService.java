@@ -1,7 +1,6 @@
 package com.metao.product.retails.service;
 
-import com.metao.product.retails.model.ProductDTO;
-import org.springframework.stereotype.Service;
+import com.metao.product.models.ProductDTO;
 
 import java.util.List;
 

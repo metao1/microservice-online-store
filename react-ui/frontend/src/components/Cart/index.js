@@ -6,6 +6,8 @@ import {Link} from 'react-router-dom';
 import './index.css';
 
 class CartProducts extends Component {
+  asyncRequest = null;
+
   constructor(props) {
     super(props);
     this.state = {
@@ -20,17 +22,22 @@ class CartProducts extends Component {
     );
   }
 
+  componentWillUnmount() {
+    if (this._asyncRequest) {
+      this._asyncRequest.cancel();
+    }
+  }
+
   submitCheckout() {
     if (this.props.cart.total !== 0) {
-      var url = '/cart/checkout';
+      const url = '/api/checkout';
       fetch(url, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
         }
-      })
-          .then(res => res.json())
+      }).then(res => res.json())
           .then(result => {
             this.setState({result, isCompleted: true})
           })
@@ -40,20 +47,22 @@ class CartProducts extends Component {
 
   costReducer = (accumulator, currentValue) => {
     const self = this;
-    return accumulator + currentValue.price * parseInt(self.props.cart.data[currentValue.id] || 0);
-  }
+    return accumulator + currentValue.price * parseInt(self.props.cart.data[currentValue.asin] || 1);
+  };
 
   fetchProductDetails(product_id) {
     if (!this.state.products.product_id) {
       this.state.product_id = "" + product_id;
-      var url = '/api/products/' + product_id;
+      const url = '/api/products/details/' + product_id;
       console.log("Fetching url: " + url);
       fetch(url)
           .then(res => res.json())
-          .then(product => this.setState({
-                products: this.state.products.concat([product])
-              })
-          );
+          .then(product => {
+            this._asyncRequest = null;
+            this.setState({
+              products: this.state.products.concat([product])
+            });
+          }).catch(_ => console.error('item not found'));
     }
   }
 

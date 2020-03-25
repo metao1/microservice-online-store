@@ -1,11 +1,13 @@
 package com.metao.product.gateway.filter;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
 public class SCGWPreFilter extends AbstractGatewayFilterFactory<SCGWPreFilter.Config> {
 
 	public SCGWPreFilter() {
@@ -14,7 +16,7 @@ public class SCGWPreFilter extends AbstractGatewayFilterFactory<SCGWPreFilter.Co
 	
 	@Override
 	public GatewayFilter apply(Config config) {
-		System.out.println("inside SCGWPreFilter.apply method");
+		log.info("inside SCGWPreFilter.apply method");
 		
 		return (exchange, chain) -> {
 			ServerHttpRequest request = exchange.getRequest().mutate().header("product-pre-header", Math.random()*10+"").build();

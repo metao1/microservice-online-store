@@ -1,9 +1,7 @@
 server:
   port: ${PORT:8081}
+
 spring:
-  cache:
-    jcache:
-      config: classpath:ehcache.xml
   cloud:
     gateway:
       default-filters:
@@ -17,8 +15,18 @@ spring:
             - name: ThrottleGatewayFilter
               args:
                 capacity: 120
-                refillTokens: 10
+                refillTokens: 100
                 refillPeriod: 1
+        # =====================================
+        - id: cart-route
+          uri: lb://cart-ms
+          predicates:
+            - Path=/cart/**
+        # =====================================
+        - id: checkout-route
+          uri: lb://checkout-ms
+          predicates:
+            - Path=/checkout/**
 
 
 eureka:

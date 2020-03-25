@@ -1,6 +1,6 @@
 package com.metao.product.retails.config;
 
-import com.metao.product.retails.model.AutoAwareItemDTO;
+import com.metao.product.models.AutoAwareItemDTO;
 import org.mapstruct.MapperConfig;
 import org.mapstruct.MappingInheritanceStrategy;
 import org.mapstruct.ReportingPolicy;

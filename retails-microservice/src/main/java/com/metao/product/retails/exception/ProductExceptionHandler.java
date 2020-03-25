@@ -1,6 +1,6 @@
 package com.metao.product.retails.exception;
 
-import com.metao.product.retails.model.ProductApiErrorDTO;
+import com.metao.product.models.ProductApiErrorDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;

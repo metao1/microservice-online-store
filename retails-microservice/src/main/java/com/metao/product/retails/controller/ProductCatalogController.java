@@ -1,6 +1,6 @@
 package com.metao.product.retails.controller;
 
-import com.metao.product.retails.model.ProductDTO;
+import com.metao.product.models.ProductDTO;
 import com.metao.product.retails.service.impl.ProductServiceImplementation;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang.StringUtils;

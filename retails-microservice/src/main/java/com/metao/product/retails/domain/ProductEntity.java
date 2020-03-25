@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
@@ -23,6 +25,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class ProductEntity extends AutoAwareItemEntity {
 
     @Id
@@ -33,7 +36,7 @@ public class ProductEntity extends AutoAwareItemEntity {
 
     @Column(name = "categories")
     @ElementCollection(targetClass = String.class)
-    @CollectionTable(name = "product_categories", joinColumns = @JoinColumn(name = "id") )
+    @CollectionTable(name = "product_categories", joinColumns = @JoinColumn(name = "id"))
     private Set<String> categories = new HashSet<>();
 
     private String description;

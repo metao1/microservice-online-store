@@ -3,7 +3,7 @@ package com.metao.product.retails.service.impl;
 import com.metao.product.retails.domain.ProductEntity;
 import com.metao.product.retails.exception.ProductNotFoundException;
 import com.metao.product.retails.mapper.ProductMapper;
-import com.metao.product.retails.model.ProductDTO;
+import com.metao.product.models.ProductDTO;
 import com.metao.product.retails.persistence.OffsetBasedPageRequest;
 import com.metao.product.retails.persistence.ProductRepository;
 import com.metao.product.retails.service.ProductService;

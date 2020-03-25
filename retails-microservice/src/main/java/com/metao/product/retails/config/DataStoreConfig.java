@@ -1,7 +1,7 @@
 package com.metao.product.retails.config;
 
 import com.google.gson.Gson;
-import com.metao.product.retails.model.ProductDTO;
+import com.metao.product.models.ProductDTO;
 import com.metao.product.retails.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

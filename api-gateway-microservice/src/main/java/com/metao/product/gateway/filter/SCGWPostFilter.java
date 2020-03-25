@@ -1,5 +1,6 @@
 package com.metao.product.gateway.filter;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.http.HttpHeaders;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 @Component
+@Slf4j
 public class SCGWPostFilter extends AbstractGatewayFilterFactory<SCGWPostFilter.Config> {
 	
 	public SCGWPostFilter() {
@@ -17,13 +19,13 @@ public class SCGWPostFilter extends AbstractGatewayFilterFactory<SCGWPostFilter.
 	
 	@Override
 	public GatewayFilter apply(Config config) {
-		System.out.println("inside SCGWPostFilter.apply method...");
+		log.info("inside SCGWPostFilter.apply method...");
 		
 		return(exchange, chain)-> chain.filter(exchange).then(Mono.fromRunnable(()->{
 			ServerHttpResponse response = exchange.getResponse();
 			HttpHeaders headers = response.getHeaders();
 			headers.forEach((k,v)->{
-				System.out.println(k + " : " + v);
+				log.info(k + " : " + v);
 			});
 		}));
 	}

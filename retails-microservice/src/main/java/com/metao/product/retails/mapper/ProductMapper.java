@@ -2,7 +2,7 @@ package com.metao.product.retails.mapper;
 
 import com.metao.product.retails.config.BaseMappingConfig;
 import com.metao.product.retails.domain.ProductEntity;
-import com.metao.product.retails.model.ProductDTO;
+import com.metao.product.models.ProductDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;

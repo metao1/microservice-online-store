@@ -8,6 +8,7 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import javax.persistence.Embeddable;
+import javax.persistence.MappedSuperclass;
 import java.util.Date;
 
 @Getter
@@ -17,6 +18,7 @@ import java.util.Date;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@MappedSuperclass
 public class AutoAwareItemEntity {
 
     private String createdBy;

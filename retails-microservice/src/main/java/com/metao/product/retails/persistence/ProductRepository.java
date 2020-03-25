@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-
 public interface ProductRepository extends CrudRepository<ProductEntity, String> {
 
     @Query(value = "SELECT distinct u FROM ProductEntity u join fetch u.categories where u.id =:productId")
@@ -22,10 +21,8 @@ public interface ProductRepository extends CrudRepository<ProductEntity, String>
     @Query(value = "SELECT u FROM ProductEntity u")
     List<ProductEntity> findAllProductsWithOffset(Pageable pageable);
 
-    @Transactional
     @Query("SELECT distinct product FROM ProductEntity product left join fetch product.categories categories where categories IN :category")
     List<ProductEntity> findAllProductsWithCategoryAndOffset(@Param("category") String category, Pageable pageable);
-
 
     @Transactional
     <S extends ProductEntity> S saveAndFlush(S s);
