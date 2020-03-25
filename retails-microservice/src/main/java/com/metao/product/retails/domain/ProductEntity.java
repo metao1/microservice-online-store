@@ -32,7 +32,7 @@ public class ProductEntity extends AutoAwareItemEntity {
     @Column(name = "asin")
     protected String id;
 
-    private String brand;
+    private String title;
 
     @Column(name = "categories")
     @ElementCollection(targetClass = String.class)

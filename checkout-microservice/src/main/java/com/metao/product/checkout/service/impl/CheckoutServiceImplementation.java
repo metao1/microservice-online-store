@@ -42,7 +42,7 @@ public class CheckoutServiceImplementation implements CheckoutService {
 				final ProductInventoryEntity productInventory = productInventoryRepository.findById(entry.getKey()).orElse(null);
 				final ProductDTO productDetails = productCatalogRestClient.getProductDetails(entry.getKey());
 
-				if (productInventory.getQuantity() < entry.getValue())
+				if (productInventory != null && productInventory.getQuantity() < entry.getValue())
 					throw new NotEnoughProductsInStockException(productDetails.getTitle(), productInventory.getQuantity());
 
 				updateCartpreparedStatement.append(" UPDATE product_inventory SET quantity = quantity - "

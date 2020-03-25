@@ -6,7 +6,7 @@ eureka:
     hostname: localhost
   client:
     registerWithEureka: false
-    fetchRegistry: false
+    fetchRegistry: true
   server:
     enableSelfPreservation: false
     renewal-threshold-update-interval-ms: 5000

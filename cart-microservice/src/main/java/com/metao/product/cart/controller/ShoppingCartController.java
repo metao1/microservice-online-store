@@ -38,7 +38,7 @@ public class ShoppingCartController {
         return String.format("Removing from Cart successful for user %s", userId);
     }
 
-    @DeleteMapping(value = "/clearCart", produces = "application/json")
+    @GetMapping(value = "/clearCart", produces = "application/json")
     public String clearCart(@RequestParam("userid") String userId) {
         shoppingCartService.clearCart(userId);
         return String.format("Clearing Cart, Checkout successful for user %s", userId);

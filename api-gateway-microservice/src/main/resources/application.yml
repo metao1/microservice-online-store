@@ -30,29 +30,6 @@ spring:
             - Path=/checkout/**
 
 
-eureka:
-  client:
-    registerWithEureka: true
-    serviceUrl:
-      defaultZone: ${EUREKA_SERVER:http://localhost:8761/eureka}
-    healthcheck:
-      enabled: true
-
-info:
-  app:
-    name: ${spring.application.name}
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include:
-          - mappings
-          - env
-          - health
-          - info
-
-
 logging:
   level:
     org.springframework.cloud.gateway: TRACE
