@@ -7,7 +7,6 @@ import com.metao.product.retails.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -21,9 +20,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.metao.product.utils.DateFormatter.now;
+
 @Component
 @Slf4j
-@Profile("setup")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class DataStoreConfig {
 
@@ -37,6 +37,7 @@ public class DataStoreConfig {
         try {
             final AtomicInteger counter = new AtomicInteger();
             log.debug("importing products data from resources");
+            String defaultString = "The description is not provided for this product. Please consider looking at the other websites in the internet for more information about this product.";
             String dataSource = readDataFromResources("data/products.json");
             Stream.of(dataSource.split("!"))
                     .map(s -> {
@@ -44,8 +45,13 @@ public class DataStoreConfig {
                                 try {
                                     productEntity = gson.fromJson(s, ProductEntity.class);
                                     if (productEntity != null && counter.get() < 1000 ) {
-                                        productEntity.setDescription(productEntity.getDescription() != null ? productEntity.getDescription().length() > 255 ? productEntity.getDescription().substring(0, 255) : productEntity.getDescription() : "The description is not provided for this product. Please consider looking at the other websites in the internet for more information about this product.");
-                                        productEntity.setPrice(12d);
+                                        productEntity.setDescription(productEntity.getDescription() != null ?
+                                                productEntity.getDescription() : defaultString);
+                                        productEntity.setCreatedAt(now());
+                                        productEntity.setModifiedAt(now());
+                                        productEntity.setCreatedBy("u001");
+                                        productEntity.setModifiedBy("u001");
+                                        productEntity.setPrice(productEntity.getPrice() > 0 ? productEntity.getPrice() : 10.23);
                                         productEntity.setId(UUID.randomUUID().toString());
                                         productService.saveProduct(productMapper.toDto(productEntity));
                                     }

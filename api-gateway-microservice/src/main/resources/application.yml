@@ -29,7 +29,6 @@ spring:
           predicates:
             - Path=/checkout/**
 
-
 logging:
   level:
     org.springframework.cloud.gateway: TRACE

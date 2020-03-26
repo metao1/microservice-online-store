@@ -32,10 +32,10 @@ public class ShoppingCartController {
     }
 
     @DeleteMapping(value = "/removeProduct", produces = "application/json")
-    public String removeProductFromCart(@RequestParam("userid") String userId,
-                                        @RequestParam("asin") String asin) {
+    public Map<String, Integer> removeProductFromCart(@RequestParam("userid") String userId,
+                                                      @RequestParam("asin") String asin) {
         shoppingCartService.removeProductFromCart(userId, asin);
-        return String.format("Removing from Cart successful for user %s", userId);
+        return shoppingCartService.getProductsInCart(userId);
     }
 
     @GetMapping(value = "/clearCart", produces = "application/json")
