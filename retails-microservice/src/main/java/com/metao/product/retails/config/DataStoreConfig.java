@@ -43,7 +43,7 @@ public class DataStoreConfig {
                                 ProductEntity productEntity = null;
                                 try {
                                     productEntity = gson.fromJson(s, ProductEntity.class);
-                                    if (productEntity != null && counter.get() < 10 ) {
+                                    if (productEntity != null && counter.get() < 1000 ) {
                                         productEntity.setDescription(productEntity.getDescription() != null ? productEntity.getDescription().length() > 255 ? productEntity.getDescription().substring(0, 255) : productEntity.getDescription() : "The description is not provided for this product. Please consider looking at the other websites in the internet for more information about this product.");
                                         productEntity.setPrice(12d);
                                         productEntity.setId(UUID.randomUUID().toString());
@@ -52,7 +52,7 @@ public class DataStoreConfig {
                                 } catch (Exception ex) {
                                     log.error(ex.getMessage());
                                 }
-                                if (counter.getAndIncrement() > 10) {
+                                if (counter.getAndIncrement() > 1000) {
                                     return null;
                                 }
                                 return productEntity;

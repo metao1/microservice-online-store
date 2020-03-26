@@ -21,8 +21,6 @@ public class ProductDTO {
 
     String description;
 
-    String brand;
-
     String title;
 
     Set<String> categories;

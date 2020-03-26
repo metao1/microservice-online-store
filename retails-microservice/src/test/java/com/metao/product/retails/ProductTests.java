@@ -39,7 +39,7 @@ public class ProductTests extends BaseTest {
 
     private String productId = UUID.randomUUID().toString();
     private ProductEntity productEntity = ProductEntity.builder()
-            .brand("brand")
+            .title("brand")
             .categories(Collections.singleton("Clothes"))
             .description("clothes")
             .id(productId)
@@ -53,7 +53,7 @@ public class ProductTests extends BaseTest {
 
     private ProductDTO productDTO = ProductDTO.builder()
             .asin(UUID.randomUUID().toString())
-            .brand(productEntity.getBrand())
+            .title(productEntity.getTitle())
             .categories(productEntity.getCategories())
             .price(productEntity.getPrice())
             .description(productEntity.getDescription())
@@ -78,7 +78,7 @@ public class ProductTests extends BaseTest {
                 .value(val -> {
                     assertThat(val).isNotNull();
                     assertThat(val.getPrice()).isEqualTo(productEntity.getPrice());
-                    assertThat(val.getBrand()).isEqualTo(productEntity.getBrand());
+                    assertThat(val.getTitle()).isEqualTo(productEntity.getTitle());
                     assertThat(val.getCategories().containsAll(productEntity.getCategories()));
                 });
     }

@@ -12,8 +12,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.transaction.support.TransactionTemplate;
 
+import javax.persistence.EntityManager;
 import java.util.Map;
 
 @Slf4j
@@ -25,12 +31,19 @@ public class CheckoutServiceImplementation implements CheckoutService {
 	private final ShoppingCartRestClient shoppingCartRestClient;
 	private final ProductCatalogRestClient productCatalogRestClient;
 	private final ProductInventoryRepository productInventoryRepository;
+	private final PlatformTransactionManager transactionManager;
+	private TransactionTemplate transactionTemplate;
+	private final EntityManager entityManager;
+
+	@Autowired
+	public void setTransactionManager(PlatformTransactionManager transactionManager) {
+		transactionTemplate = new TransactionTemplate(transactionManager);
+	}
 
 	public OrderEntity checkout(String userId) throws NotEnoughProductsInStockException {
 		Map<String, Integer> products = shoppingCartRestClient.getProductsInCart(userId);
 		log.debug("*** In Checkout products ***");
-		StringBuilder updateCartpreparedStatement = new StringBuilder();
-		updateCartpreparedStatement.append("BEGIN TRANSACTION");
+		StringBuilder updateCartPreparedStatement = new StringBuilder();
 		OrderEntity currentOrder = null;
 		StringBuilder orderDetails = new StringBuilder();
 		orderDetails.append("Customer bought these Items: ");
@@ -42,27 +55,33 @@ public class CheckoutServiceImplementation implements CheckoutService {
 				final ProductInventoryEntity productInventory = productInventoryRepository.findById(entry.getKey()).orElse(null);
 				final ProductDTO productDetails = productCatalogRestClient.getProductDetails(entry.getKey());
 
-				if (productInventory != null && productInventory.getQuantity() < entry.getValue())
+				if (productInventory != null && productInventory.getQuantity() < entry.getValue()) {
 					throw new NotEnoughProductsInStockException(productDetails.getTitle(), productInventory.getQuantity());
-
-				updateCartpreparedStatement.append(" UPDATE product_inventory SET quantity = quantity - "
-						+ entry.getValue() + " where asin = '" + entry.getKey() + "' ;");
+				}
+				updateCartPreparedStatement.append("UPDATE product_inventory SET quantity = quantity - ").append(entry.getValue()).append(" where asin = '").append(entry.getKey()).append("' ;");
 				orderDetails.append(" Product: " + productDetails.getTitle() + ", Quantity: " + entry.getValue() + ";");
 			}
 			double orderTotal = getTotal(products);
-			orderDetails.append(" Order Total is : " + orderTotal);
+			orderDetails.append(" Order Total is : ").append(orderTotal);
 			currentOrder = createOrder(userId, orderDetails.toString(), orderTotal);
-			updateCartpreparedStatement
+			updateCartPreparedStatement
 					.append(" INSERT INTO orders (order_id, user_id, order_details, order_time, order_total) VALUES ("
 							+ "'" + currentOrder.getId() + "', " + "'1'" + ", '" + currentOrder.getOrderDetails()
 							+ "', '" + currentOrder.getOrderTime() + "'," + currentOrder.getOrderTotal() + ");");
-			updateCartpreparedStatement.append(" END TRANSACTION;");
-			log.debug("Statemet is " + updateCartpreparedStatement.toString());
-			//cassandraTemplate.getCqlOperations().execute(updateCartpreparedStatement.toString());
+			log.debug("Statement is " + updateCartPreparedStatement.toString());
+			transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+			transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+				@Override
+				protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
+					int updated = entityManager.createNativeQuery(updateCartPreparedStatement.toString()).executeUpdate();
+					if (updated == 0) {
+						products.clear();
+						shoppingCartRestClient.clearCart(userId);
+						log.debug("*** Checkout complete, cart cleared ***");
+					}
+				}
+			});
 		}
-		products.clear();
-		shoppingCartRestClient.clearCart(userId);
-		log.debug("*** Checkout complete, cart cleared ***");
 		return currentOrder;
 	}
 
