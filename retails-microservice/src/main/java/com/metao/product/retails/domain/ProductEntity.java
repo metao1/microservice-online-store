@@ -14,16 +14,17 @@ import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
 import javax.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
 
-@Table(name = "product")
 @Entity
 @Data
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "product")
 @EqualsAndHashCode(callSuper = true)
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class ProductEntity extends AutoAwareItemEntity {
@@ -36,9 +37,10 @@ public class ProductEntity extends AutoAwareItemEntity {
 
     @Column(name = "categories")
     @ElementCollection(targetClass = String.class)
-    @CollectionTable(name = "product_categories", joinColumns = @JoinColumn(name = "id"))
+    @CollectionTable(name = "product_categories", joinColumns = @JoinColumn(name = "id", referencedColumnName = "asin"))
     private Set<String> categories = new HashSet<>();
 
+    @Lob
     private String description;
 
     @Column(name = "imgurl")

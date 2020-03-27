@@ -1,12 +1,13 @@
 package com.metao.product.retails.config;
 
 import com.google.gson.Gson;
-import com.metao.product.retails.domain.ProductEntity;
+import com.metao.product.models.ProductDTO;
 import com.metao.product.retails.mapper.ProductMapper;
 import com.metao.product.retails.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -14,16 +15,13 @@ import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Objects;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.metao.product.utils.DateFormatter.now;
-
 @Component
 @Slf4j
+@Profile("setup")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class DataStoreConfig {
 
@@ -34,47 +32,44 @@ public class DataStoreConfig {
     @PostConstruct
     @Async
     public void initDatabase() {
+        log.debug("importing products data from resources");
         try {
-            final AtomicInteger counter = new AtomicInteger();
-            log.debug("importing products data from resources");
-            String defaultString = "The description is not provided for this product. Please consider looking at the other websites in the internet for more information about this product.";
-            String dataSource = readDataFromResources("data/products.json");
+            String dataSource = readDataFromResources();
             Stream.of(dataSource.split("!"))
-                    .map(s -> {
-                                ProductEntity productEntity = null;
-                                try {
-                                    productEntity = gson.fromJson(s, ProductEntity.class);
-                                    if (productEntity != null && counter.get() < 1000 ) {
-                                        productEntity.setDescription(productEntity.getDescription() != null ?
-                                                productEntity.getDescription() : defaultString);
-                                        productEntity.setCreatedAt(now());
-                                        productEntity.setModifiedAt(now());
-                                        productEntity.setCreatedBy("u001");
-                                        productEntity.setModifiedBy("u001");
-                                        productEntity.setPrice(productEntity.getPrice() > 0 ? productEntity.getPrice() : 10.23);
-                                        productEntity.setId(UUID.randomUUID().toString());
-                                        productService.saveProduct(productMapper.toDto(productEntity));
-                                    }
-                                } catch (Exception ex) {
-                                    log.error(ex.getMessage());
-                                }
-                                if (counter.getAndIncrement() > 1000) {
-                                    return null;
-                                }
-                                return productEntity;
-                            }
-                    )
-                    .filter(Objects::nonNull)
+                    .map(this::processAndStoreIntoDatabase)
                     .collect(Collectors.toList());
         } catch (Exception ex) {
             log.error(ex.getMessage());
         }
-        log.debug("coll");
+        log.debug("finished writing to database.");
     }
 
-    private String readDataFromResources(String path) throws IOException {
+    private boolean processAndStoreIntoDatabase(String s) {
+        String defaultString = "The description is not provided for this product. " +
+                "Please consider looking at the other websites in the internet for " +
+                "more information about this product.";
+
+        final AtomicInteger counter = new AtomicInteger();
+        final ProductDTO productDTO;
+        try {
+            productDTO = gson.fromJson(s, ProductDTO.class);
+            if (productDTO != null && counter.get() < 1000) {
+                productService.saveProduct(ProductDTO.builder().asin(productDTO.getAsin())
+                        .categories(productDTO.getCategories())
+                        .description(productDTO.getDescription() != null ?
+                                productDTO.getDescription() : defaultString)
+                        .price(productDTO.getPrice() > 0 ? productDTO.getPrice() : 10.23)
+                        .build());
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+        }
+        return true;
+    }
+
+    private String readDataFromResources() throws IOException {
         ClassLoader classLoader = getClass().getClassLoader();
-        try (Stream<String> content = Files.lines(Paths.get(classLoader.getResource(path).getFile()))) {
+        try (Stream<String> content = Files.lines(Paths.get(classLoader.getResource("data/products.json").getFile()))) {
             return content.collect(Collectors.joining("!"));
         }
     }

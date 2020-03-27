@@ -4,18 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
-import javax.persistence.Embeddable;
 import javax.persistence.MappedSuperclass;
 import java.time.LocalDate;
 
-@Getter
-@Embeddable
 @Data
 @SuperBuilder
-@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @MappedSuperclass

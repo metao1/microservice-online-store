@@ -21,18 +21,3 @@ spring:
     url: jdbc:postgresql://localhost:5432/product
     username: postgres
     password: secset
-
-  cloud:
-    stream:
-      rabbit:
-        bindings:
-          input:
-            consumer:
-              auto-bind-dlq: true
-              dlq-ttl: 5000
-      bindings:
-        input:
-          consumer:
-            max-attempts: 1
-          destination: myDestination
-          group: consumerGroup
