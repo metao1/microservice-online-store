@@ -14,7 +14,6 @@ import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
 import javax.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
@@ -40,7 +39,7 @@ public class ProductEntity extends AutoAwareItemEntity {
     @CollectionTable(name = "product_categories", joinColumns = @JoinColumn(name = "id", referencedColumnName = "asin"))
     private Set<String> categories = new HashSet<>();
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "imgurl")

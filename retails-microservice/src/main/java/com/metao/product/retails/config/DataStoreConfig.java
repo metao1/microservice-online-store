@@ -56,6 +56,8 @@ public class DataStoreConfig {
             if (productDTO != null && counter.get() < 1000) {
                 productService.saveProduct(ProductDTO.builder().asin(productDTO.getAsin())
                         .categories(productDTO.getCategories())
+                        .title(productDTO.getTitle())
+                        .imageUrl(productDTO.getImageUrl())
                         .description(productDTO.getDescription() != null ?
                                 productDTO.getDescription() : defaultString)
                         .price(productDTO.getPrice() > 0 ? productDTO.getPrice() : 10.23)

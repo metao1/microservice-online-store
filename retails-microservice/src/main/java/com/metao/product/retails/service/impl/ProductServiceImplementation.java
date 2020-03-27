@@ -54,6 +54,6 @@ public class ProductServiceImplementation implements ProductService {
 
     @Override
     public void saveProduct(ProductDTO obj) {
-        this.productRepository.saveAndFlush(productMapper.toEntity(obj));
+        this.productRepository.save(productMapper.toEntity(obj));
     }
 }
