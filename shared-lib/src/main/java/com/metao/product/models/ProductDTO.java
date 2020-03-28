@@ -23,11 +23,19 @@ public class ProductDTO {
 
     String title;
 
-    Set<String> categories;
-
     String imageUrl;
 
     Double price;
+
+    Integer numReviews;
+
+    Double numStars;
+
+    Double avgStars;
+
+    RelatedDTO related;
+
+    Set<String> categories;
 
     @JsonPOJOBuilder(withPrefix = "")
     public static final class ProductDTOBuilder {

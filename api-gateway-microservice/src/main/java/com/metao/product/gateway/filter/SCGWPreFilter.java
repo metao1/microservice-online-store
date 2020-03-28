@@ -1,5 +1,7 @@
 package com.metao.product.gateway.filter;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
@@ -23,16 +25,10 @@ public class SCGWPreFilter extends AbstractGatewayFilterFactory<SCGWPreFilter.Co
 			return chain.filter(exchange.mutate().request(request).build());
 		};
 	}
-	
+
+	@Setter
+	@Getter
 	public static class Config {
 		private String name;
-		
-		public String getName() {
-			return this.name;
-		}
-		
-		public void setName(String name) {
-			this.name = name;
-		}
 	}
 }

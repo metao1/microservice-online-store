@@ -30,20 +30,30 @@ public class ProductEntity extends AutoAwareItemEntity {
 
     @Id
     @Column(name = "asin")
-    protected String id;
+    private String id;
 
     private String title;
 
-    @Column(name = "categories")
-    @ElementCollection(targetClass = String.class)
-    @CollectionTable(name = "product_categories", joinColumns = @JoinColumn(name = "id", referencedColumnName = "asin"))
-    private Set<String> categories = new HashSet<>();
-
-    @Column(columnDefinition = "TEXT")
+    @Column(length = 1900)
     private String description;
 
     @Column(name = "imgurl")
     private String imageUrl;
 
     private Double price;
+
+    private Integer numReviews;
+
+    private Double numStars;
+
+    private Double avgStars;
+
+//    @Embedded
+//    private RelatedEntity related;
+
+    @Column(name = "categories")
+    @ElementCollection(targetClass = String.class)
+    @CollectionTable(name = "product_categories", joinColumns = @JoinColumn(name = "id"))
+    private Set<String> categories = new HashSet<>();
+
 }

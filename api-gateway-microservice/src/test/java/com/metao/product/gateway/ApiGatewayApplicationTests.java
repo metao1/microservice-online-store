@@ -44,7 +44,7 @@ class ApiGatewayApplicationTests {
 
     @Test
     public void contextLoad() {
-        webTestClient.get().uri("/product-ms/products/?limit=1&offset=1").exchange().expectStatus().isOk();
+        webTestClient.get().uri("/products/?limit=12&offset=0").exchange().expectStatus().isOk();
     }
 
     @Test

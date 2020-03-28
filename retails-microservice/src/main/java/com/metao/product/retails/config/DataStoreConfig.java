@@ -2,7 +2,6 @@ package com.metao.product.retails.config;
 
 import com.google.gson.Gson;
 import com.metao.product.models.ProductDTO;
-import com.metao.product.retails.mapper.ProductMapper;
 import com.metao.product.retails.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +26,7 @@ public class DataStoreConfig {
 
     private final Gson gson;
     private final ProductService productService;
-    private final ProductMapper productMapper;
+    final AtomicInteger counter = new AtomicInteger();
 
     @PostConstruct
     @Async
@@ -49,11 +48,10 @@ public class DataStoreConfig {
                 "Please consider looking at the other websites in the internet for " +
                 "more information about this product.";
 
-        final AtomicInteger counter = new AtomicInteger();
         final ProductDTO productDTO;
         try {
             productDTO = gson.fromJson(s, ProductDTO.class);
-            if (productDTO != null && counter.get() < 1000) {
+            if (productDTO != null && counter.get() < 2) {
                 productService.saveProduct(ProductDTO.builder().asin(productDTO.getAsin())
                         .categories(productDTO.getCategories())
                         .title(productDTO.getTitle())

@@ -7,17 +7,20 @@ spring:
     show-sql: true
     generate-ddl: true
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: none
     database-platform: org.hibernate.dialect.PostgreSQL9Dialect
     properties:
-      hibernate.id.new_generator_mappings: true
-      hibernate.connection.provider_disables_autocommit: true
-      hibernate.cache.use_second_level_cache: true
-      hibernate.cache.use_query_cache: true
-      hibernate.generate_statistics: false
-      hibernate.cache.region.factory_class: org.hibernate.cache.ehcache.EhCacheRegionFactory
+      hibernate:
+        temp:
+          use_jdbc_metadata_defaults: false
     open-in-view: false
   datasource:
     url: jdbc:postgresql://localhost:5432/product
     username: postgres
     password: secset
+
+logging:
+  level:
+    org.springframework.data: DEBUG
+    org.springframework.boot.autoconfigure: ERROR
+    org.springframework.web.reactive: DEBUG
