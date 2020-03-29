@@ -3,23 +3,39 @@ import React, {Component} from 'react';
 //Internals
 import './index.css';
 import {Button} from "../common";
+import Select from 'react-select'
 
 class AdminPanel extends Component {
-    asyncRequest = null;
-    availableCategories = [];
+    _asyncRequest = null;
+    options = [];
 
     constructor(props) {
         super(props);
         this.state = {
             title: '',
+            description: '',
+            imageUrl: '',
+            price: 0,
+            categories: undefined,
             isCompleted: false
         };
         this.handleChange = this.handleChange.bind(this);
+        this.onCategoriesChanged = this.onCategoriesChanged.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
     handleChange(event) {
-        this.setState({title: event.target.value});
+        if (event && event.target) {
+            let nam = event.target.name;
+            let val = event.target.value;
+            this.setState({[nam]: val});
+        }
+    }
+
+    onCategoriesChanged(event) {
+        if (!!event) {
+            this.setState({categories: event.map(ev => ev.value)});
+        }
     }
 
     handleSubmit(event) {
@@ -27,24 +43,48 @@ class AdminPanel extends Component {
         event.preventDefault();
     }
 
-    componentWillUnmount() {
-        if (this._asyncRequest) {
-            this._asyncRequest.cancel();
-        }
+    componentDidMount() {
+        this.createNotification('info', 'hello');
+        this.fetchCategories();
+    }
+
+    fetchCategories() {
+        const url = '/api/products/categories';
+        console.log("Fetching categories: " + url);
+        this._asyncRequest = fetch(url)
+            .then(res => res.json())
+            .then(categories => {
+                this._asyncRequest = null;
+                categories.slice(0, 1500)
+                    .sort(this.sortIt)
+                    .filter(this.onlyUnique)
+                    .flatMap(item => {
+                        this.options.push({value: item.categories, label: item.categories});
+                    });
+            }).catch(_ => {
+                this.createNotification('error', 'can get the categories');
+                console.error('no categories found');
+            });
+    }
+
+    sortIt(a, b) {
+        return a.categories - b.categories;
+    }
+
+    onlyUnique(value, index, self) {
+        return self.indexOf(value) === index;
     }
 
     submitProduct() {
         const url = '/api/products';
         let product = {
-            asin: '1234567891',
-            description: '1233',
-            title: '12313',
-            imageUrl: '13313',
-            categories: ['Music'],
-            price: 10
+            description: this.state.description,
+            title: this.state.title,
+            imageUrl: this.state.imageUrl,
+            categories: this.state.categories,
+            price: this.state.price
         };
-
-        fetch(url, {
+        this._asyncRequest = fetch(url, {
             method: 'POST',
             body: JSON.stringify(product),
             headers: {
@@ -52,14 +92,29 @@ class AdminPanel extends Component {
                 'Content-Type': 'application/json'
             }
         }).catch(err => {
-            console.log(err)
-        }).then(result =>
-            this.setState({result, isCompleted: true})
-        );
+            this.createNotification('error', 'can not submit the product');
+            console.log(err);
+        }).then(result => {
+                this.setState({result, isCompleted: true})
+                this.createNotification('info', 'product saved');
+            }
+        ).finally(() => {
+            this.resetForm(null);
+        });
+    }
+
+    resetForm() {
+        this.setState({
+            title: '',
+            description: '',
+            imageUrl: '',
+            price: 0,
+            categories: undefined,
+            isCompleted: false
+        });
     }
 
     render() {
-        const self = this;
         return (
             <div className="cart-container">
                 <div className="container">
@@ -68,25 +123,40 @@ class AdminPanel extends Component {
 
                     <div className="publish-form">
                         <span>Title</span>
-                        <input type="text" value={this.state.title} onChange={this.handleChange} required/>
-
+                        <input type="text" name="title" value={this.state.title} onChange={this.handleChange} required/>
                         <span>Description</span>
-                        <input type="text" value={this.state.description} onChange={this.handleChange}/>
-                        <span>Image URL:</span>
-                        <input type="text" value={this.state.imageUrl} onChange={this.handleChange} required/>
-                        <span>Categories</span>
-                        <option value={this.state.categories} onChange={this.handleChange}/>
-                        <div className="actions">
-                            <Button onClick={() => {
-                                this.submitProduct();
-                                this.setState({isCompleted: true})
-                            }} size="meduim" disabled={!Boolean(this.state.title)}>Publish</Button>
+                        <input type="text" name="description" value={this.state.description}
+                               onChange={this.handleChange}/>
+                        <span>Image URL</span>
+                        <input type="text" name="imageUrl" value={this.state.imageUrl} onChange={this.handleChange}
+                               required/>
+                        <span>Price</span>
+                        <input type="number" name="price" value={this.state.price} onChange={this.handleChange}
+                               required/>
+                        <div className="margin-top-10">
+                            <div className="margin-top-10">
+                                <span>Categories</span>
+                                <Select onChange={this.onCategoriesChanged}
+                                        closeMenuOnSelect={false} isMulti options={this.options}/>
+                            </div>
+                            <br/>
+                            <div className="actions">
+                                <Button onClick={() => {
+                                    this.submitProduct();
+                                    this.setState({isCompleted: true})
+                                }} size="meduim"
+                                        disabled={!Boolean(this.state.title)}>Publish</Button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         );
     }
+
+    createNotification = (type, content) => {
+        alert(content);
+    };
 }
 
 export default AdminPanel;

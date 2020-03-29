@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service("productService")
@@ -54,6 +55,7 @@ public class ProductServiceImplementation implements ProductService {
 
     @Override
     public void saveProduct(ProductDTO obj) {
+        obj.setAsin(UUID.randomUUID().toString());
         this.productRepository.save(productMapper.mapToEntity(obj));
     }
 

@@ -56,7 +56,7 @@ public class ProductCatalogController {
         }
     }
 
-    @GetMapping(value = "/product/categories", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/products/categories", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<ProductCategoriesDTO>> getAllProductCategories() {
         return ResponseEntity.ok(productCategoriesService.getProductCategories());
     }

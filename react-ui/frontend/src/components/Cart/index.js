@@ -6,7 +6,7 @@ import {Link} from 'react-router-dom';
 import './index.css';
 
 class CartProducts extends Component {
-    asyncRequest = null;
+    _asyncRequest = null;
 
     constructor(props) {
         super(props);
@@ -55,7 +55,7 @@ class CartProducts extends Component {
             this.state.product_id = "" + product_id;
             const url = '/api/products/details/' + product_id;
             console.log("Fetching url: " + url);
-            fetch(url)
+            this._asyncRequest = fetch(url)
                 .then(res => res.json())
                 .then(product => {
                     this._asyncRequest = null;
