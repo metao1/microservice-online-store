@@ -44,7 +44,6 @@ class AdminPanel extends Component {
     }
 
     componentDidMount() {
-        this.createNotification('info', 'hello');
         this.fetchCategories();
     }
 
