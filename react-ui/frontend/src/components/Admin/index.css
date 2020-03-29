@@ -1,0 +1,14 @@
+.publish-form {
+    margin: 45px 10px 100px 0;
+}
+
+.cart-container {
+    padding-top: 95px;
+    padding-bottom: 35px;
+    min-height: 20vw;
+    background-color: #f7f7f7;
+}
+
+.cart-container h5 {
+    margin-top: 30px;
+}

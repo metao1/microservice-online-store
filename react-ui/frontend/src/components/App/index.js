@@ -4,6 +4,7 @@ import React, {Component} from 'react';
 import Cart from '../Cart';
 import ShowProduct from '../ShowProduct';
 import Products from '../Products';
+import AdminPanel from "../Admin";
 import Home from '../Home';
 import {Footer, Navbar, Subscribe} from '../Main/components';
 import {Route, Switch} from 'react-router-dom';
@@ -184,7 +185,10 @@ export default class App extends Component {
                                    cart={this.state.cart} fetchCart={this.fetchCart}
                                    removeItemFromCart={this.removeItemFromCart}/>
                            )}/>
-
+                    <Route path="/admin"
+                           render={(props) => (
+                               <AdminPanel/>
+                           )}/>
                     <Route path="/Music"
                            render={(props) => (
                                <Products
