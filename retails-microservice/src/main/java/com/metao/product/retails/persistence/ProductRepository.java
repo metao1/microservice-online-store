@@ -22,7 +22,7 @@ public interface ProductRepository extends CrudRepository<ProductEntity, String>
     List<ProductEntity> findAllProductsWithOffset(Pageable pageable);
 
     @Transactional
-    @Query("SELECT distinct product FROM ProductEntity product left join fetch product.categories categories where categories IN :category")
+    @Query("SELECT distinct product FROM ProductEntity product left join fetch product.categories categories where categories.categories IN :category")
     List<ProductEntity> findAllProductsWithCategoryAndOffset(@Param("category") String category, Pageable pageable);
 
 }

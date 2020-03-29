@@ -8,12 +8,13 @@ import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import javax.persistence.CollectionTable;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
@@ -52,8 +53,8 @@ public class ProductEntity extends AutoAwareItemEntity {
 //    private RelatedEntity related;
 
     @Column(name = "categories")
-    @ElementCollection(targetClass = String.class)
-    @CollectionTable(name = "product_categories", joinColumns = @JoinColumn(name = "id"))
-    private Set<String> categories = new HashSet<>();
+    @ManyToMany(targetEntity = ProductCategoryEntity.class, cascade = CascadeType.ALL)
+    @JoinTable(name = "product_categories", joinColumns = {@JoinColumn(name = "asin")}, inverseJoinColumns = {@JoinColumn(name = "id")})
+    private Set<ProductCategoryEntity> categories = new HashSet<>();
 
 }

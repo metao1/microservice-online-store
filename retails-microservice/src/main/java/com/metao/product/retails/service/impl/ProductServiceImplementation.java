@@ -26,34 +26,35 @@ public class ProductServiceImplementation implements ProductService {
     private final ProductMapper productMapper;
 
     @Override
-    public ProductDTO findProductById(@NonNull String productId) {
+    public ProductDTO getProductById(@NonNull String productId) {
         Optional<ProductEntity> productEntity = productRepository.findProductEntityById(productId);
         ProductEntity entity = productEntity.orElseThrow(() -> new ProductNotFoundException(productId));
-        return productMapper.toDto(entity);
+        return productMapper.mapToDto(entity);
     }
 
     @Override
-    public List<ProductDTO> findAllProductsPageable(int limit, int offset) {
+    public List<ProductDTO> getAllProductsPageable(int limit, int offset) {
         Pageable pageable = new OffsetBasedPageRequest(limit, offset);
         List<ProductEntity> productEntities = productRepository.findAllProductsWithOffset(pageable);
         return productEntities.stream()
                 .filter(Objects::nonNull)
-                .map(productMapper::toDto)
+                .map(productMapper::mapToDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<ProductDTO> findAllProductsWithCategory(String category, int limit, int offset) {
+    public List<ProductDTO> getAllProductsWithCategory(String category, int limit, int offset) {
         Pageable pageable = new OffsetBasedPageRequest(limit, offset);
         List<ProductEntity> allProductsWithCategoryAndOffset = this.productRepository.findAllProductsWithCategoryAndOffset(category, pageable);
         return allProductsWithCategoryAndOffset.stream()
                 .filter(Objects::nonNull)
-                .map(productMapper::toDto)
+                .map(productMapper::mapToDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public void saveProduct(ProductDTO obj) {
-        this.productRepository.save(productMapper.toEntity(obj));
+        this.productRepository.save(productMapper.mapToEntity(obj));
     }
+
 }

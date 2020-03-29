@@ -6,6 +6,7 @@ import {Button} from "../common";
 
 class AdminPanel extends Component {
     asyncRequest = null;
+    availableCategories = [];
 
     constructor(props) {
         super(props);
@@ -67,7 +68,14 @@ class AdminPanel extends Component {
 
                     <div className="publish-form">
                         <span>Title</span>
-                        <input type="text" value={this.state.title} onChange={this.handleChange}/>
+                        <input type="text" value={this.state.title} onChange={this.handleChange} required/>
+
+                        <span>Description</span>
+                        <input type="text" value={this.state.description} onChange={this.handleChange}/>
+                        <span>Image URL:</span>
+                        <input type="text" value={this.state.imageUrl} onChange={this.handleChange} required/>
+                        <span>Categories</span>
+                        <option value={this.state.categories} onChange={this.handleChange}/>
                         <div className="actions">
                             <Button onClick={() => {
                                 this.submitProduct();

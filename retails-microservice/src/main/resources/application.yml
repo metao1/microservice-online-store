@@ -7,7 +7,7 @@ spring:
     show-sql: true
     generate-ddl: true
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     database-platform: org.hibernate.dialect.PostgreSQL9Dialect
     properties:
       hibernate:

@@ -51,7 +51,7 @@ public class DataStoreConfig {
         final ProductDTO productDTO;
         try {
             productDTO = gson.fromJson(s, ProductDTO.class);
-            if (productDTO != null && counter.get() < 2) {
+            if (productDTO != null && counter.get() < 100) {
                 productService.saveProduct(ProductDTO.builder().asin(productDTO.getAsin())
                         .categories(productDTO.getCategories())
                         .title(productDTO.getTitle())
@@ -59,6 +59,7 @@ public class DataStoreConfig {
                         .description(productDTO.getDescription() != null ?
                                 productDTO.getDescription() : defaultString)
                         .price(productDTO.getPrice() > 0 ? productDTO.getPrice() : 10.23)
+                        .categories(productDTO.getCategories())
                         .build());
             }
         } catch (Exception ex) {

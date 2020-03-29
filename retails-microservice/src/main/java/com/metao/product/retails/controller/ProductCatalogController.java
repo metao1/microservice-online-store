@@ -1,7 +1,9 @@
 package com.metao.product.retails.controller;
 
+import com.metao.product.models.ProductCategoriesDTO;
 import com.metao.product.models.ProductDTO;
-import com.metao.product.retails.service.impl.ProductServiceImplementation;
+import com.metao.product.retails.service.ProductCategoriesService;
+import com.metao.product.retails.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +23,9 @@ import java.util.List;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class ProductCatalogController {
 
-    private final ProductServiceImplementation productService;
+    private final ProductService productService;
+
+    private final ProductCategoriesService productCategoriesService;
 
     @PostMapping(value = "/products", consumes = MediaType.APPLICATION_JSON_VALUE)
     public void saveProduct(@Valid @RequestBody ProductDTO productDTO) {
@@ -30,13 +34,13 @@ public class ProductCatalogController {
 
     @GetMapping(value = "/products/details/{asin}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ProductDTO> getOneProduct(@PathVariable String asin) {
-        return ResponseEntity.ok(productService.findProductById(asin));
+        return ResponseEntity.ok(productService.getProductById(asin));
     }
 
     @GetMapping(value = "/products", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<ProductDTO>> getAllProductsWithOffset(@Param("limit") Integer limit,
                                                                      @Param("offset") Integer offset) {
-        return ResponseEntity.ok(productService.findAllProductsPageable(limit != null ? limit : 10,
+        return ResponseEntity.ok(productService.getAllProductsPageable(limit != null ? limit : 10,
                 offset != null ? offset : 0));
     }
 
@@ -47,8 +51,13 @@ public class ProductCatalogController {
         if (StringUtils.isEmpty(category)) {
             return ResponseEntity.badRequest().build();
         } else {
-            return ResponseEntity.ok(productService.findAllProductsWithCategory(category, limit != null ? limit : 10,
+            return ResponseEntity.ok(productService.getAllProductsWithCategory(category, limit != null ? limit : 10,
                     offset != null ? offset : 0));
         }
+    }
+
+    @GetMapping(value = "/product/categories", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<ProductCategoriesDTO>> getAllProductCategories() {
+        return ResponseEntity.ok(productCategoriesService.getProductCategories());
     }
 }
