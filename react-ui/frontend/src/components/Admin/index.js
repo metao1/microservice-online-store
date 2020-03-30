@@ -61,7 +61,7 @@ class AdminPanel extends Component {
                         this.options.push({value: item.categories, label: item.categories});
                     });
             }).catch(_ => {
-                this.createNotification('error', 'can get the categories');
+                this.createNotification('error', 'can not get the categories');
                 console.error('no categories found');
             });
     }
