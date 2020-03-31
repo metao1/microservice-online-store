@@ -129,7 +129,7 @@ class Products extends Component {
                                             </div>
                                         </Link>
                                         <button onClick={() => this.props.addItemToCart(product)} className="price-add">
-                                            <div className="product-price">${product.price}</div>
+                                            <div className="product-price">{this.props.currency}{product.price}</div>
                                             <Icon small className="add-icon">add_shopping_cart</Icon>
                                         </button>
                                     </div>

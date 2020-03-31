@@ -130,7 +130,9 @@ class AdminPanel extends Component {
                         <input type="text" name="imageUrl" value={this.state.imageUrl} onChange={this.handleChange}
                                required/>
                         <span>Price</span>
-                        <CurrencyFormat name="price" value={this.state.price} thousandSeparator={true} prefix={'$'}
+                        <CurrencyFormat name="price" value={this.state.price}
+                                        thousandSeparator={true}
+                                        prefix={this.props.currency}
                                         onValueChange={(values) => {
                                             const {formattedValue, value} = values;
                                             this.setState({price: formattedValue});
@@ -148,7 +150,7 @@ class AdminPanel extends Component {
                                 <Button onClick={() => {
                                     this.submitProduct();
                                     this.setState({isCompleted: true})
-                                }} size="meduim"
+                                }} size="medium"
                                         disabled={!Boolean(this.state.title)}>Publish</Button>
                             </div>
                         </div>

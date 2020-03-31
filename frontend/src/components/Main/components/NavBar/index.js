@@ -13,7 +13,7 @@ class Navbar extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            currency: '€ Euro',
+            currencyName: '€ Euro',
             itemsInCart: 0,
         };
     }
@@ -55,21 +55,27 @@ class Navbar extends Component {
                 </div>
                 <div className='nav-setting'>
                     <div className='nav-cart'>
-                        <NavLink className={`${this.props.cart.total ? 'nav-cart-active' : ''}`} to="/cart">
+                        <div className={`${this.props.cart.total ? 'nav-cart-active' : ''}`}>
                             <Dropdown>
                                 <Dropdown.Toggle variant="success" id="dropdown-basic">
-                                    {this.state.currency}
+                                    {this.state.currencyName}
                                 </Dropdown.Toggle>
                                 <Dropdown.Menu>
-                                    <Dropdown.Item onClick={() => this.setState({currency: '€ Euro'})}>€
-                                        Euro</Dropdown.Item>
-                                    <Dropdown.Item onClick={() => this.setState({currency: '$ Dollar'})}>$
-                                        Dollar</Dropdown.Item>
-                                    <Dropdown.Item onClick={() => this.setState({currency: '£ Pound'})}>£
-                                        Pound</Dropdown.Item>
+                                    <Dropdown.Item onClick={() => {
+                                        this.setState({currencyName: '€ Euro'});
+                                        this.props.changeCurrency('€')
+                                    }}>€ Euro</Dropdown.Item>
+                                    <Dropdown.Item onClick={() => {
+                                        this.setState({currencyName: '$ Dollar'});
+                                        this.props.changeCurrency('$')
+                                    }}>$ Dollar</Dropdown.Item>
+                                    <Dropdown.Item onClick={() => {
+                                        this.setState({currencyName: '£ Pound'});
+                                        this.props.changeCurrency('£');
+                                    }}>£ Pound</Dropdown.Item>
                                 </Dropdown.Menu>
                             </Dropdown>
-                        </NavLink>
+                        </div>
                     </div>
                     <div className='nav-cart'>
                         <NavLink className={`${this.props.cart.total ? 'nav-cart-active' : ''}`} to="/cart">

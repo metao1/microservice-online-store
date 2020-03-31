@@ -61,7 +61,6 @@ class CartProducts extends Component {
     }
 
     render() {
-        const self = this;
         const totalCost = this.state.products.length ? this.state.products.reduce(this.costReducer, 0) : 0;
         return (
             <div className="cart-container">
@@ -106,14 +105,14 @@ class CartProducts extends Component {
                             Taxes:
                         </div>
                         <div className="pricing">
-                            <h6>${totalCost.toFixed(2)}</h6>
-                            <h6>$0.00</h6>
+                            {this.props.currency}<h6> {totalCost.toFixed(2)} * 0.19 + {totalCost.toFixed(2)}</h6>
+                            {this.props.currency}<h6> {totalCost.toFixed(2)} * 0.19</h6>
                         </div>
                         <div className="actions">
                             <Button onClick={() => {
                                 this.submitCheckout();
                                 this.setState({isCompleted: true})
-                            }} size="meduim" disabled={!Boolean(this.props.cart.total)}>Checkout</Button>
+                            }} size="medium" disabled={!Boolean(this.props.cart.total)}>Checkout</Button>
                         </div>
                     </div>
                     }

@@ -17,6 +17,7 @@ export default class App extends Component {
     constructor(props) {
         super(props);
         this.state = {
+            currency: '€',
             cart: {
                 data: {},
                 total: 0
@@ -170,7 +171,9 @@ export default class App extends Component {
     render() {
         return (
             <div>
-                <Navbar cart={this.state.cart} scrolled={this.state.scrolled}/>
+                <Navbar changeCurrency={(currencyUnit) => {
+                    this.setState({currency: currencyUnit})
+                }} cart={this.state.cart} scrolled={this.state.scrolled}/>
                 <Switch>
                     <Route exact path="/"
                            render={(props) => (
@@ -181,34 +184,39 @@ export default class App extends Component {
                     <Route path="/cart"
                            render={(props) => (
                                <Cart
+                                   currency={this.state.currency}
                                    cart={this.state.cart} fetchCart={this.fetchCart}
                                    removeItemFromCart={this.removeItemFromCart}/>
                            )}/>
                     <Route path="/admin"
                            render={(props) => (
-                               <AdminPanel/>
+                               <AdminPanel currency={this.state.currency}/>
                            )}/>
                     <Route path="/Music"
                            render={(props) => (
                                <Products
-                                   category="Music"
+                                   currency={this.state.currency}
+                                   category={"Music"}
                                    addItemToCart={this.addItemToCart}/>
                            )}/>
                     <Route path="/Books"
                            render={(props) => (
                                <Products
+                                   currency={this.state.currency}
                                    category={"Books"}
                                    addItemToCart={this.addItemToCart}/>
                            )}/>
                     <Route path="/Beauty"
                            render={(props) => (
                                <Products
+                                   currency={this.state.currency}
                                    category={"Beauty"}
                                    addItemToCart={this.addItemToCart}/>
                            )}/>
                     <Route path="/Electronics"
                            render={(props) => (
                                <Products
+                                   currency={this.state.currency}
                                    category={"Electronics"}
                                    addItemToCart={this.addItemToCart}/>
                            )}/>
@@ -216,18 +224,20 @@ export default class App extends Component {
                            render={(props) => (
                                <Products
                                    {...props}
+                                   currency={this.state.currency}
                                    addItemToCart={this.addItemToCart}/>
                            )}/>
 
                     <Route path="/sort/:query"
                            render={(props) => (
                                <Products
+                                   currency={this.state.currency}
                                    sort={props.match.params.query}
                                    addItemToCart={this.addItemToCart}/>
                            )}/>
 
                     <Route exact path="/item/:id" render={(props) => (
-                        <ShowProduct {...props} addItemToCart={this.addItemToCart}/>
+                        <ShowProduct currency={this.state.currency} {...props} addItemToCart={this.addItemToCart}/>
                     )}/>
                 </Switch>
                 <Subscribe/>

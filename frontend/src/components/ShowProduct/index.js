@@ -109,7 +109,7 @@ class ShowProduct extends Component {
                                                         cart
                                                     </Button>
                                                 </div>
-                                                <div className="product-price">${currentProduct.price.toFixed(2)}</div>
+                                                <div className="product-price">{this.props.currency}{currentProduct.price.toFixed(2)}</div>
                                                 <div className="product-description">{currentProduct.description}</div>
                                             </div>
                                         </div>
@@ -173,7 +173,7 @@ class ShowProduct extends Component {
                                                     </Link>
                                                     <button onClick={() => this.props.addItemToCart(product)}
                                                             className="price-add">
-                                                        <div className="product-price">${product.price}</div>
+                                                        <div className="product-price">{this.props.currency}{product.price}</div>
                                                         <Icon small className="add-icon">add_shopping_cart</Icon>
                                                     </button>
                                                 </div>
