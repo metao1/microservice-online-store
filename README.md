@@ -9,38 +9,58 @@ To run the whole application you need to enter into each folder where the micros
 
 Go to terminal and run the below commands:
 
+```
 docker run --name some-postgres -e POSTGRES_PASSWORD=secset -d -p 5432:5432 postgres
+```
 
+Then run:
+
+```
 docker exec -it some-postgres psql -U postgres -c "CREATE DATABASE product;"
+```
 
 
 1) Open a new terminal. Go into the registry-microservice directory and run the below command:
 
+```
 mvn spring-boot:run 
+```
 
 2) Open a new terminal. Go to the ap-gateway-microservice directory and run the below command:
 
+```
 mvn spring-boot:run 
+```
 
 2) Open a new terminal. Go to the checkout-microservice directory and run the below command:
 
+```
 mvn spring-boot:run 
+```
 
 3) Open a new terminal. Go to the card-microservice directory and run the below command:
 
+```
 mvn spring-boot:run 
+```
 
 4) At this step you are running the setup profile of retails microservice. There are some predefined prodcuts that will be imported automatically when running the below command. Open a new terminal. Go to the retails-microservice directory and run the below command:
 
+```
 mvn spring-boot:run -Dspring.profiles.active=setup
+```
 
 5) And finally to run the Frontend application go to frontend directory and run the below command:
 
+```
 npm install
+```
 
 Wait a little bit when finished run the below command. This will open a new browser window for you:
 
+```
 npm start
+```
 
 The application is running on http://localhost:3000
 
