@@ -1,5 +1,7 @@
 # product
-Products Ecommerce and management - Spring boot , React using Microservice architecture
+
+Products is an E-commerce and management tool for products
+running on Spring boot , React using Microservice architecture
 
 How to install and run instructions:
 
