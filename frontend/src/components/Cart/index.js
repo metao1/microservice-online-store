@@ -22,16 +22,10 @@ class CartProducts extends Component {
         );
     }
 
-    componentWillUnmount() {
-        if (this._asyncRequest) {
-            this._asyncRequest.cancel();
-        }
-    }
-
     submitCheckout() {
         if (this.props.cart.total !== 0) {
             const url = '/api/checkout';
-            fetch(url, {
+            this._asyncRequest = fetch(url, {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
@@ -90,7 +84,7 @@ class CartProducts extends Component {
                                 <div className="actions">
                                     <Button className="btn-cart-remove"
                                             onClick={() => this.props.removeItemFromCart(product)}
-                                            size="meduim">Remove</Button>
+                                            size="medium">Remove</Button>
                                 </div>
                             </div>
                         ))}

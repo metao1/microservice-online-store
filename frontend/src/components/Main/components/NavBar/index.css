@@ -8,7 +8,6 @@ nav a {
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     height: 95px;
     justify-content: space-between;
-    overflow: hidden;
     box-shadow: none;
     color: #8A949D55;
     position: fixed;

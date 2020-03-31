@@ -5,6 +5,7 @@ import {Icon} from "../../../common";
 import {NavLink, withRouter} from 'react-router-dom';
 // Internals
 import './index.css';
+import Dropdown from "react-bootstrap/Dropdown";
 
 class Navbar extends Component {
     state = {itemsInCart: 0}
@@ -12,6 +13,7 @@ class Navbar extends Component {
     constructor(props) {
         super(props);
         this.state = {
+            currency: '€ Euro',
             itemsInCart: 0,
         };
     }
@@ -52,6 +54,23 @@ class Navbar extends Component {
                     </ul>
                 </div>
                 <div className='nav-setting'>
+                    <div className='nav-cart'>
+                        <NavLink className={`${this.props.cart.total ? 'nav-cart-active' : ''}`} to="/cart">
+                            <Dropdown>
+                                <Dropdown.Toggle variant="success" id="dropdown-basic">
+                                    {this.state.currency}
+                                </Dropdown.Toggle>
+                                <Dropdown.Menu>
+                                    <Dropdown.Item onClick={() => this.setState({currency: '€ Euro'})}>€
+                                        Euro</Dropdown.Item>
+                                    <Dropdown.Item onClick={() => this.setState({currency: '$ Dollar'})}>$
+                                        Dollar</Dropdown.Item>
+                                    <Dropdown.Item onClick={() => this.setState({currency: '£ Pound'})}>£
+                                        Pound</Dropdown.Item>
+                                </Dropdown.Menu>
+                            </Dropdown>
+                        </NavLink>
+                    </div>
                     <div className='nav-cart'>
                         <NavLink className={`${this.props.cart.total ? 'nav-cart-active' : ''}`} to="/cart">
                             {this.props.cart.total > 0 && <span

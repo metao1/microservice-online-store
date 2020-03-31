@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {FormControl, Grid} from 'react-bootstrap';
+import {Container, FormControl} from 'react-bootstrap';
 import {Button} from '../../../common';
 import './index.css';
 
@@ -7,7 +7,7 @@ class Subscribe extends Component {
     render() {
         return (
             <div className="subscribe">
-                <Grid>
+                <Container>
                     <div className="left">
                         <h5>Let’s keep the conversation going</h5>
                         <p>Receive our newsletter and discover our stories, collections, and surprises.</p>
@@ -18,7 +18,7 @@ class Subscribe extends Component {
                             <Button size="large">Subscribe</Button>
                         </form>
                     </div>
-                </Grid>
+                </Container>
             </div>
         )
     }

@@ -4,6 +4,7 @@ import React, {Component} from 'react';
 import './index.css';
 import {Button} from "../common";
 import Select from 'react-select'
+import CurrencyFormat from 'react-currency-format';
 
 class AdminPanel extends Component {
     _asyncRequest = null;
@@ -13,6 +14,7 @@ class AdminPanel extends Component {
         super(props);
         this.state = {
             title: '',
+            loading: false,
             description: '',
             imageUrl: '',
             price: 0,
@@ -43,23 +45,21 @@ class AdminPanel extends Component {
         event.preventDefault();
     }
 
-    componentDidMount() {
-        this.fetchCategories();
-    }
-
     fetchCategories() {
         const url = '/api/products/categories';
         console.log("Fetching categories: " + url);
+        this.setState({loading: true});
         this._asyncRequest = fetch(url)
             .then(res => res.json())
             .then(categories => {
                 this._asyncRequest = null;
-                categories.slice(0, 1500)
+                categories.slice(0, 1200)
                     .sort(this.sortIt)
                     .filter(this.onlyUnique)
                     .flatMap(item => {
                         this.options.push({value: item.categories, label: item.categories});
                     });
+                this.setState({loading: false});
             }).catch(_ => {
                 this.createNotification('error', 'can not get the categories');
                 console.error('no categories found');
@@ -109,6 +109,7 @@ class AdminPanel extends Component {
             imageUrl: '',
             price: 0,
             categories: undefined,
+            loading: false,
             isCompleted: false
         });
     }
@@ -119,7 +120,6 @@ class AdminPanel extends Component {
                 <div className="container">
                     <h5>Welcome to admin page where you can add new products to your repository</h5>
                     <span>Please fill in the form below and submit it</span>
-
                     <div className="publish-form">
                         <span>Title</span>
                         <input type="text" name="title" value={this.state.title} onChange={this.handleChange} required/>
@@ -130,12 +130,17 @@ class AdminPanel extends Component {
                         <input type="text" name="imageUrl" value={this.state.imageUrl} onChange={this.handleChange}
                                required/>
                         <span>Price</span>
-                        <input type="number" name="price" value={this.state.price} onChange={this.handleChange}
-                               required/>
+                        <CurrencyFormat name="price" value={this.state.price} thousandSeparator={true} prefix={'$'}
+                                        onValueChange={(values) => {
+                                            const {formattedValue, value} = values;
+                                            this.setState({price: formattedValue});
+                                        }}/>
                         <div className="margin-top-10">
                             <div className="margin-top-10">
                                 <span>Categories</span>
                                 <Select onChange={this.onCategoriesChanged}
+                                        onMenuOpen={this.loadCategories()}
+                                        isLoading={Boolean(this.state.loading)}
                                         closeMenuOnSelect={false} isMulti options={this.options}/>
                             </div>
                             <br/>
@@ -154,8 +159,14 @@ class AdminPanel extends Component {
     }
 
     createNotification = (type, content) => {
-        alert(content);
+        //alert(content);
     };
+
+    loadCategories() {
+        if (this.options.length === 0 && !Boolean(this.state.loading)) {
+            this.fetchCategories();
+        }
+    }
 }
 
 export default AdminPanel;

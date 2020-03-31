@@ -165,11 +165,10 @@ export default class App extends Component {
                     console.warn('Request failed', error);
                 });
         }
-    }
+    };
 
     render() {
         return (
-
             <div>
                 <Navbar cart={this.state.cart} scrolled={this.state.scrolled}/>
                 <Switch>
