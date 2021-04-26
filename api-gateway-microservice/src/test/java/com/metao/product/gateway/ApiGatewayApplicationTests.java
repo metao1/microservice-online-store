@@ -24,9 +24,6 @@ class ApiGatewayApplicationTests {
 
     private static int managementPort;
 
-    @LocalServerPort
-    private static int localPort;
-
     private static WebTestClient webTestClient;
 
     @BeforeAll

@@ -1,7 +1,9 @@
 package com.metao.product.checkout.controller;
 
 import com.metao.product.checkout.domain.OrderEntity;
+import com.metao.product.checkout.exception.CartIsEmptyException;
 import com.metao.product.checkout.exception.NotEnoughProductsInStockException;
+import com.metao.product.checkout.exception.UserException;
 import com.metao.product.checkout.model.CheckoutStatus;
 import com.metao.product.checkout.service.CheckoutService;
 import com.metao.product.checkout.service.impl.CheckoutServiceImplementation;
@@ -41,6 +43,8 @@ public class CheckoutController {
             checkoutStatus.setOrderNumber("");
             checkoutStatus.setStatus(CheckoutStatus.FAILURE);
             return checkoutStatus;
+        } catch (CartIsEmptyException | UserException e) {
+            e.printStackTrace();
         }
         return checkoutStatus;
     }

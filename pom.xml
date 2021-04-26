@@ -8,6 +8,7 @@
     <artifactId>product</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
+
     <properties>
         <java.version>11</java.version>
         <maven-javadoc-plugin-version>3.1.1</maven-javadoc-plugin-version>
@@ -23,6 +24,9 @@
 
     <modules>
         <module>api-gateway-microservice</module>
+        <module>registry-microservice</module>
+        <module>checkout-microservice</module>
+        <module>cart-microservice</module>
         <module>retails-microservice</module>
         <module>shared-lib</module>
     </modules>
@@ -75,18 +79,12 @@
 
         <!--Tests-->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>3.9.0</version>
             <scope>test</scope>
-            <!-- Exclude JUnit 4 from starter-test (and all other related test-starter, i.e
-                 those for security and project reactor -->
-            <exclusions>
-                <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
+
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-test</artifactId>

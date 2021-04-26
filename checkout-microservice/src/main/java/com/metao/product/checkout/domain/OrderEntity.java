@@ -3,7 +3,6 @@ package com.metao.product.checkout.domain;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
@@ -17,7 +16,6 @@ import javax.persistence.Table;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode
 public class OrderEntity {
 
     @Id
@@ -31,7 +29,7 @@ public class OrderEntity {
     private String orderDetails;
 
     @Column(name = "order_time")
-    private String orderTime;
+    private long orderTime;
 
     @Column(name = "order_total")
     private Double orderTotal;

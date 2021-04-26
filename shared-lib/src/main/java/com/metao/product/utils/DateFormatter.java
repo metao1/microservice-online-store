@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 public class DateFormatter {
 
-    public static LocalDate now() {
-        return LocalDate.now();
+    public static long now() {
+        return LocalDate.now().toEpochDay();
     }
 }
