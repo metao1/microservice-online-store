@@ -1,6 +1,7 @@
 package com.metao.product.checkout.domain;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -10,6 +11,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "product_inventory")
 @Getter
+@Setter
 public class ProductInventoryEntity {
 
     @Id
