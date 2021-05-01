@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -116,7 +117,19 @@ class CheckoutServiceTest {
 
     @Test
     public void checkoutFailed_noProductInCart() {
+        @Pattern(regexp = "^[0-9]{10}") String ASIN = "1234567890";
 
+        checkoutServiceImplementation.setTransactionManager(platformTransactionManager);
+        Query query = Mockito.mock(Query.class);
+        ProductInventoryEntity productInventoryEntity = new ProductInventoryEntity();
+        productInventoryEntity.setId(ASIN);
+        productInventoryEntity.setQuantity(QUANTITY);
+        Map<String, Integer> userId = shoppingCartRestClient.getProductsInCart(USER_ID);
+        Assertions.assertNotNull(userId);
+
+        assertThatThrownBy(() -> {
+            checkoutServiceImplementation.checkout(USER_ID);
+        });
     }
 
     @Test

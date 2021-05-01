@@ -10,9 +10,11 @@ import com.metao.product.checkout.exception.UserException;
 import com.metao.product.checkout.repository.ProductInventoryRepository;
 import com.metao.product.checkout.service.CheckoutService;
 import com.metao.product.models.ProductDTO;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -24,6 +26,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.persistence.EntityManager;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 @Slf4j
 @Service
@@ -71,7 +74,7 @@ public class CheckoutServiceImplementation implements CheckoutService {
 						append(", Quantity: ")
 						.append(entry.getValue()).append(";");
 			}
-			double orderTotal = getTotal(products);
+			double orderTotal = calculateTotalPriceInCart(products);
 			orderDetails.append(" orderEntity: ").append(orderTotal);
 			currentOrder = createOrder(userId, orderDetails.toString(), orderTotal);
 			updateCartPreparedStatement
@@ -82,7 +85,7 @@ public class CheckoutServiceImplementation implements CheckoutService {
 			transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
 			transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 				@Override
-				protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
+				protected void doInTransactionWithoutResult(@NotNull TransactionStatus transactionStatus) {
 					int updated = entityManager.createNativeQuery(updateCartPreparedStatement.toString()).executeUpdate();
 					if (updated == 0) {
 						products.clear();
@@ -97,16 +100,39 @@ public class CheckoutServiceImplementation implements CheckoutService {
 		return currentOrder;
 	}
 
-	private Double getTotal(Map<String, Integer> products) {
-		double price = 0.0;
-		ProductInventoryEntity productInventory;
-		ProductDTO productDetails;
-		for (Map.Entry<String, Integer> entry : products.entrySet()) {
-			productInventory = productInventoryRepository.findById(entry.getKey()).orElse(null);
-			productDetails = productCatalogRestClient.getProductDetails(entry.getKey());
-			price = price + productDetails.getPrice() * entry.getValue();
-		}
-		return price;
+	public Double calculateTotalPriceInCart(Map<String, Integer> products) {
+		return products.entrySet().stream()
+				.collect(PriceCalculator::new, (k, v) -> k.accept(v.getValue(), lookupPrice(v.getKey())), PriceCalculator::combine)
+				.getTotal();
 	}
 
+	private double lookupPrice(@NonNull final String productKey) {
+		ProductDTO productDetails = productCatalogRestClient.getProductDetails(productKey);
+		if (productDetails != null) {
+			return productDetails.getPrice();
+		}
+		return 0;
+	}
+
+	private static final class PriceCalculator implements BiConsumer<Integer, Double> {
+
+		private double price;
+		private int quantity;
+		private double total;
+
+		public void combine(PriceCalculator priceCalculator) {
+			priceCalculator.total += priceCalculator.price * priceCalculator.quantity;
+		}
+
+		public double getTotal() {
+			return total;
+		}
+
+		@Override
+		public void accept(Integer quantity, Double price) {
+			this.price = price;
+			this.quantity = quantity;
+		}
+
+	}
 }

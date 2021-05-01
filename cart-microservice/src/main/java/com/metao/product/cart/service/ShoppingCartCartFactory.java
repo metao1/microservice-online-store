@@ -1,4 +1,4 @@
-package com.metao.product.cart.service.impl;
+package com.metao.product.cart.service;
 
 import com.metao.product.cart.domain.ShoppingCart;
 import com.metao.product.cart.domain.ShoppingCartKey;
@@ -19,9 +19,9 @@ import java.util.Map;
 
 @Slf4j
 @Service
-@Scope(value = WebApplicationContext.SCOPE_SESSION, proxyMode = ScopedProxyMode.TARGET_CLASS)
 @Transactional
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@Scope(value = WebApplicationContext.SCOPE_SESSION, proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class ShoppingCartCartFactory implements ShoppingCartService {
 
     private final ShoppingCartRepository shoppingCartRepository;
@@ -32,7 +32,7 @@ public class ShoppingCartCartFactory implements ShoppingCartService {
         String ShoppingCartKeyStr = userId + "-" + asin;
         if (shoppingCartRepository.findById(ShoppingCartKeyStr).isPresent()) {
             shoppingCartRepository.updateQuantityForShoppingCart(userId, asin);
-            log.info("Adding product: " + asin);
+            log.info("Updating product: " + asin);
         } else {
             ShoppingCart currentShoppingCart = createCartObject(currentKey);
             shoppingCartRepository.save(currentShoppingCart);
@@ -69,8 +69,8 @@ public class ShoppingCartCartFactory implements ShoppingCartService {
     @Override
     public void clearCart(String userId) {
         if (shoppingCartRepository.findProductsInCartByUserId(userId).isPresent()) {
-            shoppingCartRepository.deleteProductsInCartByUserId(userId);
-            log.info("Deleting all products for user: " + userId + " since checkout was successful");
+            int deletedRow = shoppingCartRepository.deleteProductsInCartByUserId(userId);
+            log.info("Deleted all products for user: {} with code: {} since checkout was successful.", userId, deletedRow);
         }
     }
 }
