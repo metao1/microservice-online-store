@@ -6,22 +6,20 @@ import com.metao.product.checkout.exception.NotEnoughProductsInStockException;
 import com.metao.product.checkout.exception.UserException;
 import com.metao.product.checkout.model.CheckoutStatus;
 import com.metao.product.checkout.service.CheckoutService;
-import com.metao.product.checkout.service.impl.CheckoutServiceImplementation;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
-@RequestMapping("/checkout")
 @RestController
+@RequestMapping("/checkout")
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class CheckoutController {
 
-    CheckoutService checkoutService;
-
-    public CheckoutController(CheckoutServiceImplementation checkoutService) {
-        this.checkoutService = checkoutService;
-    }
+    private final CheckoutService checkoutService;
 
     @PostMapping(produces = "application/json")
     public CheckoutStatus checkout() {

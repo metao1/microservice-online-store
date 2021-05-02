@@ -37,6 +37,7 @@ public class CheckoutServiceImplementation implements CheckoutService {
 	private final ShoppingCartRestClient shoppingCartRestClient;
 	private final ProductCatalogRestClient productCatalogRestClient;
 	private final ProductInventoryRepository productInventoryRepository;
+	private final PriceCalculatorService priceCalculatorService;
 	private TransactionTemplate transactionTemplate;
 	private final EntityManager entityManager;
 
@@ -74,7 +75,7 @@ public class CheckoutServiceImplementation implements CheckoutService {
 						append(", Quantity: ")
 						.append(entry.getValue()).append(";");
 			}
-			double orderTotal = calculateTotalPriceInCart(products);
+			double orderTotal = priceCalculatorService.calculateTotalPriceInCart(products);
 			orderDetails.append(" orderEntity: ").append(orderTotal);
 			currentOrder = createOrder(userId, orderDetails.toString(), orderTotal);
 			updateCartPreparedStatement
@@ -88,8 +89,9 @@ public class CheckoutServiceImplementation implements CheckoutService {
 				protected void doInTransactionWithoutResult(@NotNull TransactionStatus transactionStatus) {
 					int updated = entityManager.createNativeQuery(updateCartPreparedStatement.toString()).executeUpdate();
 					if (updated == 0) {
+						String s = shoppingCartRestClient.clearCart(userId);
 						products.clear();
-						shoppingCartRestClient.clearCart(userId);
+						transactionStatus.flush();
 						log.debug("*** Checkout complete successfully, cart cleared ***");
 					}
 				}
@@ -100,39 +102,4 @@ public class CheckoutServiceImplementation implements CheckoutService {
 		return currentOrder;
 	}
 
-	public Double calculateTotalPriceInCart(Map<String, Integer> products) {
-		return products.entrySet().stream()
-				.collect(PriceCalculator::new, (k, v) -> k.accept(v.getValue(), lookupPrice(v.getKey())), PriceCalculator::combine)
-				.getTotal();
-	}
-
-	private double lookupPrice(@NonNull final String productKey) {
-		ProductDTO productDetails = productCatalogRestClient.getProductDetails(productKey);
-		if (productDetails != null) {
-			return productDetails.getPrice();
-		}
-		return 0;
-	}
-
-	private static final class PriceCalculator implements BiConsumer<Integer, Double> {
-
-		private double price;
-		private int quantity;
-		private double total;
-
-		public void combine(PriceCalculator priceCalculator) {
-			priceCalculator.total += priceCalculator.price * priceCalculator.quantity;
-		}
-
-		public double getTotal() {
-			return total;
-		}
-
-		@Override
-		public void accept(Integer quantity, Double price) {
-			this.price = price;
-			this.quantity = quantity;
-		}
-
-	}
 }

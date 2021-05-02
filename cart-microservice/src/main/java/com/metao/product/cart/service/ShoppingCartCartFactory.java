@@ -3,7 +3,6 @@ package com.metao.product.cart.service;
 import com.metao.product.cart.domain.ShoppingCart;
 import com.metao.product.cart.domain.ShoppingCartKey;
 import com.metao.product.cart.repository.ShoppingCartRepository;
-import com.metao.product.cart.service.ShoppingCartService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,10 +66,13 @@ public class ShoppingCartCartFactory implements ShoppingCartService {
     }
 
     @Override
-    public void clearCart(String userId) {
+    public int clearCart(String userId) {
         if (shoppingCartRepository.findProductsInCartByUserId(userId).isPresent()) {
             int deletedRow = shoppingCartRepository.deleteProductsInCartByUserId(userId);
             log.info("Deleted all products for user: {} with code: {} since checkout was successful.", userId, deletedRow);
+            return 0;
+        }else {
+            return -1;
         }
     }
 }

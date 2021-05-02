@@ -120,7 +120,6 @@ class CheckoutServiceTest {
         @Pattern(regexp = "^[0-9]{10}") String ASIN = "1234567890";
 
         checkoutServiceImplementation.setTransactionManager(platformTransactionManager);
-        Query query = Mockito.mock(Query.class);
         ProductInventoryEntity productInventoryEntity = new ProductInventoryEntity();
         productInventoryEntity.setId(ASIN);
         productInventoryEntity.setQuantity(QUANTITY);

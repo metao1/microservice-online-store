@@ -30,5 +30,5 @@ public interface ShoppingCartService {
         return currentShoppingCart;
     }
 
-    public void clearCart(String userId);
+    public int clearCart(String userId);
 }

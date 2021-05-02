@@ -40,7 +40,7 @@ public class ShoppingCartController {
 
     @GetMapping(value = "/clearCart", produces = "application/json")
     public String clearCart(@RequestParam("userid") String userId) {
-        shoppingCartService.clearCart(userId);
+        int returnCode = shoppingCartService.clearCart(userId);
         return String.format("Clearing Cart, Checkout successful for user %s", userId);
     }
 
