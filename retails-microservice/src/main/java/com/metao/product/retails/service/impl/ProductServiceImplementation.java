@@ -1,9 +1,10 @@
 package com.metao.product.retails.service.impl;
 
-import com.metao.product.models.ProductDTO;
+
 import com.metao.product.retails.domain.ProductEntity;
 import com.metao.product.retails.exception.ProductNotFoundException;
 import com.metao.product.retails.mapper.ProductMapper;
+import com.metao.product.retails.model.ProductDTO;
 import com.metao.product.retails.persistence.OffsetBasedPageRequest;
 import com.metao.product.retails.persistence.ProductRepository;
 import com.metao.product.retails.service.ProductService;
@@ -16,7 +17,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service("productService")
@@ -54,9 +54,8 @@ public class ProductServiceImplementation implements ProductService {
     }
 
     @Override
-    public void saveProduct(ProductDTO obj) {
-        obj.setAsin(UUID.randomUUID().toString());
-        this.productRepository.save(productMapper.mapToEntity(obj));
+    public String saveProduct(ProductDTO obj) {
+        return this.productRepository.save(productMapper.mapToEntity(obj)).getId();
     }
 
 }

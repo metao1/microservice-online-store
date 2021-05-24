@@ -14,7 +14,7 @@ import java.util.Optional;
 @Repository
 public interface ProductRepository extends CrudRepository<ProductEntity, String> {
 
-    @Query(value = "SELECT distinct u FROM ProductEntity u join fetch u.categories  where u.id =:productId")
+    @Query(value = "SELECT distinct u FROM ProductEntity u join fetch u.categories where u.id =:productId")
     Optional<ProductEntity> findProductEntityById(String productId);
 
     @Transactional

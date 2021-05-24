@@ -1,6 +1,7 @@
 package com.metao.product.retails.service;
 
-import com.metao.product.models.ProductDTO;
+
+import com.metao.product.retails.model.ProductDTO;
 
 import java.util.List;
 
@@ -12,5 +13,5 @@ public interface ProductService {
 
     List<ProductDTO> getAllProductsWithCategory(String category, int limit, int offset);
 
-    void saveProduct(ProductDTO obj);
+    String saveProduct(ProductDTO obj);
 }

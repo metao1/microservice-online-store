@@ -1,7 +1,8 @@
 package com.metao.product.retails.service.impl;
 
-import com.metao.product.models.ProductCategoriesDTO;
+
 import com.metao.product.retails.mapper.ProductCategoriesMapper;
+import com.metao.product.retails.model.ProductCategoriesDTO;
 import com.metao.product.retails.persistence.CategoriesRepository;
 import com.metao.product.retails.service.ProductCategoriesService;
 import lombok.RequiredArgsConstructor;

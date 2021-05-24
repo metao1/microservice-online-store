@@ -1,26 +1,17 @@
 package com.metao.product.retails.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
 @Data
+@Cacheable
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -49,9 +40,10 @@ public class ProductEntity extends AutoAwareItemEntity {
 
     private Double avgStars;
 
-//    @Embedded
-//    private RelatedEntity related;
+    @Embedded
+    private RelatedEntity related;
 
+    @Builder.Default
     @Column(name = "categories")
     @ManyToMany(targetEntity = ProductCategoryEntity.class, cascade = CascadeType.ALL)
     @JoinTable(name = "product_categories", joinColumns = {@JoinColumn(name = "asin")}, inverseJoinColumns = {@JoinColumn(name = "id")})

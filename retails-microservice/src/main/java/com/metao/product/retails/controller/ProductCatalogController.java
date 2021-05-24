@@ -1,7 +1,7 @@
 package com.metao.product.retails.controller;
 
-import com.metao.product.models.ProductCategoriesDTO;
-import com.metao.product.models.ProductDTO;
+import com.metao.product.retails.model.ProductCategoriesDTO;
+import com.metao.product.retails.model.ProductDTO;
 import com.metao.product.retails.service.ProductCategoriesService;
 import com.metao.product.retails.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -10,11 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;

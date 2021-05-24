@@ -1,11 +1,11 @@
 package com.metao.product.retails;
 
-import com.metao.product.models.ProductDTO;
+
 import com.metao.product.retails.controller.ProductCatalogController;
-import com.metao.product.retails.domain.ProductCategoryEntity;
 import com.metao.product.retails.domain.ProductEntity;
 import com.metao.product.retails.mapper.ProductCategoriesMapper;
 import com.metao.product.retails.mapper.ProductMapper;
+import com.metao.product.retails.model.ProductDTO;
 import com.metao.product.retails.service.impl.ProductCategoriesServiceImplementation;
 import com.metao.product.retails.service.impl.ProductServiceImplementation;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +19,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 
-import java.util.Collections;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,8 +38,6 @@ public class ProductTests extends BaseTest {
     @Autowired
     WebTestClient webTestClient;
 
-    private String productId = UUID.randomUUID().toString();
-
     private ProductEntity productEntity;
 
     private ProductDTO productDTO;
@@ -49,20 +46,7 @@ public class ProductTests extends BaseTest {
     @BeforeEach
     public void init(ApplicationContext context) {
         webTestClient = WebTestClient.bindToApplicationContext(context).build();
-        productEntity = ProductEntity.builder()
-                .title("brand")
-                .categories(Collections.singleton(ProductCategoryEntity.builder()
-                        .id(UUID.randomUUID().toString())
-                        .categories("Book").build()))
-                .description("clothes")
-                .id(productId)
-                .createdAt(NOW())
-                .modifiedAt(NOW())
-                .createdBy(USER_ID)
-                .modifiedBy(USER_ID)
-                .imageUrl("image-url")
-                .price(1200d)
-                .build();
+
         productDTO = ProductDTO.builder()
                 .asin(UUID.randomUUID().toString())
                 .title(productEntity.getTitle())
@@ -82,7 +66,7 @@ public class ProductTests extends BaseTest {
     @Test
     public void testLoadOneProduct() {
 
-        webTestClient.get().uri(PRODUCT_URL + productId)
+        webTestClient.get().uri(PRODUCT_URL + PRODUCT_ID)
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(ProductDTO.class)
@@ -96,7 +80,7 @@ public class ProductTests extends BaseTest {
 
     @Test
     public void testLoadAnonymousProduct_raisesError() {
-        webTestClient.get().uri(PRODUCT_URL + productId)
+        webTestClient.get().uri(PRODUCT_URL + PRODUCT_ID)
                 .exchange()
                 .expectStatus().isNotFound();
     }

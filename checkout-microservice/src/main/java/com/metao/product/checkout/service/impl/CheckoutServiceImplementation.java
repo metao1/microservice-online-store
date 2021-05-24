@@ -7,14 +7,13 @@ import com.metao.product.checkout.domain.ProductInventoryEntity;
 import com.metao.product.checkout.exception.CartIsEmptyException;
 import com.metao.product.checkout.exception.NotEnoughProductsInStockException;
 import com.metao.product.checkout.exception.UserException;
+import com.metao.product.checkout.model.ProductDTO;
 import com.metao.product.checkout.repository.ProductInventoryRepository;
 import com.metao.product.checkout.service.CheckoutService;
-import com.metao.product.models.ProductDTO;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -26,7 +25,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.persistence.EntityManager;
 import java.util.Map;
-import java.util.function.BiConsumer;
 
 @Slf4j
 @Service
@@ -83,23 +81,27 @@ public class CheckoutServiceImplementation implements CheckoutService {
 							+ "'" + currentOrder.getId() + "', " + "'1'" + ", '" + currentOrder.getOrderDetails()
 							+ "', '" + currentOrder.getOrderTime() + "'," + currentOrder.getOrderTotal() + ");");
 			log.debug("Statement is " + updateCartPreparedStatement);
-			transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
-			transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-				@Override
-				protected void doInTransactionWithoutResult(@NotNull TransactionStatus transactionStatus) {
-					int updated = entityManager.createNativeQuery(updateCartPreparedStatement.toString()).executeUpdate();
-					if (updated == 0) {
-						String s = shoppingCartRestClient.clearCart(userId);
-						products.clear();
-						transactionStatus.flush();
-						log.debug("*** Checkout complete successfully, cart cleared ***");
-					}
-				}
-			});
+			sendTransaction(updateCartPreparedStatement, userId);
+			products.clear();
 		} else {
 			throw new CartIsEmptyException(userId);
 		}
 		return currentOrder;
+	}
+
+	public void sendTransaction(StringBuilder updateCartPreparedStatement, String userId) {
+		transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			protected void doInTransactionWithoutResult(@NonNull TransactionStatus transactionStatus) {
+				int updated = entityManager.createNativeQuery(updateCartPreparedStatement.toString()).executeUpdate();
+				if (updated == 0) {
+					String s = shoppingCartRestClient.clearCart(userId);
+					transactionStatus.flush();
+					log.debug("*** Checkout complete successfully, cart cleared ***");
+				}
+			}
+		});
 	}
 
 }

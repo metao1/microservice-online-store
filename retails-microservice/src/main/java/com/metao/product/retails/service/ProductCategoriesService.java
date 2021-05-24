@@ -1,6 +1,7 @@
 package com.metao.product.retails.service;
 
-import com.metao.product.models.ProductCategoriesDTO;
+
+import com.metao.product.retails.model.ProductCategoriesDTO;
 
 import java.util.List;
 

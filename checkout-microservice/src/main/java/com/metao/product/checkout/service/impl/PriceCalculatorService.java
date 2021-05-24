@@ -1,7 +1,7 @@
 package com.metao.product.checkout.service.impl;
 
 import com.metao.product.checkout.clients.ProductCatalogRestClient;
-import com.metao.product.models.ProductDTO;
+import com.metao.product.checkout.model.ProductDTO;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,9 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.function.IntConsumer;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
@@ -35,8 +32,6 @@ public class PriceCalculatorService {
 
     private static final class PriceCalculator implements BiConsumer<Integer, Double> {
 
-        private double price;
-        private int quantity;
         private double total;
 
         public void combine(PriceCalculator priceCalculator) {
@@ -52,7 +47,5 @@ public class PriceCalculatorService {
             this.total += price * quantity;
         }
 
-        public void acceptt(Integer total) {
-        }
     }
 }

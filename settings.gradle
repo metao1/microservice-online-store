@@ -1,0 +1,8 @@
+include(":cart-microservice")
+include(":api-gateway-microservice")
+include(":checkout-microservice")
+include(":retails-microservice")
+include(":registry-microservice")
+include(":frontend")
+
+rootProject.name = 'microservice-online-book-store'
