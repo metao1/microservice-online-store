@@ -1,6 +1,6 @@
 plugins {
-    id("org.springframework.boot") version "2.4.1"
-    id("io.spring.dependency-management") version '1.0.10.RELEASE'
+    id("org.springframework.boot") version "2.5.2"
+    id("io.spring.dependency-management") version '1.0.11.RELEASE'
     id("java")
     id("war")
 }
@@ -8,7 +8,7 @@ plugins {
 ext {
     hibernatesCacheVersion = '5.4.31.Final'
     springVersion = "5.2.11.RELEASE"
-    springBootVersion = '2.4.1'
+    springBootVersion = '2.5.2'
     servletVersion = '3.1.0'
     springCloudVersion = '3.0.2'
     logbackVersion = '6.4'
@@ -70,7 +70,7 @@ dependencies {
 group = 'com.metao.product.checkout'
 version = '0.0.1-SNAPSHOT'
 description = 'checkout-service'
-sourceCompatibility = '11'
+sourceCompatibility = '16'
 
 
 springBoot {

@@ -1,22 +1,18 @@
 plugins {
-    id("org.springframework.boot") version "2.4.1"
-    id("io.spring.dependency-management") version '1.0.10.RELEASE'
+    id("org.springframework.boot") version "2.5.2"
+    id("io.spring.dependency-management") version '1.0.11.RELEASE'
     id("java")
-    id("war")
 }
+
 
 ext {
     springVersion = '5.2.11.RELEASE'
-    springBootVersion = '2.4.1'
-    servletVersion = '3.1.0'
-    springCloudVersion = '3.0.2'
+    springCloudVersion = '1.4.7.RELEASE'
     logbackVersion = '6.4'
     kafkaVersion = '2.6.0'
-    lombokVersion = '1.18.16'
+    lombokVersion = '1.18.20'
     jacksonVersion = '2.12.1'
     confluentVersion = '4.1.0'
-    hazelcastJetVersion = '4.3'
-    hazelcastSpringVersion = '4.1.1-SNAPSHOT'
     springRetryVersion = '1.3.0'
     jaywayJsonPathVersion = '2.4.0'
     swaggerUIVersion = '1.5.0'
@@ -24,28 +20,29 @@ ext {
     mockitoVersion = '3.7.7'
     hibernatesCacheVersion = '5.4.31.Final'
     gsonVersion = '2.8.6'
+    springCloudVersion = '2020.0.3'
 }
 
 repositories {
     mavenLocal()
-    maven {
-        url = uri('https://repo.maven.apache.org/maven2')
-    }
+    mavenCentral()
+    maven { url 'https://repo.spring.io/milestone' }
+    maven { url 'https://repo.spring.io/snapshot' }
 }
 
 dependencies {
     /* Spring Boot WebFlux */
-    implementation("org.springframework.boot:spring-boot-starter-webflux:${springBootVersion}") {
-        exclude group: 'org.eclipse.jetty'
-    }
-    implementation "org.springframework.boot:spring-boot-configuration-processor:${springBootVersion}"
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-configuration-processor'
 
     /* Spring Cloud Config */
-    implementation "org.springframework.cloud:spring-cloud-starter-netflix-eureka-server:${springCloudVersion}"
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-server'
 
-    testImplementation 'junit:junit:4.12'
-    testImplementation 'org.mockito:mockito-core:3.9.0'
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.5.2'
+    /*JUnit test library*/
+    testImplementation('org.junit.jupiter:junit-jupiter')
+    testImplementation('org.junit.jupiter:junit-jupiter-api')
+    testImplementation('org.mockito:mockito-junit-jupiter')
+    testImplementation('org.mockito:mockito-core')
 
     /* Lombok */
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
@@ -58,7 +55,7 @@ dependencies {
 group = 'com.metao.product.registry'
 version = '0.0.1-SNAPSHOT'
 description = 'registry-service'
-sourceCompatibility = '11'
+sourceCompatibility = '16'
 
 
 springBoot {
@@ -83,6 +80,12 @@ configurations {
 
 test {
     useJUnitPlatform()
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
 }
 
 tasks.withType(JavaCompile) {

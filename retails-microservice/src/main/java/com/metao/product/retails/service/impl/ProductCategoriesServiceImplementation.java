@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service("productCategoriesService")
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor
 public class ProductCategoriesServiceImplementation implements ProductCategoriesService {
 
     private final CategoriesRepository categoriesRepository;

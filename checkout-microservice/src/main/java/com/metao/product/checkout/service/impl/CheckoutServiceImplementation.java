@@ -29,7 +29,7 @@ import java.util.Map;
 @Slf4j
 @Service
 @Transactional
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor
 public class CheckoutServiceImplementation implements CheckoutService {
 
 	private final ShoppingCartRestClient shoppingCartRestClient;

@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 @Component
 @Slf4j
 @Profile("setup")
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor
 public class DataStoreConfig {
 
     private final Gson gson;

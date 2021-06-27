@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 @Slf4j
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor
 public class PriceCalculatorService {
 
     private final ProductCatalogRestClient productCatalogRestClient;
