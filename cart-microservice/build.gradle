@@ -2,13 +2,9 @@ plugins {
     id("org.springframework.boot") version "2.5.2"
     id("io.spring.dependency-management") version '1.0.11.RELEASE'
     id("java")
-    id("war")
 }
 
 ext {
-    springVersion = '5.2.11.RELEASE'
-    springBootVersion = '2.5.2'
-    springCloudVersion = '3.0.3'
     logbackVersion = '6.4'
     kafkaVersion = '2.6.0'
     lombokVersion = '1.18.20'
@@ -23,6 +19,7 @@ ext {
     mockitoVersion = '3.7.7'
     hibernatesCacheVersion = '5.4.31.Final'
     gsonVersion = '2.8.6'
+    springCloudVersion = '2020.0.3'
 }
 
 repositories {
@@ -34,27 +31,25 @@ repositories {
 
 dependencies {
     /* Spring Boot WebFlux */
-    implementation("org.springframework.boot:spring-boot-starter-webflux:${springBootVersion}") {
+    implementation ("org.springframework.boot:spring-boot-starter-webflux") {
         exclude group: 'org.eclipse.jetty'
     }
-    implementation "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
-    implementation "org.springframework.boot:spring-boot-starter-web:${springBootVersion}"
-    implementation "org.springframework.boot:spring-boot-configuration-processor:${springBootVersion}"
-    implementation "org.springframework.boot:spring-boot-starter-webflux:${springBootVersion}"
-    implementation "org.springframework.boot:spring-boot-starter-validation:${springBootVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-actuator"
+    implementation "org.springframework.boot:spring-boot-configuration-processor"
+    implementation "org.springframework.boot:spring-boot-starter-validation"
 
     /* Spring Cloud Config */
-    implementation "org.springframework.cloud:spring-cloud-starter-config:${springCloudVersion}"
-    implementation "org.springframework.cloud:spring-cloud-starter-openfeign:${springCloudVersion}"
+    implementation "org.springframework.cloud:spring-cloud-starter-config"
+    implementation "org.springframework.cloud:spring-cloud-starter-openfeign"
 
     /* JPA */
-    implementation "org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}"
-    implementation "org.springframework.data:spring-data-jpa:${springBootVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-data-jpa"
+    implementation "org.springframework.data:spring-data-jpa"
 
     implementation 'com.h2database:h2:1.4.200'
     implementation 'org.postgresql:postgresql:42.2.11'
 
-    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:2.2.2.RELEASE'
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
     /* Hibernates */
     implementation "org.hibernate:hibernate-ehcache:${hibernatesCacheVersion}"
@@ -63,7 +58,7 @@ dependencies {
     implementation "com.google.code.gson:gson:${gsonVersion}"
 
     implementation 'org.mapstruct:mapstruct:1.3.1.Final'
-    testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.mockito:mockito-core:3.9.0'
     testImplementation 'io.projectreactor:reactor-test:3.3.4.RELEASE'
@@ -97,8 +92,12 @@ configurations {
         compileOnly {
             extendsFrom annotationProcessor
         }
-        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
-        exclude module: 'org.eclipse.jetty'
+    }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
     }
 }
 

@@ -4,10 +4,7 @@ plugins {
     id("java")
 }
 
-
 ext {
-    springVersion = '5.2.11.RELEASE'
-    springCloudVersion = '1.4.7.RELEASE'
     logbackVersion = '6.4'
     kafkaVersion = '2.6.0'
     lombokVersion = '1.18.20'
@@ -73,8 +70,6 @@ configurations {
         compileOnly {
             extendsFrom annotationProcessor
         }
-        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
-        exclude module: 'org.eclipse.jetty'
     }
 }
 

@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  registry-ms:
+    hostname: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+  cart-ms:
+    container_name: cart-ms
+    build:
+      context: .
+      dockerfile: src/main/docker/Dockerfile
+    ports:
+      - "8003:8083"
+    environment:
+      SPRING_DATASOURCE_URL : "jdbc:postgresql://postgres:5432/postgres"
+    depends_on:
+     - postgres
+volumes:
+  postgres:
+    driver:
+      local
