@@ -1,0 +1,14 @@
+dependencies {
+    implementation project(':shared-lib')
+    implementation 'org.hibernate:hibernate-ehcache:5.4.12.Final'
+    implementation 'org.springframework.boot:spring-boot-starter-web:2.2.6.RELEASE'
+    implementation 'org.springframework.hateoas:spring-hateoas:1.0.4.RELEASE'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa:2.2.6.RELEASE'
+    implementation 'org.springframework.data:spring-data-jpa:2.2.6.RELEASE'
+    implementation 'com.h2database:h2:1.4.200'
+    implementation 'org.postgresql:postgresql:42.2.25'
+    implementation 'com.google.code.gson:gson:2.8.6'
+}
+
+group = 'com.metao.product.retails'
+description = 'retails-microservice'

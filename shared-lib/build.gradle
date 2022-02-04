@@ -1,0 +1,15 @@
+apply plugin: 'java-library'
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.11.0.rc1'
+    implementation 'org.jetbrains:annotations:17.0.0'
+    compileOnly 'org.projectlombok:lombok:1.18.12'
+}
+
+task testJar(type: Jar) {
+    getArchiveClassifier().set('test')
+    from sourceSets.test.output
+}
+
+description = 'shared-lib'
