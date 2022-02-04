@@ -93,6 +93,12 @@ subprojects {
                 details.useTarget group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-eureka-client', version: eurekaClientVersion
                 details.because "prefer 'spring-cloud-starter-netflix-eureka-client' version ${eurekaClientVersion} managed version over any version of 'spring-cloud-starter-netflix-eureka-client'"
             }
+
+            def openFeignClient='3.1.0'
+            if (details.requested.name == 'spring-cloud-starter-openfeign'){
+                details.useTarget group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: openFeignClient
+                details.because "prefer 'spring-cloud-starter-openfeign' version ${openFeignClient} managed version over any version of 'spring-cloud-starter-openfeign'"
+            }
         }
     }
 
@@ -133,6 +139,7 @@ subprojects {
             implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
             testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 
+            testImplementation 'org.springframework.boot:spring-boot-starter-test'
             testImplementation 'org.junit.jupiter:junit-jupiter-api'
             testImplementation 'org.assertj:assertj-core'
             testImplementation 'org.mockito:mockito-core'

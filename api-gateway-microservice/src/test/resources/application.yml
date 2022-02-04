@@ -1,4 +1,6 @@
 spring:
+  main:
+    web-application: reactive
   cloud:
     gateway:
       routes:

@@ -6,14 +6,14 @@ pluginManagement {
 }
 
 rootProject.name = 'product'
-include(':cart-service-microservice')
+include(':cart-microservice')
 include(':retails-microservice')
 include(':checkout-microservice')
 include(':registry-microservice')
 include(':gateway')
 include(':shared-lib')
 
-project(":cart-service-microservice").projectDir = file('cart-microservice')
+project(":cart-microservice").projectDir = file('cart-microservice')
 project(":retails-microservice").projectDir = file('retails-microservice')
 project(":checkout-microservice").projectDir = file('checkout-microservice')
 project(":registry-microservice").projectDir = file('registry-microservice')
