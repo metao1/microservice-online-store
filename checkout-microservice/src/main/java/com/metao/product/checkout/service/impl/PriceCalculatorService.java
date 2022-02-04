@@ -9,9 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.function.IntConsumer;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
@@ -20,7 +17,8 @@ public class PriceCalculatorService {
     private final ProductCatalogRestClient productCatalogRestClient;
 
     public Double calculateTotalPriceInCart(Map<String, Integer> products) {
-        return products.entrySet().stream()
+        return products.entrySet()
+                .stream()
                 .collect(PriceCalculator::new, (k, v) -> k.accept(v.getValue(), lookupPrice(v.getKey())), PriceCalculator::combine)
                 .getTotal();
     }
@@ -50,9 +48,6 @@ public class PriceCalculatorService {
         @Override
         public void accept(Integer quantity, Double price) {
             this.total += price * quantity;
-        }
-
-        public void acceptt(Integer total) {
         }
     }
 }

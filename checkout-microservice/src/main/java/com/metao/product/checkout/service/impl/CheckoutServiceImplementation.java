@@ -10,11 +10,9 @@ import com.metao.product.checkout.exception.UserException;
 import com.metao.product.checkout.repository.ProductInventoryRepository;
 import com.metao.product.checkout.service.CheckoutService;
 import com.metao.product.models.ProductDTO;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -25,8 +23,8 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.persistence.EntityManager;
+import javax.validation.constraints.NotNull;
 import java.util.Map;
-import java.util.function.BiConsumer;
 
 @Slf4j
 @Service
@@ -51,18 +49,14 @@ public class CheckoutServiceImplementation implements CheckoutService {
 		Map<String, Integer> products = shoppingCartRestClient.getProductsInCart(userId);
 		log.debug("*** In Checkout products ***");
 		StringBuilder updateCartPreparedStatement = new StringBuilder();
-		OrderEntity currentOrder;
 		StringBuilder orderDetails = new StringBuilder();
 		orderDetails.append("Customer bought these Items: ");
+		OrderEntity currentOrder;
 		if (!products.isEmpty()) {
 			for (Map.Entry<String, Integer> entry : products.entrySet()) {
 				// Refresh quantity for every product before checking
 				log.debug("*** Checking out product for user:*** " + entry.getKey());
-				final ProductInventoryEntity productInventory = productInventoryRepository.findById(entry.getKey()).orElse(null);
-
-				if (productInventory == null) {
-					throw new NotEnoughProductsInStockException(entry.getKey());
-				}
+				final ProductInventoryEntity productInventory = productInventoryRepository.findById(entry.getKey()).orElseThrow(() -> new NotEnoughProductsInStockException(entry.getKey()));
 
 				final ProductDTO productDetails = productCatalogRestClient.getProductDetails(entry.getKey());
 
@@ -91,7 +85,9 @@ public class CheckoutServiceImplementation implements CheckoutService {
 					if (updated == 0) {
 						String s = shoppingCartRestClient.clearCart(userId);
 						products.clear();
-						transactionStatus.flush();
+						if (transactionStatus != null) {
+							transactionStatus.flush();
+						}
 						log.debug("*** Checkout complete successfully, cart cleared ***");
 					}
 				}

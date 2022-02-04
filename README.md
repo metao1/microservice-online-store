@@ -5,9 +5,9 @@ running on Spring boot , React using Microservice architecture
 
 How to install and run instructions:
 
-To run the whole application you need to enter into each folder where the microservices are hosted and run them separetly.
+To run the whole application you need to enter into each folder where the microservices are hosted and run them separately.
 
-0) in order to run the instances you need postgres database; For more information on how to install posgres and run it on your  server follow the https://hub.docker.com/_/postgres
+0) in order to run the instances you need postgres database; For more information on how to install postgres and run it on your  server follow the https://hub.docker.com/_/postgres
 
 Go to terminal and run the below commands:
 
@@ -28,7 +28,7 @@ docker exec -it some-postgres psql -U postgres -c "CREATE DATABASE product;"
 mvn spring-boot:run 
 ```
 
-2) Open a new terminal. Go to the ap-gateway-microservice directory and run the below command:
+2) Open a new terminal. Go to the api-gateway-microservice directory and run the below command:
 
 ```
 mvn spring-boot:run 

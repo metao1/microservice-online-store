@@ -28,7 +28,7 @@ public class CheckoutController {
         try {
             OrderEntity currentOrder = checkoutService.checkout(userId);
             if (currentOrder != null) {
-                checkoutStatus.setOrderNumber(currentOrder.getId().toString());
+                checkoutStatus.setOrderNumber(currentOrder.getId());
                 checkoutStatus.setStatus(CheckoutStatus.SUCCESS);
                 checkoutStatus.setOrderDetails(currentOrder.getOrderDetails());
                 log.debug("Order is : " + currentOrder.getId() + " Details: " + currentOrder.getOrderDetails());

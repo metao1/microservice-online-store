@@ -12,11 +12,11 @@ public interface ShoppingCartService {
 
     int DEFAULT_QUANTITY = 1;
 
-    public void addProductToShoppingCart(String userId, String asin);
+    void addProductToShoppingCart(String userId, String asin);
 
-    public Map<String, Integer> getProductsInCart(String userId);
+    Map<String, Integer> getProductsInCart(String userId);
 
-    public void removeProductFromCart(String userId, String asin);
+    void removeProductFromCart(String userId, String asin);
 
     default ShoppingCart createCartObject(ShoppingCartKey currentKey) {
         ShoppingCart currentShoppingCart = new ShoppingCart();
