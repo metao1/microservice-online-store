@@ -1,8 +1,6 @@
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
-    implementation "org.springframework.boot:spring-boot-starter-aop"
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.isomorphism:token-bucket:1.7'
     testImplementation 'org.springframework.cloud:spring-cloud-gateway-server'
 }

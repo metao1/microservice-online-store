@@ -4,7 +4,7 @@ plugins {
     id 'base'
     id 'idea'
     id 'com.google.cloud.tools.jib' version '3.1.4' apply false
-    id 'org.springframework.boot' version '2.6.3' apply false
+    id 'org.springframework.boot' version '2.6.1' apply false
 }
 
 allprojects {
@@ -128,11 +128,8 @@ subprojects {
             annotationProcessor 'org.mapstruct.extensions.spring:mapstruct-spring-extensions'
             annotationProcessor 'org.projectlombok:lombok'
             annotationProcessor "org.projectlombok:lombok-mapstruct-binding:0.1.0"
-            annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
             implementation 'org.springframework.boot:spring-boot-starter-validation'
-            implementation 'io.micrometer:micrometer-registry-prometheus'
-            implementation 'io.micrometer:micrometer-core'
             implementation 'ch.qos.logback:logback-classic'
             implementation 'org.projectlombok:lombok'
             implementation 'org.mapstruct:mapstruct'

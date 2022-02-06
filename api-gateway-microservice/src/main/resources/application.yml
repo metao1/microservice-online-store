@@ -4,6 +4,8 @@ server:
 spring:
   cloud:
     gateway:
+      metrics:
+        enabled: false
       default-filters:
         - name: SCGWGlobalFilter
       routes:
@@ -29,6 +31,7 @@ spring:
           predicates:
             - Path=/checkout/**
 
+
 logging:
   level:
     org.springframework.cloud.gateway: TRACE
@@ -36,3 +39,8 @@ logging:
     org.springframework.web.reactive: DEBUG
     reactor.ipc.netty: DEBUG
     reactor.netty: DEBUG
+
+management:
+  endpoint:
+    metrics:
+      enabled: false
