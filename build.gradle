@@ -8,7 +8,7 @@ plugins {
 }
 
 allprojects {
-    group 'com.metao.metao.product'
+    group 'com.metao.product'
     version = System.getenv('CI_COMMIT_REF_NAME') ? System.getenv('CI_COMMIT_REF_NAME') : "${getCurrentGitBranch()}-${getHostName()}"
 }
 
@@ -31,7 +31,7 @@ subprojects {
     dependencyManagement {
         imports {
             mavenBom SpringBootPlugin.BOM_COORDINATES
-            mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2020.0.3'
+            mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2021.0.0'
         }
     }
 
@@ -131,6 +131,8 @@ subprojects {
             annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
             implementation 'org.springframework.boot:spring-boot-starter-validation'
+            implementation 'io.micrometer:micrometer-registry-prometheus'
+            implementation 'io.micrometer:micrometer-core'
             implementation 'ch.qos.logback:logback-classic'
             implementation 'org.projectlombok:lombok'
             implementation 'org.mapstruct:mapstruct'

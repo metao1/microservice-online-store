@@ -1,6 +1,3 @@
 dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-server:2.2.2.RELEASE'
 }
-
-group = 'com.metao.product.registry'
-description = 'registry-service'
