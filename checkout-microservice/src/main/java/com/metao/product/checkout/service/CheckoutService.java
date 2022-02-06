@@ -10,6 +10,7 @@ import java.util.UUID;
 import static com.metao.product.utils.DateFormatter.now;
 
 public interface CheckoutService {
+
     OrderEntity checkout(String userId) throws NotEnoughProductsInStockException, CartIsEmptyException, UserException;
 
     default OrderEntity createOrder(String userId, String orderDetails, double orderTotal) {
