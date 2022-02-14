@@ -10,20 +10,17 @@ include(':cart-microservice')
 include(':retails-microservice')
 include(':checkout-microservice')
 include(':registry-microservice')
-include(':gateway')
-include(':shared-lib')
+include(':shared-kernel')
 
 project(":cart-microservice").projectDir = file('cart-microservice')
 project(":retails-microservice").projectDir = file('retails-microservice')
 project(":checkout-microservice").projectDir = file('checkout-microservice')
 project(":registry-microservice").projectDir = file('registry-microservice')
-project(":gateway").projectDir = file('api-gateway-microservice')
-project(":shared-lib").projectDir = file('shared-lib')
+project(":shared-kernel").projectDir = file('shared-kernel')
 
 gradle.ext.springBootProjects = [
         ':cart-microservice',
         ':retails-microservice',
         ':checkout-microservice',
-        ':gateway',
         ':registry-microservice'
 ]
