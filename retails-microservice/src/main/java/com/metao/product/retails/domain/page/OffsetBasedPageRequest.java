@@ -11,8 +11,8 @@ public class OffsetBasedPageRequest implements Pageable, Serializable {
 
     private static final long serialVersionUID = -25822477129613575L;
 
-    private int limit;
-    private long offset;
+    private final int limit;
+    private final long offset;
     private final Sort sort;
 
     /**

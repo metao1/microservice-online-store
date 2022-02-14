@@ -2,6 +2,8 @@ server:
   port: ${PORT:8083}
 
 spring:
+  config:
+    import: "optional:configserver:"
   jpa:
     database: POSTGRESQL
     show-sql: true
@@ -15,6 +17,6 @@ spring:
           use_jdbc_metadata_defaults: false
     open-in-view: false
   datasource:
-    url: jdbc:postgresql://localhost:5432/product
+    url: jdbc:postgresql://localhost:5432/postgres
     username: postgres
-    password: secset
+    password: postgres

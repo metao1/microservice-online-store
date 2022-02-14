@@ -1,18 +1,17 @@
 package com.metao.product.checkout.service.impl;
 
 import com.metao.product.checkout.clients.ProductCatalogRestClient;
-import com.metao.product.models.ProductDTO;
+import com.metao.product.checkout.model.ProductDTO;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.validation.constraints.Pattern;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,8 +25,8 @@ class PriceCalculatorServiceTest {
 
     @Test
     void calculateTotalPriceInCart() {
-        @Pattern(regexp = "^[0-9]{10}") String ASIN = "1234567890";
-        @Pattern(regexp = "^[0-9]{10}") String ASIN2 = "1234567891";
+        String ASIN = "1234567890";
+        String ASIN2 = "1234567891";
         ProductDTO productDTO = ProductDTO.builder()
                 .asin(ASIN)
                 .title("title")
