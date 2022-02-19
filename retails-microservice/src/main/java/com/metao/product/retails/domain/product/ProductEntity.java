@@ -21,28 +21,29 @@ public class ProductEntity extends AbstractAggregateRoot<ProductId> {
     @Max(1200)
     private String description;
 
-    private Image imageUrl;
+    private Image image;
 
     private Double priceValue;
 
     private Currency priceCurrency;
 
-    private Integer numReviews;
-
-    private Double numStars;
-
-    private Double avgStars;
-
     private ProductCategoryEntity productCategory;
 
     public ProductEntity(@NonNull String title,
                          @NonNull String description,
-                         @NonNull Money price) {
+                         @NonNull Money price,
+                         @NonNull Image image
+    ) {
         super(DomainObjectId.randomId(ProductId.class));
         setTitle(title);
         setPrice(price);
         setDescription(description);
+        setImage(image);
         productCategory = new ProductCategoryEntity();
+    }
+
+    private void setImage(Image image) {
+        this.image = image;
     }
 
     @SuppressWarnings("unused")
@@ -87,15 +88,7 @@ public class ProductEntity extends AbstractAggregateRoot<ProductId> {
         return productCategory;
     }
 
-    public Double getNumStars() {
-        return numStars;
-    }
-
-    public Double getAvgStars() {
-        return avgStars;
-    }
-
-    public Image getImageUrl() {
-        return imageUrl;
+    public Image getImage() {
+        return image;
     }
 }

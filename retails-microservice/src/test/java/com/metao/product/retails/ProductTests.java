@@ -1,7 +1,7 @@
 package com.metao.product.retails;
 
 import com.metao.product.retails.application.dto.ProductDTO;
-import com.metao.product.retails.application.service.ProductCategoriesServiceImplementation;
+import com.metao.product.retails.application.service.ProductCategoriesServiceImpl;
 import com.metao.product.retails.application.service.ProductServiceImplementation;
 import com.metao.product.retails.domain.product.ProductEntity;
 import com.metao.product.retails.infrustructure.mapper.ProductMapper;
@@ -18,7 +18,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Import({ProductServiceImplementation.class, ProductCategoriesServiceImplementation.class})
+@Import({ProductServiceImplementation.class, ProductCategoriesServiceImpl.class})
 @WebFluxTest(controllers = ProductCatalogController.class)
 public class ProductTests extends BaseTest {
 
@@ -60,7 +60,7 @@ public class ProductTests extends BaseTest {
 //                .categories(null)
 //                .price(productEntity.getPrice())
 //                .description(productEntity.getDescription())
-//                .imageUrl(productEntity.getImageUrl())
+//                .imageUrl(productEntity.getImage())
 //                .build();
 //
 //        Mockito.when(productMapper.mapToEntity(productDTO)).thenReturn(productEntity);
@@ -72,7 +72,6 @@ public class ProductTests extends BaseTest {
 
     @Test
     public void testLoadOneProduct() {
-
         webTestClient.get().uri(PRODUCT_URL + productId)
                 .exchange()
                 .expectStatus().isOk()

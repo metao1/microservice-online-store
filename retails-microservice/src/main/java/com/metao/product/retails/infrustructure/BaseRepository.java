@@ -1,5 +1,5 @@
 package com.metao.product.retails.infrustructure;
 
-public interface BaseRepository<T, U> {
-    T save(T t);
+public interface BaseRepository<T> {
+    void save(T t);
 }

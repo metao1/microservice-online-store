@@ -43,12 +43,6 @@ public class ProductDTO implements Serializable {
 
     Currency currency;
 
-    Integer numReviews;
-
-    Double numStars;
-
-    Double avgStars;
-
     @NotNull
     List<CategoryDTO> categories;
 }

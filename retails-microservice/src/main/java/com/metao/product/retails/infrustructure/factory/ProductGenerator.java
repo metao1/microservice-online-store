@@ -31,7 +31,14 @@ public class ProductGenerator {
         try {
             String dataSource = readDataFromResources();
             Stream.of(dataSource.split("!"))
-                    .forEach(this::processAndStoreIntoDatabase);
+                    .map(this::processAndStoreIntoDatabase)
+                    .forEach(success -> {
+                        if (success) {
+                            log.info("all items have been successfully processed.");
+                        } else {
+                            log.error("There was an error processing all items.");
+                        }
+                    });
         } catch (Exception ex) {
             log.error(ex.getMessage());
         }
@@ -58,12 +65,13 @@ public class ProductGenerator {
                         .build();
                 var event = new CreateProductEvent(product, Instant.now(), Instant.now());
                 productCreator.onCreateProductEvent(event);
-
+                return true;
             }
         } catch (JsonSyntaxException ex) {
             log.error(ex.getMessage());
+            return false;
         }
-        return true;
+        return false;
     }
 
     private String readDataFromResources() throws IOException {

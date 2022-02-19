@@ -1,17 +1,9 @@
 package com.metao.product.retails.application.exception;
 
-import com.metao.product.retails.domain.product.model.ProductApiErrorDTO;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-
-import java.util.Optional;
-
+/*
 @ControllerAdvice
 @RequestMapping(produces = "application/vnd.error+jsonhateoas")
-public class ProductExceptionHandler extends ResponseEntityExceptionHandler {
+public class ProductExceptionHandler extends ResponseEntityResultHandler {
 
     @ExceptionHandler({ProductNotFoundException.class})
     public ResponseEntity productNotFoundException(final ProductNotFoundException ex) {
@@ -33,3 +25,4 @@ public class ProductExceptionHandler extends ResponseEntityExceptionHandler {
 
     }
 }
+*/

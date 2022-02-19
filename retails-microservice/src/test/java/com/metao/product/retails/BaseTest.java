@@ -1,17 +1,8 @@
 package com.metao.product.retails;
 
-import com.metao.product.retails.domain.ProductCategoryEntity;
-import com.metao.product.retails.domain.ProductEntity;
-import com.metao.product.retails.model.ProductDTO;
-
-import java.time.LocalDate;
-import java.util.Collections;
-import java.util.Set;
-import java.util.UUID;
-
 public class BaseTest {
 
-    protected static final String USER_ID = UUID.randomUUID().toString();
+  /*  protected static final String USER_ID = UUID.randomUUID().toString();
     protected static final String PRODUCT_ID = UUID.randomUUID().toString();
     private static final String productCategoryId = UUID.randomUUID().toString();
     protected ProductCategoryEntity productCategoryEntity = ProductCategoryEntity.builder()
@@ -46,5 +37,5 @@ public class BaseTest {
 
     protected LocalDate NOW() {
         return LocalDate.now();
-    }
+    }*/
 }

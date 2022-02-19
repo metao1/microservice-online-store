@@ -7,7 +7,6 @@ import com.metao.product.retails.domain.product.ProductService;
 import com.metao.product.retails.infrustructure.mapper.ProductMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +21,6 @@ public class ProductCatalogController {
 
     private final ProductService productService;
     private final ProductMapper productMapper;
-//    private final ProductCategoriesService productCategoriesService;
 
     @PostMapping(value = "/products", consumes = MediaType.APPLICATION_JSON_VALUE)
     public void saveProduct(@Valid @RequestBody ProductDTO productDTO) {
@@ -38,8 +36,8 @@ public class ProductCatalogController {
     }
 
     @GetMapping(value = "/products", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<ProductDTO>> getAllProductsWithOffset(@Param("limit") int limit,
-                                                                     @Param("offset") int offset) {
+    public ResponseEntity<List<ProductDTO>> getAllProductsWithOffset(@RequestParam("limit") int limit,
+                                                                     @RequestParam("offset") int offset) {
         var l = Optional.of(limit).orElse(10);
         var o = Optional.of(offset).orElse(0);
         var allPr= productService.getAllProductsPageable(l, o);

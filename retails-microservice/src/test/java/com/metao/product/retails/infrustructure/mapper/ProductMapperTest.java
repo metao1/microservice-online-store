@@ -3,6 +3,9 @@ package com.metao.product.retails.infrustructure.mapper;
 import com.metao.ddd.finance.Currency;
 import com.metao.product.retails.application.dto.CategoryDTO;
 import com.metao.product.retails.application.dto.ProductDTO;
+import com.metao.product.retails.domain.category.CategoryEntity;
+import com.metao.product.retails.domain.image.Image;
+import com.metao.product.retails.domain.product.ProductCategoryEntity;
 import com.metao.product.retails.domain.product.ProductEntity;
 import org.junit.jupiter.api.Test;
 
@@ -36,18 +39,21 @@ public class ProductMapperTest {
                 .extracting(
                         ProductEntity::getTitle,
                         ProductEntity::getDescription,
-                        ProductEntity::getAvgStars,
                         ProductEntity::getPriceValue,
                         ProductEntity::getPriceCurrency,
-                        ProductEntity::getImageUrl
+                        ProductEntity::getImage
                 )
                 .containsExactly(
                         "no_title",
                         "no_description",
-                        0d,
                         1200d,
-                        Currency.DLR
+                        Currency.DLR,
+                        new Image("http://localhost:8080/image.jpg")
                 );
+
+        assertThat(pe.getProductCategory())
+                .extracting(ProductCategoryEntity::getCategories)
+                .matches(categoryEntities -> categoryEntities.contains(new CategoryEntity("book")));
     }
 
 }

@@ -1,11 +1,6 @@
 dependencies {
     implementation project(':shared-kernel')
-    implementation 'org.hibernate:hibernate-ehcache:5.6.5.Final'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.hateoas:spring-hateoas'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.data:spring-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'com.h2database:h2:2.1.210'
-    implementation 'org.postgresql:postgresql:42.3.1'
-    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation 'com.google.code.gson:gson:2.9.0'
 }

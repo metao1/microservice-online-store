@@ -4,6 +4,7 @@ import com.metao.ddd.finance.Money;
 import com.metao.product.retails.application.dto.CategoryDTO;
 import com.metao.product.retails.application.dto.ProductDTO;
 import com.metao.product.retails.domain.category.CategoryEntity;
+import com.metao.product.retails.domain.image.Image;
 import com.metao.product.retails.domain.product.ProductEntity;
 import org.springframework.lang.NonNull;
 
@@ -18,12 +19,10 @@ public interface ProductMapper {
         return ProductDTO.builder()
                 .title(pr.getTitle())
                 .asin(pr.id().toUUID())
-                .avgStars(pr.getAvgStars())
-                .numStars(pr.getNumStars())
                 .currency(pr.getPriceCurrency())
                 .description(pr.getDescription())
                 .price(pr.getPriceValue())
-                .imageUrl(pr.getImageUrl().getUrl())
+                .imageUrl(pr.getImage().url())
                 .build();
     }
 
@@ -46,7 +45,13 @@ public interface ProductMapper {
     }
 
     private static ProductEntity buildProductEntity(ProductDTO item) {
-        var productEntity = new ProductEntity(item.getTitle(), item.getDescription(), new Money(item.getCurrency(), item.getPrice()));
+        var productEntity = new ProductEntity(
+                item.getTitle(),
+                item.getDescription(),
+                new Money(item.getCurrency(), item.getPrice()),
+                new Image(item.getImageUrl())
+
+        );
         var categories = mapStringToCategory(item.getCategories());
         Stream.of(categories)
                 .flatMap(Collection::stream)
