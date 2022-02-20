@@ -4,14 +4,12 @@ import com.metao.product.domain.ProductService;
 import com.metao.product.domain.event.CreateProductEvent;
 import com.metao.product.infrustructure.mapper.ProductMapper;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 import java.util.Optional;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductMessageHandler {
