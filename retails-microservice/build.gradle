@@ -3,4 +3,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'com.h2database:h2:2.1.210'
     implementation 'com.google.code.gson:gson:2.9.0'
+    implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'org.apache.kafka:kafka-streams'
 }

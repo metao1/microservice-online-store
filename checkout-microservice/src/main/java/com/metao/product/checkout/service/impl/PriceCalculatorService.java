@@ -1,7 +1,6 @@
 package com.metao.product.checkout.service.impl;
 
 import com.metao.product.checkout.clients.ProductCatalogRestClient;
-import com.metao.product.models.ProductDTO;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
