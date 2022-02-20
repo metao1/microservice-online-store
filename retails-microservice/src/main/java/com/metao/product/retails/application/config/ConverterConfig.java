@@ -1,6 +1,7 @@
 package com.metao.product.retails.application.config;
 
 import com.google.gson.Gson;
+import com.metao.product.retails.application.dto.ProductDTO;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -11,5 +12,4 @@ public class ConverterConfig {
     public Gson provideGson() {
         return new Gson();
     }
-
 }

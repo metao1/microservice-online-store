@@ -13,7 +13,7 @@ public enum Currency {
     }
 
     @JsonCreator
-    public static Currency fromValue(String curr) {
+    public static Currency fromString(String curr) {
         for (Currency currency : Currency.values()) {
             if (currency.value.equals(curr)) {
                 return currency;

@@ -1,6 +1,5 @@
 package com.metao.product.checkout.clients;
 
-import com.metao.product.checkout.model.ProductDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

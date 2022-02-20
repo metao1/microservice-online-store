@@ -4,12 +4,11 @@ import com.metao.ddd.base.AbstractAggregateRoot;
 import com.metao.ddd.base.DomainObjectId;
 import com.metao.ddd.finance.Currency;
 import com.metao.ddd.finance.Money;
-import com.metao.product.retails.domain.category.CategoryEntity;
-import com.metao.product.retails.domain.image.Image;
 import org.springframework.lang.NonNull;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
+import java.awt.*;
 
 public class ProductEntity extends AbstractAggregateRoot<ProductId> {
 
@@ -32,8 +31,7 @@ public class ProductEntity extends AbstractAggregateRoot<ProductId> {
     public ProductEntity(@NonNull String title,
                          @NonNull String description,
                          @NonNull Money price,
-                         @NonNull Image image
-    ) {
+                         @NonNull Image image) {
         super(DomainObjectId.randomId(ProductId.class));
         setTitle(title);
         setPrice(price);
