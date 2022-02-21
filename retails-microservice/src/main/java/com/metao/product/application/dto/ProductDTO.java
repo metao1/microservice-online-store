@@ -1,19 +1,21 @@
 package com.metao.product.application.dto;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.metao.ddd.finance.Currency;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hibernate.validator.constraints.Length;
+import java.io.Serializable;
+import java.util.List;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-import java.io.Serializable;
-import java.util.List;
+
+import com.metao.ddd.finance.Currency;
+
+import org.hibernate.validator.constraints.Length;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
@@ -33,7 +35,7 @@ public class ProductDTO implements Serializable {
     private String title;
 
     @Length(max = 255)
-    @Pattern(regexp = "(http|https):\\/\\/localhost:8080\\/(\\w|[_=-])*[\\.][\\w]+")
+    @Pattern(regexp = "^(https?):\\[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]")
     private String imageUrl;
 
     @Min(1)

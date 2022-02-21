@@ -6,6 +6,9 @@ import java.nio.file.Path;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import lombok.experimental.UtilityClass;
+
+@UtilityClass
 public class FileUtil {
 
     public static String readDataFromResources(Path path) throws IOException {
