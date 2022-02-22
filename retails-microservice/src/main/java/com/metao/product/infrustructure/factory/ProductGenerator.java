@@ -1,24 +1,32 @@
 package com.metao.product.infrustructure.factory;
 
-import com.metao.product.application.dto.ProductDTO;
-import com.metao.product.infrustructure.mapper.DTOMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import javax.annotation.PostConstruct;
+
+import com.metao.product.infrustructure.factory.handler.LogMessageHandler;
+import com.metao.product.infrustructure.mapper.ProductDtoMapper;
+
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ProductGenerator {
-    private final DTOMapper<String, Optional<ProductDTO>> mapper;
+public class ProductGenerator implements InitializingBean{
+    
+    private final ProductMessageHandler productMessageHandler;
+    private final LogMessageHandler logMessageHandler;
+
+    private final ProductDtoMapper mapper;
     private final FileHandler fileHandler;
-    private final EventHandler eventHandler;
+    private final ProductEventHandler eventHandler;
 
     @Async
     @PostConstruct
@@ -36,6 +44,12 @@ public class ProductGenerator {
             log.error(ex.getMessage());
         }
         log.debug("finished writing to database.");
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        eventHandler.addMessageHandler(productMessageHandler);
+        eventHandler.addMessageHandler(logMessageHandler);
     }
 
 }

@@ -1,6 +1,7 @@
 package com.metao.product.application.config;
 
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -8,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 public class ConverterConfig {
 
     @Bean
-    public Gson provideGson() {
-        return new Gson();
+    public ObjectMapper provideObjectMapper() {
+        return new ObjectMapper();
     }
 }

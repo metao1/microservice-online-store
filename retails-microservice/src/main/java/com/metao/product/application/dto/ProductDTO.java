@@ -35,7 +35,7 @@ public class ProductDTO implements Serializable {
     private String title;
 
     @Length(max = 255)
-    @Pattern(regexp = "^(https?):\\[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]")
+    @Pattern(regexp = "^((https?):\\[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|])")
     private String imageUrl;
 
     @Min(1)
