@@ -1,10 +1,9 @@
-package com.metao.product.infrustructure.factory;
+package com.metao.product.infrustructure.factory.handler;
 
 import java.util.Optional;
 
 import com.metao.product.domain.ProductService;
 import com.metao.product.domain.event.CreateProductEvent;
-import com.metao.product.infrustructure.factory.handler.MessageHandler;
 import com.metao.product.infrustructure.mapper.ProductMapper;
 
 import org.springframework.lang.NonNull;

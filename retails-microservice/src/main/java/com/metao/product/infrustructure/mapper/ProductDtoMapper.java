@@ -19,7 +19,7 @@ public class ProductDtoMapper implements DTOMapper<String, Optional<ProductDTO>>
     public Optional<ProductDTO> convertToDto(String productString) {
         final ProductDTO productDTO;
         try {
-            productDTO=  mapper.readValue(productString, ProductDTO.class);
+            productDTO = mapper.readValue(productString, ProductDTO.class);
         } catch (JsonProcessingException ex) {
             log.error(ex.getMessage());
             return Optional.empty();

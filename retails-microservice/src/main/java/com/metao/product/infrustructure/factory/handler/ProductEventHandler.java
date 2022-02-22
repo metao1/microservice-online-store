@@ -1,4 +1,4 @@
-package com.metao.product.infrustructure.factory;
+package com.metao.product.infrustructure.factory.handler;
 
 import java.time.Instant;
 import java.util.HashSet;
@@ -6,7 +6,6 @@ import java.util.Set;
 
 import com.metao.product.application.dto.ProductDTO;
 import com.metao.product.domain.event.CreateProductEvent;
-import com.metao.product.infrustructure.factory.handler.MessageHandler;
 
 import org.springframework.stereotype.Service;
 

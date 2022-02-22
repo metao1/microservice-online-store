@@ -6,7 +6,10 @@ import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
+import com.metao.product.infrustructure.factory.handler.FileHandler;
 import com.metao.product.infrustructure.factory.handler.LogMessageHandler;
+import com.metao.product.infrustructure.factory.handler.ProductEventHandler;
+import com.metao.product.infrustructure.factory.handler.ProductMessageHandler;
 import com.metao.product.infrustructure.mapper.ProductDtoMapper;
 
 import org.springframework.beans.factory.InitializingBean;

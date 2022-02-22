@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.metao.product.infrustructure.factory.FileHandler;
+import com.metao.product.infrustructure.factory.handler.FileHandler;
 
 import org.junit.jupiter.api.Test;
 
