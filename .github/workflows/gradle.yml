@@ -25,5 +25,5 @@ jobs:
       with:
         java-version: '11'
         distribution: 'temurin'
-    - name: Build with Gradle
+    - name: Build retails-microservice with Gradle 
       run: gradle :retails-microservice:build -x test
