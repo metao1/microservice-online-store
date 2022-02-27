@@ -1,8 +1,10 @@
 package com.metao.product.infrustructure.mapper;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import java.util.Set;
 
 import com.metao.ddd.finance.Currency;
@@ -90,6 +92,38 @@ public class ProductMapperTest {
                                                 price * 100,
                                                 categories,
                                                 url);
+        }
+
+
+        @Test
+        public void givenProductEntities_whenConvertToProductDTOs_isOk() {
+                var url = "http://localhost:8080/image.jpg";
+                var description = "description";
+                var title = "title";
+                var price = 12d;
+                var currency = Currency.DLR;
+                var category = new CategoryEntity("book");
+                var categories = Set.of(CategoryDTO.of("book"));
+                var pe = new ProductEntity(title, description, new Money(currency, price), new Image(url));
+                pe.addCategory(category);
+
+                var allPr = List.of(pe);
+                var allPrDtos = productMapper.toDtos(allPr);
+                assertThat(allPrDtos.size() == allPr.size());
+                allPrDtos.forEach(dto-> assertThat(dto)
+                                .extracting(
+                                                ProductDTO::getTitle,
+                                                ProductDTO::getDescription,
+                                                ProductDTO::getPrice,
+                                                ProductDTO::getCategories,
+                                                ProductDTO::getImageUrl)
+                                .containsExactly(
+                                                pe.getTitle(),
+                                                pe.getDescription(),
+                                                pe.getPriceValue(),
+                                                categories,
+                                                pe.getImage().url())
+                );
         }
 
 }

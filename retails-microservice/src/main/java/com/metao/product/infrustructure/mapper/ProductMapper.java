@@ -32,6 +32,12 @@ public interface ProductMapper {
                 .build();
     }
 
+    default Optional<ProductEntity> toEntity(@NonNull ProductDTO productDTO) {
+        return Optional
+                .of(productDTO)
+                .map(ProductMapper::buildProductEntity);
+    }
+
     default List<ProductDTO> toDtos(@NonNull List<ProductEntity> allPr) {
         return allPr.stream().map(this::toDto).toList();
     }
@@ -50,12 +56,6 @@ public interface ProductMapper {
                 .map(CategoryDTO::getCategory)
                 .map(CategoryEntity::new)
                 .toList();
-    }
-
-    default Optional<ProductEntity> toEntity(@NonNull ProductDTO productDTO) {
-        return Optional
-                .of(productDTO)
-                .map(ProductMapper::buildProductEntity);
     }
 
     private static ProductEntity buildProductEntity(ProductDTO item) {
