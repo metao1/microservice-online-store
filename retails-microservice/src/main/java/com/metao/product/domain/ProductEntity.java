@@ -35,20 +35,20 @@ public class ProductEntity extends AbstractAggregateRoot<ProductId> {
 
     public ProductEntity(@NonNull String title,
                          @NonNull String description,
-                         @NonNull Money price,
+                         @NonNull Money money,
                          @NonNull Image image) {
         super(DomainObjectId.randomId(ProductId.class));
-        this.title = title;      
+        this.title = title;
         this.description = description;
-        this.priceValue = price.getAmount();
-        this.priceCurrency = price.getCurrency();        
-        this.image= image;
+        this.priceValue = money.getAmount();
+        this.priceCurrency = money.getCurrency();        
+        this.image= image;        
         productCategory = new ProductCategoryEntity();
     }
 
     @SuppressWarnings("unused")
     private ProductEntity() {
-        //used by JPA only
+        
     }
 
     public String getTitle() {

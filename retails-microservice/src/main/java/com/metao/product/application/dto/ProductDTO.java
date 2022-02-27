@@ -1,7 +1,7 @@
 package com.metao.product.application.dto;
 
 import java.io.Serializable;
-import java.util.List;
+import java.util.Set;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -47,5 +47,6 @@ public class ProductDTO implements Serializable {
     private Currency currency;
 
     @NotNull
-    private List<CategoryDTO> categories;
+    private Set<CategoryDTO> categories;
+    
 }

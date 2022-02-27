@@ -5,6 +5,8 @@ import static org.mockito.Mockito.verify;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
+
 import com.metao.ddd.finance.Currency;
 import com.metao.product.application.dto.CategoryDTO;
 import com.metao.product.application.dto.ProductDTO;
@@ -38,7 +40,7 @@ public class ProductMessageHandlerTest {
                                 .title("title")
                                 .description("description")
                                 .price(1000d)
-                                .categories(List.of(CategoryDTO.builder().category("book").build()))
+                                .categories(Set.of(CategoryDTO.of("book")))
                                 .build();
                 var entity =productMapper.toEntity(product);
                 var event = new CreateProductEvent(product, Instant.now(), Instant.now());

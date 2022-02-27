@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.UUID;
 
 import com.metao.product.application.dto.ProductDTO;
-import com.metao.product.application.service.ProductCategoriesServiceImpl;
+import com.metao.product.application.service.ProductCategoriesService;
 import com.metao.product.application.service.ProductService;
 import com.metao.product.domain.ProductEntity;
 import com.metao.product.infrustructure.mapper.ProductMapper;
@@ -20,7 +20,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 import reactor.core.publisher.Mono;
 
-@Import({ProductService.class, ProductCategoriesServiceImpl.class})
+@Import({ProductService.class, ProductCategoriesService.class})
 @WebFluxTest(controllers = ProductCatalogController.class)
 public class ProductTests extends BaseTest {
 

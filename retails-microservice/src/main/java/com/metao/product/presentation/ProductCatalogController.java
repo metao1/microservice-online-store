@@ -2,13 +2,11 @@ package com.metao.product.presentation;
 
 import com.metao.product.application.dto.ProductDTO;
 import com.metao.product.application.exception.ProductNotFoundException;
-import com.metao.product.domain.ProductEntity;
 import com.metao.product.domain.ProductId;
 import com.metao.product.domain.ProductServiceInterface;
 import com.metao.product.infrustructure.mapper.ProductMapper;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

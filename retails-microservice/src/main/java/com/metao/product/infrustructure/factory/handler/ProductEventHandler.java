@@ -11,8 +11,6 @@ import com.metao.product.domain.event.CreateProductEvent;
 
 import org.springframework.stereotype.Service;
 
-import lombok.extern.slf4j.Slf4j;
-
 @Service
 public class ProductEventHandler {
 

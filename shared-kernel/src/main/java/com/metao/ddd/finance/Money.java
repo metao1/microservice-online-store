@@ -16,8 +16,7 @@ public class Money implements ValueObject {
     private final int amount;
 
     @JsonCreator
-    public Money(@NonNull @JsonProperty("currency") Currency currency,
-                 @JsonProperty("amount") int amount) {
+    public Money(@NonNull Currency currency, @NonNull int amount) {
         this.currency = Objects.requireNonNull(currency, "currency must not be null");
         if (amount < 0) {
             throw new RuntimeException("nothing is free, even so can't be negative");
