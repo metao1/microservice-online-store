@@ -9,9 +9,9 @@ name: Java CI with Gradle
 
 on:
   push:
-    branches: [ microseroservice ]
+    branches: [ microservice ]
   pull_request:
-    branches: [ microseroservice ]
+    branches: [ microservice ]
 
 jobs:
   build:
