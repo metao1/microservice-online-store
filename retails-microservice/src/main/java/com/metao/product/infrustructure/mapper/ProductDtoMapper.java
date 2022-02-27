@@ -6,10 +6,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.metao.product.application.dto.ProductDTO;
 
+import org.springframework.stereotype.Service;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Service
 @RequiredArgsConstructor
 public class ProductDtoMapper implements DTOMapper<String, Optional<ProductDTO>> {
 
@@ -18,6 +21,7 @@ public class ProductDtoMapper implements DTOMapper<String, Optional<ProductDTO>>
     @Override
     public Optional<ProductDTO> convertToDto(String productString) {
         final ProductDTO productDTO;
+        log.info(productString);
         try {
             productDTO = mapper.readValue(productString, ProductDTO.class);
         } catch (JsonProcessingException ex) {

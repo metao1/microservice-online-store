@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 
-@Service("productService")
+@Service
 @RequiredArgsConstructor
 public class ProductService implements ProductServiceInterface {
 

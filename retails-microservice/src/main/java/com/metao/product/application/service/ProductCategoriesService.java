@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 
-@Service("productCategoriesService")
+@Service
 @RequiredArgsConstructor
 public class ProductCategoriesService implements ProductCategoriesInterface {
 

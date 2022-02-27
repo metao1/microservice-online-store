@@ -5,11 +5,34 @@ import java.time.Instant;
 import com.metao.ddd.base.DomainEvent;
 import com.metao.product.application.dto.ProductDTO;
 
+import org.springframework.context.ApplicationEvent;
 import org.springframework.lang.NonNull;
 
-public record CreateProductEvent(@NonNull ProductDTO productDTO, @NonNull Instant createdOn, @NonNull Instant  occurredOn ) implements DomainEvent {
+public class CreateProductEvent extends ApplicationEvent implements DomainEvent {
+    private final ProductDTO productDTO;
+    private final Instant createdOn;
+    private final Instant occurredOn;
 
-    public static CreateProductEvent createEvent(ProductDTO productDTO) {
-            return new CreateProductEvent(productDTO, Instant.now(), Instant.now());
+    public CreateProductEvent(
+            @NonNull final ProductDTO productDTO,
+            @NonNull final Instant createdOn,
+            @NonNull final Instant occurredOn) {
+        super(productDTO);
+        this.occurredOn = occurredOn;
+        this.createdOn = createdOn;
+        this.productDTO = productDTO;
+    }
+
+    @Override
+    public Instant occurredOn() {
+        return occurredOn;
+    }
+
+    public Instant createdOn() {
+            return createdOn;
+    }
+
+    public ProductDTO productDTO() {
+            return productDTO;
     }
 }

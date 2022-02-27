@@ -12,6 +12,7 @@ import com.metao.product.infrustructure.factory.handler.LogMessageHandler;
 import com.metao.product.infrustructure.factory.handler.ProductEventHandler;
 import com.metao.product.infrustructure.factory.handler.ProductMessageHandler;
 import com.metao.product.infrustructure.mapper.ProductDtoMapper;
+import com.metao.product.infrustructure.util.EventUtil;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.scheduling.annotation.Async;
@@ -23,8 +24,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ProductGenerator implements InitializingBean{
-    
+public class ProductGenerator implements InitializingBean {
+
     private final ProductMessageHandler productMessageHandler;
     private final LogMessageHandler logMessageHandler;
 
@@ -36,13 +37,11 @@ public class ProductGenerator implements InitializingBean{
     @PostConstruct
     public void produceProducts() {
         log.debug("importing products data from resources");
-        try {
-            String dataSource = fileHandler.readFromFile("data/products.json");
-            Stream.of(dataSource.split("!"))
-                    .map(mapper::convertToDto)
+        try (var source = fileHandler.readFromFile("data/products.json")) {
+            source.map(mapper::convertToDto)
                     .filter(Optional::isPresent)
                     .map(Optional::get)
-                    .map(CreateProductEvent::createEvent)
+                    .map(EventUtil::createEvent)
                     .forEach(eventHandler::sendEvent);
         } catch (IOException ex) {
             log.error(ex.getMessage());

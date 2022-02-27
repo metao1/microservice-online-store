@@ -8,10 +8,11 @@ import java.util.concurrent.Executors;
 
 import com.metao.product.domain.event.CreateProductEvent;
 
+import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ProductEventHandler {
+public class ProductEventHandler implements ApplicationListener<CreateProductEvent>{
 
     private final Set<MessageHandler<CreateProductEvent>> messageHandlers = new HashSet<>();
     private static final ExecutorService executor = Executors.newWorkStealingPool(4);
@@ -34,6 +35,12 @@ public class ProductEventHandler {
             // }
             mh.onMessage(event);
         });
+    }
+
+    @Override
+    public void onApplicationEvent(CreateProductEvent event) {
+        // TODO Auto-generated method stub
+        
     }
 
 }

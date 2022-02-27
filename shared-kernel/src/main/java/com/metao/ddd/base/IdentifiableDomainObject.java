@@ -1,7 +1,5 @@
 package com.metao.ddd.base;
 
-import org.springframework.lang.Nullable;
-
 import java.io.Serializable;
 
 /**
@@ -9,13 +7,12 @@ import java.io.Serializable;
  *
  * @param <ID> the ID type.
  */
-public interface IdentifiableDomainObject<ID extends Serializable> extends DomainObject {
+public interface IdentifiableDomainObject<T extends Serializable> extends DomainObject {
 
     /**
      * Returns the ID of this domain object.
      *
      * @return the ID or {@code null} if an ID has not been assigned yet.
      */
-    @Nullable
-    ID id();
+    T id();
 }

@@ -4,7 +4,6 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Set;
 
 import com.metao.ddd.finance.Currency;
