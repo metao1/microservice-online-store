@@ -37,7 +37,7 @@ public class ProductGenerator implements InitializingBean {
     @PostConstruct
     public void produceProducts() {
         log.debug("importing products data from resources");
-        try (var source = fileHandler.readFromFile("data/products.json")) {
+        try (var source = fileHandler.readFromFile("data/products.txt")) {
             source.map(mapper::convertToDto)
                     .filter(Optional::isPresent)
                     .map(Optional::get)

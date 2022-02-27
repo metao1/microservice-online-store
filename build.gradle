@@ -1,8 +1,7 @@
 import org.springframework.boot.gradle.plugin.SpringBootPlugin
 
 plugins {
-    id 'base'
-    id 'idea'
+    id 'base'    
     id 'com.google.cloud.tools.jib' version '3.1.4' apply false
     id 'org.springframework.boot' version '2.6.1' apply false
 }
