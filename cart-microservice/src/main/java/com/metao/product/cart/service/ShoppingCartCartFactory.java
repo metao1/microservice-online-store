@@ -5,7 +5,6 @@ import com.metao.product.cart.domain.ShoppingCartKey;
 import com.metao.product.cart.repository.ShoppingCartRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
@@ -19,7 +18,7 @@ import java.util.Map;
 @Slf4j
 @Service
 @Transactional
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor
 @Scope(value = WebApplicationContext.SCOPE_SESSION, proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class ShoppingCartCartFactory implements ShoppingCartService {
 

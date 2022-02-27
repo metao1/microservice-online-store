@@ -6,24 +6,21 @@ pluginManagement {
 }
 
 rootProject.name = 'product'
-include(':cart-microservice')
+//include(':cart-microservice')
 include(':retails-microservice')
-include(':checkout-microservice')
-include(':registry-microservice')
-include(':gateway')
-include(':shared-lib')
+//include(':checkout-microservice')
+//include(':registry-microservice')
+include(':shared-kernel')
 
-project(":cart-microservice").projectDir = file('cart-microservice')
+//project(":cart-microservice").projectDir = file('cart-microservice')
 project(":retails-microservice").projectDir = file('retails-microservice')
-project(":checkout-microservice").projectDir = file('checkout-microservice')
-project(":registry-microservice").projectDir = file('registry-microservice')
-project(":gateway").projectDir = file('api-gateway-microservice')
-project(":shared-lib").projectDir = file('shared-lib')
+//project(":checkout-microservice").projectDir = file('checkout-microservice')
+//project(":registry-microservice").projectDir = file('registry-microservice')
+project(":shared-kernel").projectDir = file('shared-kernel')
 
 gradle.ext.springBootProjects = [
-        ':cart-microservice',
+        //':cart-microservice',
         ':retails-microservice',
-        ':checkout-microservice',
-        ':gateway',
-        ':registry-microservice'
+        //':checkout-microservice',
+        //':registry-microservice'
 ]

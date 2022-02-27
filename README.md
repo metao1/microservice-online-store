@@ -3,6 +3,8 @@
 Products is an E-commerce and management tool for products
 running on Spring boot , React using Microservice architecture
 
+![bookstore](online-book-store.png)
+
 How to install and run instructions:
 
 To run the whole application you need to enter into each folder where the microservices are hosted and run them separately.
