@@ -4,7 +4,7 @@ import com.metao.product.application.dto.ProductDTO;
 import com.metao.product.application.exception.ProductNotFoundException;
 import com.metao.product.domain.ProductId;
 import com.metao.product.domain.ProductServiceInterface;
-import com.metao.product.infrustructure.mapper.ProductMapper;
+import com.metao.product.infrustructure.mapper.ProductMapperInterface;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -20,7 +20,7 @@ import java.util.Optional;
 public class ProductCatalogController {
 
     private final ProductServiceInterface productService;
-    private final ProductMapper productMapper;
+    private final ProductMapperInterface productMapper;
 
     @PostMapping(value = "/products", consumes = MediaType.APPLICATION_JSON_VALUE)
     public void saveProduct(@Valid @RequestBody ProductDTO productDTO) {

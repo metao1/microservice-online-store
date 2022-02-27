@@ -1,7 +1,6 @@
 package com.metao.product.infrustructure.mapper;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -20,7 +19,7 @@ import org.junit.jupiter.api.Test;
 
 public class ProductMapperTest {
 
-        private ProductMapper productMapper = new ProductMapperImpl();
+        private ProductMapperInterface productMapper = new ProductMapper();
 
         @Test
         public void givenProductDto_whenConvertToProductEntity_isOk() {
@@ -93,7 +92,6 @@ public class ProductMapperTest {
                                                 categories,
                                                 url);
         }
-
 
         @Test
         public void givenProductEntities_whenConvertToProductDTOs_isOk() {

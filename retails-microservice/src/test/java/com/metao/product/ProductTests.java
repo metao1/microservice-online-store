@@ -8,7 +8,7 @@ import com.metao.product.application.dto.ProductDTO;
 import com.metao.product.application.service.ProductCategoriesService;
 import com.metao.product.application.service.ProductService;
 import com.metao.product.domain.ProductEntity;
-import com.metao.product.infrustructure.mapper.ProductMapper;
+import com.metao.product.infrustructure.mapper.ProductMapperInterface;
 import com.metao.product.presentation.ProductCatalogController;
 
 import org.junit.jupiter.api.Test;
@@ -27,7 +27,7 @@ public class ProductTests extends BaseTest {
     public static final String PRODUCT_URL = "/products/";
 
     @MockBean
-    ProductMapper productMapper;
+    ProductMapperInterface productMapper;
 
     @Autowired
     WebTestClient webTestClient;
