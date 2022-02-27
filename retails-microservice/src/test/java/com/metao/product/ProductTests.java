@@ -5,7 +5,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.UUID;
 
 import com.metao.product.application.dto.ProductDTO;
+import com.metao.product.application.persistence.ProductRepository;
+import com.metao.product.application.service.ProductService;
 import com.metao.product.domain.ProductEntity;
+import com.metao.product.domain.ProductRepositoryInterface;
+import com.metao.product.domain.ProductServiceInterface;
 import com.metao.product.infrustructure.mapper.ProductMapperInterface;
 import com.metao.product.presentation.ProductCatalogController;
 
@@ -20,7 +24,9 @@ import reactor.core.publisher.Mono;
 
 @Import({
         ProductMapperInterface.class,
-        ProductMapperInterface.class
+        ProductMapperInterface.class,
+        ProductService.class,
+        ProductRepository.class
 })
 @WebFluxTest(controllers = ProductCatalogController.class)
 public class ProductTests extends BaseTest {

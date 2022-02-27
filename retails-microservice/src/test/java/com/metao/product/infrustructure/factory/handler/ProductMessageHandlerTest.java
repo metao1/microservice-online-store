@@ -9,7 +9,7 @@ import java.util.Set;
 import com.metao.ddd.finance.Currency;
 import com.metao.product.application.dto.CategoryDTO;
 import com.metao.product.application.dto.ProductDTO;
-import com.metao.product.application.persistence.ProductRepositoryImpl;
+import com.metao.product.application.persistence.ProductRepository;
 import com.metao.product.application.service.ProductService;
 import com.metao.product.domain.ProductEntity;
 import com.metao.product.domain.event.CreateProductEvent;
@@ -25,7 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class ProductMessageHandlerTest {
 
         @Mock
-        ProductRepositoryImpl productRepo;
+        ProductRepository productRepo;
         
         @Test
         void testOnMessage() {

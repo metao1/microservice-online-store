@@ -5,7 +5,7 @@ import java.util.List;
 import com.metao.product.application.exception.ProductNotFoundException;
 import com.metao.product.domain.ProductEntity;
 import com.metao.product.domain.ProductId;
-import com.metao.product.domain.ProductRepository;
+import com.metao.product.domain.ProductRepositoryInterface;
 import com.metao.product.domain.ProductServiceInterface;
 
 import org.apache.commons.lang.NotImplementedException;
@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ProductService implements ProductServiceInterface {
 
-    private final ProductRepository productRepository;
+    private final ProductRepositoryInterface productRepository;
 
     @Override
     public ProductEntity getProductById(ProductId productId) throws ProductNotFoundException{

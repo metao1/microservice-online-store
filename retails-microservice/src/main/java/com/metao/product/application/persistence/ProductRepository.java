@@ -2,7 +2,8 @@ package com.metao.product.application.persistence;
 
 import com.metao.product.domain.ProductEntity;
 import com.metao.product.domain.ProductId;
-import com.metao.product.domain.ProductRepository;
+import com.metao.product.domain.ProductRepositoryInterface;
+
 import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
@@ -14,8 +15,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.validation.constraints.NotNull;
 
 @Slf4j
-@Service("productRepository")
-public class ProductRepositoryImpl implements ProductRepository {
+@Service
+public class ProductRepository implements ProductRepositoryInterface {
     private Map<ProductId, ProductEntity> map = new ConcurrentHashMap<>();
 
     @Override

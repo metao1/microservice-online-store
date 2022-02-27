@@ -11,7 +11,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductCategoriesService implements ProductCategoriesInterface {
 
-    private final ProductRepository productRepository;
+    private final ProductRepositoryInterface productRepository;
 
     @Override
     public List<ProductCategoryEntity> getProductCategories(ProductId productId) {
