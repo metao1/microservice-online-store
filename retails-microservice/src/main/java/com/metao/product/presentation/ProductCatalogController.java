@@ -42,6 +42,7 @@ public class ProductCatalogController {
         var allPr = productService.getAllProductsPageable(l, o);
         return ResponseEntity.ok(productMapper.toDtos(allPr));
     }
+
 //
 //    @GetMapping(value = "/products/category/{category}", produces = MediaType.APPLICATION_JSON_VALUE)
 //    public ResponseEntity<List<ProductDTO>> getProductsByCategory(@PathVariable("category") String category,

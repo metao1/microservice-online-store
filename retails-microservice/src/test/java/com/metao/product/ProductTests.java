@@ -1,19 +1,25 @@
 package com.metao.product;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
+import java.util.Optional;
 import java.util.UUID;
 
+import com.metao.ddd.finance.Currency;
+import com.metao.ddd.finance.Money;
 import com.metao.product.application.dto.ProductDTO;
 import com.metao.product.application.persistence.ProductRepository;
 import com.metao.product.application.service.ProductService;
 import com.metao.product.domain.ProductEntity;
-import com.metao.product.domain.ProductRepositoryInterface;
-import com.metao.product.domain.ProductServiceInterface;
+import com.metao.product.domain.ProductId;
+import com.metao.product.domain.category.CategoryEntity;
+import com.metao.product.domain.image.Image;
 import com.metao.product.infrustructure.mapper.ProductMapperInterface;
 import com.metao.product.presentation.ProductCatalogController;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -29,6 +35,7 @@ import reactor.core.publisher.Mono;
         ProductRepository.class
 })
 @WebFluxTest(controllers = ProductCatalogController.class)
+@ExtendWith(MockitoExtension.class)
 public class ProductTests extends BaseTest {
 
     public static final String PRODUCT_URL = "/products/";
@@ -36,12 +43,13 @@ public class ProductTests extends BaseTest {
     @MockBean
     ProductMapperInterface productMapper;
 
+    @MockBean
+    ProductRepository productRepository;
+
     @Autowired
     WebTestClient webTestClient;
 
     private String productId = UUID.randomUUID().toString();
-
-    private ProductEntity productEntity;
 
     private ProductDTO productDTO;
 
@@ -80,19 +88,42 @@ public class ProductTests extends BaseTest {
     // }
 
     @Test
-    public void testLoadOneProduct() {
+    public void loadOneProduct_isNotFound() {
         webTestClient
                 .get()
                 .uri(PRODUCT_URL + productId)
                 .exchange()
-                .expectStatus().isOk()
-                .expectBody(ProductDTO.class)
-                .value(val -> {
-                    assertThat(val).isNotNull();
-                    assertThat(val.getPrice()).isEqualTo(productEntity.getPriceValue());
-                    assertThat(val.getTitle()).isEqualTo(productEntity.getTitle());
-                    // assertThat(val.getCategories().containsAll(productEntity.ge()));
-                });
+                .expectStatus()
+                .isNotFound();
+    }
+
+    @Test
+    public void loadOneProduct_isOk() {
+        var url = "http://localhost:8080/image.jpg";
+        var description = "description";
+        var title = "title";
+        var price = 12d;
+        var currency = Currency.DLR;
+        var category = new CategoryEntity("book");
+        var pe = new ProductEntity(title, description, new Money(currency, price), new Image(url));
+        pe.addCategory(category);
+        when(productRepository.findProductEntityById(new ProductId(productId)))
+                .thenReturn(Optional.of(pe));
+
+        webTestClient
+                .get()
+                .uri(PRODUCT_URL + "details/"+ productId)
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody()
+                .jsonPath("$.[0].id");
+        // .value(val -> {
+        // assertThat(val).isNotNull();
+        // assertThat(val.getPrice()).isEqualTo(productEntity.getPriceValue());
+        // assertThat(val.getTitle()).isEqualTo(productEntity.getTitle());
+        // // assertThat(val.getCategories().containsAll(productEntity.ge()));
+        // });
     }
 
     @Test
