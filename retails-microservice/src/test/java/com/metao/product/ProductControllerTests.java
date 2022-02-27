@@ -3,10 +3,12 @@ package com.metao.product;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import com.metao.ddd.finance.Currency;
 import com.metao.ddd.finance.Money;
+import com.metao.product.application.dto.CategoryDTO;
 import com.metao.product.application.dto.ProductDTO;
 import com.metao.product.application.persistence.ProductRepository;
 import com.metao.product.application.service.ProductService;
@@ -15,7 +17,7 @@ import com.metao.product.domain.ProductId;
 import com.metao.product.domain.category.CategoryEntity;
 import com.metao.product.domain.image.Image;
 import com.metao.product.infrustructure.mapper.ProductMapperInterface;
-import com.metao.product.presentation.ProductCatalogController;
+import com.metao.product.presentation.ProductController;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,9 +36,9 @@ import reactor.core.publisher.Mono;
         ProductService.class,
         ProductRepository.class
 })
-@WebFluxTest(controllers = ProductCatalogController.class)
+@WebFluxTest(controllers = ProductController.class)
 @ExtendWith(MockitoExtension.class)
-public class ProductTests extends BaseTest {
+public class ProductControllerTests extends BaseTest {
 
     public static final String PRODUCT_URL = "/products/";
 
@@ -50,42 +52,6 @@ public class ProductTests extends BaseTest {
     WebTestClient webTestClient;
 
     private String productId = UUID.randomUUID().toString();
-
-    private ProductDTO productDTO;
-
-    //
-    // @BeforeEach
-    // public void init(ApplicationContext context) {
-    // webTestClient = WebTestClient.bindToApplicationContext(context).build();
-    // productEntity = ProductEntity.builder()
-    // .title("brand")
-    // .categories(Collections.singleton(ProductCategoryEntity.builder()
-    // .id(UUID.randomUUID().toString())
-    // .categories("Book").build()))
-    // .description("clothes")
-    // .id(productId)
-    // .createdAt(NOW())
-    // .modifiedAt(NOW())
-    // .createdBy(USER_ID)
-    // .modifiedBy(USER_ID)
-    // .imageUrl("image-url")
-    // .price(1200d)
-    // .build();
-    // productDTO = ProductDTO.builder()
-    // .asin(UUID.randomUUID().toString())
-    // .title(productEntity.getTitle())
-    // .categories(null)
-    // .price(productEntity.getPrice())
-    // .description(productEntity.getDescription())
-    // .imageUrl(productEntity.getImage())
-    // .build();
-    //
-    // Mockito.when(productMapper.mapToEntity(productDTO)).thenReturn(productEntity);
-    // Mockito.when(productMapper.mapToDto(productEntity)).thenReturn(productDTO);
-    //// Mockito.when(productRepository.findProductEntityById(productId)).thenReturn(Optional.of(productEntity));
-    //// Mockito.when(productRepository.findProductEntityById(productId)).thenReturn(Optional.of(productEntity));
-    //
-    // }
 
     @Test
     public void loadOneProduct_isNotFound() {
@@ -112,7 +78,7 @@ public class ProductTests extends BaseTest {
 
         webTestClient
                 .get()
-                .uri(PRODUCT_URL + "details/"+ productId)
+                .uri(PRODUCT_URL + "details/" + productId)
                 .exchange()
                 .expectStatus()
                 .isOk()
@@ -128,17 +94,33 @@ public class ProductTests extends BaseTest {
 
     @Test
     public void testLoadAnonymousProduct_raisesError() {
-        webTestClient.get().uri(PRODUCT_URL + productId)
+        webTestClient
+                .get()
+                .uri(PRODUCT_URL + productId)
                 .exchange()
-                .expectStatus().isNotFound();
+                .expectStatus()
+                .isNotFound();
     }
 
     @Test
     public void testSaveProduct_isOk() {
-        webTestClient.post()
-                .uri(PRODUCT_URL)
-                .body(Mono.just(productDTO), ProductDTO.class)
+        var productDto = ProductDTO
+                .builder()
+                .currency(Currency.DLR)
+                .asin("asin")
+                .title("title")
+                .description("description")
+                .price(1000d)
+                .categories(Set.of(CategoryDTO.of("book")))
+                .build();
+        webTestClient
+                .post()
+                .uri(PRODUCT_URL)                
+                .body(Mono.just(productDto), ProductDTO.class)
                 .exchange()
-                .expectBody().isEmpty();
+                .expectStatus()
+                .isOk()
+                .expectBody()
+                .isEmpty();
     }
 }

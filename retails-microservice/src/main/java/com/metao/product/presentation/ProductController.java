@@ -17,7 +17,7 @@ import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
-public class ProductCatalogController {
+public class ProductController {
 
     private final ProductServiceInterface productService;
     private final ProductMapperInterface productMapper;
