@@ -6,7 +6,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.metao.product.application.dto.ProductDTO;
 import com.metao.product.domain.event.CreateProductEvent;
 
 import org.springframework.stereotype.Service;
@@ -35,10 +34,6 @@ public class ProductEventHandler {
             // }
             mh.onMessage(event);
         });
-    }
-
-    public CreateProductEvent createEvent(ProductDTO productDTO) {
-        return new CreateProductEvent(productDTO, Instant.now(), Instant.now());
     }
 
 }

@@ -6,6 +6,7 @@ import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
+import com.metao.product.domain.event.CreateProductEvent;
 import com.metao.product.infrustructure.factory.handler.FileHandler;
 import com.metao.product.infrustructure.factory.handler.LogMessageHandler;
 import com.metao.product.infrustructure.factory.handler.ProductEventHandler;
@@ -41,7 +42,7 @@ public class ProductGenerator implements InitializingBean{
                     .map(mapper::convertToDto)
                     .filter(Optional::isPresent)
                     .map(Optional::get)
-                    .map(eventHandler::createEvent)
+                    .map(CreateProductEvent::createEvent)
                     .forEach(eventHandler::sendEvent);
         } catch (IOException ex) {
             log.error(ex.getMessage());
