@@ -1,3 +1,8 @@
+![LINE](https://img.shields.io/badge/line--coverage-87%25-brightgreen.svg)
+![BRANCH](https://img.shields.io/badge/branch--coverage-78%25-yellow.svg)
+![COMPLEXITY](https://img.shields.io/badge/complexity-1.90-brightgreen.svg)
+![CodeQL](https://github.com/metao1/microservice-online-book-store/workflows/CodeQL/badge.svg)
+
 # product
 
 Products is an E-commerce and management tool for products
