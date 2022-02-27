@@ -14,7 +14,7 @@ import com.metao.product.application.persistence.ProductRepositoryImpl;
 import com.metao.product.application.service.ProductService;
 import com.metao.product.domain.ProductEntity;
 import com.metao.product.domain.event.CreateProductEvent;
-import com.metao.product.infrustructure.mapper.ProductMapperImpl;
+import com.metao.product.infrustructure.mapper.ProductMapper;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,7 +30,7 @@ public class ProductMessageHandlerTest {
         
         @Test
         void testOnMessage() {
-                var productMapper = new ProductMapperImpl();        
+                var productMapper = new ProductMapper();        
                 var productService = new ProductService(productRepo);
                 var productMsgHandler = new ProductMessageHandler(productService, productMapper);
                 var product = ProductDTO
