@@ -1,21 +1,24 @@
 package com.metao.product.infrustructure.mapper;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
+
+import javax.validation.Valid;
+
 import com.metao.ddd.finance.Money;
 import com.metao.product.application.dto.CategoryDTO;
 import com.metao.product.application.dto.ProductDTO;
 import com.metao.product.domain.ProductEntity;
 import com.metao.product.domain.category.CategoryEntity;
 import com.metao.product.domain.image.Image;
-import org.springframework.lang.NonNull;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
+import org.springframework.lang.NonNull;
 
 public interface ProductMapper {
 
-    default ProductDTO toDto(ProductEntity pr) {
+    default ProductDTO toDto(@Valid ProductEntity pr) {
         return ProductDTO.builder()
                 .title(pr.getTitle())
                 .asin(pr.id().toUUID())
@@ -26,7 +29,7 @@ public interface ProductMapper {
                 .build();
     }
 
-    default List<ProductDTO> toDtos(List<ProductEntity> allPr) {
+    default List<ProductDTO> toDtos(@NonNull List<ProductEntity> allPr) {
         return allPr.stream().map(this::toDto).toList();
     }
 

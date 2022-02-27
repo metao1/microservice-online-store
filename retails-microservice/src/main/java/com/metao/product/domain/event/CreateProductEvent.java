@@ -1,34 +1,11 @@
 package com.metao.product.domain.event;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
+import java.time.Instant;
+
 import com.metao.ddd.base.DomainEvent;
 import com.metao.product.application.dto.ProductDTO;
 
-import java.time.Instant;
+import org.springframework.lang.NonNull;
 
-public class CreateProductEvent implements DomainEvent {
-
-    private final ProductDTO productDTO;
-    private final Instant createdOn;
-    private final Instant occurredOn;
-
-    @JsonCreator
-    public CreateProductEvent(ProductDTO productDTO, Instant createdOn, Instant occurredOn) {
-        this.productDTO = productDTO;
-        this.createdOn = createdOn;
-        this.occurredOn = occurredOn;
-    }
-
-    @Override
-    public Instant occurredOn() {
-        return occurredOn;
-    }
-
-    Instant getCreatedOn() {
-        return createdOn;
-    }
-
-    public ProductDTO getProductDTO() {
-        return productDTO;
-    }
+public record CreateProductEvent(@NonNull ProductDTO productDTO, @NonNull Instant createdOn, @NonNull Instant  occurredOn ) implements DomainEvent {
 }

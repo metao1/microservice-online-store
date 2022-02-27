@@ -2,7 +2,7 @@ package com.metao.product.domain;
 
 import java.util.List;
 
-public interface ProductService {
+public interface ProductServiceInterface {
 
     ProductEntity getProductById(ProductId productId);
 

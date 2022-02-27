@@ -1,6 +1,6 @@
 package com.metao.product.checkout.exception;
 
-public class NotEnoughProductsInStockException extends Exception {
+public class NotEnoughProductsInStockException extends RuntimeException {
 
     private static final String DEFAULT_MESSAGE = "Not enough products in stock";
 

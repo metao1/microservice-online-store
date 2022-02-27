@@ -1,24 +1,26 @@
 package com.metao.product.application.service;
 
+import java.util.List;
+
 import com.metao.product.application.exception.ProductNotFoundException;
 import com.metao.product.domain.ProductEntity;
 import com.metao.product.domain.ProductId;
 import com.metao.product.domain.ProductRepository;
-import com.metao.product.domain.ProductService;
-import lombok.RequiredArgsConstructor;
+import com.metao.product.domain.ProductServiceInterface;
+
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @Service("productService")
 @RequiredArgsConstructor
-public class ProductServiceImplementation implements ProductService {
+public class ProductService implements ProductServiceInterface {
 
     private final ProductRepository productRepository;
 
     @Override
-    public ProductEntity getProductById(ProductId productId) {
+    public ProductEntity getProductById(ProductId productId) throws ProductNotFoundException{
         return productRepository.findProductEntityById(productId)
                 .orElseThrow(() -> new ProductNotFoundException(productId.toUUID()));
     }

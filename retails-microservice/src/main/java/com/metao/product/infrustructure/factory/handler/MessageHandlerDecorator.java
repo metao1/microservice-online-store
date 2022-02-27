@@ -11,7 +11,7 @@ public abstract class MessageHandlerDecorator<T extends DomainEvent> implements 
         }
 
         @Override
-        public void onMessage(T event) {
+        public void onMessage(T event) {        
              this.handler.onMessage(event);   
         }
         

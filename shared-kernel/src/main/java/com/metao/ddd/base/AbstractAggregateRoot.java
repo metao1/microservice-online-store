@@ -13,7 +13,7 @@ import java.util.*;
  *
  * @param <ID> the aggregate root ID type.
  */
-public abstract class AbstractAggregateRoot<ID extends DomainObjectId> extends AbstractEntity<ID> {
+public abstract class AbstractAggregateRoot<T extends DomainObjectId> extends AbstractEntity<T> {
 
     @Transient
     @JsonIgnore
@@ -30,7 +30,7 @@ public abstract class AbstractAggregateRoot<ID extends DomainObjectId> extends A
      *
      * @param source the aggregate root to copy from.
      */
-    protected AbstractAggregateRoot(@NonNull AbstractAggregateRoot<ID> source) {
+    protected AbstractAggregateRoot(@NonNull AbstractAggregateRoot<T> source) {
         super(source);
     }
 
@@ -39,7 +39,7 @@ public abstract class AbstractAggregateRoot<ID extends DomainObjectId> extends A
      *
      * @param id the ID to assign to the aggregate root.
      */
-    protected AbstractAggregateRoot(ID id) {
+    protected AbstractAggregateRoot(T id) {
         super(id);
     }
 

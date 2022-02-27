@@ -38,10 +38,12 @@ public class ProductDTO implements Serializable {
     @Pattern(regexp = "^((https?):\\[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|])")
     private String imageUrl;
 
+    @NotNull
     @Min(1)
     @Max(20000)
     private Double price;
 
+    @NotNull
     private Currency currency;
 
     @NotNull
