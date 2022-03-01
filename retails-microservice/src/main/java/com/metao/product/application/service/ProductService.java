@@ -20,7 +20,7 @@ public class ProductService implements ProductServiceInterface {
     private final ProductRepositoryInterface productRepository;
 
     @Override
-    public ProductEntity getProductById(ProductId productId) throws ProductNotFoundException{
+    public ProductEntity getProductById(ProductId productId) throws ProductNotFoundException {
         return productRepository.findProductEntityById(productId)
                 .orElseThrow(() -> new ProductNotFoundException(productId.toUUID()));
     }

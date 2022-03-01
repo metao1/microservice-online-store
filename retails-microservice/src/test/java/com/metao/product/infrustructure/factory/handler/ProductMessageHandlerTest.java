@@ -4,16 +4,13 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 
 import java.time.Instant;
-import java.util.Set;
 
-import com.metao.ddd.finance.Currency;
-import com.metao.product.application.dto.CategoryDTO;
-import com.metao.product.application.dto.ProductDTO;
 import com.metao.product.application.persistence.ProductRepository;
 import com.metao.product.application.service.ProductService;
 import com.metao.product.domain.ProductEntity;
 import com.metao.product.domain.event.CreateProductEvent;
 import com.metao.product.infrustructure.mapper.ProductMapper;
+import com.metao.product.util.ProductTestUtils;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,15 +29,7 @@ public class ProductMessageHandlerTest {
                 var productMapper = new ProductMapper();        
                 var productService = new ProductService(productRepo);
                 var productMsgHandler = new ProductMessageHandler(productService, productMapper);
-                var product = ProductDTO
-                                .builder()
-                                .currency(Currency.DLR)
-                                .asin("asin")
-                                .title("title")
-                                .description("description")
-                                .price(1000d)
-                                .categories(Set.of(CategoryDTO.of("book")))
-                                .build();
+                var product = ProductTestUtils.createProductDTO();
                 var entity =productMapper.toEntity(product);
                 var event = new CreateProductEvent(product, Instant.now(), Instant.now());
                 productMsgHandler.onMessage(event);

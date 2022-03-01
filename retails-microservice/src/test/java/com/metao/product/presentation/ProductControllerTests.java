@@ -3,12 +3,10 @@ package com.metao.product.presentation;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import com.metao.ddd.finance.Currency;
 import com.metao.ddd.finance.Money;
-import com.metao.product.application.dto.CategoryDTO;
 import com.metao.product.application.dto.ProductDTO;
 import com.metao.product.application.persistence.ProductRepository;
 import com.metao.product.application.service.ProductService;
@@ -17,7 +15,7 @@ import com.metao.product.domain.ProductId;
 import com.metao.product.domain.category.CategoryEntity;
 import com.metao.product.domain.image.Image;
 import com.metao.product.infrustructure.mapper.ProductMapperInterface;
-import com.metao.product.presentation.ProductController;
+import com.metao.product.util.ProductTestUtils;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -101,16 +99,7 @@ public class ProductControllerTests{
 
     @Test
     public void testSaveProduct_isOk() {
-        var productDto = ProductDTO
-                .builder()
-                .currency(Currency.DLR)
-                .asin("12321321")
-                .title("title")
-                .description("description")
-                .price(100d)
-                .imageUrl("http://example.com/image.png")
-                .categories(Set.of(CategoryDTO.of("book")))
-                .build();
+        var productDto = ProductTestUtils.createProductDTO();
         webTestClient
                 .post()
                 .uri(PRODUCT_URL)
