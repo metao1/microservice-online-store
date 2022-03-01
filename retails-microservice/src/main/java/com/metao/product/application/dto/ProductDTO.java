@@ -23,30 +23,30 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ProductDTO implements Serializable {
 
-    //@Pattern(regexp = "^[0-9]{10}")
+    @Pattern(regexp = "^[0-9]{10}")
     private String asin;
 
-    // @Min(3)
-    // @Max(1200)
+    @Min(3)
+    @Max(1200)
     private String description;
 
-    // @Min(3)
-    // @Max(255)
+    @Min(3)
+    @Max(255)
     private String title;
 
-    //@Length(max = 255)
-    //@Pattern(regexp = "(http(s?):)([/|.|\\w|-|])*\\.(?:jpg|gif|png)")
+    @Length(max = 255)
+    @Pattern(regexp = "(http(s?):)([/|.|\\w|-|])*\\.(?:jpg|gif|png)")
     private String imageUrl;
 
-    // @NotNull
-    // @Min(1)
-    // @Max(20000)
+    @NotNull
+    @Min(1)
+    @Max(20000)
     private Double price;
 
-//    @NotNull
+   @NotNull
     private Currency currency;
 
-  //  @NotNull
+   @NotNull
     private Set<CategoryDTO> categories;
     
 }

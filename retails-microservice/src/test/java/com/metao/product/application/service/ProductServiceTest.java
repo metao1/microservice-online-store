@@ -1,19 +1,12 @@
 package com.metao.product.application.service;
 
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
-import java.util.Set;
-
-import com.metao.ddd.finance.Currency;
-import com.metao.ddd.finance.Money;
-import com.metao.product.application.dto.CategoryDTO;
 import com.metao.product.application.exception.ProductNotFoundException;
 import com.metao.product.application.persistence.ProductRepository;
-import com.metao.product.domain.ProductEntity;
 import com.metao.product.domain.ProductId;
-import com.metao.product.domain.category.CategoryEntity;
-import com.metao.product.domain.image.Image;
 import com.metao.product.util.ProductTestUtils;
 
 import org.junit.jupiter.api.Assertions;
@@ -56,7 +49,8 @@ public class ProductServiceTest {
 
         @Test
         void testSaveProduct() {
-
+                var pe = ProductTestUtils.createProductEntity();
                 productService.saveProduct(pe);
+                verify(productRepo).save(pe);
         }
 }

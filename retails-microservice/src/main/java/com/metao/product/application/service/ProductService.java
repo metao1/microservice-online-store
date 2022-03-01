@@ -35,19 +35,22 @@ public class ProductService implements ProductServiceInterface {
         throw new NotImplementedException("getAllProductsPageable not yet implemented");
     }
 
-//    public List<ProductEntity> getAllProductsWithCategory(ProductCategoriesService categoriesService, String category, int limit, int offset) {
-//        Pageable pageable = new OffsetBasedPageRequest(limit, offset);
-//        categoriesService.getProductCategories()
-//        var result = this.productRepository.findAllProductsWithCategoryAndOffset(, category, pageable);
-//        return result.stream()
-//                .filter(Objects::nonNull)
-//                .map(productMapper::mapToDto)
-//                .collect(Collectors.toList());
-//    }
-
     @Override
     public void saveProduct(ProductEntity pe) {
         this.productRepository.save(pe);
     }
+
+    // public List<ProductEntity>
+    // getAllProductsWithCategory(ProductCategoriesService categoriesService, String
+    // category, int limit, int offset) {
+    // Pageable pageable = new OffsetBasedPageRequest(limit, offset);
+    // categoriesService.getProductCategories()
+    // var result = this.productRepository.findAllProductsWithCategoryAndOffset(,
+    // category, pageable);
+    // return result.stream()
+    // .filter(Objects::nonNull)
+    // .map(productMapper::mapToDto)
+    // .collect(Collectors.toList());
+    // }
 
 }

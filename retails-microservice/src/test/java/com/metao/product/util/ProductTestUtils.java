@@ -31,8 +31,9 @@ public class ProductTestUtils {
                                 .asin("asin")
                                 .title("title")
                                 .description("description")
-                                .price(1000d)
+                                .price(12d)
                                 .categories(Set.of(CategoryDTO.of("book")))
+                                .imageUrl("http://example.com/image.jpg")
                                 .build();
         }
         

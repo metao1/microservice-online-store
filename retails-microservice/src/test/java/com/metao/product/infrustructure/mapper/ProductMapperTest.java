@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 
 import com.metao.ddd.finance.Currency;
+import com.metao.product.application.dto.CategoryDTO;
 import com.metao.product.application.dto.ProductDTO;
 import com.metao.product.domain.ProductCategoryEntity;
 import com.metao.product.domain.ProductEntity;
@@ -48,41 +49,41 @@ public class ProductMapperTest {
         public void givenProductEntity_whenConvertToProductDTO_isOk() {
                 var pe = ProductTestUtils.createProductEntity();
                 var productDto = productMapper.toDto(pe);
-
+                var categories = pe.getProductCategory().getCategories();
+                productDto.getCategories()
+                                .stream()
+                                .map(CategoryDTO::getCategory)
+                                .forEach(category -> categories                                                
+                                                .contains(new CategoryEntity(category)));
                 assertThat(productDto)
                                 .extracting(
                                                 ProductDTO::getTitle,
                                                 ProductDTO::getDescription,
                                                 ProductDTO::getPrice,
-                                                ProductDTO::getCategories,
-                                                ProductDTO::getImageUrl)
-                                .containsExactly(
-                                                pe.getTitle(),
-                                                pe.getDescription(),
-                                                pe.getPriceValue() * 100,
-                                                pe.getProductCategory(),
-                                                pe.getImage().url());
-        }
-
-        @Test
-        public void givenProductEntities_whenConvertToProductDTOs_isOk() {
-
-                var pe = ProductTestUtils.createProductEntity();
-                var allPr = List.of(pe);
-                var allPrDtos = productMapper.toDtos(allPr);
-                assertThat(allPrDtos.size() == allPr.size());
-                allPrDtos.forEach(dto -> assertThat(dto)
-                                .extracting(
-                                                ProductDTO::getTitle,
-                                                ProductDTO::getDescription,
-                                                ProductDTO::getPrice,
-                                                ProductDTO::getCategories,
                                                 ProductDTO::getImageUrl)
                                 .containsExactly(
                                                 pe.getTitle(),
                                                 pe.getDescription(),
                                                 pe.getPriceValue(),
-                                                pe.getProductCategory(),
+                                                pe.getImage().url());
+        }
+
+        @Test
+        public void givenProductEntities_whenConvertToProductDTOs_isOk() {
+                var pe = ProductTestUtils.createProductEntity();
+                var allPr = List.of(pe);
+                var allPrDtos = productMapper.toDtos(allPr);
+                assertThat(allPrDtos.size() == allPr.size());        
+                allPrDtos.forEach(dto -> assertThat(dto)
+                                .extracting(
+                                                ProductDTO::getTitle,
+                                                ProductDTO::getDescription,
+                                                ProductDTO::getPrice,
+                                                ProductDTO::getImageUrl)
+                                .containsExactly(
+                                                pe.getTitle(),
+                                                pe.getDescription(),
+                                                pe.getPriceValue(),
                                                 pe.getImage().url()));
         }
 

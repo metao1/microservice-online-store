@@ -1,7 +1,10 @@
 server:
   port: ${PORT:8082}
 
-
+spring:
+  cloud:
+    discovery:
+      enabled: false    
 # spring:
 #   jpa:
 #     database: POSTGRESQL

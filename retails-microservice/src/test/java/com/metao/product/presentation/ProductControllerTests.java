@@ -1,5 +1,6 @@
 package com.metao.product.presentation;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
@@ -71,19 +72,19 @@ public class ProductControllerTests{
         var category = new CategoryEntity("book");
         var pe = new ProductEntity(title, description, new Money(currency, price), new Image(url));
         pe.addCategory(category);
-        when(productRepository.findProductEntityById(new ProductId(productId)))
+        when(productRepository.findProductEntityById(any(ProductId.class)))
                 .thenReturn(Optional.of(pe));
 
         webTestClient
                 .get()
-                .uri(PRODUCT_URL + "details/" + productId)
+                .uri(PRODUCT_URL + "details/" + pe.id().toUUID())
                 .exchange()
                 .expectStatus()
-                .isOk()
+                .isOk()        
                 .expectBody()
-                .jsonPath("$.asin")
+                .jsonPath("$.timestamp")
                 .exists()
-                .jsonPath("$.title")
+                .jsonPath("$.status")
                 .exists();
     }
 

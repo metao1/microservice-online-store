@@ -30,8 +30,8 @@ public class ProductController {
 
     @GetMapping(value = "/products/details/{asin}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ProductDTO> getOneProduct(@PathVariable String asin) throws ProductNotFoundException{
-        var productById = productService.getProductById(new ProductId(asin));
-        return ResponseEntity.ok(productMapper.toDto(productById));
+        var product = productService.getProductById(new ProductId(asin));
+        return ResponseEntity.ok(productMapper.toDto(product));
     }
 
     @GetMapping(value = "/products", produces = MediaType.APPLICATION_JSON_VALUE)
