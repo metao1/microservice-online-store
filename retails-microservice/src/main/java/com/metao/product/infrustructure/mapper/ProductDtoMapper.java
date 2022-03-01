@@ -20,8 +20,7 @@ public class ProductDtoMapper implements DTOMapper<String, Optional<ProductDTO>>
 
     @Override
     public Optional<ProductDTO> convertToDto(String productString) {
-        final ProductDTO productDTO;
-        log.info(productString);
+        final ProductDTO productDTO;        
         try {
             productDTO = mapper.readValue(productString, ProductDTO.class);
         } catch (JsonProcessingException ex) {

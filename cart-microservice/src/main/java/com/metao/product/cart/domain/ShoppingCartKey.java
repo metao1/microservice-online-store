@@ -17,7 +17,6 @@ import javax.persistence.Table;
 @Data
 @Builder
 @Table(name = "shopping_cart_key")
-@EqualsAndHashCode
 public class ShoppingCartKey {
 
     @Id

@@ -24,7 +24,7 @@ public class ProductMapperTest {
         @Test
         public void givenProductDto_whenConvertToProductEntity_isOk() {
 
-                var url = "http://localhost:8080/image.jpg";
+                var url = "http://example.com/image.jpg";
                 var asin = "12345";
                 var description = "description";
                 var title = "title";
@@ -58,7 +58,7 @@ public class ProductMapperTest {
                                                 "description",
                                                 1200d,
                                                 Currency.DLR,
-                                                new Image("http://localhost:8080/image.jpg"));
+                                                new Image("http://example.com/image.jpg"));
 
                 assertThat(pe.getProductCategory())
                                 .extracting(ProductCategoryEntity::getCategories)
@@ -67,7 +67,7 @@ public class ProductMapperTest {
 
         @Test
         public void givenProductEntity_whenConvertToProductDTO_isOk() {
-                var url = "http://localhost:8080/image.jpg";
+                var url = "http://example.com/image.jpg";
                 var description = "description";
                 var title = "title";
                 var price = 12d;
@@ -95,7 +95,7 @@ public class ProductMapperTest {
 
         @Test
         public void givenProductEntities_whenConvertToProductDTOs_isOk() {
-                var url = "http://localhost:8080/image.jpg";
+                var url = "http://example.com/image.jpg";
                 var description = "description";
                 var title = "title";
                 var price = 12d;

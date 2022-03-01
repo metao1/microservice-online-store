@@ -1,4 +1,4 @@
-package com.metao.product;
+package com.metao.product.presentation;
 
 import static org.mockito.Mockito.when;
 
@@ -38,7 +38,7 @@ import reactor.core.publisher.Mono;
 })
 @WebFluxTest(controllers = ProductController.class)
 @ExtendWith(MockitoExtension.class)
-public class ProductControllerTests extends BaseTest {
+public class ProductControllerTests{
 
     public static final String PRODUCT_URL = "/products/";
 
@@ -51,7 +51,7 @@ public class ProductControllerTests extends BaseTest {
     @Autowired
     WebTestClient webTestClient;
 
-    private String productId = UUID.randomUUID().toString();
+    private final String productId = UUID.randomUUID().toString();
 
     @Test
     public void loadOneProduct_isNotFound() {
@@ -65,7 +65,7 @@ public class ProductControllerTests extends BaseTest {
 
     @Test
     public void loadOneProduct_isOk() {
-        var url = "http://localhost:8080/image.jpg";
+        var url = "https://example.com/image.jpg";
         var description = "description";
         var title = "title";
         var price = 12d;
@@ -83,13 +83,10 @@ public class ProductControllerTests extends BaseTest {
                 .expectStatus()
                 .isOk()
                 .expectBody()
-                .jsonPath("$.[0].id");
-        // .value(val -> {
-        // assertThat(val).isNotNull();
-        // assertThat(val.getPrice()).isEqualTo(productEntity.getPriceValue());
-        // assertThat(val.getTitle()).isEqualTo(productEntity.getTitle());
-        // // assertThat(val.getCategories().containsAll(productEntity.ge()));
-        // });
+                .jsonPath("$.asin")
+                .exists()
+                .jsonPath("$.title")
+                .exists();
     }
 
     @Test
@@ -107,15 +104,16 @@ public class ProductControllerTests extends BaseTest {
         var productDto = ProductDTO
                 .builder()
                 .currency(Currency.DLR)
-                .asin("asin")
+                .asin("12321321")
                 .title("title")
                 .description("description")
-                .price(1000d)
+                .price(100d)
+                .imageUrl("http://example.com/image.png")
                 .categories(Set.of(CategoryDTO.of("book")))
                 .build();
         webTestClient
                 .post()
-                .uri(PRODUCT_URL)                
+                .uri(PRODUCT_URL)
                 .body(Mono.just(productDto), ProductDTO.class)
                 .exchange()
                 .expectStatus()
