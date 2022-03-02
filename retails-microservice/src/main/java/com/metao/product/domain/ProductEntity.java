@@ -14,12 +14,10 @@ import javax.validation.constraints.Min;
 
 public class ProductEntity extends AbstractAggregateRoot<ProductId> {
 
-    @Min(10)
-    @Max(120)
+    @NonNull
     private String title;
 
-    @Min(90)
-    @Max(1200)
+    @NonNull
     private String description;
 
     @NonNull
@@ -31,6 +29,7 @@ public class ProductEntity extends AbstractAggregateRoot<ProductId> {
     @Valid
     private Currency priceCurrency;
 
+    @NonNull
     private ProductCategoryEntity productCategory;
 
     public ProductEntity(@NonNull String title,

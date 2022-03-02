@@ -64,7 +64,6 @@ public interface ProductMapperInterface {
                 item.getDescription(),
                 new Money(item.getCurrency(), item.getPrice()),
                 new Image(item.getImageUrl())
-
         );
         var categories = mapCategoryDTOsToEntities(item.getCategories());
         Stream.of(categories)

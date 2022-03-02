@@ -27,6 +27,6 @@ public class ProductRepository implements ProductRepositoryInterface {
 
     @Override
     public Optional<ProductEntity> findProductEntityById(@NotNull ProductId productId) {
-        return Optional.of(map.computeIfPresent(productId, (id, productEntity) -> productEntity));
+        return Optional.ofNullable(map.get(productId));
     }
 }
