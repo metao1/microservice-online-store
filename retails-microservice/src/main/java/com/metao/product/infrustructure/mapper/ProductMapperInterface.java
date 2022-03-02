@@ -18,7 +18,7 @@ import com.metao.product.domain.image.Image;
 
 import org.springframework.lang.NonNull;
 
-public interface ProductMapperInterface {
+public interface  ProductMapperInterface {
 
     default ProductDTO toDto(@Valid ProductEntity pr) {
         return ProductDTO.builder()

@@ -15,7 +15,7 @@ import com.metao.product.domain.ProductEntity;
 import com.metao.product.domain.ProductId;
 import com.metao.product.domain.category.CategoryEntity;
 import com.metao.product.domain.image.Image;
-import com.metao.product.infrustructure.mapper.ProductMapperInterface;
+import com.metao.product.infrustructure.mapper.ProductMapper;
 import com.metao.product.util.ProductTestUtils;
 
 import org.junit.jupiter.api.Disabled;
@@ -31,87 +31,73 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 
 @Import({
-        ProductMapperInterface.class,
-        ProductMapperInterface.class,
-        ProductService.class,
-        ProductRepository.class
+                ProductMapper.class,
+                ProductRepository.class,
+                ProductService.class
 })
 @WebFluxTest(controllers = ProductController.class)
 @ExtendWith(MockitoExtension.class)
-public class ProductControllerTests{
+public class ProductControllerTests {
 
-    public static final String PRODUCT_URL = "/products/";
+        public static final String PRODUCT_URL = "/products/";
 
-    @MockBean
-    ProductMapperInterface productMapper;
+        @MockBean
+        ProductRepository productRepository;
 
-    @MockBean
-    ProductRepository productRepository;
+        @Autowired
+        WebTestClient webTestClient;
 
-    @Autowired
-    WebTestClient webTestClient;
+        private final String productId = UUID.randomUUID().toString();
 
-    private final String productId = UUID.randomUUID().toString();
+        @Test
+        public void loadOneProduct_isNotFound() {
+                webTestClient
+                                .get()
+                                .uri(PRODUCT_URL + productId)
+                                .exchange()
+                                .expectStatus()
+                                .isNotFound();
+        }
 
-    @Test
-    @Disabled("temprorary")
-    public void loadOneProduct_isNotFound() {
-        webTestClient
-                .get()
-                .uri(PRODUCT_URL + productId)
-                .exchange()
-                .expectStatus()
-                .isNotFound();
-    }
+        @Test
+        public void loadOneProduct_isOk() {
+                var url = "https://example.com/image.jpg";
+                var description = "description";
+                var title = "title";
+                var price = 12d;
+                var currency = Currency.DLR;
+                var category = new CategoryEntity("book");
+                var pe = new ProductEntity(title, description, new Money(currency, price), new Image(url));
+                pe.addCategory(category);
+                when(productRepository.findProductEntityById(any(ProductId.class)))
+                                .thenReturn(Optional.of(pe));
+                webTestClient
+                                .get()
+                                .uri(PRODUCT_URL + "details/" + pe.id().toUUID())
+                                .exchange()
+                                .expectStatus()
+                                .isOk()
+                                .expectBody()
+                                .jsonPath("$.asin").exists()
+                                .jsonPath("$.title").isEqualTo("title")                                
+                                .jsonPath("$.description").isEqualTo("description")                                
+                                .jsonPath("$.categories[0].category").isEqualTo("book")                                
+                                .jsonPath("$.imageUrl").exists()
+                                .jsonPath("$.currency").isEqualTo("dollar")                                
+                                .jsonPath("$.price").isEqualTo(1200d);
+        }
 
-    @Test
-    @Disabled("temprorary")
-    public void loadOneProduct_isOk() {
-        var url = "https://example.com/image.jpg";
-        var description = "description";
-        var title = "title";
-        var price = 12d;
-        var currency = Currency.DLR;
-        var category = new CategoryEntity("book");
-        var pe = new ProductEntity(title, description, new Money(currency, price), new Image(url));
-        pe.addCategory(category);
-        when(productRepository.findProductEntityById(any(ProductId.class)))
-                .thenReturn(Optional.of(pe));
-        webTestClient
-                .get()
-                .uri(PRODUCT_URL + "details/" + pe.id().toUUID())
-                .exchange()
-                .expectStatus()
-                .isOk()        
-                .expectBody()
-                .jsonPath("$.timestamp")
-                .exists()
-                .jsonPath("$.status")
-                .exists();
-    }
-
-    @Test
-    @Disabled("temprorary")
-    public void testLoadAnonymousProduct_raisesError() {
-        webTestClient
-                .get()
-                .uri(PRODUCT_URL + productId)
-                .exchange()
-                .expectStatus()
-                .isNotFound();
-    }
-
-    @Test
-    public void testSaveProduct_isOk() {
-        var productDto = ProductTestUtils.createProductDTO();
-        webTestClient                
-                .post()
-                .uri(PRODUCT_URL)
-                .body(Mono.just(productDto), ProductDTO.class)
-                .exchange()
-                .expectStatus()
-                .isOk()
-                .expectBody()
-                .isEmpty();
-    }
+        @Test
+        public void testSaveProduct_isOk() {
+                var productDto = ProductTestUtils.createProductDTO();
+                webTestClient
+                                .post()
+                                .uri(PRODUCT_URL)
+                                .body(Mono.just(productDto), ProductDTO.class)
+                                .exchange()
+                                .expectStatus()
+                                .isOk()
+                                .expectBody()
+                                .isEmpty();
+        }
 }
