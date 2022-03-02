@@ -9,8 +9,6 @@ import com.metao.product.domain.image.Image;
 import org.springframework.lang.NonNull;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 
 public class ProductEntity extends AbstractAggregateRoot<ProductId> {
 

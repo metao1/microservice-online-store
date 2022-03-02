@@ -8,7 +8,6 @@ import com.metao.product.domain.ProductId;
 import com.metao.product.domain.ProductRepositoryInterface;
 import com.metao.product.domain.ProductServiceInterface;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -27,12 +26,8 @@ public class ProductService implements ProductServiceInterface {
 
     @Override
     public List<ProductEntity> getAllProductsPageable(int limit, int offset) {
-//        var pageable = new OffsetBasedPageRequest(limit, offset);
-//        List<ProductEntity> productEntities = productRepository.findAllProductsWithOffset(productId, pageable);
-//        return productEntities.stream()
-//                .filter(Objects::nonNull)
-//                .toList();
-        throw new NotImplementedException("getAllProductsPageable not yet implemented");
+        return productRepository.findAllProductEntitiesWithOffset(limit, offset)
+                    .orElseThrow(() -> new RuntimeException("no product exist"));
     }
 
     @Override

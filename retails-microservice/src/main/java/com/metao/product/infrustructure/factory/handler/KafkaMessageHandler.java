@@ -10,7 +10,6 @@ public class KafkaMessageHandler extends EventMessageHandler {
 
         public void sendMessage(DomainEvent event){
                 super.onMessage(event);
-
         }
 
         

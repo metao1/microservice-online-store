@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,4 +30,11 @@ public class ProductRepository implements ProductRepositoryInterface {
     public Optional<ProductEntity> findProductEntityById(@NotNull ProductId productId) {
         return Optional.ofNullable(map.get(productId));
     }
+
+    @Override
+    public Optional<List<ProductEntity>> findAllProductEntitiesWithOffset(int limit, int offset) {
+        var list = map.values().stream().limit(limit).toList();
+        return Optional.ofNullable(list);
+    }
+    
 }

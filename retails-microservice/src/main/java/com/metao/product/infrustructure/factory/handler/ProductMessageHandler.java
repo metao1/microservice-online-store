@@ -19,11 +19,16 @@ public class ProductMessageHandler implements MessageHandler<CreateProductEvent>
     private final ProductMapperInterface productMapper;
 
     @Override
-    public void onMessage(@NonNull CreateProductEvent  event) {
-        var productDto = event.productDTO();        
-        Optional.of(productDto)
-                .flatMap(productMapper::toEntity)
-                .ifPresent(productService::saveProduct);
+    public void onMessage(@NonNull CreateProductEvent event) {
+        try {
+            var productDto = event.productDTO();
+            Optional.of(productDto)
+                    .flatMap(productMapper::toEntity)
+                    .ifPresent(productService::saveProduct);
+        }catch(NullPointerException ex){
+
+        }
+        
     }
 
 }

@@ -33,7 +33,13 @@ public class ProductGenerator implements InitializingBean {
 
     @Async
     @PostConstruct
-    public void produceProducts() {
+    public void produceProducts() {        
+        eventHandler.addMessageHandler(productMessageHandler);
+        eventHandler.addMessageHandler(logMessageHandler);
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
         log.debug("importing products data from resources");
         try (var source = fileHandler.readFromFile("data/products.txt")) {
             source.map(mapper::convertToDto)
@@ -45,12 +51,6 @@ public class ProductGenerator implements InitializingBean {
             log.error(ex.getMessage());
         }
         log.debug("finished writing to database.");
-    }
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        eventHandler.addMessageHandler(productMessageHandler);
-        eventHandler.addMessageHandler(logMessageHandler);
     }
 
 }
