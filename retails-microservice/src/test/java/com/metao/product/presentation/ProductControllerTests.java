@@ -9,16 +9,16 @@ import java.util.UUID;
 import com.metao.ddd.finance.Currency;
 import com.metao.ddd.finance.Money;
 import com.metao.product.application.dto.ProductDTO;
-import com.metao.product.application.persistence.ProductRepository;
 import com.metao.product.application.service.ProductService;
+import com.metao.product.domain.ProductCategoryEntity;
 import com.metao.product.domain.ProductEntity;
 import com.metao.product.domain.ProductId;
-import com.metao.product.domain.category.CategoryEntity;
+import com.metao.product.domain.ProductRepository;
+import com.metao.product.domain.category.Category;
 import com.metao.product.domain.image.Image;
 import com.metao.product.infrustructure.mapper.ProductMapper;
 import com.metao.product.util.ProductTestUtils;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -66,7 +66,7 @@ public class ProductControllerTests {
                 var title = "title";
                 var price = 12d;
                 var currency = Currency.DLR;
-                var category = new CategoryEntity("book");
+                var category = new ProductCategoryEntity(new Category("book"));
                 var pe = new ProductEntity(title, description, new Money(currency, price), new Image(url));
                 pe.addCategory(category);
                 when(productRepository.findProductEntityById(any(ProductId.class)))

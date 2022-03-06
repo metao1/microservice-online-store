@@ -1,6 +1,5 @@
-apply plugin: 'java-library'
-
-dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+dependencies {    
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.1'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 }

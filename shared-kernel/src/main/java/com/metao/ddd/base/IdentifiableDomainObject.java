@@ -5,14 +5,14 @@ import java.io.Serializable;
 /**
  * Interface for domain objects that can be uniquely identified.
  *
- * @param <ID> the ID type.
+ * @param <T> the T type.
  */
 public interface IdentifiableDomainObject<T extends Serializable> extends DomainObject {
 
     /**
-     * Returns the ID of this domain object.
+     * Returns the T of this domain object.
      *
-     * @return the ID or {@code null} if an ID has not been assigned yet.
+     * @return the T or {@code null} if an T has not been assigned yet.
      */
     T id();
 }

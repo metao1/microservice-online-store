@@ -11,7 +11,7 @@ import java.util.*;
 /**
  * Base class for aggregate roots.
  *
- * @param <ID> the aggregate root ID type.
+ * @param <T> the aggregate root T type.
  */
 public abstract class AbstractAggregateRoot<T extends DomainObjectId> extends AbstractEntity<T> {
 

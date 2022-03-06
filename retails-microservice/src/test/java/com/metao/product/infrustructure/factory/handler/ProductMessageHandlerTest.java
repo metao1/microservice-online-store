@@ -5,9 +5,9 @@ import static org.mockito.Mockito.verify;
 
 import java.time.Instant;
 
-import com.metao.product.application.persistence.ProductRepository;
 import com.metao.product.application.service.ProductService;
 import com.metao.product.domain.ProductEntity;
+import com.metao.product.domain.ProductRepository;
 import com.metao.product.domain.event.CreateProductEvent;
 import com.metao.product.infrustructure.mapper.ProductMapper;
 import com.metao.product.util.ProductTestUtils;

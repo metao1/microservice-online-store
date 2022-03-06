@@ -12,8 +12,9 @@ import javax.validation.Valid;
 import com.metao.ddd.finance.Money;
 import com.metao.product.application.dto.CategoryDTO;
 import com.metao.product.application.dto.ProductDTO;
+import com.metao.product.domain.ProductCategoryEntity;
 import com.metao.product.domain.ProductEntity;
-import com.metao.product.domain.category.CategoryEntity;
+import com.metao.product.domain.category.Category;
 import com.metao.product.domain.image.Image;
 
 import org.springframework.lang.NonNull;
@@ -27,7 +28,7 @@ public interface  ProductMapperInterface {
                 .currency(pr.getPriceCurrency())
                 .description(pr.getDescription())
                 .price(pr.getPriceValue())
-                .categories(mapCategoryEntitieToDTOs(pr.getProductCategory().getCategories()))
+                .categories(mapCategoryEntitieToDTOs(pr.getProductCategory()))
                 .imageUrl(pr.getImage().url())
                 .build();
     }
@@ -42,20 +43,23 @@ public interface  ProductMapperInterface {
         return allPr.stream().map(this::toDto).toList();
     }
     
-    private static Set<CategoryDTO> mapCategoryEntitieToDTOs(@NonNull Set<CategoryEntity> source) {
+    private static Set<CategoryDTO> mapCategoryEntitieToDTOs(@NonNull Set<ProductCategoryEntity> source) {
         return source
                 .stream()
-                .map(CategoryEntity::getCategory)
+                .map(ProductCategoryEntity::getCategory)
+                .map(Category::category)
                 .map(CategoryDTO::of)
                 .collect(Collectors.toSet());
     }
 
-    private static List<CategoryEntity> mapCategoryDTOsToEntities(@NonNull Set<CategoryDTO> source) {
+    private static Set<ProductCategoryEntity> mapCategoryDTOsToEntities(@NonNull Set<CategoryDTO> source) {
         return source
                 .stream()
                 .map(CategoryDTO::getCategory)
-                .map(CategoryEntity::new)
-                .toList();
+                .map(Category::new)
+                .map(ProductCategoryEntity::new)
+                .distinct()
+                .collect(Collectors.toSet());
     }
 
     private static ProductEntity buildProductEntity(ProductDTO item) {
@@ -67,7 +71,7 @@ public interface  ProductMapperInterface {
         );
         var categories = mapCategoryDTOsToEntities(item.getCategories());
         Stream.of(categories)
-                .flatMap(Collection::stream)
+                .flatMap(Collection::stream)                
                 .forEach(productEntity::addCategory);
         return productEntity;
     }

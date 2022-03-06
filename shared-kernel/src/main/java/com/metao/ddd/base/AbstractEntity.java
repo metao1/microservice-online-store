@@ -1,6 +1,7 @@
 package com.metao.ddd.base;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import org.springframework.data.util.ProxyUtils;
 import org.springframework.lang.NonNull;
 

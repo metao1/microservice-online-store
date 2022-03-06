@@ -5,7 +5,7 @@ import java.util.List;
 import com.metao.product.application.exception.ProductNotFoundException;
 import com.metao.product.domain.ProductEntity;
 import com.metao.product.domain.ProductId;
-import com.metao.product.domain.ProductRepositoryInterface;
+import com.metao.product.domain.ProductRepository;
 import com.metao.product.domain.ProductServiceInterface;
 
 import org.springframework.stereotype.Service;
@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ProductService implements ProductServiceInterface {
 
-    private final ProductRepositoryInterface productRepository;
+    private final ProductRepository productRepository;
 
     @Override
     public ProductEntity getProductById(ProductId productId) throws ProductNotFoundException {
@@ -26,7 +26,7 @@ public class ProductService implements ProductServiceInterface {
 
     @Override
     public List<ProductEntity> getAllProductsPageable(int limit, int offset) {
-        return productRepository.findAllProductEntitiesWithOffset(limit, offset)
+        return productRepository.findAllWithOffsetOptional(limit, offset)
                     .orElseThrow(() -> new RuntimeException("no product exist"));
     }
 

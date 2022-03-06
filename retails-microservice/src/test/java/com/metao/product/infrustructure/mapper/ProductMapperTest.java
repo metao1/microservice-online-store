@@ -10,7 +10,7 @@ import com.metao.product.application.dto.CategoryDTO;
 import com.metao.product.application.dto.ProductDTO;
 import com.metao.product.domain.ProductCategoryEntity;
 import com.metao.product.domain.ProductEntity;
-import com.metao.product.domain.category.CategoryEntity;
+import com.metao.product.domain.category.Category;
 import com.metao.product.domain.image.Image;
 import com.metao.product.util.ProductTestUtils;
 
@@ -41,20 +41,20 @@ public class ProductMapperTest {
                                                 new Image("http://example.com/image.jpg"));
 
                 assertThat(pe.getProductCategory())
-                                .extracting(ProductCategoryEntity::getCategories)
-                                .matches(categoryEntities -> categoryEntities.contains(new CategoryEntity("book")));
+                                .matches(categoryEntities -> categoryEntities
+                                                .contains(new ProductCategoryEntity(new Category("book"))));
         }
 
         @Test
         public void givenProductEntity_whenConvertToProductDTO_isOk() {
                 var pe = ProductTestUtils.createProductEntity();
                 var productDto = productMapper.toDto(pe);
-                var categories = pe.getProductCategory().getCategories();
+                var categories = pe.getProductCategory();
                 productDto.getCategories()
                                 .stream()
                                 .map(CategoryDTO::getCategory)
-                                .forEach(category -> categories                                                
-                                                .contains(new CategoryEntity(category)));
+                                .forEach(category -> categories
+                                                .contains(new ProductCategoryEntity(new Category(category))));
                 assertThat(productDto)
                                 .extracting(
                                                 ProductDTO::getTitle,
@@ -73,7 +73,7 @@ public class ProductMapperTest {
                 var pe = ProductTestUtils.createProductEntity();
                 var allPr = List.of(pe);
                 var allPrDtos = productMapper.toDtos(allPr);
-                assertThat(allPrDtos.size() == allPr.size());        
+                assertThat(allPrDtos.size() == allPr.size());
                 allPrDtos.forEach(dto -> assertThat(dto)
                                 .extracting(
                                                 ProductDTO::getTitle,

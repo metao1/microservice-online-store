@@ -5,8 +5,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 import com.metao.product.application.exception.ProductNotFoundException;
-import com.metao.product.application.persistence.ProductRepository;
 import com.metao.product.domain.ProductId;
+import com.metao.product.domain.ProductRepository;
 import com.metao.product.util.ProductTestUtils;
 
 import org.junit.jupiter.api.Assertions;

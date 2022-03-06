@@ -1,8 +1,8 @@
 package com.metao.product.domain;
 
-import java.util.List;
+import java.util.Set;
 
 public interface ProductCategoriesInterface {
 
-    List<ProductCategoryEntity> getProductCategories(ProductId productId);
+    Set<ProductCategoryEntity> getProductCategories(ProductId productId);
 }
