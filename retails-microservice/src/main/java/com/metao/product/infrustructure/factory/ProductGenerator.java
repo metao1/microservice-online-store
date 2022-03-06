@@ -2,9 +2,13 @@ package com.metao.product.infrustructure.factory;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.metao.product.infrustructure.factory.handler.FileHandler;
 import com.metao.product.infrustructure.factory.handler.LogMessageHandler;
 import com.metao.product.infrustructure.factory.handler.ProductEventHandler;
@@ -31,16 +35,15 @@ public class ProductGenerator implements InitializingBean {
     private final FileHandler fileHandler;
     private final ProductEventHandler eventHandler;
 
-    @Async
     @PostConstruct
     public void produceProducts() {        
         eventHandler.addMessageHandler(productMessageHandler);
         eventHandler.addMessageHandler(logMessageHandler);
     }
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        log.debug("importing products data from resources");
+    @Async("processExecutor")
+    public void loadProducts() {
+        log.info("importing products data from resources");
         try (var source = fileHandler.readFromFile("data/products.txt")) {
             source.map(mapper::convertToDto)
                     .filter(Optional::isPresent)
@@ -49,8 +52,14 @@ public class ProductGenerator implements InitializingBean {
                     .forEach(eventHandler::sendEvent);
         } catch (IOException ex) {
             log.error(ex.getMessage());
-        }
-        log.debug("finished writing to database.");
+        }        
+        log.info("finished writing to database.");
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {        
+        //new Thread(this::loadProducts).start();
+        loadProducts();
     }
 
 }
