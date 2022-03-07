@@ -2,6 +2,8 @@ package com.metao.product.infrustructure.factory;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.concurrent.Executor;
+import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
@@ -13,7 +15,7 @@ import com.metao.product.infrustructure.mapper.ProductDtoMapper;
 import com.metao.product.infrustructure.util.EventUtil;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
+@Profile("!test")
 @RequiredArgsConstructor
 public class ProductGenerator implements InitializingBean {
 
@@ -30,31 +33,32 @@ public class ProductGenerator implements InitializingBean {
     private final ProductDtoMapper mapper;
     private final FileHandler fileHandler;
     private final ProductEventHandler eventHandler;
+    private final Executor executor;
 
     @PostConstruct
-    public void produceProducts() {        
+    public void produceProducts() {
         eventHandler.addMessageHandler(productMessageHandler);
         eventHandler.addMessageHandler(logMessageHandler);
     }
 
-    @Async("processExecutor")
     public void loadProducts() {
         log.info("importing products data from resources");
         try (var source = fileHandler.readFromFile("data/products.txt")) {
-            source.map(mapper::convertToDto)
+            source
+                    .map(mapper::convertToDto)
                     .filter(Optional::isPresent)
                     .map(Optional::get)
                     .map(EventUtil::createEvent)
                     .forEach(eventHandler::sendEvent);
-        } catch (IOException ex) {
-            log.error(ex.getMessage());
-        }        
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+        }
         log.info("finished writing to database.");
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {        
-        loadProducts();
+    public void afterPropertiesSet() throws Exception {
+        executor.execute(this::loadProducts);
     }
 
 }

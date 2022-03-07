@@ -15,7 +15,7 @@ public class ProductCategoriesService implements ProductCategoriesInterface {
     @Override
     public Set<ProductCategoryEntity> getProductCategories(ProductId productId) {
         return productRepository
-                .findProductEntityById(productId)
+                .findById(productId)
                 .stream()
                 .map(ProductEntity::getProductCategory)
                 .findAny()

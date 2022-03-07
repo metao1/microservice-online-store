@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
-import com.metao.ddd.finance.Currency;
+import com.metao.ddd.shared.domain.financial.Currency;
 import com.metao.product.application.dto.CategoryDTO;
 import com.metao.product.application.dto.ProductDTO;
 import com.metao.product.domain.ProductCategoryEntity;
@@ -36,7 +36,7 @@ public class ProductMapperTest {
                                 .containsExactly(
                                                 "title",
                                                 "description",
-                                                1200d,
+                                                12d,
                                                 Currency.DLR,
                                                 new Image("http://example.com/image.jpg"));
 

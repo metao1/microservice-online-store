@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 
 import javax.validation.Valid;
 
-import com.metao.ddd.finance.Money;
+import com.metao.ddd.shared.domain.financial.Money;
 import com.metao.product.application.dto.CategoryDTO;
 import com.metao.product.application.dto.ProductDTO;
 import com.metao.product.domain.ProductCategoryEntity;
@@ -19,7 +19,7 @@ import com.metao.product.domain.image.Image;
 
 import org.springframework.lang.NonNull;
 
-public interface  ProductMapperInterface {
+public interface ProductMapperInterface {
 
     default ProductDTO toDto(@Valid ProductEntity pr) {
         return ProductDTO.builder()
@@ -42,7 +42,7 @@ public interface  ProductMapperInterface {
     default List<ProductDTO> toDtos(@NonNull List<ProductEntity> allPr) {
         return allPr.stream().map(this::toDto).toList();
     }
-    
+
     private static Set<CategoryDTO> mapCategoryEntitieToDTOs(@NonNull Set<ProductCategoryEntity> source) {
         return source
                 .stream()
@@ -67,11 +67,10 @@ public interface  ProductMapperInterface {
                 item.getTitle(),
                 item.getDescription(),
                 new Money(item.getCurrency(), item.getPrice()),
-                new Image(item.getImageUrl())
-        );
+                new Image(item.getImageUrl()));
         var categories = mapCategoryDTOsToEntities(item.getCategories());
         Stream.of(categories)
-                .flatMap(Collection::stream)                
+                .flatMap(Collection::stream)
                 .forEach(productEntity::addCategory);
         return productEntity;
     }

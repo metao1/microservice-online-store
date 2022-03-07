@@ -1,6 +1,6 @@
 package com.metao.product.infrustructure.factory.handler;
 
-import com.metao.ddd.base.DomainEvent;
+import com.metao.ddd.shared.domain.base.DomainEvent;
 
 public class KafkaMessageHandler extends EventMessageHandler {
 

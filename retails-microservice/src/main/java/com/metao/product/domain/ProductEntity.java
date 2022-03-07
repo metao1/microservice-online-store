@@ -1,11 +1,13 @@
 package com.metao.product.domain;
 
-import com.metao.ddd.base.AbstractAggregateRoot;
-import com.metao.ddd.base.ConcurrencySafeDomainObject;
-import com.metao.ddd.base.DomainObjectId;
-import com.metao.ddd.finance.Currency;
-import com.metao.ddd.finance.Money;
+import com.metao.ddd.shared.domain.base.AbstractAggregateRoot;
+import com.metao.ddd.shared.domain.base.ConcurrencySafeDomainObject;
+import com.metao.ddd.shared.domain.base.DomainObjectId;
+import com.metao.ddd.shared.domain.financial.Currency;
+import com.metao.ddd.shared.domain.financial.Money;
 import com.metao.product.domain.image.Image;
+
+import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.NonNull;
 
 import java.util.HashSet;
@@ -30,23 +32,26 @@ public class ProductEntity extends AbstractAggregateRoot<ProductId> implements C
     @Version
     private Long version;
 
+    @Length(min = 3, max = 255)
     @Column(name = "title", nullable = false)
     private String title;
 
-    @Column(name = "title", nullable = false)
+    @Length(min=3, max=1200)
+    @Column(name = "description", length = 1200)
     private String description;
 
-    @Column(name = "title", nullable = false)
+    @Column(name = "image", nullable = false)
     private Image image;
 
-    @NonNull
+    @Column(name = "price_value", nullable = false)
     private Double priceValue;
 
     @Valid
+    @Column(name = "price_currency", nullable = false)
     @Enumerated(EnumType.STRING)
     private Currency priceCurrency;
 
-    @OneToMany(mappedBy = "invoice", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "category", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ProductCategoryEntity> productCategory;
 
     public ProductEntity(
@@ -57,8 +62,8 @@ public class ProductEntity extends AbstractAggregateRoot<ProductId> implements C
         super(DomainObjectId.randomId(ProductId.class));
         this.title = title;
         this.description = description;
-        this.priceValue = money.getAmount();
-        this.priceCurrency = money.getCurrency();
+        this.priceValue = money.doubleAmount();
+        this.priceCurrency = money.currency();
         this.image = image;
         this.productCategory = new HashSet<>();
     }

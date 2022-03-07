@@ -3,11 +3,9 @@ package com.metao.product.application.service;
 import java.util.List;
 
 import com.metao.product.application.exception.ProductNotFoundException;
-import com.metao.product.domain.ProductEntity;
-import com.metao.product.domain.ProductId;
-import com.metao.product.domain.ProductRepository;
-import com.metao.product.domain.ProductServiceInterface;
+import com.metao.product.domain.*;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -20,14 +18,15 @@ public class ProductService implements ProductServiceInterface {
 
     @Override
     public ProductEntity getProductById(ProductId productId) throws ProductNotFoundException {
-        return productRepository.findProductEntityById(productId)
+        return productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException(productId.toUUID()));
     }
 
     @Override
     public List<ProductEntity> getAllProductsPageable(int limit, int offset) {
-        return productRepository.findAllWithOffsetOptional(limit, offset)
-                    .orElseThrow(() -> new RuntimeException("no product exist"));
+//        return productRepository.findAllWithOffsetOptional(limit, offset)
+//                    .orElseThrow(() -> new RuntimeException("no product exist"));
+        throw new NotImplementedException("");
     }
 
     @Override

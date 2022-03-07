@@ -2,7 +2,7 @@ package com.metao.product.domain.image;
 
 import java.util.Objects;
 
-import com.metao.ddd.base.ValueObject;
+import com.metao.ddd.shared.domain.base.ValueObject;
 
 public class Image implements ValueObject {
 
@@ -18,14 +18,14 @@ public class Image implements ValueObject {
 
         @Override
         public boolean equals(Object obj) {
-                if (obj == null) {
-                        return false;
-                }
-                return (((Image) obj).url().equals(url));
+                if (obj == null || obj.getClass() != getClass()) return false;                             
+                Image image = (Image) obj;
+                return image.url().equals(url);
         }
-        
+
         @Override
         public int hashCode() {
-                return Objects.hash(url);                
+                int result = url != null ? url.hashCode() : 0;
+                return 31 * result;                
         }
 }

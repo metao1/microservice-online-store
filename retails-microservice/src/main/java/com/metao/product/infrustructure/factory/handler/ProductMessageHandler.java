@@ -25,10 +25,10 @@ public class ProductMessageHandler implements MessageHandler<CreateProductEvent>
             Optional.of(productDto)
                     .flatMap(productMapper::toEntity)
                     .ifPresent(productService::saveProduct);
-        }catch(NullPointerException ex){
+        } catch (Exception ignore) {
 
         }
-        
+
     }
 
 }

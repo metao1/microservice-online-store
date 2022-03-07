@@ -2,8 +2,8 @@ package com.metao.product.util;
 
 import java.util.Set;
 
-import com.metao.ddd.finance.Currency;
-import com.metao.ddd.finance.Money;
+import com.metao.ddd.shared.domain.financial.Currency;
+import com.metao.ddd.shared.domain.financial.Money;
 import com.metao.product.application.dto.CategoryDTO;
 import com.metao.product.application.dto.ProductDTO;
 import com.metao.product.domain.ProductCategoryEntity;
@@ -13,7 +13,7 @@ import com.metao.product.domain.image.Image;
 
 public class ProductTestUtils {
 
-        public static ProductEntity createProductEntity(){                
+        public static ProductEntity createProductEntity() {
                 var url = "http://example.com/image.jpg";
                 var description = "description";
                 var title = "title";
@@ -27,7 +27,7 @@ public class ProductTestUtils {
 
         public static ProductDTO createProductDTO() {
                 return ProductDTO
-                                .builder()                                
+                                .builder()
                                 .asin("1234567899")
                                 .title("title")
                                 .description("description")
@@ -37,5 +37,5 @@ public class ProductTestUtils {
                                 .imageUrl("http://example.com/image.jpg")
                                 .build();
         }
-        
+
 }

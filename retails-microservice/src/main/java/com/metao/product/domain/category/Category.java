@@ -1,12 +1,10 @@
 package com.metao.product.domain.category;
 
-import java.util.Objects;
-
-import com.metao.ddd.base.ValueObject;
+import com.metao.ddd.shared.domain.base.ValueObject;
 
 public class Category implements ValueObject {
 
-        private String value;
+        private final String value;
 
         public Category(String category) {
                 this.value = category;
@@ -18,7 +16,8 @@ public class Category implements ValueObject {
 
         @Override
         public boolean equals(Object obj) {
-                if(obj==null || obj!= this) return false;
+                if (obj == null || obj != this)
+                        return false;
                 Category cat = (Category) obj;
                 return cat.category().equals(value);
         }

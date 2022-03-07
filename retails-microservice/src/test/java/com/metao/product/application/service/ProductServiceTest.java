@@ -1,5 +1,6 @@
 package com.metao.product.application.service;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -21,7 +22,7 @@ public class ProductServiceTest {
 
         @Mock
         ProductRepository productRepo;
-        
+
         @InjectMocks
         ProductService productService;
 
@@ -32,16 +33,16 @@ public class ProductServiceTest {
 
         @Test
         void getProductById_notFound() {
-                Assertions.assertThrows(ProductNotFoundException.class, ()->
+                assertThrows(ProductNotFoundException.class, ()->
                         productService.getProductById(new ProductId("asin"))
                 );
         }
 
         @Test
         void getProductById_isFound() {
-                var pe = ProductTestUtils.createProductEntity();  
-                var productId = new ProductId("asin"); 
-                when(productRepo.findProductEntityById(productId))
+                var pe = ProductTestUtils.createProductEntity();
+                var productId = new ProductId("asin");
+                when(productRepo.findById(productId))
                         .thenReturn(Optional.of(pe));
                 var product = productService.getProductById(new ProductId("asin"));
                 Assertions.assertNotNull(product);

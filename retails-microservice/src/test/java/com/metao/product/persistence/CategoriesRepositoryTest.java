@@ -1,10 +1,9 @@
 package com.metao.product.persistence;
 
-import com.metao.product.BaseTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 @DataJpaTest
-class CategoriesRepositoryTest extends BaseTest {
+class CategoriesRepositoryTest  {
 
 //    @Autowired
 //    CategoriesRepository categoriesRepository;

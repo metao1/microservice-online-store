@@ -8,6 +8,7 @@ import java.time.Instant;
 import com.metao.product.application.service.ProductService;
 import com.metao.product.domain.ProductEntity;
 import com.metao.product.domain.ProductRepository;
+import com.metao.product.domain.ProductRepository;
 import com.metao.product.domain.event.CreateProductEvent;
 import com.metao.product.infrustructure.mapper.ProductMapper;
 import com.metao.product.util.ProductTestUtils;
@@ -23,10 +24,10 @@ public class ProductMessageHandlerTest {
 
         @Mock
         ProductRepository productRepo;
-        
+
         @Test
         void testOnMessage() {
-                var productMapper = new ProductMapper();        
+                var productMapper = new ProductMapper();
                 var productService = new ProductService(productRepo);
                 var productMsgHandler = new ProductMessageHandler(productService, productMapper);
                 var product = ProductTestUtils.createProductDTO();
@@ -36,7 +37,7 @@ public class ProductMessageHandlerTest {
                 verify(productRepo).save(argThat(new EventMatcher(entity.orElseThrow())));
         }
 
-        private class  EventMatcher implements ArgumentMatcher<ProductEntity> {
+        private static class EventMatcher implements ArgumentMatcher<ProductEntity> {
 
                 private final ProductEntity entity;
 
@@ -46,7 +47,7 @@ public class ProductMessageHandlerTest {
 
                 @Override
                 public boolean matches(ProductEntity argument) {
-                        return entity.getTitle().equals(argument.getTitle()) && 
+                        return entity.getTitle().equals(argument.getTitle()) &&
                                 entity.getDescription().equals(argument.getDescription()) &&
                                 entity.getPriceCurrency().equals(argument.getPriceCurrency()) &&
                                 entity.getImage().equals(argument.getImage());
