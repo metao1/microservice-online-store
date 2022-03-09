@@ -1,53 +1,40 @@
 package com.metao.product.application.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.metao.product.application.exception.ProductNotFoundException;
-import com.metao.product.domain.ProductEntity;
-import com.metao.product.domain.ProductId;
-import com.metao.product.domain.ProductRepository;
-import com.metao.product.domain.ProductServiceInterface;
+import com.metao.product.domain.*;
+import com.metao.product.infrustructure.repository.model.OffsetBasedPageRequest;
 
-import org.apache.commons.lang.NotImplementedException;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+//@Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
 public class ProductService implements ProductServiceInterface {
 
     private final ProductRepository productRepository;
 
     @Override
-    public ProductEntity getProductById(ProductId productId) throws ProductNotFoundException{
-        return productRepository.findProductEntityById(productId)
-                .orElseThrow(() -> new ProductNotFoundException(productId.toUUID()));
+    public Optional<ProductEntity> getProductById(ProductId productId) throws ProductNotFoundException {
+        return productRepository.findById(productId);
     }
 
     @Override
-    public List<ProductEntity> getAllProductsPageable(int limit, int offset) {
-//        var pageable = new OffsetBasedPageRequest(limit, offset);
-//        List<ProductEntity> productEntities = productRepository.findAllProductsWithOffset(productId, pageable);
-//        return productEntities.stream()
-//                .filter(Objects::nonNull)
-//                .toList();
-        throw new NotImplementedException("getAllProductsPageable not yet implemented");
+    public Optional<List<ProductEntity>> getAllProductsPageable(int limit, int offset) {
+        var pageable = new OffsetBasedPageRequest(offset, limit);
+        return Optional.ofNullable(productRepository.findAll(pageable))
+                .map(Page::toList);
     }
-
-//    public List<ProductEntity> getAllProductsWithCategory(ProductCategoriesService categoriesService, String category, int limit, int offset) {
-//        Pageable pageable = new OffsetBasedPageRequest(limit, offset);
-//        categoriesService.getProductCategories()
-//        var result = this.productRepository.findAllProductsWithCategoryAndOffset(, category, pageable);
-//        return result.stream()
-//                .filter(Objects::nonNull)
-//                .map(productMapper::mapToDto)
-//                .collect(Collectors.toList());
-//    }
 
     @Override
     public void saveProduct(ProductEntity pe) {
         this.productRepository.save(pe);
     }
-
 }

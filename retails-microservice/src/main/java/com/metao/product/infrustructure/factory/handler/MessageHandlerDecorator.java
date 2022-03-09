@@ -1,6 +1,6 @@
 package com.metao.product.infrustructure.factory.handler;
 
-import com.metao.ddd.base.DomainEvent;
+import com.metao.ddd.shared.domain.base.DomainEvent;
 
 public abstract class MessageHandlerDecorator<T extends DomainEvent> implements MessageHandler<T> {
 
@@ -11,8 +11,8 @@ public abstract class MessageHandlerDecorator<T extends DomainEvent> implements 
         }
 
         @Override
-        public void onMessage(T event) {        
-             this.handler.onMessage(event);   
+        public void onMessage(T event) {
+                this.handler.onMessage(event);
         }
-        
+
 }

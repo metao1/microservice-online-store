@@ -4,16 +4,15 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import java.util.Set;
 
-import com.metao.ddd.finance.Currency;
-import com.metao.ddd.finance.Money;
+import com.metao.ddd.shared.domain.financial.Currency;
 import com.metao.product.application.dto.CategoryDTO;
 import com.metao.product.application.dto.ProductDTO;
 import com.metao.product.domain.ProductCategoryEntity;
 import com.metao.product.domain.ProductEntity;
-import com.metao.product.domain.category.CategoryEntity;
+import com.metao.product.domain.category.Category;
 import com.metao.product.domain.image.Image;
+import com.metao.product.util.ProductTestUtils;
 
 import org.junit.jupiter.api.Test;
 
@@ -23,26 +22,7 @@ public class ProductMapperTest {
 
         @Test
         public void givenProductDto_whenConvertToProductEntity_isOk() {
-
-                var url = "http://localhost:8080/image.jpg";
-                var asin = "12345";
-                var description = "description";
-                var title = "title";
-                var price = 12d;
-                var currency = Currency.DLR;
-                var categories = Set.of(CategoryDTO.of("book"));
-
-                var productDto = ProductDTO
-                                .builder()
-                                .asin(asin)
-                                .categories(categories)
-                                .currency(currency)
-                                .title(title)
-                                .price(price)
-                                .description(description)
-                                .imageUrl(url)
-                                .build();
-
+                var productDto = ProductTestUtils.createProductDTO();
                 var productEntity = productMapper.toEntity(productDto);
                 assertTrue(productEntity.isPresent());
                 var pe = productEntity.get();
@@ -56,72 +36,55 @@ public class ProductMapperTest {
                                 .containsExactly(
                                                 "title",
                                                 "description",
-                                                1200d,
+                                                12d,
                                                 Currency.DLR,
-                                                new Image("http://localhost:8080/image.jpg"));
+                                                new Image("http://example.com/image.jpg"));
 
                 assertThat(pe.getProductCategory())
-                                .extracting(ProductCategoryEntity::getCategories)
-                                .matches(categoryEntities -> categoryEntities.contains(new CategoryEntity("book")));
+                                .matches(categoryEntities -> categoryEntities
+                                                .contains(new ProductCategoryEntity(new Category("book"))));
         }
 
         @Test
         public void givenProductEntity_whenConvertToProductDTO_isOk() {
-                var url = "http://localhost:8080/image.jpg";
-                var description = "description";
-                var title = "title";
-                var price = 12d;
-                var currency = Currency.DLR;
-                var category = new CategoryEntity("book");
-                var categories = Set.of(CategoryDTO.of("book"));
-                var pe = new ProductEntity(title, description, new Money(currency, price), new Image(url));
-                pe.addCategory(category);
+                var pe = ProductTestUtils.createProductEntity();
                 var productDto = productMapper.toDto(pe);
-                
+                var categories = pe.getProductCategory();
+                productDto.getCategories()
+                                .stream()
+                                .map(CategoryDTO::getCategory)
+                                .forEach(category -> categories
+                                                .contains(new ProductCategoryEntity(new Category(category))));
                 assertThat(productDto)
                                 .extracting(
                                                 ProductDTO::getTitle,
                                                 ProductDTO::getDescription,
                                                 ProductDTO::getPrice,
-                                                ProductDTO::getCategories,
-                                                ProductDTO::getImageUrl)
-                                .containsExactly(
-                                                title,
-                                                description,
-                                                price * 100,
-                                                categories,
-                                                url);
-        }
-
-        @Test
-        public void givenProductEntities_whenConvertToProductDTOs_isOk() {
-                var url = "http://localhost:8080/image.jpg";
-                var description = "description";
-                var title = "title";
-                var price = 12d;
-                var currency = Currency.DLR;
-                var category = new CategoryEntity("book");
-                var categories = Set.of(CategoryDTO.of("book"));
-                var pe = new ProductEntity(title, description, new Money(currency, price), new Image(url));
-                pe.addCategory(category);
-
-                var allPr = List.of(pe);
-                var allPrDtos = productMapper.toDtos(allPr);
-                assertThat(allPrDtos.size() == allPr.size());
-                allPrDtos.forEach(dto-> assertThat(dto)
-                                .extracting(
-                                                ProductDTO::getTitle,
-                                                ProductDTO::getDescription,
-                                                ProductDTO::getPrice,
-                                                ProductDTO::getCategories,
                                                 ProductDTO::getImageUrl)
                                 .containsExactly(
                                                 pe.getTitle(),
                                                 pe.getDescription(),
                                                 pe.getPriceValue(),
-                                                categories,
-                                                pe.getImage().url())
-                );
+                                                pe.getImage().url());
+        }
+
+        @Test
+        public void givenProductEntities_whenConvertToProductDTOs_isOk() {
+                var pe = ProductTestUtils.createProductEntity();
+                var allPr = List.of(pe);
+                var allPrDtos = productMapper.toDtos(allPr);
+                assertThat(allPrDtos.size() == allPr.size());
+                allPrDtos.forEach(dto -> assertThat(dto)
+                                .extracting(
+                                                ProductDTO::getTitle,
+                                                ProductDTO::getDescription,
+                                                ProductDTO::getPrice,
+                                                ProductDTO::getImageUrl)
+                                .containsExactly(
+                                                pe.getTitle(),
+                                                pe.getDescription(),
+                                                pe.getPriceValue(),
+                                                pe.getImage().url()));
         }
 
 }

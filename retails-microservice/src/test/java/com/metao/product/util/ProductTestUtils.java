@@ -1,0 +1,57 @@
+package com.metao.product.util;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.IntStream;
+
+import com.metao.ddd.shared.domain.financial.Currency;
+import com.metao.ddd.shared.domain.financial.Money;
+import com.metao.product.application.dto.CategoryDTO;
+import com.metao.product.application.dto.ProductDTO;
+import com.metao.product.domain.ProductCategoryEntity;
+import com.metao.product.domain.ProductEntity;
+import com.metao.product.domain.category.Category;
+import com.metao.product.domain.image.Image;
+
+public class ProductTestUtils {
+
+        public static ProductEntity createProductEntity() {
+                var description = "description";
+                var title = "title";
+                return createProductEntity(title, description);
+        }
+
+        public static ProductEntity createProductEntity(String title, String description) {
+                var url = "http://example.com/image.jpg";
+                var price = 12d;
+                var currency = Currency.DLR;
+                var category = new ProductCategoryEntity(new Category("book"));
+                var pe = new ProductEntity(title, description, new Money(currency, price), new Image(url));
+                pe.addCategory(category);
+                return pe;
+        }
+
+        public static List<ProductEntity> creteMultipleProductEntity(int size) {
+                final var description = "description";
+                var title = "title";
+                return IntStream.range(0, size)
+                                .boxed()
+                                .map(a -> createProductEntity(title + a, description))
+                                .toList();
+
+        }
+
+        public static ProductDTO createProductDTO() {
+                return ProductDTO
+                                .builder()
+                                .asin("1234567899")
+                                .title("title")
+                                .description("description")
+                                .price(12d)
+                                .currency(Currency.DLR)
+                                .categories(Set.of(CategoryDTO.of("book")))
+                                .imageUrl("http://example.com/image.jpg")
+                                .build();
+        }
+
+}

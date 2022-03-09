@@ -2,7 +2,7 @@ package com.metao.product.domain.event;
 
 import java.time.Instant;
 
-import com.metao.ddd.base.DomainEvent;
+import com.metao.ddd.shared.domain.base.DomainEvent;
 import com.metao.product.application.dto.ProductDTO;
 
 import org.springframework.context.ApplicationEvent;
@@ -29,10 +29,10 @@ public class CreateProductEvent extends ApplicationEvent implements DomainEvent 
     }
 
     public Instant createdOn() {
-            return createdOn;
+        return createdOn;
     }
 
     public ProductDTO productDTO() {
-            return productDTO;
+        return productDTO;
     }
 }

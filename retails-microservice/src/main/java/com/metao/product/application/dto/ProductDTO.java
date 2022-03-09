@@ -8,7 +8,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
-import com.metao.ddd.finance.Currency;
+import com.metao.ddd.shared.domain.financial.Currency;
 
 import org.hibernate.validator.constraints.Length;
 
@@ -23,19 +23,17 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ProductDTO implements Serializable {
 
-    @Pattern(regexp = "^[0-9]{10}")
+    @Pattern(regexp = "^[0-9]{10}", message = "asin format is wrong")
     private String asin;
 
-    @Min(3)
-    @Max(1200)
+    @Length(min = 1, max = 1250)
     private String description;
 
-    @Min(3)
-    @Max(255)
+    @Length(min = 1, max = 255)
     private String title;
 
-    @Length(max = 255)
-    @Pattern(regexp = "^((https?):\\[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|])")
+    @Length(min = 1, max = 255)
+    @Pattern(regexp = "(http(s?):)([/|.|\\w|-|])*\\.(?:jpg|gif|png)", message = "url format is wrong")
     private String imageUrl;
 
     @NotNull
@@ -48,5 +46,5 @@ public class ProductDTO implements Serializable {
 
     @NotNull
     private Set<CategoryDTO> categories;
-    
+
 }

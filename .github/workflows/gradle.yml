@@ -9,9 +9,9 @@ name: Java CI with Gradle
 
 on:
   push:
-    branches: [ master ]
+    branches: [ microservice ]
   pull_request:
-    branches: [ master ]
+    branches: [ microservice ]
 
 jobs:
   build:
@@ -25,7 +25,5 @@ jobs:
       with:
         java-version: '11'
         distribution: 'temurin'
-    - name: Build with Gradle
-      uses: gradle/gradle-build-action@937999e9cc2425eddc7fd62d1053baf041147db7
-      with:
-        arguments: build
+    - name: Build retails-microservice with Gradle 
+      run: gradle :retails-microservice:build -x test

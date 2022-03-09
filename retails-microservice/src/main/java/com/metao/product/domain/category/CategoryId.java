@@ -1,6 +1,6 @@
 package com.metao.product.domain.category;
 
-import com.metao.ddd.base.DomainObjectId;
+import com.metao.ddd.shared.domain.base.DomainObjectId;
 
 public class CategoryId extends DomainObjectId {
 

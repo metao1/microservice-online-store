@@ -1,32 +1,47 @@
 package com.metao.product.domain;
 
-import com.metao.ddd.base.AbstractEntity;
-import com.metao.ddd.base.DomainObjectId;
-import com.metao.product.domain.category.CategoryEntity;
-import lombok.NonNull;
+import com.metao.ddd.shared.domain.base.AbstractEntity;
+import com.metao.ddd.shared.domain.base.DomainObjectId;
+import com.metao.product.domain.category.Category;
 
-import java.util.Comparator;
-import java.util.Set;
-import java.util.TreeSet;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 
+@Entity
+@Table(name = "product_category")
 public class ProductCategoryEntity extends AbstractEntity<ProductCategoryId> {
+    
+    @Column(name = "category", nullable = false)
+    private Category category;
 
-    private final Set<CategoryEntity> categories;
-
-    public ProductCategoryEntity() {
+    public ProductCategoryEntity(@NotNull Category category) {
         super(DomainObjectId.randomId(ProductCategoryId.class));
-        this.categories = new TreeSet<>(Comparator.comparing(CategoryEntity::getCategory));
+        this.category = category;
     }
 
-    public void addCategoryEntity(@NonNull CategoryEntity category) {
-        categories.add(category);
+    @SuppressWarnings("unused")
+    private ProductCategoryEntity() {
     }
 
-    public void removeCategoryEntity(@NonNull CategoryEntity categoryId) {
-        categories.remove(categoryId);
+    public Category getCategory() {
+        return category;
     }
 
-    public Set<CategoryEntity> getCategories() {
-        return categories;
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null || getClass() != obj.getClass())
+            return false;
+        ProductCategoryEntity cat = (ProductCategoryEntity) obj;
+        return (this.category != null ? !this.category.equals(cat.getCategory()) : cat.getCategory() != null);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = category != null ? category.category().hashCode() : 0;
+        return 31 * result;
     }
 }
