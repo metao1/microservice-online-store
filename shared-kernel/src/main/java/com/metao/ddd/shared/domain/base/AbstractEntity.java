@@ -11,7 +11,7 @@ import java.util.Objects;
 /**
  * Base class for entities.
  *
- * @param <T> the entity ID type.
+ * @param <T> the entity T type.
  */
 @MappedSuperclass
 public abstract class AbstractEntity<T extends DomainObjectId> implements IdentifiableDomainObject<T> {

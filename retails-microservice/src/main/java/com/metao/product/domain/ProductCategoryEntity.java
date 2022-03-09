@@ -4,15 +4,16 @@ import com.metao.ddd.shared.domain.base.AbstractEntity;
 import com.metao.ddd.shared.domain.base.DomainObjectId;
 import com.metao.product.domain.category.Category;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-
 import javax.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "product_category")
 public class ProductCategoryEntity extends AbstractEntity<ProductCategoryId> {
-
+    
+    @Column(name = "category", nullable = false)
     private Category category;
 
     public ProductCategoryEntity(@NotNull Category category) {

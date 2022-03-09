@@ -16,7 +16,7 @@ import java.sql.SQLException;
  * as primary keys. You have to create one subclass per {@link DomainObjectId}
  * subtype.
  *
- * @param <T> the ID type.
+ * @param <T> the T type.
  * @see DomainObjectIdTypeDescriptor
  */
 public abstract class DomainObjectIdCustomType<T extends DomainObjectId>
@@ -29,7 +29,7 @@ public abstract class DomainObjectIdCustomType<T extends DomainObjectId>
      * invoke this constructor from there.
      *
      * @param domainObjectIdTypeDescriptor the {@link DomainObjectIdTypeDescriptor}
-     *                                     for the ID type.
+     *                                     for the T type.
      */
     public DomainObjectIdCustomType(@NonNull DomainObjectIdTypeDescriptor<T> domainObjectIdTypeDescriptor) {
         super(VarcharTypeDescriptor.INSTANCE, domainObjectIdTypeDescriptor);

@@ -20,7 +20,9 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
-import javax.persistence.OneToMany;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import javax.persistence.Version;
 import javax.validation.Valid;
@@ -51,7 +53,12 @@ public class ProductEntity extends AbstractAggregateRoot<ProductId> implements C
     @Enumerated(EnumType.STRING)
     private Currency priceCurrency;
 
-    @OneToMany(mappedBy = "category", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "product_category_map",
+        joinColumns = {@JoinColumn(name = "product_id")}, 
+        inverseJoinColumns = {@JoinColumn(name="product_category_id")}
+    )
     private Set<ProductCategoryEntity> productCategory;
 
     public ProductEntity(

@@ -7,7 +7,7 @@ import java.io.Serializable;
 /**
  * Interface for domain objects that can be uniquely identified.
  *
- * @param <T> the ID type.
+ * @param <T> the T type.
  */
 public interface IdentifiableDomainObject<T extends Serializable> extends DomainObject {
 

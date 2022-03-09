@@ -22,7 +22,7 @@ public class DomainObjectIdTypeDescriptor<T extends DomainObjectId> extends Abst
     /**
      * Creates a new {@code DomainObjectIdTypeDescriptor}.
      *
-     * @param type    the ID type.
+     * @param type    the T type.
      * @param factory a factory for creating new ID instances.
      */
     public DomainObjectIdTypeDescriptor(@NonNull Class<T> type, @NonNull Function<String, T> factory) {
