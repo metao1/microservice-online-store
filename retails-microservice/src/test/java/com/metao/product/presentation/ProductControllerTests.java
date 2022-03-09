@@ -22,11 +22,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import reactor.core.publisher.Mono;
 
+@ActiveProfiles("test")
 @Import({
                 ProductMapper.class,                                
                 ProductService.class                
@@ -82,8 +84,8 @@ public class ProductControllerTests {
                                 .jsonPath("$.description").isEqualTo("description")
                                 .jsonPath("$.categories[0].category").isEqualTo("book")
                                 .jsonPath("$.imageUrl").exists()
-                                .jsonPath("$.currency").isEqualTo("dollar")
-                                .jsonPath("$.price").isEqualTo(1200d);
+                                .jsonPath("$.currency").isEqualTo("dlr")
+                                .jsonPath("$.price").isEqualTo(12d);
         }
 
         @Test

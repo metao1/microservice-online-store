@@ -16,21 +16,22 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-//@Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+// @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
 public class ProductService implements ProductServiceInterface {
 
     private final ProductRepository productRepository;
 
     @Override
     public Optional<ProductEntity> getProductById(ProductId productId) throws ProductNotFoundException {
-        return productRepository.findById(productId);
+        return Optional.of(productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException("product " + productId + " not found.")));
     }
 
     @Override
-    public Optional<List<ProductEntity>> getAllProductsPageable(int limit, int offset) {
+    public Optional<List<ProductEntity>> getAllProductsPageable(int limit, int offset) throws ProductNotFoundException{
         var pageable = new OffsetBasedPageRequest(offset, limit);
-        return Optional.ofNullable(productRepository.findAll(pageable))
-                .map(Page::toList);
+        var option = Optional.ofNullable(productRepository.findAll(pageable));
+        return Optional.of(option.map(Page::toList)).orElseThrow(() -> new ProductNotFoundException("product list is empty."));
     }
 
     @Override
