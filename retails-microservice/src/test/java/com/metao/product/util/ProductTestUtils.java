@@ -1,6 +1,8 @@
 package com.metao.product.util;
 
+import java.util.List;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 import com.metao.ddd.shared.domain.financial.Currency;
 import com.metao.ddd.shared.domain.financial.Money;
@@ -14,15 +16,29 @@ import com.metao.product.domain.image.Image;
 public class ProductTestUtils {
 
         public static ProductEntity createProductEntity() {
-                var url = "http://example.com/image.jpg";
                 var description = "description";
                 var title = "title";
+                return createProductEntity(title, description);
+        }
+
+        public static ProductEntity createProductEntity(String title, String description) {
+                var url = "http://example.com/image.jpg";
                 var price = 12d;
                 var currency = Currency.DLR;
                 var category = new ProductCategoryEntity(new Category("book"));
                 var pe = new ProductEntity(title, description, new Money(currency, price), new Image(url));
                 pe.addCategory(category);
                 return pe;
+        }
+
+        public static List<ProductEntity> creteMultipleProductEntity(int size) {
+                final var description = "description";
+                var title = "title";
+                return IntStream.range(0, size)
+                                .boxed()
+                                .map(a -> createProductEntity(title + a, description))
+                                .toList();
+
         }
 
         public static ProductDTO createProductDTO() {

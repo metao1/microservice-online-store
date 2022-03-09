@@ -1,12 +1,13 @@
 package com.metao.product.domain;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ProductServiceInterface {
 
-    ProductEntity getProductById(ProductId productId);
+    Optional<ProductEntity> getProductById(ProductId productId);
 
-    List<ProductEntity> getAllProductsPageable(int limit, int offset);
+    Optional<List<ProductEntity>> getAllProductsPageable(int limit, int offset);
 
     void saveProduct(ProductEntity pe);
 }

@@ -18,7 +18,6 @@ import com.metao.product.util.ProductTestUtils;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -29,8 +28,8 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 
 @Import({
-                ProductMapper.class,                
-                ProductService.class
+                ProductMapper.class,                                
+                ProductService.class                
 })
 @WebFluxTest(controllers = ProductController.class)
 @ExtendWith(SpringExtension.class)
@@ -40,6 +39,9 @@ public class ProductControllerTests {
 
         @MockBean
         ProductRepository productRepository;
+
+        @MockBean
+        ProductCategoryRepository categoryRepository; 
 
         @Autowired
         WebTestClient webTestClient;
@@ -67,7 +69,7 @@ public class ProductControllerTests {
                 var pe = new ProductEntity(title, description, new Money(currency, price), new Image(url));
                 pe.addCategory(category);
                 when(productRepository.findById(any(ProductId.class)))
-                                .thenReturn(Optional.of(pe));
+                                .thenReturn(Optional.of(pe));                                
                 webTestClient
                                 .get()
                                 .uri(PRODUCT_URL + "details/" + pe.id().toUUID())

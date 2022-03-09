@@ -10,7 +10,9 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductMessageHandler implements MessageHandler<CreateProductEvent> {
@@ -25,10 +27,9 @@ public class ProductMessageHandler implements MessageHandler<CreateProductEvent>
             Optional.of(productDto)
                     .flatMap(productMapper::toEntity)
                     .ifPresent(productService::saveProduct);
-        } catch (Exception ignore) {
-
+        } catch (Exception ex) {
+            log.warn(ex.getMessage());
         }
-
     }
 
 }

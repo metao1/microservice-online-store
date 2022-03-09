@@ -7,6 +7,9 @@ import com.metao.ddd.shared.domain.financial.Currency;
 import com.metao.ddd.shared.domain.financial.Money;
 import com.metao.product.domain.image.Image;
 
+import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.NonNull;
 
@@ -53,12 +56,14 @@ public class ProductEntity extends AbstractAggregateRoot<ProductId> implements C
     @Enumerated(EnumType.STRING)
     private Currency priceCurrency;
 
+    @BatchSize(size = 20)
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinTable(
         name = "product_category_map",
         joinColumns = {@JoinColumn(name = "product_id")}, 
         inverseJoinColumns = {@JoinColumn(name="product_category_id")}
     )
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     private Set<ProductCategoryEntity> productCategory;
 
     public ProductEntity(
