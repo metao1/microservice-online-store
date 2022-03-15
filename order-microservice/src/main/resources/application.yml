@@ -1,0 +1,65 @@
+server:
+  port: 8083
+
+stream:
+  topic:
+    order: "order"
+    stock: "stock"
+    output: "output"
+    payment: "payment"
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:product-app;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    platform: h2
+    driverClassName: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: true
+    generate-ddl: true
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        show_sql: true
+        use_sql_comments: true
+        format_sql: true
+  # kafka:
+  #   bootstrap-servers: new-hawk-11518-eu1-kafka.upstash.io:9092
+  #   properties:
+  #     security:
+  #       protocol: SASL_SSL
+  #     sasl:
+  #       mechanism: SCRAM-SHA-256
+  #     sasl.jaas.config: org.apache.kafka.common.security.scram.ScramLoginModule required username="${KAFKA_USERNAME}" password="${KAFKA_PASSOWRD}";
+  #   producer:
+  #     key-serializer: org.apache.kafka.common.serialization.LongSerializer
+  #     value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  #   streams:
+  #     properties:
+  #       default.key.serde: org.apache.kafka.common.serialization.Serdes$LongSerde
+  #       default.value.serde: org.springframework.kafka.support.serializer.JsonSerde
+  #       spring.json.trusted.packages: "*"
+  #     state-dir: /tmp/kafka-streams/
+  kafka:
+    bootstrap-servers: localhost:9092
+    properties:
+      security:
+        protocol: PLAINTEXT      
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.LongSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    streams:
+      properties:
+        default.key.serde: org.apache.kafka.common.serialization.Serdes$LongSerde
+        default.value.serde: org.springframework.kafka.support.serializer.JsonSerde
+        spring.json.trusted.packages: "*"
+      state-dir: /tmp/kafka-streams/
+  output:
+    ansi:
+      enabled: ALWAYS
+  application:
+    name: "order"
+  cloud:
+    discovery:
+      enabled: false

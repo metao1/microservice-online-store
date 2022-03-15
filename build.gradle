@@ -131,8 +131,6 @@ subprojects {
             implementation 'org.springframework.boot:spring-boot-starter-validation'
             implementation 'ch.qos.logback:logback-classic'
             implementation 'org.projectlombok:lombok'
-            implementation 'org.mapstruct:mapstruct'
-            implementation 'org.mapstruct.extensions.spring:mapstruct-spring-annotations'
             implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
             implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
             testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
