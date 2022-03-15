@@ -2,7 +2,7 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**
 !**/src/test/**
-
+.DS_Store
 ### STS ###
 .apt_generated
 .classpath
@@ -18,6 +18,8 @@ target/
 *.iml
 *.ipr
 *.class
+
+.env
 
 ### NetBeans ###
 /nbproject/private/
