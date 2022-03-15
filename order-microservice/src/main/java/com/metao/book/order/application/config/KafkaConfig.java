@@ -1,4 +1,4 @@
-package com.metao.book.order.application;
+package com.metao.book.order.application.config;
 
 import com.metao.book.order.domain.OrderEntity;
 import com.metao.book.order.domain.OrderManageService;

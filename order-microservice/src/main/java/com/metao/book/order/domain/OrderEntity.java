@@ -14,7 +14,7 @@ import javax.persistence.Transient;
 import javax.validation.Valid;
 
 @Entity
-@Table(name="order_table")
+@Table(name = "order_table")
 public class OrderEntity extends AbstractAggregateRoot<OrderId> {
 
     @Column(name = "product_id", nullable = false)
@@ -54,8 +54,7 @@ public class OrderEntity extends AbstractAggregateRoot<OrderId> {
     @Transient
     public static OrderEntity of(Status status, @Valid OrderEntity order) {
         return new OrderEntity(order.status, order.productId(), order.customerId, order.productCount,
-                new Money(order.currency, order.amount)
-        );
+                new Money(order.currency, order.amount));
     }
 
     public ProductId productId() {
@@ -69,4 +68,17 @@ public class OrderEntity extends AbstractAggregateRoot<OrderId> {
     public Status status() {
         return status;
     }
+
+    public int productCount() {
+        return productCount;
+    }
+
+    public double amount() {
+        return amount;
+    }
+
+    public Currency currency() {
+            return currency;
+    }
+
 }
