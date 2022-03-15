@@ -1,6 +1,6 @@
 package com.metao.book.order.application;
 
-import com.metao.book.order.domain.Order;
+import com.metao.book.order.domain.OrderEntity;
 import com.metao.book.order.domain.OrderManageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,8 +27,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
-@Configuration
-@EnableKafkaStreams
+// @Configuration
+// @EnableKafkaStreams
 @RequiredArgsConstructor
 public class KafkaConfig {
 
@@ -77,13 +77,13 @@ public class KafkaConfig {
     }
 
     @Bean
-    public KStream<Long, Order> stream(@Value("${stream.topic.payment}") String paymentOrder,
+    public KStream<Long, OrderEntity> stream(@Value("${stream.topic.payment}") String paymentOrder,
                                        @Value("${stream.topic.stock}") String stockOrder,
                                        @Value("${stream.topic.output}") String orders,
                                        StreamsBuilder sb) {
 
-        JsonSerde<Order> orderJsonSerde = new JsonSerde<>(Order.class);
-        KStream<Long, Order> stream = sb.stream(paymentOrder, Consumed.with(Serdes.Long(), orderJsonSerde));
+        JsonSerde<OrderEntity> orderJsonSerde = new JsonSerde<>(OrderEntity.class);
+        KStream<Long, OrderEntity> stream = sb.stream(paymentOrder, Consumed.with(Serdes.Long(), orderJsonSerde));
         stream.join(
                         sb.stream(stockOrder),
                         orderManageService::confirm,
