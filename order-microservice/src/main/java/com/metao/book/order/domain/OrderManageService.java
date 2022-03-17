@@ -1,20 +1,22 @@
 package com.metao.book.order.domain;
 
+import com.metao.book.order.application.dto.OrderDTO;
+
 import org.springframework.stereotype.Service;
 
 @Service
 public class OrderManageService {
 
-    public OrderEntity confirm(OrderEntity orderPayment, OrderEntity orderStock) {
-        OrderEntity order = null;
-        if ((orderPayment.status().equals(orderStock.status()) && orderPayment.status() == Status.ACCEPT)) {
-           order = OrderEntity.of(Status.CONFIRM, orderPayment);
-        } else if (orderPayment.status().equals(orderStock.status()) && orderPayment.status() == Status.REJECT ){
-            order = OrderEntity.of(Status.REJECT, orderPayment);
-        }else if (orderPayment.status().equals(Status.REJECT)){
-            order = OrderEntity.of(Status.ROLLBACK, orderPayment);
+    public OrderDTO confirm(OrderDTO orderPayment, OrderDTO orderStock) {
+        OrderDTO order = orderPayment;
+        if ((orderPayment.getStatus().equals(orderStock.getStatus()) && orderPayment.getStatus() == Status.ACCEPT)) {
+           order.setStatus(Status.CONFIRM);
+        } else if (orderPayment.getStatus().equals(orderStock.getStatus()) && orderPayment.getStatus() == Status.REJECT ){
+            order.setStatus(Status.REJECT);
+        }else if (orderPayment.getStatus().equals(Status.REJECT)){
+            order.setStatus(Status.ROLLBACK);
         } else {
-            order = OrderEntity.of(Status.ROLLBACK, orderPayment);
+            order.setStatus(Status.ROLLBACK);
         }
         return order;
     }
