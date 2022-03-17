@@ -27,7 +27,14 @@ public enum Status {
         throw new RuntimeException("No value matched for Status");
     }
 
+    @JsonValue
     String value() {
+        return value;
+    }
+    
+    @Override
+    @JsonValue
+    public String toString() {
         return value;
     }
 }
