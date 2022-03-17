@@ -19,8 +19,8 @@ public enum Status {
 
     @JsonCreator
     public Status toStatus(String value) {
-        for (Status status: Status.values()){
-            if(value.equals(this.value)){
+        for (Status status : Status.values()) {
+            if (value.equals(this.value)) {
                 return status;
             }
         }
@@ -28,13 +28,9 @@ public enum Status {
     }
 
     @JsonValue
-    String value() {
-        return value;
-    }
-    
     @Override
-    @JsonValue
     public String toString() {
         return value;
     }
+
 }

@@ -19,12 +19,13 @@ public class OrderService implements OrderServiceInterface {
 
         private KafkaTemplate<OrderId, OrderEntity> kafkaTemplate;
         private OrderRepository orderRepository;        
-
+        private KafkaListenableCallback<OrderId, OrderEntity> kafkaListenerHandler;
+        
         @Value("${stream.topic.order}")
         private String orderTopic;
 
         @Override
-        public void saveOrder(OrderEntity orderEntity, KafkaListenableCallback<OrderId, OrderEntity> kafkaListenerHandler) {
+        public void saveOrder(OrderEntity orderEntity) {
                 kafkaTemplate.send(orderTopic, orderEntity.id(), orderEntity).addCallback(kafkaListenerHandler);                
         }
 
