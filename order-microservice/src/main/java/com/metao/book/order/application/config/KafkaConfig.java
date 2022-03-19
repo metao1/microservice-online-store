@@ -1,7 +1,6 @@
 package com.metao.book.order.application.config;
 
 import com.metao.book.order.application.dto.OrderDTO;
-import com.metao.book.order.domain.OrderEntity;
 import com.metao.book.order.domain.OrderManageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
