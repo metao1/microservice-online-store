@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.config.StreamsBuilderFactoryBean;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -27,13 +28,13 @@ import org.springframework.web.bind.annotation.RestController;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/order")
 @RequiredArgsConstructor
+@RequestMapping(value = "/order", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
 public class OrderController {
 
         private final OrderServiceInterface orderService;
         private final OrderMapperInterface mapper;
-        private final StreamsBuilderFactoryBean kafkaStreamsFactory;
+        //private final StreamsBuilderFactoryBean kafkaStreamsFactory;
 
         @ResponseBody
         @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
@@ -45,8 +46,9 @@ public class OrderController {
                                 .orElse(ResponseEntity.notFound().build());
         }
 
-        @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-        public ResponseEntity<OrderId> createOrder(@Valid OrderDTO orderDto) {
+        @ResponseBody
+        @PostMapping
+        public ResponseEntity<OrderId> createOrder(@Valid @RequestBody OrderDTO orderDto) {
                 Optional.ofNullable(orderDto)
                                 .map(mapper::toEntity)
                                 .ifPresentOrElse(orderService::saveOrder, () -> {
@@ -56,18 +58,18 @@ public class OrderController {
                 return ResponseEntity.ok().body(orderDto.getOrderId());
         }
 
-        @ResponseBody
-        @GetMapping(path = "/all", produces = MediaType.APPLICATION_JSON_VALUE)
-        public ResponseEntity<List<OrderDTO>> allOrders(@Valid @RequestParam("limit") Integer limit,
-                        @Valid @RequestParam("offset") Integer offset) {
-                var list = new LinkedList<OrderDTO>();
-                // Flux<OrderDTO> flux = Flux.<OrderDTO>create(sink -> {
-                kafkaStreamsFactory.getKafkaStreams()
-                                .store(StoreQueryParameters.fromNameAndType("output",
-                                                QueryableStoreTypes.keyValueStore()))
-                                .range(offset, limit + offset)
-                                .forEachRemaining(kv -> list.add(((OrderDTO) kv.value)));
-                // });
-                return ResponseEntity.ok().body(list);
-        }
+        // @ResponseBody
+        // @GetMapping(path = "/all", produces = MediaType.APPLICATION_JSON_VALUE)
+        // public ResponseEntity<List<OrderDTO>> allOrders(@Valid @RequestParam("limit") Integer limit,
+        //                 @Valid @RequestParam("offset") Integer offset) {
+        //         var list = new LinkedList<OrderDTO>();
+        //         // Flux<OrderDTO> flux = Flux.<OrderDTO>create(sink -> {
+        //         kafkaStreamsFactory.getKafkaStreams()
+        //                         .store(StoreQueryParameters.fromNameAndType("output",
+        //                                         QueryableStoreTypes.keyValueStore()))
+        //                         .range(offset, limit + offset)
+        //                         .forEachRemaining(kv -> list.add(((OrderDTO) kv.value)));
+        //         // });
+        //         return ResponseEntity.ok().body(list);
+        // }
 }

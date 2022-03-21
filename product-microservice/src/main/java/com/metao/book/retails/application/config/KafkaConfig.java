@@ -14,9 +14,9 @@ package com.metao.book.retails.application.config;
 // import java.util.HashMap;
 // import java.util.Map;
 
-// //@Configuration
-// //@EnableKafka
-// //@EnableKafkaStreams
+// @Configuration
+// @EnableKafka
+// @EnableKafkaStreams
 // public class KafkaConfig {
 
 // @Value(value = "${spring.kafka.bootstrap-servers}")

@@ -2,6 +2,7 @@ package com.metao.book.shared.domain.financial;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Enumeration of currencies.
@@ -9,14 +10,14 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum Currency {
     EUR("eur"), SEK("sek"), NOK("nok"), DKK("dkk"), DLR("dlr");
     
-    private String value;
+    private final String value;
 
     private Currency(String value){
         this.value = value;
     }
 
     @JsonCreator
-    public Currency toCurrency(String value) {
+    public Currency fromValues(@JsonProperty("currency") String value) {
         for(Currency val: Currency.values()) {
             if(val.value.equals(this.value)){
                 return val;
@@ -25,8 +26,8 @@ public enum Currency {
         throw new RuntimeException("can't deserialize the value "+ value + " to currency");
     }
 
-    @JsonValue
     @Override
+    @JsonValue    
     public String toString() {
             return value;
     }
