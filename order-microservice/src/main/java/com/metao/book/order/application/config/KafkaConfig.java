@@ -1,12 +1,11 @@
 package com.metao.book.order.application.config;
 
-import com.metao.book.order.application.dto.OrderDTO;
-import com.metao.book.order.domain.OrderManageService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.metao.book.order.application.dto.OrderDTO;
+import com.metao.book.order.domain.OrderManageService;
 
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -31,6 +30,9 @@ import org.springframework.kafka.annotation.KafkaStreamsDefaultConfiguration;
 import org.springframework.kafka.config.KafkaStreamsConfiguration;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.support.serializer.JsonSerde;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Configuration
@@ -59,7 +61,7 @@ public class KafkaConfig {
     }
 
     @Bean
-    public NewTopic orders(@Value("${stream.topic.order}") String topic) {
+    public NewTopic orders(@Value("${kafka.stream.topic.order}") String topic) {
         return TopicBuilder
                 .name(topic)
                 .partitions(3)
@@ -70,7 +72,7 @@ public class KafkaConfig {
     }
 
     @Bean
-    public NewTopic payment(@Value("${stream.topic.payment}") String topic) {
+    public NewTopic payment(@Value("${kafka.stream.topic.payment}") String topic) {
         return TopicBuilder
                 .name(topic)
                 .partitions(6)
@@ -80,7 +82,7 @@ public class KafkaConfig {
     }
 
     @Bean
-    public NewTopic output(@Value("${stream.topic.output}") String topic) {
+    public NewTopic output(@Value("${kafka.stream.topic.output}") String topic) {
         return TopicBuilder
                 .name(topic)
                 .partitions(6)
@@ -90,7 +92,7 @@ public class KafkaConfig {
     }
 
     @Bean
-    public NewTopic stock(@Value("${stream.topic.stock}") String topic) {
+    public NewTopic stock(@Value("${kafka.stream.topic.stock}") String topic) {
         return TopicBuilder
                 .name(topic)
                 .partitions(6)
@@ -100,9 +102,9 @@ public class KafkaConfig {
     }
 
     @Bean
-    public KStream<Integer, OrderDTO> stream(@Value("${stream.topic.payment}") String paymentOrder,
-            @Value("${stream.topic.stock}") String stockOrder,
-            @Value("${stream.topic.output}") String orders,
+    public KStream<Integer, OrderDTO> stream(@Value("${kafka.stream.topic.order}") String paymentOrder,
+            @Value("${kafka.stream.topic.stock}") String stockOrder,
+            @Value("${kafka.stream.topic.output}") String orders,
             StreamsBuilder sb) {
 
         var orderJsonSerde = new JsonSerde<>(OrderDTO.class);
@@ -120,10 +122,10 @@ public class KafkaConfig {
     }
 
     @Bean
-    public KTable<Integer, OrderDTO> table(@Value("${stream.topic.output}") String topic, StreamsBuilder sb) {
-        var store = Stores.persistentKeyValueStore(topic);
+    public KTable<Integer, OrderDTO> table(@Value("${kafka.stream.topic.order}") String orderTopic, StreamsBuilder sb) {
+        var store = Stores.persistentKeyValueStore(orderTopic);
         var orderJsonSerde = new JsonSerde<>(OrderDTO.class);
-        var stream = sb.stream(topic, Consumed.with(Serdes.Integer(), orderJsonSerde));
+        var stream = sb.stream(orderTopic, Consumed.with(Serdes.Integer(), orderJsonSerde));
         return stream.toTable(Materialized.<Integer, OrderDTO>as(store)
                 .withKeySerde(Serdes.Integer())
                 .withValueSerde(orderJsonSerde));

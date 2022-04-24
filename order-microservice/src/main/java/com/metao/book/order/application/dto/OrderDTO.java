@@ -7,9 +7,7 @@ import com.metao.book.order.domain.CustomerId;
 import com.metao.book.order.domain.OrderId;
 import com.metao.book.order.domain.ProductId;
 import com.metao.book.order.domain.Status;
-import com.metao.book.shared.domain.base.ValueObject;
 import com.metao.book.shared.domain.financial.Currency;
-
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
