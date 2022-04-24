@@ -3,7 +3,7 @@ import org.springframework.boot.gradle.plugin.SpringBootPlugin
 plugins {
     id 'base'
     id 'com.google.cloud.tools.jib' version '3.1.4' apply false
-    id 'org.springframework.boot' version '2.6.5' apply false
+    id 'org.springframework.boot' version '2.6.6' apply false
 }
 
 allprojects {
@@ -30,7 +30,7 @@ subprojects {
     dependencyManagement {
         imports {
             mavenBom SpringBootPlugin.BOM_COORDINATES
-            mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2021.0.0'
+            mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2021.0.1'
         }
     }
 
@@ -123,11 +123,8 @@ subprojects {
         apply plugin: 'com.google.cloud.tools.jib'
 
         dependencies {
-            annotationProcessor 'org.mapstruct:mapstruct-processor'
-            annotationProcessor 'org.mapstruct.extensions.spring:mapstruct-spring-extensions'
             annotationProcessor 'org.projectlombok:lombok'
-            annotationProcessor "org.projectlombok:lombok-mapstruct-binding:0.1.0"
-
+           
             implementation 'org.springframework.boot:spring-boot-starter-validation'
             implementation 'ch.qos.logback:logback-classic'
             implementation 'org.projectlombok:lombok'

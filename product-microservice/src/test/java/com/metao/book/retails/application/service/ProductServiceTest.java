@@ -7,7 +7,6 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 
 import com.metao.book.retails.application.exception.ProductNotFoundException;
-import com.metao.book.retails.application.service.ProductService;
 import com.metao.book.retails.domain.ProductId;
 import com.metao.book.retails.domain.ProductRepository;
 import com.metao.book.retails.util.ProductTestUtils;
@@ -27,11 +26,6 @@ public class ProductServiceTest {
 
         @InjectMocks
         ProductService productService;
-
-        @Test
-        void testGetAllProductsPageable() {
-
-        }
 
         @Test
         void getProductById_notFound() {

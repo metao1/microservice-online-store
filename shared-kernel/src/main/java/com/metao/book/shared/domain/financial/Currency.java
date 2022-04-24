@@ -1,14 +1,14 @@
 package com.metao.book.shared.domain.financial;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
  * Enumeration of currencies.
  */
 public enum Currency {
-    EUR("eur"), SEK("sek"), NOK("nok"), DKK("dkk"), DLR("dlr");
+    EUR("eur"), DLR("dlr");
     
     private final String value;
 

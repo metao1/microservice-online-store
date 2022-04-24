@@ -6,7 +6,7 @@ import com.metao.book.shared.domain.base.DomainObjectId;
 public class OrderId extends DomainObjectId {
 
     @JsonCreator
-    protected OrderId(String uuid) {
+    public OrderId(String uuid) {
         super(uuid);
     }
 }

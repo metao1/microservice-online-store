@@ -7,7 +7,7 @@ public interface OrderServiceInterface {
 
         void saveOrder(OrderEntity orderEntity);
 
-        Optional<OrderEntity> getOrderByProductId(OrderId productId);
+        Optional<OrderEntity> getOrderByProductId(ProductId productId);
 
         Optional<List<OrderEntity>> getAllOrdersPageble(int from, int to);
         

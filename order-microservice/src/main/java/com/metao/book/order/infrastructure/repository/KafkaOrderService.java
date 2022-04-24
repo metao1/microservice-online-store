@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class OrderRepository {
+public class KafkaOrderService {
 
         private static final String ORDERS = "orders";
 

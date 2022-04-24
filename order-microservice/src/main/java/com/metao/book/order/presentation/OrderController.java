@@ -28,7 +28,6 @@ public class OrderController {
         private final OrderMapperInterface mapper;
         private final StreamsBuilderFactoryBean kafkaStreamsFactory;
 
-        @ResponseBody
         @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
         public ResponseEntity<OrderDTO> getOrderByProductId(@RequestParam("product_id") ProductId productId) {
                 return orderService
@@ -38,7 +37,6 @@ public class OrderController {
                                 .orElse(ResponseEntity.notFound().build());
         }
 
-        @ResponseBody
         @PostMapping
         public ResponseEntity<OrderId> createOrder(@Valid @RequestBody OrderDTO orderDto) {
                 return Optional.of(orderDto)
@@ -56,18 +54,15 @@ public class OrderController {
                         .orElseThrow(() -> new RuntimeException("could not crate order"));
         }
 
-        @ResponseBody
         @GetMapping(path = "/all", produces = MediaType.APPLICATION_JSON_VALUE)
         public ResponseEntity<List<OrderDTO>> allOrders(@Valid @RequestParam("limit") Integer limit,
                                                         @Valid @RequestParam("offset") Integer offset) {
                 var list = new LinkedList<OrderDTO>();
-                // Flux<OrderDTO> flux = Flux.<OrderDTO>create(sink -> {
                 kafkaStreamsFactory.getKafkaStreams()
                         .store(StoreQueryParameters.fromNameAndType("output",
                                 QueryableStoreTypes.keyValueStore()))
                         .range(offset, limit + offset)
                         .forEachRemaining(kv -> list.add(((OrderDTO) kv.value)));
-                // });
                 return ResponseEntity.ok().body(list);
         }
 }

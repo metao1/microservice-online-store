@@ -1,0 +1,21 @@
+spring:
+  kafka:
+    topic:
+       name: order
+    consumer:
+      auto-offset-reset: earliest
+      group-id: test-group
+    listener:
+      ack-mode: manual
+      client-id: test-client-id
+      concurrency: 10
+      type: batch
+    admin:
+      client-id: admin-test-client-id
+kafka:
+    stream:
+        topic:
+            order: "order"
+            stock: "stock"
+            output: "output"
+            payment: "payment"
