@@ -50,16 +50,16 @@ spring:
     properties:
       security:
         protocol: PLAINTEXT
-    consumer:
-      key-deserializer: org.apache.kafka.common.serialization.LongDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "*"
-      auto-offset-reset: earliest
-      group-id: order-group    
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    # consumer:
+    #   key-deserializer: org.apache.kafka.common.serialization.LongDeserializer
+    #   value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+    #   properties:
+    #     spring.json.trusted.packages: "*"
+    #   auto-offset-reset: earliest
+    #   group-id: order-group    
+    # producer:
+    #   key-serializer: org.apache.kafka.common.serialization.StringSerializer
+    #   value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     listener:
       ack-mode: manual
       client-id: test-client-id
@@ -70,7 +70,7 @@ spring:
     streams:
       properties:
         default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
-        default.value.serde: org.springframework.kafka.support.serializer.JsonSerde
+        default.value.serde: io.confluent.kafka.streams.serdes.avro.ReflectionAvroSerde
         spring.json.trusted.packages: "*"
       state-dir: /tmp/kafka-streams/
   output:
