@@ -1,14 +1,16 @@
 package com.metao.book.order.domain;
 
+import com.order.microservice.avro.OrderAvro;
+
 import java.util.List;
 import java.util.Optional;
 
 public interface OrderServiceInterface {
 
-        void saveOrder(OrderEntity orderEntity);
+        void saveOrder(OrderAvro orderEntity);
 
-        Optional<OrderEntity> getOrderByProductId(ProductId productId);
+        Optional<OrderAvro> getOrderByProductId(String productId);
 
-        Optional<List<OrderEntity>> getAllOrdersPageble(int from, int to);
+        Optional<List<OrderAvro>> getAllOrdersPageble(int from, int to);
         
 }

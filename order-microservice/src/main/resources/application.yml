@@ -1,5 +1,5 @@
 server:
-  error: 
+  error:
     include-message: always
     include-binding-errors: always
   port: 8083
@@ -13,66 +13,27 @@ kafka:
       payment: "payment"
 
 spring:
-  datasource:
-    url: jdbc:h2:mem:order-app;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    platform: h2
-    driverClassName: org.h2.Driver
-  jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
-    show-sql: true
-    generate-ddl: true
-    hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        show_sql: true
-        use_sql_comments: true
-        format_sql: true
-  # kafka:
-  #   bootstrap-servers: new-hawk-11518-eu1-kafka.upstash.io:9092
-  #   properties:
-  #     security:
-  #       protocol: SASL_SSL
-  #     sasl:
-  #       mechanism: SCRAM-SHA-256
-  #     sasl.jaas.config: org.apache.kafka.common.security.scram.ScramLoginModule required username="${KAFKA_USERNAME}" password="${KAFKA_PASSOWRD}";
-  #   producer:
-  #     key-serializer: org.apache.kafka.common.serialization.LongSerializer
-  #     value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-  #   streams:
-  #     properties:
-  #       default.key.serde: org.apache.kafka.common.serialization.Serdes$LongSerde
-  #       default.value.serde: org.springframework.kafka.support.serializer.JsonSerde
-  #       spring.json.trusted.packages: "*"
-  #     state-dir: /tmp/kafka-streams/
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: "PLAINTEXT://localhost:9092"
     properties:
-      security:
-        protocol: PLAINTEXT
-    # consumer:
-    #   key-deserializer: org.apache.kafka.common.serialization.LongDeserializer
-    #   value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-    #   properties:
-    #     spring.json.trusted.packages: "*"
-    #   auto-offset-reset: earliest
-    #   group-id: order-group    
-    # producer:
-    #   key-serializer: org.apache.kafka.common.serialization.StringSerializer
-    #   value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-    listener:
-      ack-mode: manual
-      client-id: test-client-id
-      concurrency: 10
-      type: batch  
-    admin:
-      client-id: admin-test-client-id  
-    streams:
+      bootstrap.servers: "PLAINTEXT://localhost:9092"
+      schema.registry.url: http://localhost:8081
+    consumer:
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
       properties:
-        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
-        default.value.serde: io.confluent.kafka.streams.serdes.avro.ReflectionAvroSerde
-        spring.json.trusted.packages: "*"
-      state-dir: /tmp/kafka-streams/
+        specific.avro.reader: true
+    producer:
+      acks: 1
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+  #    streams:
+  #      properties:
+  #        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+  #        default.value.serde: io.confluent.kafka.streams.serdes.avro.ReflectionAvroSerde
+  #        spring.json.trusted.packages: "*"
+  #      #state-dir: /tmp/kafka-streams/
   output:
     ansi:
       enabled: ALWAYS
@@ -81,3 +42,7 @@ spring:
   cloud:
     discovery:
       enabled: false
+    compatibility-verifier:
+      enabled: false
+  messages:
+    encoding:

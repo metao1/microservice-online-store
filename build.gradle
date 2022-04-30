@@ -3,7 +3,7 @@ import org.springframework.boot.gradle.plugin.SpringBootPlugin
 plugins {
     id 'base'
     id 'com.google.cloud.tools.jib' version '3.1.4' apply false
-    id 'org.springframework.boot' version '2.6.6' apply false
+    id 'org.springframework.boot' version '2.5.3' apply false
     id 'com.github.davidmc24.gradle.plugin.avro' version '1.2.0' apply false
 }
 
@@ -15,10 +15,16 @@ allprojects {
 subprojects {
     apply plugin: 'java'
     apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'com.github.davidmc24.gradle.plugin.avro'
 
     repositories {
         mavenCentral()
         maven { url 'https://packages.confluent.io/maven/' }
+    }
+   
+    avro {
+        outputCharacterEncoding = 'UTF-8'
+        fieldVisibility = 'PRIVATE'
     }
 
     java {
@@ -41,9 +47,10 @@ subprojects {
             implementation 'org.projectlombok:lombok'
             // https://stackoverflow.com/questions/53326271/spring-nullable-annotation-generates-unknown-enum-constant-warning
             implementation 'com.google.code.findbugs:jsr305:3.0.2'
-
+            implementation 'org.apache.avro:avro'
             testAnnotationProcessor 'org.projectlombok:lombok'
             testImplementation 'org.projectlombok:lombok'
+            
         }
 
         exclude group: 'org.slf4j', module: 'slf4j-simple'

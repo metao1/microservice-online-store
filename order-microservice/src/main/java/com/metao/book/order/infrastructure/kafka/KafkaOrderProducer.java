@@ -1,24 +1,22 @@
 package com.metao.book.order.infrastructure.kafka;
 
-import javax.validation.constraints.NotBlank;
-
-import com.metao.book.order.application.dto.OrderDTO;
-
+import com.order.microservice.avro.OrderAvro;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import javax.validation.constraints.NotBlank;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class KafkaOrderProducer {
 
-    private final KafkaTemplate<String, OrderDTO> kafkaTemplate;
+    private final KafkaTemplate<String, OrderAvro> kafkaTemplate;
 
-    public void send(String topic, @NotBlank String orderId, @NotBlank OrderDTO orderDTO) {
-        log.info("sending order='{}' to topic='{}'", orderDTO, topic);
-        kafkaTemplate.send(topic, orderId, orderDTO);
+    public void send(String topic, @NotBlank String orderId, @NotBlank OrderAvro order) {
+        log.info("sending order='{}' to topic='{}'", order, topic);
+        kafkaTemplate.send(topic, orderId, order);
     }
 }

@@ -1,55 +1,46 @@
 package com.metao.book.order.infrastructure.repository;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-
-import javax.validation.constraints.NotNull;
-
-import com.metao.book.order.domain.OrderEntity;
-import com.metao.book.order.domain.OrderId;
-
-import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.StoreQueryParameters;
-import org.apache.kafka.streams.state.KeyValueIterator;
-import org.apache.kafka.streams.state.QueryableStoreTypes;
-import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
-import org.springframework.kafka.config.StreamsBuilderFactoryBean;
+import com.order.microservice.avro.OrderAvro;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import lombok.RequiredArgsConstructor;
+import javax.validation.constraints.NotNull;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class KafkaOrderService {
 
-        private static final String ORDERS = "orders";
+        private static final String ORDERS = "order";
 
-        private final StreamsBuilderFactoryBean kafkaStreamsFactory;
+        //private final StreamsBuilderFactoryBean kafkaStreamsFactory;
 
-        public Optional<OrderEntity> getOrder(@NotNull OrderId orderId) {
-                KafkaStreams kStream = kafkaStreamsFactory.getKafkaStreams();
-                if (kStream == null) {
-                        return Optional.empty();
-                }
-                var store = kStream.<ReadOnlyKeyValueStore<OrderId, OrderEntity>>store(
-                                StoreQueryParameters.fromNameAndType(ORDERS, QueryableStoreTypes.keyValueStore()));
-                return Optional.ofNullable(store.get(orderId));
+        public Optional<OrderAvro> getOrder(@NotNull String orderId) {
+//                KafkaStreams kStream = kafkaStreamsFactory.getKafkaStreams();
+//                if (kStream == null) {
+//                        return Optional.empty();
+//                }
+//                var store = kStream.<ReadOnlyKeyValueStore<String, OrderAvro>>store(
+//                                StoreQueryParameters.fromNameAndType(ORDERS, QueryableStoreTypes.keyValueStore()));
+//                return Optional.ofNullable(store.get(orderId));
+                return Optional.empty();
         }
 
-        public List<OrderEntity> getOrders(@NotNull OrderId from, @NotNull OrderId to) {
-                KafkaStreams kStream = kafkaStreamsFactory.getKafkaStreams();
-                if (kStream == null) {
-                        return Collections.emptyList();
-                }
-                var store = kStream.<ReadOnlyKeyValueStore<OrderId, OrderEntity>>store(
-                                StoreQueryParameters.fromNameAndType(ORDERS, QueryableStoreTypes.keyValueStore()));
-                KeyValueIterator<OrderId, OrderEntity> iterator = store.range(from, to);
-                List<OrderEntity> orders = new LinkedList<>();
-                while (iterator.hasNext()) {
-                        orders.add(iterator.next().value);
-                }
-                return orders;
+        public List<OrderAvro> getOrders(@NotNull String from, @NotNull String to) {
+//                KafkaStreams kStream = kafkaStreamsFactory.getKafkaStreams();
+//                if (kStream == null) {
+//                        return Collections.emptyList();
+//                }
+//                var store = kStream.<ReadOnlyKeyValueStore<String, OrderAvro>>store(
+//                                StoreQueryParameters.fromNameAndType(ORDERS, QueryableStoreTypes.keyValueStore()));
+//                KeyValueIterator<String, OrderAvro> iterator = store.range(from, to);
+//                List<OrderAvro> orders = new LinkedList<>();
+//                while (iterator.hasNext()) {
+//                        orders.add(iterator.next().value);
+//                }
+//                return orders;
+                return Collections.emptyList();
         }
 }

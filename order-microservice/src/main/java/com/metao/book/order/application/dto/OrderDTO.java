@@ -1,18 +1,14 @@
 package com.metao.book.order.application.dto;
 
-import java.io.Serializable;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.metao.book.order.domain.CustomerId;
-import com.metao.book.order.domain.OrderId;
-import com.metao.book.order.domain.ProductId;
+import com.metao.book.order.domain.Currency;
 import com.metao.book.order.domain.Status;
-import com.metao.book.shared.domain.financial.Currency;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
 
 @Data
 @Builder
@@ -20,19 +16,24 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class OrderDTO implements Serializable {
 
-        OrderId orderId;
+        @JsonProperty("order_id")
+        String orderId;
 
-        ProductId productId;
+        @JsonProperty("product_id")
+        String productId;
 
-        CustomerId customerId;
+        @JsonProperty("customer_id")
+        String customerId;
 
+        @JsonProperty("staus")
         Status status;
 
-        int productCount;
+        @JsonProperty("quantity")
+        int quantity;
 
         @JsonProperty("currency")
         private Currency currency;
 
-        @JsonProperty("amount")
-        private double amount;
+        @JsonProperty("price")
+        private double price;
 }
