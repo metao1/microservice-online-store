@@ -11,6 +11,6 @@ public interface OrderServiceInterface {
 
         Optional<OrderAvro> getOrderByProductId(String productId);
 
-        Optional<List<OrderAvro>> getAllOrdersPageble(int from, int to);
+        Optional<List<OrderAvro>> getAllOrdersPageable(int from, int to);
         
 }

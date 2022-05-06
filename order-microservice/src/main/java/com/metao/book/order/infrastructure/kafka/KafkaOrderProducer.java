@@ -3,6 +3,7 @@ package com.metao.book.order.infrastructure.kafka;
 import com.order.microservice.avro.OrderAvro;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.serialization.Serdes;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 

@@ -8,32 +8,48 @@ kafka:
   stream:
     topic:
       order: "order"
-      stock: "stock"
-      output: "output"
-      payment: "payment"
+      stock-order: "stock-order"
+      payment-order: "payment-order"
 
 spring:
   kafka:
-    bootstrap-servers: "PLAINTEXT://localhost:9092"
+    # Required connection configs for Kafka producer, consumer, and admin
+    bootstrap-servers: pkc-ymrq7.us-east-2.aws.confluent.cloud:9092
+    # Required connection configs for Confluent Cloud Schema Registry
     properties:
-      bootstrap.servers: "PLAINTEXT://localhost:9092"
-      schema.registry.url: http://localhost:8081
+      bootstrap-servers: ${BOOTSTRAP_SERVERS}
+      schema.registry.url: https://psrc-1w11j.eu-central-1.aws.confluent.cloud
+      security.protocol: SASL_SSL
+      sasl.mechanism: PLAIN
+      credentials.source: USER_INFO
+      sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule   required  username='${KAFKA_USER}' password='${KAFKA_PASSWORD}';
+      schema:
+        registry:
+          url: https://psrc-1w11j.eu-central-1.aws.confluent.cloud
+          basic:
+            auth:
+              user:
+                info: 7ZVNTJ4OMZWUMT7R:5xJEdD6PMssGTh3k8WB8pMk9vYBFr9pGPX2lSg+os2Do0OFD8Nlzw/TPHa2PrJMc
+      basic:
+        auth:
+          credentials:
+            source: USER_INFO
     consumer:
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
-      properties:
-        specific.avro.reader: true
     producer:
-      acks: 1
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
-  #    streams:
-  #      properties:
-  #        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
-  #        default.value.serde: io.confluent.kafka.streams.serdes.avro.ReflectionAvroSerde
-  #        spring.json.trusted.packages: "*"
-  #      #state-dir: /tmp/kafka-streams/
+    streams:
+      properties:
+        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        default.value.serde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
+        num.standby.replicas: 1
+        num.stream.threads: 2
+        max.request.size: 8388608        # 64 TODO RK get rid of it
+        topic.max.message.bytes: 67108864 # 64 MiB See idt-session-suppressed-store-store-changelog Topic configuration
+        topology.optimization: all
   output:
     ansi:
       enabled: ALWAYS
@@ -46,3 +62,5 @@ spring:
       enabled: false
   messages:
     encoding:
+
+logging.pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%15.15t]){yellow} %clr(:){red} %clr(%m){faint}%n"

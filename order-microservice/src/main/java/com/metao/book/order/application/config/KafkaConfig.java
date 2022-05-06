@@ -1,147 +1,176 @@
 package com.metao.book.order.application.config;
 
 import com.metao.book.order.domain.OrderManageService;
+import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
 import com.order.microservice.avro.OrderAvro;
-import io.confluent.kafka.serializers.KafkaAvroSerializer;
+import com.order.microservice.avro.Reservation;
+import com.order.microservice.avro.Status;
+import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.NewTopic;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.config.TopicConfig;
-import org.apache.kafka.common.serialization.StringSerializer;
-import org.springframework.beans.factory.ObjectProvider;
+import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.kstream.*;
+import org.apache.kafka.streams.state.KeyValueBytesStoreSupplier;
+import org.apache.kafka.streams.state.Stores;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.annotation.EnableKafkaStreams;
 import org.springframework.kafka.config.TopicBuilder;
-import org.springframework.kafka.core.DefaultKafkaProducerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.core.ProducerFactory;
-import org.springframework.kafka.support.converter.RecordMessageConverter;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.validation.annotation.Validated;
+
+import java.time.Duration;
+import java.util.Random;
+import java.util.concurrent.Executor;
+
+import static org.apache.kafka.streams.kstream.Grouped.with;
 
 @Slf4j
 @Validated
 @Configuration
-//@EnableKafkaStreams
+@EnableKafkaStreams
 @RequiredArgsConstructor
 @EnableConfigurationProperties({KafkaProperties.class})
 public class KafkaConfig {
-
     private static final long TIMEOUT = 10;
     private final OrderManageService orderManageService;
     private final KafkaProperties properties;
+
+    private Random random = new Random();
 
     @Bean("order")
     public NewTopic orders(@Value("${kafka.stream.topic.order}") String topic) {
         return TopicBuilder
                 .name(topic)
-                .partitions(6)
+                .partitions(3)
                 .replicas(1)
                 .config(TopicConfig.COMPRESSION_TYPE_CONFIG, "zstd")
                 .compact()
                 .build();
     }
 
-    @Bean("payments")
-    public NewTopic payment(@Value("${kafka.stream.topic.payment}") String topic) {
+    @Bean("order-payment")
+    public NewTopic payment(@Value("${kafka.stream.topic.payment-order}") String topic) {
         return TopicBuilder
                 .name(topic)
-                .partitions(6)
+                .partitions(3)
                 .replicas(1)
                 .compact()
                 .build();
     }
 
-    @Bean("output")
-    public NewTopic output(@Value("${kafka.stream.topic.output}") String topic) {
+    @Bean("stock-order")
+    public NewTopic stock(@Value("${kafka.stream.topic.stock-order}") String topic) {
         return TopicBuilder
                 .name(topic)
-                .partitions(6)
+                .partitions(3)
                 .replicas(1)
                 .compact()
                 .build();
     }
 
-    @Bean("stock")
-    public NewTopic stock(@Value("${kafka.stream.topic.stock}") String topic) {
-        return TopicBuilder
-                .name(topic)
-                .partitions(6)
-                .replicas(1)
-                .compact()
-                .build();
+
+    @Bean
+    SpecificAvroSerde<OrderAvro> orderAvroSerde() {
+        var serde = new SpecificAvroSerde<OrderAvro>();
+        serde.configure(properties.getProperties(), false);
+        return serde;
     }
 
     @Bean
-    public ProducerFactory<String, OrderAvro> devKeyValueSerializerKafkaProducerFactory() {
+    public KStream<String, OrderAvro> stream(@Value("${kafka.stream.topic.payment-order}") String paymentOrder,
+                                             @Value("${kafka.stream.topic.stock-order}") String stockOrder,
+                                             @Value("${kafka.stream.topic.order}") String orders,
+                                             SpecificAvroSerde<OrderAvro> orderAvroSerde,
+                                             StreamsBuilder sb) {
 
-        // if you have trouble with i.e. the Confluent Schema registry write just JSON -
-        // this is much easier to reprocess
-        var configProps = this.properties.buildProducerProperties();
-        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
-                StringSerializer.class);
-        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-                KafkaAvroSerializer.class);
-        return new DefaultKafkaProducerFactory<>(configProps);
+        var paymentOrderStream = sb.stream(paymentOrder, Consumed.with(Serdes.String(), orderAvroSerde));
+        var stockOrderStream = sb.stream(stockOrder, Consumed.with(Serdes.String(), orderAvroSerde));
+
+        paymentOrderStream.join(
+                        stockOrderStream,
+                        orderManageService::confirm,
+                        JoinWindows.of(Duration.ofSeconds(TIMEOUT)),
+                        StreamJoined.with(Serdes.String(), orderAvroSerde, orderAvroSerde))
+                .peek((k, o) -> log.info("output :{}", o))
+                .to(orders);
+
+        return paymentOrderStream;
     }
 
-    /**
-     * @see KafkaAutoConfiguration#kafkaTemplate
-     * (
-     * org.springframework.kafka.core.ProducerFactory,
-     * org.springframework.kafka.support.ProducerListener,
-     * org.springframework.beans.factory.ObjectProvider
-     * )
-     */
     @Bean
-    public KafkaTemplate<String, OrderAvro> devKafkaTemplate(
-            ObjectProvider<RecordMessageConverter> messageConverter,
-            ProducerFactory<String, OrderAvro> devKeyValueSerializerKafkaProducerFactory) {
-
-        var kafkaTemplate = new KafkaTemplate<>(devKeyValueSerializerKafkaProducerFactory);
-        messageConverter.ifUnique(kafkaTemplate::setMessageConverter);
-        return kafkaTemplate;
+    public KTable<String, OrderAvro> table(@Value("${kafka.stream.topic.order}") String orderTopic, SpecificAvroSerde<OrderAvro> specificAvroSerde, StreamsBuilder sb) {
+        var store = Stores.persistentKeyValueStore(orderTopic);
+        var stream = sb.stream(orderTopic, Consumed.with(Serdes.String(), specificAvroSerde));
+        return stream.toTable(Materialized.<String, OrderAvro>as(store)
+                .withKeySerde(Serdes.String())
+                .withValueSerde(specificAvroSerde));
     }
 
-//    @Bean
-//    SpecificAvroSerde<OrderAvro> orderAvroSerde() {
-//        var serde = new SpecificAvroSerde<OrderAvro>();
-//        serde.configure(properties.getProperties(), false);
-//        return serde;
-//    }
+    @Bean
+    public KStream<String, OrderAvro> stream(@Value("${kafka.stream.topic.order}") String orderTopic,
+                                             KafkaOrderProducer template,
+                                             StreamsBuilder builder) {
+        var orderSerde = new SpecificAvroSerde<OrderAvro>();
+        var rsvSerde = new SpecificAvroSerde<Reservation>();
+        KStream<String, OrderAvro> stream = builder
+                .stream(orderTopic, Consumed.with(Serdes.String(), orderSerde))
+                .peek((k, order) -> log.info("New: {}", order));
 
-//    @Bean
-//    public KStream<Integer, OrderAvro> stream(@Value("${kafka.stream.topic.order}") String paymentOrder,
-//                                              @Value("${kafka.stream.topic.stock}") String stockOrder,
-//                                              @Value("${kafka.stream.topic.output}") String orders,
-//                                              SpecificAvroSerde<OrderAvro> orderAvroSerde,
-//                                              StreamsBuilder sb) {
-//
-//        var kStream = sb.stream(paymentOrder, Consumed.with(Serdes.Integer(), orderAvroSerde));
-//
-//        kStream.join(
-//                        sb.stream(stockOrder),
-//                        orderManageService::confirm,
-//                        JoinWindows.of(Duration.ofSeconds(TIMEOUT)),
-//                        StreamJoined.with(Serdes.Integer(), orderAvroSerde, orderAvroSerde))
-//                .peek((k, o) -> log.info("output :{}", o))
-//                .to(orders);
-//
-//        return kStream;
-//    }
+        KeyValueBytesStoreSupplier customerOrderStoreSupplier =
+                Stores.persistentKeyValueStore("customer-orders");
+        Aggregator<String, OrderAvro, Reservation> aggregatorService = (id, order, rsv) -> {
 
-//    @Bean
-//    public KTable<String, OrderAvro> table(@Value("${kafka.stream.topic.order}") String orderTopic,
-//                                            StreamsBuilder sb) {
-//        var store = Stores.persistentKeyValueStore(orderTopic);
-//        var orderSerde = new SpecificAvroSerde<OrderAvro>();
-//        var stream = sb.stream(orderTopic, Consumed.with(Serdes.String(), orderSerde));
-//        return stream.toTable(Materialized.<String, OrderAvro>as(store)
-//                .withKeySerde(Serdes.String())
-//                .withValueSerde(orderSerde));
-//    }
+            if (order.getStatus().equals(Status.CONFIRM)) {
+                rsv.setAmountReserved(rsv.getAmountReserved() - order.getPrice());
+            } else if (order.getStatus().equals(Status.ROLLBACK)) {
+                //if (!order.getSource().equals("PAYMENT")) {
+                rsv.setAmountAvailable(rsv.getAmountAvailable() + order.getPrice());
+                rsv.setAmountReserved(rsv.getAmountReserved() - order.getPrice());
+                //}
+            } else if (order.getStatus().equals(Status.NEW)) {
+                if (order.getPrice() <= rsv.getAmountAvailable()) {
+                    rsv.setAmountAvailable(rsv.getAmountAvailable() - order.getPrice());
+                    rsv.setAmountReserved(rsv.getAmountReserved() + order.getPrice());
+                    order.setStatus(Status.ACCEPT);
+                } else {
+                    order.setStatus(Status.REJECT);
+                }
+                template.send("payment-orders", order.getOrderId(), order);
+            }
+
+            log.info("{}", rsv);
+            return rsv;
+        };
+
+        stream.selectKey((k, v) -> v.getCustomerId())
+                .groupByKey(Grouped.with(Serdes.String(), orderSerde))
+                .aggregate(
+                        () -> Reservation.newBuilder().setAmountAvailable(random.nextDouble()).build(),
+                        aggregatorService,
+                        Materialized.<String, Reservation>as(customerOrderStoreSupplier)
+                                .withKeySerde(Serdes.String())
+                                .withValueSerde(rsvSerde))
+                .toStream()
+                .peek((k, trx) -> log.info("Commit: {}", trx));
+
+        return stream;
+    }
+
+    @Bean
+    public Executor taskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5);
+        executor.setMaxPoolSize(5);
+        executor.setThreadNamePrefix("kafkaSender-");
+        executor.initialize();
+        return executor;
+    }
 }

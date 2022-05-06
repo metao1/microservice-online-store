@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 @Service
@@ -23,6 +24,7 @@ public class OrderService implements OrderServiceInterface {
 
     private final KafkaTemplate<String, OrderAvro> kafkaTemplate;
     private final KafkaOrderService kafkaOrderService;
+    private final KafkaOrderProducer kafkaProducer;
 
     @Value("${kafka.stream.topic.order}")
     private String orderTopic;
@@ -37,17 +39,14 @@ public class OrderService implements OrderServiceInterface {
         return kafkaOrderService.getOrder(productId);
     }
 
-    @Autowired
-    private KafkaOrderProducer kafkaProducer;
-
-
     @Value("${kafka.stream.topic.order}")
     private String topic;
 
+    AtomicInteger atomicInteger = new AtomicInteger(1);
+
     @Scheduled(fixedDelay = 10000, initialDelay = 2000)
     public void commandLineRunner() {
-        IntStream.range(0, 10)
-                .boxed()
+        Optional.of(atomicInteger.getAndIncrement())
                 .map(String::valueOf)
                 .map(s -> OrderAvro
                         .newBuilder()
@@ -59,11 +58,11 @@ public class OrderService implements OrderServiceInterface {
                         .setPrice(100.0)
                         .setCurrency(Currency.dlr)
                         .build())
-                .forEach(orderDTO -> kafkaProducer.send(topic, orderDTO.getOrderId(), orderDTO));
+                .ifPresent(order -> kafkaProducer.send(topic, order.getOrderId(), order));
     }
 
     @Override
-    public Optional<List<OrderAvro>> getAllOrdersPageble(int from, int to) {
+    public Optional<List<OrderAvro>> getAllOrdersPageable(int from, int to) {
         return Optional.empty();
     }
 
