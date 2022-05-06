@@ -1,6 +1,5 @@
-package order.presentation;
+package com.metao.book.order;
 
-import com.metao.book.order.application.service.KafkaOrderConsumer;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 

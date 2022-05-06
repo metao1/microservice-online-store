@@ -8,24 +8,24 @@ import org.springframework.kafka.annotation.KafkaListener;
 
 import java.util.concurrent.CountDownLatch;
 
-@Slf4j
-@Server
-public class KafkaOrderConsumer {
-
-    private CountDownLatch latch = new CountDownLatch(10);
-    private String payload = null;
-
-    @KafkaListener(id = "orders", topics = "order", groupId = "payment")
-    public void onEvent(ConsumerRecord<String, OrderAvro> record) {
-        log.info("Consumed message -> {}", record.value());
-        latch.countDown();
-    }
-
-    public CountDownLatch getLatch() {
-        return latch;
-    }
-
-    public String getPayload() {
-        return payload;
-    }
-}
+//@Slf4j
+//@Server
+//public class KafkaOrderConsumer {
+//
+//    private CountDownLatch latch = new CountDownLatch(10);
+//    private String payload = null;
+//
+//    @KafkaListener(id = "orders", topics = "order", groupId = "payment")
+//    public void onEvent(ConsumerRecord<String, OrderAvro> record) {
+//        log.info("Consumed message -> {}", record.value());
+//        latch.countDown();
+//    }
+//
+//    public CountDownLatch getLatch() {
+//        return latch;
+//    }
+//
+//    public String getPayload() {
+//        return payload;
+//    }
+//}

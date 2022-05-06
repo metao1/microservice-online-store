@@ -1,4 +1,4 @@
-package order.presentation;
+package com.metao.book.order;
 
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
