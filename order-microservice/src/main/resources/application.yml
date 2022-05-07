@@ -17,12 +17,12 @@ spring:
     bootstrap-servers: pkc-ymrq7.us-east-2.aws.confluent.cloud:9092
     # Required connection configs for Confluent Cloud Schema Registry
     properties:
-      bootstrap-servers: ${BOOTSTRAP_SERVERS}
+      bootstrap-servers: pkc-ymrq7.us-east-2.aws.confluent.cloud:9092
       schema.registry.url: https://psrc-1w11j.eu-central-1.aws.confluent.cloud
       security.protocol: SASL_SSL
       sasl.mechanism: PLAIN
       credentials.source: USER_INFO
-      sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule   required  username='${KAFKA_USER}' password='${KAFKA_PASSWORD}';
+      sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username='JJWODIETBRU6LHKG'   password='Zsjmrq6HSgEnU8lRUwa67C4IbyuqfTpm5F32SZXKzT944lNUGuRrO/nWRgDo9WJ8';
       schema:
         registry:
           url: https://psrc-1w11j.eu-central-1.aws.confluent.cloud

@@ -61,7 +61,7 @@ public class OrderController {
         var list = new LinkedList<OrderDTO>();
         kafkaStreamsFactory.getKafkaStreams()
                 .store(StoreQueryParameters.fromNameAndType("order", QueryableStoreTypes.keyValueStore()))
-                .range(limit, limit + offset)
+                .all()
                 .forEachRemaining(kv -> {
                     var orderAvro = (OrderAvro) kv.value;
                     var orderDto = mapper.toDto(orderAvro);

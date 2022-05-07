@@ -6,17 +6,18 @@ pluginManagement {
 }
 
 rootProject.name = 'book'
+
 include(':cart-microservice')
 include(':product-microservice')
 include(':checkout-microservice')
-include(':registry-microservice')
+//include(':registry-microservice')
 include(':order-microservice')
 include(':shared-kernel')
 
 project(":cart-microservice").projectDir = file('cart-microservice')
 project(":product-microservice").projectDir = file('product-microservice')
 project(":checkout-microservice").projectDir = file('checkout-microservice')
-project(":registry-microservice").projectDir = file('registry-microservice')
+//project(":registry-microservice").projectDir = file('registry-microservice')
 project(":order-microservice").projectDir = file('order-microservice')
 project(":shared-kernel").projectDir = file('shared-kernel')
 
@@ -25,5 +26,5 @@ gradle.ext.springBootProjects = [
         ':cart-microservice',
         ':product-microservice',
         ':checkout-microservice',
-        ':registry-microservice'
+        //':registry-microservice'
 ]

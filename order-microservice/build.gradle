@@ -1,45 +1,5 @@
-buildscript {
-    repositories {
-        mavenCentral()
-        maven {
-            url 'https://plugins.gradle.org/m2/'
-        }
-    }
-    dependencies {
-        classpath 'com.commercehub.gradle.plugin:gradle-avro-plugin:0.21.0'
-    }
-}
-
-plugins {
-    id 'org.springframework.boot' version '2.6.7'
-    id 'io.spring.dependency-management' version '1.0.9.RELEASE'
-    id 'java'
-}
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-    maven {
-        url 'https://packages.confluent.io/maven'
-    }
-}
-
-apply plugin: 'com.commercehub.gradle.plugin.avro'
-apply plugin: 'idea'
-
 group = 'com.metao.book.order'
 version = '0.0.1-SNAPSHOT'
-
-repositories {
-    mavenCentral()
-    maven { url 'https://packages.confluent.io/maven/' }
-}
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of('16')
-    }
-}
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'

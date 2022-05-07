@@ -1,3 +1,6 @@
+group = 'com.metao.book.retails'
+version = '0.0.1-SNAPSHOT'
+
 dependencies {
     implementation project(':shared-kernel')
     implementation 'com.h2database:h2:2.1.210'
