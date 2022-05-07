@@ -1,21 +1,18 @@
 package com.metao.book.retails.application.dto;
 
-import java.io.Serializable;
-import java.util.Set;
+import com.metao.book.shared.domain.financial.Currency;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-
-import com.metao.book.shared.domain.financial.Currency;
-
-import org.hibernate.validator.constraints.Length;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.io.Serializable;
+import java.util.Set;
 
 @Data
 @Builder

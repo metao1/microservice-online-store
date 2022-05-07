@@ -18,6 +18,15 @@ subprojects {
         maven { url 'https://packages.confluent.io/maven/' }
     }
 
+    dependencies {
+        annotationProcessor 'org.projectlombok:lombok'
+        implementation 'org.projectlombok:lombok'
+        // https://stackoverflow.com/questions/53326271/spring-nullable-annotation-generates-unknown-enum-constant-warning
+        implementation 'com.google.code.findbugs:jsr305:3.0.2'
+        testAnnotationProcessor 'org.projectlombok:lombok'
+        testImplementation 'org.projectlombok:lombok'
+    }
+
     dependencyManagement {
         imports {
             mavenBom SpringBootPlugin.BOM_COORDINATES

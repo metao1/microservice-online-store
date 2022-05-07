@@ -1,25 +1,18 @@
 package com.metao.book.retails.infrustructure.mapper;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.metao.book.retails.ProductApplication;
+import com.metao.book.retails.infrustructure.factory.handler.FileHandler;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.io.IOException;
 import java.util.Optional;
-import java.util.stream.Stream;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.metao.book.retails.ProductApplication;
-import com.metao.book.retails.infrustructure.factory.handler.FileHandler;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.json.JsonTest;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
-import org.springframework.test.context.ActiveProfiles;
-
-import lombok.extern.slf4j.Slf4j;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 @Slf4j

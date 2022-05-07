@@ -1,23 +1,21 @@
 package com.metao.book.retails.infrustructure.factory.handler;
 
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.verify;
-
-import java.time.Instant;
-
 import com.metao.book.retails.application.service.ProductService;
 import com.metao.book.retails.domain.ProductEntity;
 import com.metao.book.retails.domain.ProductRepository;
 import com.metao.book.retails.domain.event.CreateProductEvent;
-import com.metao.book.retails.infrustructure.factory.handler.ProductMessageHandler;
 import com.metao.book.retails.infrustructure.mapper.ProductMapper;
 import com.metao.book.retails.util.ProductTestUtils;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.Instant;
+
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class ProductMessageHandlerTest {

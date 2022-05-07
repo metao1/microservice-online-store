@@ -7,7 +7,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @EntityScan
-@ComponentScan
 @EnableJpaRepositories
 @SpringBootApplication
 public class ProductApplication {

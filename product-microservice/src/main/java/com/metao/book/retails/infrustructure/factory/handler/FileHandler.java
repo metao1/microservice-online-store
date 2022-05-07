@@ -1,13 +1,12 @@
 package com.metao.book.retails.infrustructure.factory.handler;
 
+import com.metao.book.retails.infrustructure.util.FileUtil;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Service;
+
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
-
-import com.metao.book.retails.infrustructure.util.FileUtil;
-
-import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Service;
 
 @Service
 public class FileHandler {

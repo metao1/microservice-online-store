@@ -1,11 +1,10 @@
 package com.metao.book.retails.application.service;
 
+import com.metao.book.retails.domain.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
-
-import com.metao.book.retails.domain.*;
 
 @Service
 @RequiredArgsConstructor

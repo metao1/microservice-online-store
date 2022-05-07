@@ -1,12 +1,11 @@
 package com.metao.book.retails.domain.event;
 
-import java.time.Instant;
-
 import com.metao.book.retails.application.dto.ProductDTO;
 import com.metao.book.shared.domain.base.DomainEvent;
-
 import org.springframework.context.ApplicationEvent;
 import org.springframework.lang.NonNull;
+
+import java.time.Instant;
 
 public class CreateProductEvent extends ApplicationEvent implements DomainEvent {
     private final ProductDTO productDTO;

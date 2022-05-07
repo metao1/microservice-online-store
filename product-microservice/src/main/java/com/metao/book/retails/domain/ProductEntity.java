@@ -6,29 +6,17 @@ import com.metao.book.shared.domain.base.ConcurrencySafeDomainObject;
 import com.metao.book.shared.domain.base.DomainObjectId;
 import com.metao.book.shared.domain.financial.Currency;
 import com.metao.book.shared.domain.financial.Money;
-
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.NonNull;
 
+import javax.annotation.Nullable;
+import javax.persistence.*;
+import javax.validation.Valid;
 import java.util.HashSet;
 import java.util.Set;
-
-import javax.annotation.Nullable;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.Table;
-import javax.persistence.Version;
-import javax.validation.Valid;
 
 @Entity
 @Table(name = "product")

@@ -47,8 +47,8 @@ spring:
         default.value.serde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
         num.standby.replicas: 1
         num.stream.threads: 2
-        max.request.size: 8388608        # 64 TODO RK get rid of it
-        topic.max.message.bytes: 67108864 # 64 MiB See idt-session-suppressed-store-store-changelog Topic configuration
+        max.request.size: 8388608        # 84 MiB
+        topic.max.message.bytes: 8388608 # 84 MiB
         topology.optimization: all
   output:
     ansi:

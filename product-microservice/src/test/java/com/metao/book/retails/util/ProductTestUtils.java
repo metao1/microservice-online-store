@@ -1,9 +1,5 @@
 package com.metao.book.retails.util;
 
-import java.util.List;
-import java.util.Set;
-import java.util.stream.IntStream;
-
 import com.metao.book.retails.application.dto.CategoryDTO;
 import com.metao.book.retails.application.dto.ProductDTO;
 import com.metao.book.retails.domain.ProductCategoryEntity;
@@ -12,6 +8,10 @@ import com.metao.book.retails.domain.category.Category;
 import com.metao.book.retails.domain.image.Image;
 import com.metao.book.shared.domain.financial.Currency;
 import com.metao.book.shared.domain.financial.Money;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.IntStream;
 
 public class ProductTestUtils {
 

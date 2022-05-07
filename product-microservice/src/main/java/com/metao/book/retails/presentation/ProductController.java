@@ -1,18 +1,16 @@
 package com.metao.book.retails.presentation;
 
+import com.metao.book.retails.application.dto.ProductDTO;
+import com.metao.book.retails.application.exception.ProductNotFoundException;
+import com.metao.book.retails.domain.ProductId;
+import com.metao.book.retails.domain.ProductServiceInterface;
+import com.metao.book.retails.infrustructure.mapper.ProductMapperInterface;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-
-import com.metao.book.retails.application.dto.ProductDTO;
-import com.metao.book.retails.application.exception.ProductNotFoundException;
-import com.metao.book.retails.domain.ProductId;
-import com.metao.book.retails.domain.ProductServiceInterface;
-import com.metao.book.retails.infrustructure.mapper.ProductMapperInterface;
-
 import java.util.List;
 import java.util.Optional;
 

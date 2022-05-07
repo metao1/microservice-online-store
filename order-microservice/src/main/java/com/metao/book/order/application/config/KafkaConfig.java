@@ -43,11 +43,11 @@ import static org.apache.kafka.streams.kstream.Grouped.with;
 @RequiredArgsConstructor
 @EnableConfigurationProperties({KafkaProperties.class})
 public class KafkaConfig {
+
+    private final Random random = new Random();
     private static final long TIMEOUT = 10;
     private final OrderManageService orderManageService;
     private final KafkaProperties properties;
-
-    private Random random = new Random();
 
     @Bean("order")
     public NewTopic orders(@Value("${kafka.stream.topic.order}") String topic) {
@@ -117,65 +117,14 @@ public class KafkaConfig {
                 .withValueSerde(specificAvroSerde));
     }
 
-    @Bean("order-payment-table")
-    public KStream<String, OrderAvro> stream(@Value("${kafka.stream.topic.payment-order}") String paymentOrderTopic,
-                                             @Value("${kafka.stream.topic.order}") String orderTopic,
-                                             KafkaOrderProducer template,
-                                             StreamsBuilder builder) {
-        var orderSerde = new SpecificAvroSerde<OrderAvro>();
-        var rsvSerde = new SpecificAvroSerde<Reservation>();
-        KStream<String, OrderAvro> stream = builder
-                .stream(orderTopic, Consumed.with(Serdes.String(), orderSerde))
-                .peek((k, order) -> log.info("New: {}", order));
-
-        KeyValueBytesStoreSupplier customerOrderStoreSupplier =
-                Stores.persistentKeyValueStore("stock-order");
-        Aggregator<String, OrderAvro, Reservation> aggregatorService = (id, order, rsv) -> {
-
-            if (order.getStatus().equals(Status.CONFIRM)) {
-                rsv.setAmountReserved(rsv.getAmountReserved() - order.getPrice());
-            } else if (order.getStatus().equals(Status.ROLLBACK)) {
-                //if (!order.getSource().equals("PAYMENT")) {
-                rsv.setAmountAvailable(rsv.getAmountAvailable() + order.getPrice());
-                rsv.setAmountReserved(rsv.getAmountReserved() - order.getPrice());
-                //}
-            } else if (order.getStatus().equals(Status.NEW)) {
-                if (order.getPrice() <= rsv.getAmountAvailable()) {
-                    rsv.setAmountAvailable(rsv.getAmountAvailable() - order.getPrice());
-                    rsv.setAmountReserved(rsv.getAmountReserved() + order.getPrice());
-                    order.setStatus(ACCEPT);
-                } else {
-                    order.setStatus(REJECT);
-                }
-                template.send(paymentOrderTopic, order.getOrderId(), order);
-            }
-
-            log.info("{}", rsv);
-            return rsv;
-        };
-
-        stream.selectKey((k, v) -> v.getCustomerId())
-                .groupByKey(Grouped.with(Serdes.String(), orderSerde))
-                .aggregate(
-                        () -> Reservation.newBuilder().setAmountAvailable(random.nextDouble()).build(),
-                        aggregatorService,
-                        Materialized.<String, Reservation>as(customerOrderStoreSupplier)
-                                .withKeySerde(Serdes.String())
-                                .withValueSerde(rsvSerde))
-                .toStream()
-                .peek((k, trx) -> log.info("Commit: {}", trx));
-
-        return stream;
-    }
-
     @Bean("payment-orders")
-    public KStream<Long, OrderAvro> stream(@Value("${kafka.stream.topic.stock-order}") String stockOrderTopic,
+    public KStream<String, OrderAvro> stream(@Value("${kafka.stream.topic.stock-order}") String stockOrderTopic,
                                            KafkaOrderProducer template,
                                            StreamsBuilder builder) {
         var orderSerde = new SpecificAvroSerde<OrderAvro>();
         var rsvSerde = new SpecificAvroSerde<Reservation>();
-        KStream<Long, OrderAvro> stream = builder
-                .stream("order", Consumed.with(Serdes.Long(), orderSerde))
+        KStream<String, OrderAvro> stream = builder
+                .stream("order", Consumed.with(Serdes.String(), orderSerde))
                 .peek((k, order) -> log.info("New: {}", order));
 
         KeyValueBytesStoreSupplier stockOrderStoreSupplier =
