@@ -39,7 +39,6 @@ import static org.apache.kafka.streams.kstream.Grouped.with;
 @Slf4j
 @Validated
 @Configuration
-@EnableKafkaStreams
 @RequiredArgsConstructor
 @EnableConfigurationProperties({KafkaProperties.class})
 public class KafkaConfig {
@@ -49,63 +48,11 @@ public class KafkaConfig {
     private final OrderManageService orderManageService;
     private final KafkaProperties properties;
 
-    @Bean("order")
-    public NewTopic orders(@Value("${kafka.stream.topic.order}") String topic) {
-        return TopicBuilder
-                .name(topic)
-                .partitions(3)
-                .replicas(1)
-                .config(TopicConfig.COMPRESSION_TYPE_CONFIG, "zstd")
-                .compact()
-                .build();
-    }
-
-    @Bean("order-payment")
-    public NewTopic payment(@Value("${kafka.stream.topic.payment-order}") String topic) {
-        return TopicBuilder
-                .name(topic)
-                .partitions(3)
-                .replicas(1)
-                .compact()
-                .build();
-    }
-
-    @Bean("stock-order")
-    public NewTopic stock(@Value("${kafka.stream.topic.stock-order}") String topic) {
-        return TopicBuilder
-                .name(topic)
-                .partitions(3)
-                .replicas(1)
-                .compact()
-                .build();
-    }
-
     @Bean
     SpecificAvroSerde<OrderAvro> orderAvroSerde() {
         var serde = new SpecificAvroSerde<OrderAvro>();
         serde.configure(properties.getProperties(), false);
         return serde;
-    }
-
-    @Bean
-    public KStream<String, OrderAvro> stream(@Value("${kafka.stream.topic.payment-order}") String paymentOrder,
-                                             @Value("${kafka.stream.topic.stock-order}") String stockOrder,
-                                             @Value("${kafka.stream.topic.order}") String orders,
-                                             SpecificAvroSerde<OrderAvro> orderAvroSerde,
-                                             StreamsBuilder sb) {
-
-        var paymentOrderStream = sb.stream(paymentOrder, Consumed.with(Serdes.String(), orderAvroSerde));
-        var stockOrderStream = sb.stream(stockOrder, Consumed.with(Serdes.String(), orderAvroSerde));
-
-        paymentOrderStream.join(
-                        stockOrderStream,
-                        orderManageService::confirm,
-                        JoinWindows.of(Duration.ofSeconds(TIMEOUT)),
-                        StreamJoined.with(Serdes.String(), orderAvroSerde, orderAvroSerde))
-                .peek((k, o) -> log.info("output :{}", o))
-                .to(orders);
-
-        return paymentOrderStream;
     }
 
     @Bean
@@ -115,55 +62,6 @@ public class KafkaConfig {
         return stream.toTable(Materialized.<String, OrderAvro>as(store)
                 .withKeySerde(Serdes.String())
                 .withValueSerde(specificAvroSerde));
-    }
-
-    @Bean("payment-orders")
-    public KStream<String, OrderAvro> stream(@Value("${kafka.stream.topic.stock-order}") String stockOrderTopic,
-                                           KafkaOrderProducer template,
-                                           StreamsBuilder builder) {
-        var orderSerde = new SpecificAvroSerde<OrderAvro>();
-        var rsvSerde = new SpecificAvroSerde<Reservation>();
-        KStream<String, OrderAvro> stream = builder
-                .stream("order", Consumed.with(Serdes.String(), orderSerde))
-                .peek((k, order) -> log.info("New: {}", order));
-
-        KeyValueBytesStoreSupplier stockOrderStoreSupplier =
-                Stores.persistentKeyValueStore(stockOrderTopic);
-
-        Aggregator<String, OrderAvro, Reservation> aggrSrv = (id, order, rsv) -> {
-            switch (order.getStatus()) {
-                case CONFIRM -> rsv.setAmountReserved(rsv.getAmountAvailable() - order.getQuantity());
-                case ROLLBACK -> {
-                    //if (!order.getSource().equals("STOCK")) {
-                    rsv.setAmountAvailable(rsv.getAmountAvailable() + order.getQuantity());
-                    rsv.setAmountReserved(rsv.getAmountReserved() - order.getQuantity());
-                    //}
-                }
-                case NEW -> {
-                    if (order.getQuantity() <= rsv.getAmountAvailable()) {
-                        rsv.setAmountAvailable(rsv.getAmountAvailable() - order.getQuantity());
-                        rsv.setAmountReserved(rsv.getAmountAvailable() + order.getQuantity());
-                        order.setStatus(ACCEPT);
-                    } else {
-                        order.setStatus(REJECT);
-                    }
-                    template.send(stockOrderTopic, order.getOrderId(), order);
-                }
-            }
-            log.info("{}", rsv);
-            return rsv;
-        };
-
-        stream.selectKey((k, v) -> v.getProductId())
-                .groupByKey(Grouped.with(Serdes.String(), orderSerde))
-                .aggregate(() -> Reservation.newBuilder().setAmountAvailable(random.nextDouble()).build(), aggrSrv,
-                        Materialized.<String, Reservation>as(stockOrderStoreSupplier)
-                                .withKeySerde(Serdes.String())
-                                .withValueSerde(rsvSerde))
-                .toStream()
-                .peek((k, trx) -> log.info("Commit: {}", trx));
-
-        return stream;
     }
 
     @Bean

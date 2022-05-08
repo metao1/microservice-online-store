@@ -25,7 +25,7 @@ public class OrderDTO implements Serializable {
         @JsonProperty("customer_id")
         String customerId;
 
-        @JsonProperty("staus")
+        @JsonProperty("status")
         Status status;
 
         @JsonProperty("quantity")

@@ -1,4 +1,4 @@
-package com.metao.book.order.infrastructure.kafka;
+package com.metao.book.checkout.infrastructure;
 
 import com.order.microservice.avro.OrderAvro;
 import lombok.RequiredArgsConstructor;

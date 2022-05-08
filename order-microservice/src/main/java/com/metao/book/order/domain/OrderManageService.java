@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 public class OrderManageService {
 
     public OrderAvro confirm(OrderAvro orderPayment, OrderAvro orderStock) {
-        OrderAvro order = orderPayment;
+        var order = orderPayment;
         if ((orderPayment.getStatus().equals(orderStock.getStatus()) && orderPayment.getStatus() == Status.ACCEPT)) {
             order.setStatus(Status.CONFIRM);
         } else if (orderPayment.getStatus().equals(orderStock.getStatus())

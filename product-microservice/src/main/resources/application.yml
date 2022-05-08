@@ -4,8 +4,8 @@ server:
 kafka:
   stream:
     topic:
-      order: "order"
-      payment-order: "payment-order"
+      order: "order-new2"
+      "stock-order": "stock-order-new2"
 
 spring:
   kafka:
@@ -30,10 +30,6 @@ spring:
         auth:
           credentials:
             source: USER_INFO
-    consumer:
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
@@ -46,6 +42,7 @@ spring:
         max.request.size: 8388608        # 84 MiB
         topic.max.message.bytes: 8388608 # 84 MiB
         topology.optimization: all
+        state.dir: /tmp/kafka-streams01
   cloud:
     discovery:
       enabled: false

@@ -1,6 +1,6 @@
-package com.metao.book.retails.application.config;
+package com.metao.book.checkout.application.config;
 
-import com.metao.book.retails.application.service.KafkaOrderProducer;
+import com.metao.book.checkout.infrastructure.KafkaOrderProducer;
 import com.order.microservice.avro.OrderAvro;
 import com.order.microservice.avro.Reservation;
 import com.order.microservice.avro.Status;
@@ -18,6 +18,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafkaStreams;
+import org.springframework.kafka.support.serializer.JsonSerde;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.Random;
@@ -30,47 +31,52 @@ import static com.order.microservice.avro.Status.REJECT;
 @Configuration
 @EnableKafkaStreams
 @RequiredArgsConstructor
+@EnableConfigurationProperties({KafkaProperties.class})
 public class KafkaConfig {
 
     private final Random random = new Random();
+    private final KafkaOrderProducer template;
 
-    @Bean
-    public KStream<String, OrderAvro> stream(@Value("${kafka.stream.topic.order}") String orderTopic,
-                                             @Value("${kafka.stream.topic.stock-order}") String stockOrderTopic,
+    @Value("${kafka.stream.topic.payment-order}") String paymentOrderTopic;
+
+
+    @Bean("order-payment")
+    public KStream<String, OrderAvro> stream(@Value("${kafka.stream.topic.payment-order}") String paymentOrderTopic,
+                                             @Value("${kafka.stream.topic.order}") String orderTopic,
                                              KafkaOrderProducer template,
                                              StreamsBuilder builder) {
         var orderSerde = new SpecificAvroSerde<OrderAvro>();
         var rsvSerde = new SpecificAvroSerde<Reservation>();
-        var stream = builder
+        KStream<String, OrderAvro> stream = builder
                 .stream(orderTopic, Consumed.with(Serdes.String(), orderSerde))
                 .peek((k, order) -> log.info("New: {}", order));
 
-        var customerOrderStoreSupplier =
-                Stores.persistentKeyValueStore("customer-orders-new");
-
+        KeyValueBytesStoreSupplier customerOrderStoreSupplier =
+                Stores.persistentKeyValueStore("stock-order");
         Aggregator<String, OrderAvro, Reservation> aggregatorService = (id, order, rsv) -> {
-            switch (order.getStatus()) {
-                case CONFIRM -> rsv.setAmountReserved(rsv.getAmountReserved() - order.getPrice());
-                case ROLLBACK -> {
-                    //if (!order.getSource().equals("PAYMENT")) {
-                    rsv.setAmountAvailable(rsv.getAmountAvailable() + order.getPrice());
-                    rsv.setAmountReserved(rsv.getAmountReserved() - order.getPrice());
-                    //}
+
+            if (order.getStatus().equals(Status.CONFIRM)) {
+                rsv.setAmountReserved(rsv.getAmountReserved() - order.getPrice());
+            } else if (order.getStatus().equals(Status.ROLLBACK)) {
+                //if (!order.getSource().equals("PAYMENT")) {
+                rsv.setAmountAvailable(rsv.getAmountAvailable() + order.getPrice());
+                rsv.setAmountReserved(rsv.getAmountReserved() - order.getPrice());
+                //}
+            } else if (order.getStatus().equals(Status.NEW)) {
+                if (order.getPrice() <= rsv.getAmountAvailable()) {
+                    rsv.setAmountAvailable(rsv.getAmountAvailable() - order.getPrice());
+                    rsv.setAmountReserved(rsv.getAmountReserved() + order.getPrice());
+                    order.setStatus(ACCEPT);
+                } else {
+                    order.setStatus(REJECT);
                 }
-                case NEW -> {
-                    if (order.getPrice() <= rsv.getAmountAvailable()) {
-                        rsv.setAmountAvailable(rsv.getAmountAvailable() - order.getPrice());
-                        rsv.setAmountReserved(rsv.getAmountReserved() + order.getPrice());
-                        order.setStatus(ACCEPT);
-                    } else {
-                        order.setStatus(REJECT);
-                    }
-                    template.send(stockOrderTopic, order.getOrderId(), order);
-                }
+                template.send(paymentOrderTopic, order.getOrderId(), order);
             }
+
             log.info("{}", rsv);
             return rsv;
         };
+
         stream.selectKey((k, v) -> v.getCustomerId())
                 .groupByKey(Grouped.with(Serdes.String(), orderSerde))
                 .aggregate(
@@ -84,5 +90,4 @@ public class KafkaConfig {
 
         return stream;
     }
-
 }
