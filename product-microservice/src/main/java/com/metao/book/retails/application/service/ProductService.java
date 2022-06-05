@@ -1,18 +1,17 @@
 package com.metao.book.retails.application.service;
 
-import java.util.List;
-import java.util.Optional;
-
 import com.metao.book.retails.application.exception.ProductNotFoundException;
-import com.metao.book.retails.domain.*;
+import com.metao.book.retails.domain.ProductEntity;
+import com.metao.book.retails.domain.ProductId;
+import com.metao.book.retails.domain.ProductRepository;
+import com.metao.book.retails.domain.ProductServiceInterface;
 import com.metao.book.retails.infrustructure.repository.model.OffsetBasedPageRequest;
-
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.annotation.Propagation;
 
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

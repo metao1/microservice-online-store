@@ -1,10 +1,5 @@
 package com.metao.book.retails.infrustructure.mapper;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.List;
-
 import com.metao.book.retails.application.dto.CategoryDTO;
 import com.metao.book.retails.application.dto.ProductDTO;
 import com.metao.book.retails.domain.ProductCategoryEntity;
@@ -13,8 +8,12 @@ import com.metao.book.retails.domain.category.Category;
 import com.metao.book.retails.domain.image.Image;
 import com.metao.book.retails.util.ProductTestUtils;
 import com.metao.book.shared.domain.financial.Currency;
-
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ProductMapperTest {
 

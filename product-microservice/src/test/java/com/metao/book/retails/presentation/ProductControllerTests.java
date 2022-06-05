@@ -1,11 +1,5 @@
 package com.metao.book.retails.presentation;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
-import java.util.Optional;
-import java.util.UUID;
-
 import com.metao.book.retails.application.dto.ProductDTO;
 import com.metao.book.retails.application.service.ProductService;
 import com.metao.book.retails.domain.*;
@@ -15,7 +9,6 @@ import com.metao.book.retails.infrustructure.mapper.ProductMapper;
 import com.metao.book.retails.util.ProductTestUtils;
 import com.metao.book.shared.domain.financial.Currency;
 import com.metao.book.shared.domain.financial.Money;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
@@ -23,8 +16,13 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
-
 import reactor.core.publisher.Mono;
+
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @ActiveProfiles("test")
 @Import({

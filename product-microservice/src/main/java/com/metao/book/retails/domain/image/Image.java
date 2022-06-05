@@ -1,8 +1,8 @@
 package com.metao.book.retails.domain.image;
 
-import java.util.Objects;
-
 import com.metao.book.shared.domain.base.ValueObject;
+
+import java.util.Objects;
 
 public class Image implements ValueObject {
 

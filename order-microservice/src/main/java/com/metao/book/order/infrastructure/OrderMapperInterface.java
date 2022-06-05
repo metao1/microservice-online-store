@@ -12,6 +12,7 @@ public interface OrderMapperInterface {
                                 .setStatus(Status.NEW)
                                 .setCurrency(Currency.dlr)
                                 .setPrice(dto.getPrice())
+                                .setStatus(Status.valueOf(dto.getStatus().toString()))
                                 .setQuantity(dto.getQuantity())
                                 .setProductId(dto.getProductId())
                                 .setCustomerId(dto.getCustomerId())
@@ -23,14 +24,14 @@ public interface OrderMapperInterface {
                 return new OrderDTO(order.getOrderId(),
                                 order.getProductId(),
                                 order.getCustomerId(),
-                                com.metao.book.order.domain.Status.NEW,
+                                convertToStatus(order.getStatus()),
                                 order.getQuantity(),
                                 com.metao.book.order.domain.Currency.DLR,
                                 order.getPrice());
         }
 
-        default Status convertToStatus(Status status) {
-                return Status.valueOf(status.toString());
+        default com.metao.book.order.domain.Status convertToStatus(Status status) {
+                return com.metao.book.order.domain.Status.valueOf(status.toString());
         }
 
         default Currency convertToCurrency(Currency currency) {

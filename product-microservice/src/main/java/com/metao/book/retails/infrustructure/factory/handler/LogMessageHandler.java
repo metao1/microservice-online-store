@@ -1,11 +1,9 @@
 package com.metao.book.retails.infrustructure.factory.handler;
 
 import com.metao.book.retails.domain.event.CreateProductEvent;
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service

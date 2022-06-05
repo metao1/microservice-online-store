@@ -1,23 +1,20 @@
 package com.metao.book.retails.infrustructure.factory;
 
-import java.io.IOException;
-import java.util.Optional;
-import java.util.concurrent.Executor;
-import javax.annotation.PostConstruct;
-
 import com.metao.book.retails.infrustructure.factory.handler.FileHandler;
 import com.metao.book.retails.infrustructure.factory.handler.LogMessageHandler;
 import com.metao.book.retails.infrustructure.factory.handler.ProductEventHandler;
 import com.metao.book.retails.infrustructure.factory.handler.ProductMessageHandler;
 import com.metao.book.retails.infrustructure.mapper.ProductDtoMapper;
 import com.metao.book.retails.infrustructure.util.EventUtil;
-
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.annotation.Profile;
+
+import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.util.Optional;
+import java.util.concurrent.Executor;
 
 @Slf4j
 //@Component

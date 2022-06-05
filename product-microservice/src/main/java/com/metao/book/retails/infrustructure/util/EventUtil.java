@@ -1,11 +1,10 @@
 package com.metao.book.retails.infrustructure.util;
 
-import java.time.Instant;
-
 import com.metao.book.retails.application.dto.ProductDTO;
 import com.metao.book.retails.domain.event.CreateProductEvent;
-
 import lombok.experimental.UtilityClass;
+
+import java.time.Instant;
 
 @UtilityClass
 public class EventUtil {

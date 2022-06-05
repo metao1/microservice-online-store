@@ -1,0 +1,56 @@
+{
+    "type": "record",
+    "name": "OrderAvro",
+    "namespace": "com.order.microservice.avro",
+    "fields": [
+      {
+        "name": "orderId",
+        "type": "string"
+      },
+      {
+        "name": "productId",
+        "type": "string"
+      },
+      {
+        "name": "customerId",
+        "type": "string"
+      },
+      {
+        "name": "status",
+        "type": {
+          "type": "enum",
+          "name": "Status",
+          "symbols": [
+            "NEW",
+            "ACCEPT",
+            "CONFIRM",
+            "REJECT",
+            "PAYMENT",
+            "STOCK",
+            "ROLLBACK"
+          ]
+        },
+        "namespace": "com.order.microservice.avro"
+      },
+      {
+        "name": "quantity",
+        "type": "int"
+      },
+      {
+        "name": "price",
+        "type": "double"
+      },
+      {
+        "name": "currency",
+        "type": {
+          "type": "enum",
+          "name": "Currency",
+          "symbols": [
+            "eur",
+            "dlr"
+          ]
+        },
+        "namespace": "com.order.microservice.avro"
+      }
+    ]
+  }

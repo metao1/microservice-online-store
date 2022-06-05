@@ -39,7 +39,7 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<String> createOrder(@Valid @RequestBody OrderDTO orderDto) {
+    public ResponseEntity<Long> createOrder(@Valid @RequestBody OrderDTO orderDto) {
         return Optional.of(orderDto)
                 .map(mapper::toAvro)
                 .stream()
@@ -60,7 +60,7 @@ public class OrderController {
                                                     @Valid @RequestParam("offset") Integer offset) {
         var list = new LinkedList<OrderDTO>();
         kafkaStreamsFactory.getKafkaStreams()
-                .store(StoreQueryParameters.fromNameAndType("order", QueryableStoreTypes.keyValueStore()))
+                .store(StoreQueryParameters.fromNameAndType("order-new2", QueryableStoreTypes.keyValueStore()))
                 .all()
                 .forEachRemaining(kv -> {
                     var orderAvro = (OrderAvro) kv.value;

@@ -1,7 +1,6 @@
 package com.metao.book.retails.infrustructure.factory.handler;
 
 import com.metao.book.shared.domain.base.DomainEvent;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

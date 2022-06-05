@@ -1,7 +1,47 @@
 server:
   port: ${PORT:8082}
 
+kafka:
+  stream:
+    topic:
+      order: "order-new2"
+      "stock-order": "stock-order-new2"
+
 spring:
+  kafka:
+    # Required connection configs for Kafka producer, consumer, and admin
+    bootstrap-servers: pkc-6ojv2.us-west4.gcp.confluent.cloud:9092        
+    # Required connection configs for Confluent Cloud Schema Registry
+    properties:
+      bootstrap.servers: pkc-ymrq7.us-east-2.aws.confluent.cloud:9092
+      schema.registry.url: https://psrc-kk5gg.europe-west3.gcp.confluent.cloud
+      security.protocol: SASL_SSL
+      sasl.mechanism: PLAIN
+      credentials.source: USER_INFO
+      sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username='OIF7NQANRR6MKOLX'   password='FX+y+hbL+0MSur41+rMJpobTv2rHX/UvLOA6DNXyExeHe3OoIVVWG8VrC6IC67tN';
+      schema:
+        registry:
+          url: https://psrc-1w11j.eu-central-1.aws.confluent.cloud
+          basic:
+            auth:
+              user:
+                info: 7ZVNTJ4OMZWUMT7R:5xJEdD6PMssGTh3k8WB8pMk9vYBFr9pGPX2lSg+os2Do0OFD8Nlzw/TPHa2PrJMc
+      basic:
+        auth:
+          credentials:
+            source: USER_INFO
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+    streams:
+      properties:
+        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        default.value.serde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
+        num.standby.replicas: 1
+        num.stream.threads: 2
+        max.request.size: 8388608        # 84 MiB
+        topic.max.message.bytes: 8388608 # 84 MiB
+        topology.optimization: all
   cloud:
     discovery:
       enabled: false
@@ -19,7 +59,9 @@ spring:
       hibernate:
         show_sql: true
         use_sql_comments: true
-        format_sql: true      
+        format_sql: true
+  application:
+    name: "order"
 # spring:
 #   jpa:
 #     database: POSTGRESQL

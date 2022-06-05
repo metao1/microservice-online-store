@@ -1,14 +1,5 @@
 package com.metao.book.retails.infrustructure.mapper;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.validation.Valid;
-
 import com.metao.book.retails.application.dto.CategoryDTO;
 import com.metao.book.retails.application.dto.ProductDTO;
 import com.metao.book.retails.domain.ProductCategoryEntity;
@@ -16,8 +7,15 @@ import com.metao.book.retails.domain.ProductEntity;
 import com.metao.book.retails.domain.category.Category;
 import com.metao.book.retails.domain.image.Image;
 import com.metao.book.shared.domain.financial.Money;
-
 import org.springframework.lang.NonNull;
+
+import javax.validation.Valid;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public interface ProductMapperInterface {
 

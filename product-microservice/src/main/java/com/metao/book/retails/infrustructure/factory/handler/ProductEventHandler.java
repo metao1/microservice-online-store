@@ -1,11 +1,10 @@
 package com.metao.book.retails.infrustructure.factory.handler;
 
+import com.metao.book.retails.domain.event.CreateProductEvent;
+import org.springframework.stereotype.Service;
+
 import java.util.HashSet;
 import java.util.Set;
-
-import com.metao.book.retails.domain.event.CreateProductEvent;
-
-import org.springframework.stereotype.Service;
 
 @Service
 public class ProductEventHandler {

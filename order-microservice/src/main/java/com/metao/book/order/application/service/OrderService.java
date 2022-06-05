@@ -22,7 +22,7 @@ import java.util.stream.IntStream;
 @RequiredArgsConstructor
 public class OrderService implements OrderServiceInterface {
 
-    private final KafkaTemplate<String, OrderAvro> kafkaTemplate;
+    private final KafkaTemplate<Long, OrderAvro> kafkaTemplate;
     private final KafkaOrderService kafkaOrderService;
     private final KafkaOrderProducer kafkaProducer;
 
@@ -47,16 +47,16 @@ public class OrderService implements OrderServiceInterface {
     @Scheduled(fixedDelay = 10000, initialDelay = 2000)
     public void commandLineRunner() {
         Optional.of(atomicInteger.getAndIncrement())
-                .map(String::valueOf)
                 .map(s -> OrderAvro
                         .newBuilder()
-                        .setOrderId("order-" + s)
-                        .setProductId("product - " + s)
-                        .setCustomerId("customer - " + s)
+                        .setOrderId(s)
+                        .setProductId(s)
+                        .setCustomerId(s)
                         .setStatus(Status.NEW)
                         .setQuantity(1)
-                        .setPrice(100.0)
+                        .setPrice(100)
                         .setCurrency(Currency.dlr)
+                        .setSource("PAYMENT")
                         .build())
                 .ifPresent(order -> kafkaProducer.send(topic, order.getOrderId(), order));
     }

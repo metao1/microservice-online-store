@@ -5,11 +5,11 @@
   "fields": [
     {
       "name": "amountAvailable",
-      "type": "int"
+      "type": "double"
     },
     {
       "name": "amountReserved",
-      "type": "int"
+      "type": "double"
     }
   ]
 }

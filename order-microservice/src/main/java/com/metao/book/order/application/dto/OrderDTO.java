@@ -17,15 +17,15 @@ import java.io.Serializable;
 public class OrderDTO implements Serializable {
 
         @JsonProperty("order_id")
-        String orderId;
+        Long orderId;
 
         @JsonProperty("product_id")
-        String productId;
+        Long productId;
 
         @JsonProperty("customer_id")
-        String customerId;
+        Long customerId;
 
-        @JsonProperty("staus")
+        @JsonProperty("status")
         Status status;
 
         @JsonProperty("quantity")
@@ -35,5 +35,5 @@ public class OrderDTO implements Serializable {
         private Currency currency;
 
         @JsonProperty("price")
-        private double price;
+        private int price;
 }

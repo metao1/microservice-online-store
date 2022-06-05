@@ -3,27 +3,8 @@ version = '0.0.1-SNAPSHOT'
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    //implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.apache.kafka:kafka-streams'
-    implementation 'org.apache.avro:avro'
-
-    implementation 'org.springframework.kafka:spring-kafka'
-    implementation 'io.confluent:kafka-avro-serializer:7.1.1'
-    implementation 'io.confluent:kafka-streams-avro-serde:7.1.1'
-    testImplementation 'tech.allegro.schema.json2avro:converter:0.2.14'
-
-    annotationProcessor 'org.projectlombok:lombok'
-    implementation 'org.projectlombok:lombok'
-    // https://stackoverflow.com/questions/53326271/spring-nullable-annotation-generates-unknown-enum-constant-warning
-    implementation 'com.google.code.findbugs:jsr305:3.0.2'
-    implementation 'org.apache.avro:avro'
-    testAnnotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.projectlombok:lombok'
-
-    testImplementation('org.springframework.boot:spring-boot-starter-test') {
-        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
-    }
-    testImplementation 'org.springframework.kafka:spring-kafka-test'
 }
 
 test {
