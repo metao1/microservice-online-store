@@ -51,10 +51,8 @@ public class KafkaConfig {
                 .stream(orderTopic, Consumed.with(Serdes.String(), orderSerde))
                 .peek((k, order) -> log.info("New: {}", order));
 
-        KeyValueBytesStoreSupplier customerOrderStoreSupplier =
-                Stores.persistentKeyValueStore("stock-order");
+        var customerOrderStoreSupplier = Stores.persistentKeyValueStore("stock-order");
         Aggregator<String, OrderAvro, Reservation> aggregatorService = (id, order, rsv) -> {
-
             if (order.getStatus().equals(Status.CONFIRM)) {
                 rsv.setAmountReserved(rsv.getAmountReserved() - order.getPrice());
             } else if (order.getStatus().equals(Status.ROLLBACK)) {
@@ -77,16 +75,16 @@ public class KafkaConfig {
             return rsv;
         };
 
-        stream.selectKey((k, v) -> v.getCustomerId())
-                .groupByKey(Grouped.with(Serdes.String(), orderSerde))
-                .aggregate(
-                        () -> Reservation.newBuilder().setAmountAvailable(random.nextDouble()).build(),
-                        aggregatorService,
-                        Materialized.<String, Reservation>as(customerOrderStoreSupplier)
-                                .withKeySerde(Serdes.String())
-                                .withValueSerde(rsvSerde))
-                .toStream()
-                .peek((k, trx) -> log.info("Commit: {}", trx));
+//        stream.selectKey((k, v) -> v.getCustomerId())
+//                .groupByKey(Grouped.with(Serdes.String(), orderSerde))
+//                .aggregate(
+//                        () -> Reservation.newBuilder().setAmountAvailable(random.nextDouble()).build(),
+//                        aggregatorService,
+//                        Materialized.<String, Reservation>as(customerOrderStoreSupplier)
+//                                .withKeySerde(Serdes.String())
+//                                .withValueSerde(rsvSerde))
+//                .toStream()
+//                .peek((k, trx) -> log.info("Commit: {}", trx));
 
         return stream;
     }

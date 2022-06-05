@@ -1,13 +1,13 @@
 package com.metao.book.checkout.service;
 
 // import com.metao.book.checkout.clients.ProductCatalogRestClient;
-import com.metao.book.checkout.clients.ShoppingCartRestClient;
-import com.metao.book.checkout.domain.OrderEntity;
-import com.metao.book.checkout.domain.ProductInventoryEntity;
-import com.metao.book.checkout.exception.CartIsEmptyException;
-import com.metao.book.checkout.exception.NotEnoughProductsInStockException;
-import com.metao.book.checkout.exception.UserException;
-import com.metao.book.checkout.repository.ProductInventoryRepository;
+// import com.metao.book.checkout.clients.ShoppingCartRestClient;
+// import com.metao.book.checkout.domain.OrderEntity;
+// import com.metao.book.checkout.domain.ProductInventoryEntity;
+// import com.metao.book.checkout.exception.CartIsEmptyException;
+// import com.metao.book.checkout.exception.NotEnoughProductsInStockException;
+// import com.metao.book.checkout.exception.UserException;
+// import com.metao.book.checkout.repository.ProductInventoryRepository;
 // import
 // com.metao.book.checkout.service.impl.CheckoutServiceImplementation;
 // import com.metao.book.checkout.service.impl.PriceCalculatorService;

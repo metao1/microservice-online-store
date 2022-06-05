@@ -10,15 +10,15 @@ kafka:
 spring:
   kafka:
     # Required connection configs for Kafka producer, consumer, and admin
-    bootstrap-servers: pkc-ymrq7.us-east-2.aws.confluent.cloud:9092
+    bootstrap-servers: pkc-6ojv2.us-west4.gcp.confluent.cloud:9092        
     # Required connection configs for Confluent Cloud Schema Registry
     properties:
-      bootstrap-servers: pkc-ymrq7.us-east-2.aws.confluent.cloud:9092
-      schema.registry.url: https://psrc-1w11j.eu-central-1.aws.confluent.cloud
+      bootstrap.servers: pkc-ymrq7.us-east-2.aws.confluent.cloud:9092
+      schema.registry.url: https://psrc-kk5gg.europe-west3.gcp.confluent.cloud
       security.protocol: SASL_SSL
       sasl.mechanism: PLAIN
       credentials.source: USER_INFO
-      sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username='JJWODIETBRU6LHKG'   password='Zsjmrq6HSgEnU8lRUwa67C4IbyuqfTpm5F32SZXKzT944lNUGuRrO/nWRgDo9WJ8';
+      sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username='OIF7NQANRR6MKOLX'   password='FX+y+hbL+0MSur41+rMJpobTv2rHX/UvLOA6DNXyExeHe3OoIVVWG8VrC6IC67tN';
       schema:
         registry:
           url: https://psrc-1w11j.eu-central-1.aws.confluent.cloud
@@ -42,7 +42,6 @@ spring:
         max.request.size: 8388608        # 84 MiB
         topic.max.message.bytes: 8388608 # 84 MiB
         topology.optimization: all
-        state.dir: /tmp/kafka-streams01
   cloud:
     discovery:
       enabled: false

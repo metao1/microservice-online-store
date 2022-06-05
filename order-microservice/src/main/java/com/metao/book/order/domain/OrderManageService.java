@@ -8,17 +8,29 @@ import org.springframework.stereotype.Service;
 public class OrderManageService {
 
     public OrderAvro confirm(OrderAvro orderPayment, OrderAvro orderStock) {
-        var order = orderPayment;
-        if ((orderPayment.getStatus().equals(orderStock.getStatus()) && orderPayment.getStatus() == Status.ACCEPT)) {
-            order.setStatus(Status.CONFIRM);
-        } else if (orderPayment.getStatus().equals(orderStock.getStatus())
-                && orderPayment.getStatus() == Status.REJECT) {
-            order.setStatus(Status.REJECT);
-        } else if (orderPayment.getStatus().equals(Status.REJECT)) {
-            order.setStatus(Status.ROLLBACK);
-        } else {
-            order.setStatus(Status.ROLLBACK);
+        var o = OrderAvro.newBuilder()
+                .setOrderId(orderPayment.getOrderId())
+                .setCustomerId(orderPayment.getCustomerId())
+                .setProductId(orderPayment.getProductId())
+                .setStatus(Status.ACCEPT)
+                .setQuantity(orderPayment.getQuantity())
+                .setPrice(orderPayment.getPrice())
+                .setSource(orderPayment.getSource())
+                .setCurrency(orderPayment.getCurrency())
+                .build();
+        if (orderPayment.getStatus().equals(Status.ACCEPT) &&
+                orderStock.getStatus().equals(Status.ACCEPT)) {
+            o.setStatus(Status.CONFIRM);
+        } else if (orderPayment.getStatus().equals(Status.REJECT) &&
+                orderStock.getStatus().equals(Status.REJECT)) {
+            o.setStatus(Status.REJECT);
+        } else if (orderPayment.getStatus().equals(Status.REJECT) ||
+                orderStock.getStatus().equals(Status.REJECT)) {
+            String source = orderPayment.getStatus().equals(Status.REJECT) ? "PAYMENT" : "STOCK";
+            o.setStatus(Status.ROLLBACK);
+            o.setSource(source);
         }
-        return order;
+        return o;
     }
+
 }

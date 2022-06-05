@@ -39,7 +39,7 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<String> createOrder(@Valid @RequestBody OrderDTO orderDto) {
+    public ResponseEntity<Long> createOrder(@Valid @RequestBody OrderDTO orderDto) {
         return Optional.of(orderDto)
                 .map(mapper::toAvro)
                 .stream()

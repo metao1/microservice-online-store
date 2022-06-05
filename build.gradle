@@ -4,7 +4,7 @@ plugins {
     id 'base'
     id 'idea'
     id 'com.google.cloud.tools.jib' version '3.1.4'
-    id 'org.springframework.boot' version '2.6.7'
+    id 'org.springframework.boot' version '2.6.2'
     id 'com.github.davidmc24.gradle.plugin.avro' version '1.2.0'
 }
 
@@ -21,11 +21,23 @@ subprojects {
     dependencies {
         annotationProcessor 'org.projectlombok:lombok'
         implementation 'org.projectlombok:lombok'
+
+        implementation 'org.apache.kafka:kafka-streams:3.0.0'
+        implementation 'org.apache.avro:avro'
+
+        implementation 'org.springframework.kafka:spring-kafka'
+        implementation 'io.confluent:kafka-avro-serializer:7.1.1'
+        implementation 'io.confluent:kafka-streams-avro-serde:7.1.1'
+
         // https://stackoverflow.com/questions/53326271/spring-nullable-annotation-generates-unknown-enum-constant-warning
         implementation 'com.google.code.findbugs:jsr305:3.0.2'
         testAnnotationProcessor 'org.projectlombok:lombok'
         testImplementation 'org.projectlombok:lombok'
-    }
+        testImplementation('org.springframework.boot:spring-boot-starter-test') {
+            exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+        }
+        testImplementation 'org.springframework.kafka:spring-kafka-test'
+        }
 
     dependencyManagement {
         imports {
