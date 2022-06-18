@@ -2,7 +2,6 @@ package com.metao.book.retails.presentation;
 
 import com.metao.book.retails.application.dto.ProductDTO;
 import com.metao.book.retails.application.exception.ProductNotFoundException;
-import com.metao.book.retails.domain.ProductId;
 import com.metao.book.retails.domain.ProductServiceInterface;
 import com.metao.book.retails.infrustructure.mapper.ProductMapperInterface;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +29,8 @@ public class ProductController {
     }
 
     @GetMapping(value = "/details/{asin}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ProductDTO> getOneProduct(@PathVariable String asin) throws ProductNotFoundException {
-        return productService.getProductById(new ProductId(asin))
+    public ResponseEntity<ProductDTO> getOneProduct(@PathVariable Long asin) throws ProductNotFoundException {
+        return productService.getProductById(asin)
                 .map(productMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

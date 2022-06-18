@@ -1,56 +1,61 @@
 {
-    "type": "record",
-    "name": "OrderAvro",
-    "namespace": "com.order.microservice.avro",
-    "fields": [
-      {
-        "name": "orderId",
-        "type": "string"
+  "type": "record",
+  "name": "OrderAvro",
+  "namespace": "com.order.microservice.avro",
+  "fields": [
+    {
+      "name": "orderId",
+      "type": "long"
+    },
+    {
+      "name": "productId",
+      "type": "long"
+    },
+    {
+      "name": "customerId",
+      "type": "long",
+      "default": 0
+    },
+    {
+      "name": "status",
+      "type": {
+        "type": "enum",
+        "name": "Status",
+        "symbols": [
+          "NEW",
+          "ACCEPT",
+          "CONFIRM",
+          "REJECT",
+          "PAYMENT",
+          "STOCK",
+          "ROLLBACK"
+        ]
       },
-      {
-        "name": "productId",
-        "type": "string"
+      "namespace": "com.order.microservice.avro"
+    },
+    {
+      "name": "quantity",
+      "type": "int"
+    },
+    {
+      "name": "price",
+      "type": "int"
+    },
+    {
+      "name": "source",
+      "type": "string"
+    },
+    {
+      "name": "currency",
+      "type": {
+        "type": "enum",
+        "name": "Currency",
+        "symbols": [
+          "eur",
+          "dlr"
+        ]
       },
-      {
-        "name": "customerId",
-        "type": "string"
-      },
-      {
-        "name": "status",
-        "type": {
-          "type": "enum",
-          "name": "Status",
-          "symbols": [
-            "NEW",
-            "ACCEPT",
-            "CONFIRM",
-            "REJECT",
-            "PAYMENT",
-            "STOCK",
-            "ROLLBACK"
-          ]
-        },
-        "namespace": "com.order.microservice.avro"
-      },
-      {
-        "name": "quantity",
-        "type": "int"
-      },
-      {
-        "name": "price",
-        "type": "double"
-      },
-      {
-        "name": "currency",
-        "type": {
-          "type": "enum",
-          "name": "Currency",
-          "symbols": [
-            "eur",
-            "dlr"
-          ]
-        },
-        "namespace": "com.order.microservice.avro"
-      }
-    ]
-  }
+      "namespace": "com.order.microservice.avro"
+    }
+  ]
+}

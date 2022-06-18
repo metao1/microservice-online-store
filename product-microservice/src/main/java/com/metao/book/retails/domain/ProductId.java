@@ -9,4 +9,5 @@ public class ProductId extends DomainObjectId {
     public ProductId(String uuid) {
         super(uuid);
     }
+
 }

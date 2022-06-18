@@ -39,7 +39,6 @@ public class KafkaConfig {
 
     @Value("${kafka.stream.topic.payment-order}") String paymentOrderTopic;
 
-
     @Bean("order-payment")
     public KStream<String, OrderAvro> stream(@Value("${kafka.stream.topic.payment-order}") String paymentOrderTopic,
                                              @Value("${kafka.stream.topic.order}") String orderTopic,

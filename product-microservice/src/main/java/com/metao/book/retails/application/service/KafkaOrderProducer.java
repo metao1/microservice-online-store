@@ -11,9 +11,9 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class KafkaOrderProducer {
 
-    private final KafkaTemplate<String, OrderAvro> kafkaTemplate;
+    private final KafkaTemplate<Long, OrderAvro> kafkaTemplate;
 
-    public void send(String topic,  String orderId, OrderAvro order) {
+    public void send(String topic, long orderId, OrderAvro order) {
         log.info("sending order='{}' to topic='{}'", order, topic);
         kafkaTemplate.send(topic, orderId, order)
                 .addCallback(result -> log.info("Sent: {}",

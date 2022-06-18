@@ -2,8 +2,6 @@ package com.metao.book.order.application.config;
 
 import com.metao.book.order.domain.OrderManageService;
 import com.order.microservice.avro.OrderAvro;
-import com.order.microservice.avro.Reservation;
-import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,30 +10,20 @@ import org.apache.kafka.common.config.TopicConfig;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.*;
-import org.apache.kafka.streams.state.KeyValueBytesStoreSupplier;
 import org.apache.kafka.streams.state.Stores;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.annotation.EnableKafkaStreams;
 import org.springframework.kafka.config.TopicBuilder;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.Duration;
-import java.util.Map;
-import java.util.Random;
-import java.util.concurrent.Executor;
-
-import static com.order.microservice.avro.Status.ACCEPT;
-import static com.order.microservice.avro.Status.REJECT;
 
 @Slf4j
 @Validated
-@EnableKafka
 @Configuration
 @EnableKafkaStreams
 @RequiredArgsConstructor

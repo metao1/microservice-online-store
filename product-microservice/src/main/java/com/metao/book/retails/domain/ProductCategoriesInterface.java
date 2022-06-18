@@ -4,5 +4,5 @@ import java.util.Set;
 
 public interface ProductCategoriesInterface {
 
-    Set<ProductCategoryEntity> getProductCategories(ProductId productId);
+    Set<ProductCategoryEntity> getProductCategories(Long productId);
 }

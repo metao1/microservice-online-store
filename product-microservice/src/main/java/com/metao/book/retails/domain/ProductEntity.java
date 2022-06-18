@@ -12,7 +12,6 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.NonNull;
 
-import javax.annotation.Nullable;
 import javax.persistence.*;
 import javax.validation.Valid;
 import java.util.HashSet;
@@ -23,7 +22,7 @@ import java.util.Set;
 public class ProductEntity extends AbstractAggregateRoot<ProductId> implements ConcurrencySafeDomainObject {
 
     @Version
-    private Long version;
+    Long version;
 
     @Length(min = 3, max = 255)
     @Column(name = "title", nullable = false)
@@ -43,6 +42,10 @@ public class ProductEntity extends AbstractAggregateRoot<ProductId> implements C
     @Column(name = "price_currency", nullable = false)
     @Enumerated(EnumType.STRING)
     private Currency priceCurrency;
+
+    private int availableItems;
+
+    private int reservedItems;
 
     @BatchSize(size = 20)
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -98,7 +101,22 @@ public class ProductEntity extends AbstractAggregateRoot<ProductId> implements C
         return image;
     }
 
-    @Nullable
+    public int getAvailableItems() {
+        return availableItems;
+    }
+
+    public int getReservedItems() {
+        return reservedItems;
+    }
+
+    public void setReservedItems(int reservedItems) {
+        this.reservedItems = reservedItems;
+    }
+
+    public void setAvailableItems(int availableItems) {
+        this.availableItems = availableItems;
+    }
+
     @Override
     public Long version() {
         return version;

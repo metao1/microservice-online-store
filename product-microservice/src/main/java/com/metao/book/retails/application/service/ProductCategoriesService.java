@@ -13,7 +13,7 @@ public class ProductCategoriesService implements ProductCategoriesInterface {
     private final ProductRepository productRepository;
 
     @Override
-    public Set<ProductCategoryEntity> getProductCategories(ProductId productId) {
+    public Set<ProductCategoryEntity> getProductCategories(Long productId) {
         return productRepository
                 .findById(productId)
                 .stream()
