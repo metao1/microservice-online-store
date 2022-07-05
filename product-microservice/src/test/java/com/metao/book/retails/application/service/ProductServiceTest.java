@@ -1,6 +1,7 @@
 package com.metao.book.retails.application.service;
 
 import com.metao.book.retails.application.exception.ProductNotFoundException;
+import com.metao.book.retails.domain.ProductId;
 import com.metao.book.retails.domain.ProductRepository;
 import com.metao.book.retails.util.ProductTestUtils;
 import org.junit.jupiter.api.Assertions;
@@ -28,14 +29,14 @@ public class ProductServiceTest {
         @Test
         void getProductById_notFound() {
                 assertThrows(ProductNotFoundException.class,
-                                () -> productService.getProductById(1L));
+                                () -> productService.getProductById("1"));
         }
 
         @Test
         void getProductById_isFound() {
                 var pe = ProductTestUtils.createProductEntity();
-                var productId = 1L;
-                when(productRepo.findById(productId))
+                var productId = "1";
+                when(productRepo.findById(new ProductId(productId)))
                                 .thenReturn(Optional.of(pe));
                 var product = productService.getProductById(productId);
                 Assertions.assertNotNull(product);

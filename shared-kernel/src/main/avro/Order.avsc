@@ -9,8 +9,7 @@
     },
     {
       "name": "productId",
-      "type": "long",
-      "default": 0
+      "type": "string"
     },
     {
       "name": "customerId",

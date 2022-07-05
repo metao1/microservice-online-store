@@ -37,7 +37,25 @@ subprojects {
             exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
         }
         testImplementation 'org.springframework.kafka:spring-kafka-test'
+    }
+
+    configurations.all {
+        test {
+            useJUnitPlatform()
+
+            testLogging {
+                showStandardStreams true
+                showStackTraces true
+            }
+
+            doFirst {
+                systemProperty 'spring.profiles.active', 'test'
+            }
         }
+        dependencies {
+            implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+        }
+    }
 
     dependencyManagement {
         imports {

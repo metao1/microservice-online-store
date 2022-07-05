@@ -16,7 +16,7 @@ public class KafkaOrderConsumer {
     private CountDownLatch latch = new CountDownLatch(10);
     private String payload = null;
 
-    @KafkaListener(id = "orders", topics = "order-test-2", groupId = "payment")
+    @KafkaListener(id = "orders", topics = "order-test-3", groupId = "payment")
     public void onEvent(OrderAvro record) {
         log.info("Consumed message -> {}", record);
         latch.countDown();

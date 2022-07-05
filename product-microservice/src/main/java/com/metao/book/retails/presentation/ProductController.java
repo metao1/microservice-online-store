@@ -14,29 +14,29 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/products")
 @RequiredArgsConstructor
+@RequestMapping(path="/products", produces = MediaType.APPLICATION_JSON_VALUE)
 public class ProductController {
 
     private final ProductServiceInterface productService;
     private final ProductMapperInterface productMapper;
 
-    @PostMapping(value = "/", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/")
     public void saveProduct(@Valid @RequestBody ProductDTO productDTO) {
         Optional.of(productMapper.toEntity(productDTO))
                 .orElseThrow()
                 .ifPresent(productService::saveProduct);
     }
 
-    @GetMapping(value = "/details/{asin}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ProductDTO> getOneProduct(@PathVariable Long asin) throws ProductNotFoundException {
+    @GetMapping(value = "/details/{asin}")
+    public ResponseEntity<ProductDTO> getOneProduct(@PathVariable String asin) throws ProductNotFoundException {
         return productService.getProductById(asin)
                 .map(productMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping(value = "/offset", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/offset")
     public ResponseEntity<List<ProductDTO>> getAllProductsWithOffset(@RequestParam("limit") int limit,
             @RequestParam("offset") int offset) {
         var l = Optional.of(limit).orElse(10);

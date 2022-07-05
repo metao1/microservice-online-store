@@ -56,16 +56,16 @@ public interface ProductMapperInterface {
                 .map(CategoryDTO::getCategory)
                 .map(Category::new)
                 .map(ProductCategoryEntity::new)
-                .distinct()
                 .collect(Collectors.toSet());
     }
 
     private static ProductEntity buildProductEntity(ProductDTO item) {
         var productEntity = new ProductEntity(
+                item.getAsin(),
                 item.getTitle(),
                 item.getDescription(),
                 new Money(item.getCurrency(), item.getPrice()),
-                new Image(item.getImageUrl()));
+                new Image(Optional.ofNullable(item.getImageUrl()).orElse("")));
         var categories = mapCategoryDTOsToEntities(item.getCategories());
         Stream.of(categories)
                 .flatMap(Collection::stream)

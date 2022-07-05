@@ -3,9 +3,9 @@ package com.metao.book.retails.domain;
 import com.metao.book.retails.domain.image.Image;
 import com.metao.book.shared.domain.base.AbstractAggregateRoot;
 import com.metao.book.shared.domain.base.ConcurrencySafeDomainObject;
-import com.metao.book.shared.domain.base.DomainObjectId;
 import com.metao.book.shared.domain.financial.Currency;
 import com.metao.book.shared.domain.financial.Money;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
+@NoArgsConstructor
 @Table(name = "product")
 public class ProductEntity extends AbstractAggregateRoot<ProductId> implements ConcurrencySafeDomainObject {
 
@@ -55,22 +56,18 @@ public class ProductEntity extends AbstractAggregateRoot<ProductId> implements C
     private Set<ProductCategoryEntity> productCategory;
 
     public ProductEntity(
+            @NonNull String id,
             @NonNull String title,
             @NonNull String description,
             @NonNull Money money,
             @NonNull Image image) {
-        super(DomainObjectId.randomId(ProductId.class));
+        super(new ProductId(id));
         this.title = title;
         this.description = description;
         this.priceValue = money.doubleAmount();
         this.priceCurrency = money.currency();
         this.image = image;
         this.productCategory = new HashSet<>();
-    }
-
-    @SuppressWarnings("unused")
-    private ProductEntity() {
-
     }
 
     public String getTitle() {

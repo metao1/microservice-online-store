@@ -1,4 +1,4 @@
-package com.metao.book.checkout.service.impl;
+package com.metao.book.checkout.service;
 
 // import com.metao.book.checkout.clients.ProductCatalogRestClient;
 // import lombok.NonNull;

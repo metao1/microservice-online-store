@@ -1,7 +1,6 @@
 package com.metao.book.retails.application.config;
 
 import com.metao.book.retails.application.service.OrderManageService;
-import com.metao.book.retails.domain.ProductRepository;
 import com.order.microservice.avro.OrderAvro;
 import com.order.microservice.avro.Reservation;
 import com.order.microservice.avro.Status;
@@ -26,15 +25,9 @@ import java.util.Map;
 @EnableKafka
 @RequiredArgsConstructor
 public class KafkaProcessor {
-    private final ProductRepository productRepository;
     private final OrderManageService orderManager;
     private static final String STOCK= "STOCK";
     private final KafkaTemplate<Long, OrderAvro> template;
-    @Value("${kafka.stream.topic.order}")
-    private String orderKafkaTopic;
-
-    @Value("${kafka.stream.topic.payment-order}")
-    private String paymentKafkaTopic;
 
     @Value("${spring.kafka.properties.schema.registry.url}")
     String srUrl;
@@ -69,15 +62,18 @@ public class KafkaProcessor {
         return serde;
     }
 
-    @KafkaListener(id = "orders", topics =  "order-test-2", groupId = "order-group")
+    @KafkaListener(id = "orders", topics =  "order-test-3", groupId = "order-group")
     public void onEvent(ConsumerRecord<Long, OrderAvro> record) {
         log.info("Consumed message -> {}", record.value());
         var order =  record.value();
-        var productCount =  productRepository.findByProductCount(order.getProductId());
-        if (order.getStatus().equals(Status.NEW)) {
-            orderManager.reserve(order);
-        } else {
-            orderManager.confirm(order);
+        try {
+            if (order.getStatus().equals(Status.NEW)) {
+                orderManager.reserve(order);
+            } else {
+                orderManager.confirm(order);
+            }
+        } catch (Exception e) {
+            log.error("Error processing order", e);
         }
     }
 

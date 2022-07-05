@@ -22,11 +22,12 @@ public class ProductTestUtils {
         }
 
         public static ProductEntity createProductEntity(String title, String description) {
-                var url = "http://example.com/image.jpg";
+                var url = "https://example.com/image.jpg";
                 var price = 12d;
+                var id = "id";
                 var currency = Currency.DLR;
                 var category = new ProductCategoryEntity(new Category("book"));
-                var pe = new ProductEntity(title, description, new Money(currency, price), new Image(url));
+                var pe = new ProductEntity(id, title, description, new Money(currency, price), new Image(url));
                 pe.addCategory(category);
                 return pe;
         }

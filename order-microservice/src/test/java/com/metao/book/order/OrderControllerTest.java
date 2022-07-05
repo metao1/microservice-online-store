@@ -41,9 +41,9 @@ public class OrderControllerTest {
                                 .map(String::valueOf)
                                 .map(s -> OrderAvro
                                                 .newBuilder()
-                                                .setOrderId("order-" + s)
+                                                .setOrderId(Long.parseLong(s))
                                                 .setProductId("product - " + s)
-                                                .setCustomerId("customer - " + s)
+                                                .setCustomerId(Long.parseLong(s))
                                                 .setStatus(Status.NEW)
                                                 .setQuantity(1)
                                                 .setPrice(RAND.nextInt(100))

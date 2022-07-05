@@ -13,9 +13,9 @@ public class ProductCategoriesService implements ProductCategoriesInterface {
     private final ProductRepository productRepository;
 
     @Override
-    public Set<ProductCategoryEntity> getProductCategories(Long productId) {
+    public Set<ProductCategoryEntity> getProductCategories(String productId) {
         return productRepository
-                .findById(productId)
+                .findById(new ProductId(productId))
                 .stream()
                 .map(ProductEntity::getProductCategory)
                 .findAny()

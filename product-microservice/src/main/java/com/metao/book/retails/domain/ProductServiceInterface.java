@@ -5,7 +5,7 @@ import java.util.Optional;
 
 public interface ProductServiceInterface {
 
-    Optional<ProductEntity> getProductById(Long productId);
+    Optional<ProductEntity> getProductById(String productId);
 
     Optional<List<ProductEntity>> getAllProductsPageable(int limit, int offset);
 

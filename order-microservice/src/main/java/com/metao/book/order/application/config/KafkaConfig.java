@@ -91,7 +91,7 @@ public class KafkaConfig {
                         JoinWindows.of(Duration.ofSeconds(10)),
                         StreamJoined.with(Serdes.Long(), orderSerde, orderSerde))
                 .peek((k, o) -> log.info("Output: {}", o))
-                .to("order-test-1");
+                .to("order-test-3");
 
         return paymentOrders;
     }

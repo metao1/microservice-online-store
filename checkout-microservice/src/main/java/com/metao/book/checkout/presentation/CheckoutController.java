@@ -1,4 +1,4 @@
-package com.metao.book.checkout.controller;
+package com.metao.book.checkout.presentation;
 
 // import com.metao.book.checkout.domain.OrderEntity;
 // import com.metao.book.checkout.exception.CartIsEmptyException;
@@ -6,7 +6,7 @@ package com.metao.book.checkout.controller;
 // com.metao.book.checkout.exception.NotEnoughProductsInStockException;
 // import com.metao.book.checkout.exception.UserException;
 // import com.metao.book.checkout.model.CheckoutStatus;
-// import com.metao.book.checkout.service.CheckoutService;
+// import com.metao.book.checkout.domain.CheckoutService;
 // import lombok.RequiredArgsConstructor;
 // import lombok.extern.slf4j.Slf4j;
 // import org.springframework.web.bind.annotation.PostMapping;

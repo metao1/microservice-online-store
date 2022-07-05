@@ -1,4 +1,4 @@
-package com.metao.book.checkout.service.impl;
+package com.metao.book.checkout.service;
 
 // import com.metao.book.checkout.clients.ProductCatalogRestClient;
 // import com.metao.book.checkout.clients.ShoppingCartRestClient;
@@ -9,7 +9,7 @@ package com.metao.book.checkout.service.impl;
 // com.metao.book.checkout.exception.NotEnoughProductsInStockException;
 // import com.metao.book.checkout.exception.UserException;
 // import com.metao.book.checkout.repository.ProductInventoryRepository;
-// import com.metao.book.checkout.service.CheckoutService;
+// import com.metao.book.checkout.domain.CheckoutService;
 // import com.metao.book.retail.models.ProductDTO;
 // import lombok.RequiredArgsConstructor;
 // import lombok.extern.slf4j.Slf4j;

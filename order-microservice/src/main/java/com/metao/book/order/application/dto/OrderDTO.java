@@ -20,7 +20,7 @@ public class OrderDTO implements Serializable {
         Long orderId;
 
         @JsonProperty("product_id")
-        Long productId;
+        String productId;
 
         @JsonProperty("customer_id")
         Long customerId;

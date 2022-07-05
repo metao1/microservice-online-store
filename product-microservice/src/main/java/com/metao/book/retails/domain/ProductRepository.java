@@ -7,9 +7,11 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
+public interface ProductRepository extends JpaRepository<ProductEntity, ProductId> {
 
     @Query("select p from ProductEntity p where p.id = ?1")
-    Optional<Integer> findByProductCount(long productId);
+    Optional<Integer> findByProductCount(ProductId productId);
+
+
 
 }

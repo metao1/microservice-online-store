@@ -7,7 +7,7 @@ server:
 kafka:
   stream:
     topic:
-      order: "order-test-2"
+      order: "order-test-3"
       stock-order: "stock-test-2"
       payment-order: "payment-test-2"
 
