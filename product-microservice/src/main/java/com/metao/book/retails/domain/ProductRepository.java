@@ -13,5 +13,4 @@ public interface ProductRepository extends JpaRepository<ProductEntity, ProductI
     Optional<Integer> findByProductCount(ProductId productId);
 
 
-
 }

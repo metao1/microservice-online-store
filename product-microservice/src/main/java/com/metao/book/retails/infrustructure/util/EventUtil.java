@@ -9,7 +9,7 @@ import java.time.Instant;
 @UtilityClass
 public class EventUtil {
 
-        public static CreateProductEvent createEvent(ProductDTO productDTO) {
-                return new CreateProductEvent(productDTO, Instant.now(), Instant.now());
-        }
+    public static CreateProductEvent createEvent(ProductDTO productDTO) {
+        return new CreateProductEvent(productDTO, Instant.now(), Instant.now());
+    }
 }

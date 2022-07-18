@@ -16,24 +16,24 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class OrderDTO implements Serializable {
 
-        @JsonProperty("order_id")
-        Long orderId;
+    @JsonProperty("order_id")
+    Long orderId;
 
-        @JsonProperty("product_id")
-        String productId;
+    @JsonProperty("product_id")
+    String productId;
 
-        @JsonProperty("customer_id")
-        Long customerId;
+    @JsonProperty("customer_id")
+    Long customerId;
 
-        @JsonProperty("status")
-        Status status;
+    @JsonProperty("status")
+    Status status;
 
-        @JsonProperty("quantity")
-        int quantity;
+    @JsonProperty("quantity")
+    int quantity;
 
-        @JsonProperty("currency")
-        private Currency currency;
+    @JsonProperty("currency")
+    private Currency currency;
 
-        @JsonProperty("price")
-        private int price;
+    @JsonProperty("price")
+    private int price;
 }

@@ -15,7 +15,7 @@ import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(path="/products", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path = "/products", produces = MediaType.APPLICATION_JSON_VALUE)
 public class ProductController {
 
     private final ProductServiceInterface productService;
@@ -38,7 +38,7 @@ public class ProductController {
 
     @GetMapping(value = "/offset")
     public ResponseEntity<List<ProductDTO>> getAllProductsWithOffset(@RequestParam("limit") int limit,
-            @RequestParam("offset") int offset) {
+                                                                     @RequestParam("offset") int offset) {
         var l = Optional.of(limit).orElse(10);
         var o = Optional.of(offset).orElse(0);
         return productService.getAllProductsPageable(l, o)

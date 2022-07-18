@@ -1,7 +1,7 @@
 package com.metao.book.retails.service;
 /*
  * package com.metao.book.retail.retails.service;
- * 
+ *
  * import com.metao.book.retail.retails.BaseTest;
  * import com.metao.book.retail.retails.mapper.ProductCategoriesMapper;
  * import com.metao.book.retail.retails.model.ProductCategoriesDTO;
@@ -14,25 +14,25 @@ package com.metao.book.retails.service;
  * import org.mockito.InjectMocks;
  * import org.mockito.Mock;
  * import org.mockito.junit.jupiter.MockitoExtension;
- * 
+ *
  * import java.util.ArrayList;
  * import java.util.List;
  * import java.util.UUID;
- * 
+ *
  * import static org.mockito.Mockito.when;
- * 
+ *
  * @ExtendWith(MockitoExtension.class)
  * class ProductCategoriesServiceTest extends BaseTest {
- * 
+ *
  * @InjectMocks
  * ProductCategoriesServiceImplementation productCategoriesService;
- * 
+ *
  * @Mock
  * CategoriesRepository categoriesRepository;
- * 
+ *
  * @Mock
  * ProductCategoriesMapper productCategoriesMapper;
- * 
+ *
  * @Test
  * void getProductCategories() {
  * String productCategoryId = UUID.randomUUID().toString();
@@ -45,7 +45,7 @@ package com.metao.book.retails.service;
  * .thenReturn(new ArrayList<>(productCategoryEntities));
  * List<ProductCategoriesDTO> categories = productCategoriesService
  * .getProductCategories();
- * 
+ *
  * Assertions.assertThat(categories)
  * .isNotNull()
  * .hasSize(1);

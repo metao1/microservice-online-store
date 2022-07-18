@@ -1,5 +1,6 @@
-package com.metao.book.checkout.domain;
+package com.metao.book.checkout.application;
 
+import com.metao.book.checkout.domain.ProductInventoryEntity;
 import com.metao.book.checkout.repository.ProductInventoryRepository;
 import com.order.microservice.avro.OrderAvro;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,7 @@ public class CheckoutService {
     private String paymentOrdersTopic;
 
     public void reserve(OrderAvro order) {
-        var productInventory = repository.findById(order.getCustomerId()).orElseThrow();
+        var productInventory = repository.findByAsin(order.getProductId()).orElseThrow();
         log.info("Found: {}", productInventory);
         if (order.getPrice() < productInventory.getAmountAvailable()) {
             order.setStatus(ACCEPT);
@@ -39,7 +40,7 @@ public class CheckoutService {
     }
 
     public void confirm(OrderAvro order) {
-        var productInventory = repository.findById(order.getCustomerId()).orElseThrow();
+        var productInventory = repository.findByAsin(order.getProductId()).orElseThrow();
         log.info("Found: {}", productInventory);
         if (order.getStatus().equals(CONFIRM)) {
             rollbackOrder(order, productInventory);

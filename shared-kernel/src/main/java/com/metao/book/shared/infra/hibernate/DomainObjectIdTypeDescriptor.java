@@ -1,13 +1,12 @@
 package com.metao.book.shared.infra.hibernate;
 
+import com.metao.book.shared.domain.base.DomainObjectId;
 import org.hibernate.type.descriptor.WrapperOptions;
 import org.hibernate.type.descriptor.java.AbstractTypeDescriptor;
 import org.springframework.lang.NonNull;
 
 import java.util.Objects;
 import java.util.function.Function;
-
-import com.metao.book.shared.domain.base.DomainObjectId;
 
 /**
  * Hibernate type descriptor for a {@link DomainObjectId} subtype. You typically

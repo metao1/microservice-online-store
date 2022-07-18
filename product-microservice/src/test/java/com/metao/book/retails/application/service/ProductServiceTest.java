@@ -20,32 +20,32 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class ProductServiceTest {
 
-        @Mock
-        ProductRepository productRepo;
+    @Mock
+    ProductRepository productRepo;
 
-        @InjectMocks
-        ProductService productService;
+    @InjectMocks
+    ProductService productService;
 
-        @Test
-        void getProductById_notFound() {
-                assertThrows(ProductNotFoundException.class,
-                                () -> productService.getProductById("1"));
-        }
+    @Test
+    void getProductById_notFound() {
+        assertThrows(ProductNotFoundException.class,
+                () -> productService.getProductById("1"));
+    }
 
-        @Test
-        void getProductById_isFound() {
-                var pe = ProductTestUtils.createProductEntity();
-                var productId = "1";
-                when(productRepo.findById(new ProductId(productId)))
-                                .thenReturn(Optional.of(pe));
-                var product = productService.getProductById(productId);
-                Assertions.assertNotNull(product);
-        }
+    @Test
+    void getProductById_isFound() {
+        var pe = ProductTestUtils.createProductEntity();
+        var productId = "1";
+        when(productRepo.findById(new ProductId(productId)))
+                .thenReturn(Optional.of(pe));
+        var product = productService.getProductById(productId);
+        Assertions.assertNotNull(product);
+    }
 
-        @Test
-        void testSaveProduct() {
-                var pe = ProductTestUtils.createProductEntity();
-                productService.saveProduct(pe);
-                verify(productRepo).save(pe);
-        }
+    @Test
+    void testSaveProduct() {
+        var pe = ProductTestUtils.createProductEntity();
+        productService.saveProduct(pe);
+        verify(productRepo).save(pe);
+    }
 }

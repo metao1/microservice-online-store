@@ -50,8 +50,8 @@ public class ProductEntity extends AbstractAggregateRoot<ProductId> implements C
 
     @BatchSize(size = 20)
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinTable(name = "product_category_map", joinColumns = { @JoinColumn(name = "product_id") }, inverseJoinColumns = {
-            @JoinColumn(name = "product_category_id") })
+    @JoinTable(name = "product_category_map", joinColumns = {@JoinColumn(name = "product_id")}, inverseJoinColumns = {
+            @JoinColumn(name = "product_category_id")})
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     private Set<ProductCategoryEntity> productCategory;
 
@@ -102,16 +102,16 @@ public class ProductEntity extends AbstractAggregateRoot<ProductId> implements C
         return availableItems;
     }
 
+    public void setAvailableItems(int availableItems) {
+        this.availableItems = availableItems;
+    }
+
     public int getReservedItems() {
         return reservedItems;
     }
 
     public void setReservedItems(int reservedItems) {
         this.reservedItems = reservedItems;
-    }
-
-    public void setAvailableItems(int availableItems) {
-        this.availableItems = availableItems;
     }
 
     @Override

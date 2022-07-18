@@ -27,38 +27,33 @@ public class ShoppingCartCartFactory implements ShoppingCartService {
     @Override
     public void addProductToShoppingCart(String userId, String asin) {
         ShoppingCartKey currentKey = new ShoppingCartKey(userId, asin);
-        String ShoppingCartKeyStr = userId + "-" + asin;
-        if (shoppingCartRepository.findById(ShoppingCartKeyStr).isPresent()) {
+        if (shoppingCartRepository.findById(currentKey).isPresent()) {
             shoppingCartRepository.updateQuantityForShoppingCart(userId, asin);
             log.info("Updating product: " + asin);
         } else {
-            ShoppingCart currentShoppingCart = createCartObject(currentKey);
+            ShoppingCart currentShoppingCart = createCart(currentKey);
             shoppingCartRepository.save(currentShoppingCart);
             log.info("Adding product: " + asin);
         }
     }
 
     @Override
-    public Map<String, Integer> getProductsInCart(String userId) {
-        Map<String, Integer> productsInCartAsin = new HashMap<>();
-        if (shoppingCartRepository.findProductsInCartByUserId(userId).isPresent()) {
-            List<ShoppingCart> productsInCart = shoppingCartRepository.findProductsInCartByUserId(userId).get();
-            for (ShoppingCart item : productsInCart) {
-                productsInCartAsin.put(item.getAsin(), item.getQuantity());
-            }
-        }
+    public Map<String, List<ShoppingCart>> getProductsInCartByUserId(String userId) {
+        var productsInCartAsin = new HashMap<String, List<ShoppingCart>>();
+        var items = shoppingCartRepository.findProductsInCartByUserId(userId);
+        productsInCartAsin.computeIfAbsent(userId, k -> items);
         return productsInCartAsin;
     }
 
     @Override
     public void removeProductFromCart(String userId, String asin) {
-        String shoppingCartKeyStr = userId + "-" + asin;
-        if (shoppingCartRepository.findById(shoppingCartKeyStr).isPresent()) {
-            if (shoppingCartRepository.findById(shoppingCartKeyStr).get().getQuantity() > 1) {
+        ShoppingCartKey currentKey = new ShoppingCartKey(userId, asin);
+        if (shoppingCartRepository.findById(currentKey).isPresent()) {
+            if (shoppingCartRepository.findById(currentKey).get().getQuantity() > 1) {
                 shoppingCartRepository.decrementQuantityForShoppingCart(userId, asin);
                 log.info("Decrementing product: " + asin + " quantity");
-            } else if (shoppingCartRepository.findById(shoppingCartKeyStr).get().getQuantity() == 1) {
-                shoppingCartRepository.deleteById(shoppingCartKeyStr);
+            } else if (shoppingCartRepository.findById(currentKey).get().getQuantity() == 1) {
+                shoppingCartRepository.deleteById(currentKey);
                 log.info("Removing product: " + asin + " since it was qty 1");
             }
         }
@@ -66,7 +61,7 @@ public class ShoppingCartCartFactory implements ShoppingCartService {
 
     @Override
     public int clearCart(String userId) {
-        if (shoppingCartRepository.findProductsInCartByUserId(userId).isPresent()) {
+        if (shoppingCartRepository.findProductsInCartByUserId(userId) != null) {
             int deletedRow = shoppingCartRepository.deleteProductsInCartByUserId(userId);
             log.info("Deleted all products for user: {} with code: {} since checkout was successful.", userId,
                     deletedRow);

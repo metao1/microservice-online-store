@@ -1,5 +1,6 @@
 package com.metao.book.shared.infra.hibernate;
 
+import com.metao.book.shared.domain.base.DomainObjectId;
 import org.hibernate.id.ResultSetIdentifierConsumer;
 import org.hibernate.type.AbstractSingleColumnStandardBasicType;
 import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
@@ -8,8 +9,6 @@ import org.springframework.lang.NonNull;
 import java.io.Serializable;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
-import com.metao.book.shared.domain.base.DomainObjectId;
 
 /**
  * Hibernate custom type for a {@link DomainObjectId} subtype. You need this to

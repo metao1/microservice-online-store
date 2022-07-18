@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.metao.book.retails.domain.category.CategoryId;
 import com.metao.book.shared.domain.base.DomainEvent;
 
+import javax.validation.constraints.NotNull;
 import java.time.Instant;
 
 public class ProductCategoryCreatedEvent implements DomainEvent {
@@ -14,12 +15,13 @@ public class ProductCategoryCreatedEvent implements DomainEvent {
 
     @JsonCreator
     ProductCategoryCreatedEvent(@JsonProperty("category_id") CategoryId categoryId,
-            @JsonProperty("occurred_on") Instant occurredOn) {
+                                @JsonProperty("occurred_on") Instant occurredOn) {
         this.occurredOn = occurredOn;
         this.categoryId = categoryId;
     }
 
     @Override
+    @NotNull
     public Instant occurredOn() {
         return occurredOn;
     }

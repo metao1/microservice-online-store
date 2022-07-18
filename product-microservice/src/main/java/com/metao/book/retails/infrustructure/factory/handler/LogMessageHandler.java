@@ -9,9 +9,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class LogMessageHandler implements MessageHandler<CreateProductEvent> {
 
-        @Override
-        public void onMessage(@NonNull CreateProductEvent createProductEvent) {
-                log.info("event {} created.", createProductEvent.productDTO().getAsin());
-        }
+    @Override
+    public void onMessage(@NonNull CreateProductEvent createProductEvent) {
+        log.info("event {} created.", createProductEvent.productDTO().getAsin());
+    }
 
 }

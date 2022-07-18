@@ -1,8 +1,8 @@
 package com.metao.book.shared.infra.eventlog;
 
-import java.util.Objects;
-
 import com.metao.book.shared.domain.base.ValueObject;
+
+import java.util.Objects;
 
 /**
  * Value object representing the identifier of a {@link DomainEventLog}. In

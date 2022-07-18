@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.infra.jackson.RawJsonDeserializer;
-
 import org.springframework.lang.NonNull;
 
 import javax.persistence.*;
@@ -104,7 +103,7 @@ public class StoredDomainEvent {
      */
     @NonNull
     public <T extends DomainEvent> T toDomainEvent(@NonNull ObjectMapper objectMapper,
-            @NonNull Class<T> domainEventClass) {
+                                                   @NonNull Class<T> domainEventClass) {
         Objects.requireNonNull(objectMapper, "objectMapper must not be null");
         Objects.requireNonNull(domainEventClass, "domainEventClass must not be null");
         try {

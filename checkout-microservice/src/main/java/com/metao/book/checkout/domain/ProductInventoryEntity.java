@@ -16,7 +16,7 @@ public class ProductInventoryEntity {
 
     @Id
     @Column(name = "asin")
-    private Long id;
+    private String asin;
 
     @Column(name = "amount_available")
     private Integer amountAvailable;

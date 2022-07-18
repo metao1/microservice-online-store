@@ -1,9 +1,9 @@
 package com.metao.book.shared.domain.financial.converter;
 
+import com.metao.book.shared.domain.financial.VAT;
+
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
-
-import com.metao.book.shared.domain.financial.VAT;
 
 /**
  * JPA attribute converter for {@link VAT}.

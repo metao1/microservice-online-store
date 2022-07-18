@@ -7,10 +7,10 @@ import java.util.Optional;
 
 public interface OrderServiceInterface {
 
-        void saveOrder(OrderAvro orderEntity);
+    void saveOrder(OrderAvro orderEntity);
 
-        Optional<OrderAvro> getOrderByProductId(String productId);
+    Optional<OrderAvro> getOrderByProductId(String productId);
 
-        Optional<List<OrderAvro>> getAllOrdersPageable(int from, int to);
-        
+    Optional<List<OrderAvro>> getAllOrdersPageable(int from, int to);
+
 }

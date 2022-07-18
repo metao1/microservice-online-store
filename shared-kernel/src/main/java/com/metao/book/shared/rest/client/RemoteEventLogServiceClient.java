@@ -1,5 +1,8 @@
 package com.metao.book.shared.rest.client;
 
+import com.metao.book.shared.infra.eventlog.RemoteEventLog;
+import com.metao.book.shared.infra.eventlog.RemoteEventLogService;
+import com.metao.book.shared.infra.eventlog.StoredDomainEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
@@ -17,10 +20,6 @@ import java.net.URI;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-
-import com.metao.book.shared.infra.eventlog.RemoteEventLog;
-import com.metao.book.shared.infra.eventlog.RemoteEventLogService;
-import com.metao.book.shared.infra.eventlog.StoredDomainEvent;
 
 /**
  * Implementation of {@link RemoteEventLogService} that reads events from a

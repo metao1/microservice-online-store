@@ -4,15 +4,15 @@ import com.metao.book.shared.domain.base.DomainEvent;
 
 public abstract class MessageHandlerDecorator<T extends DomainEvent> implements MessageHandler<T> {
 
-        private final MessageHandler<T> handler;
+    private final MessageHandler<T> handler;
 
-        MessageHandlerDecorator(MessageHandler<T> handler) {
-                this.handler = handler;
-        }
+    MessageHandlerDecorator(MessageHandler<T> handler) {
+        this.handler = handler;
+    }
 
-        @Override
-        public void onMessage(T event) {
-                this.handler.onMessage(event);
-        }
+    @Override
+    public void onMessage(T event) {
+        this.handler.onMessage(event);
+    }
 
 }

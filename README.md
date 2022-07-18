@@ -12,9 +12,11 @@ running on Spring boot , React using Microservice architecture
 
 How to install and run instructions:
 
-To run the whole application you need to enter into each folder where the microservices are hosted and run them separately.
+To run the whole application you need to enter into each folder where the microservices are hosted and run them
+separately.
 
-0) in order to run the instances you need postgres database; For more information on how to install postgres and run it on your  server follow the https://hub.docker.com/_/postgres
+0) in order to run the instances you need postgres database; For more information on how to install postgres and run it
+   on your server follow the https://hub.docker.com/_/postgres
 
 Go to terminal and run the below commands:
 
@@ -27,7 +29,6 @@ Then run:
 ```
 docker exec -it some-postgres psql -U postgres -c "CREATE DATABASE product;"
 ```
-
 
 1) Open a new terminal. Go into the registry-microservice directory and run the below command:
 
@@ -53,7 +54,9 @@ mvn spring-boot:run
 mvn spring-boot:run 
 ```
 
-4) At this step you are running the setup profile of retails microservice. There are some predefined prodcuts that will be imported automatically when running the below command. Open a new terminal. Go to the retails-microservice directory and run the below command:
+4) At this step you are running the setup profile of retails microservice. There are some predefined prodcuts that will
+   be imported automatically when running the below command. Open a new terminal. Go to the retails-microservice
+   directory and run the below command:
 
 ```
 mvn spring-boot:run -Dspring.profiles.active=setup
@@ -73,13 +76,12 @@ npm start
 
 The application is running on http://localhost:3000
 
-Congratulations! You can now start browsing products and purchasing some of them. If you like you can add new product as from 1500 categories. Then in checkout you can finish your orders and get a confirmation number to track your purchases. 
-
+Congratulations! You can now start browsing products and purchasing some of them. If you like you can add new product as
+from 1500 categories. Then in checkout you can finish your orders and get a confirmation number to track your purchases.
 
 Overall architecture
 
 ![alt text](https://github.com/metao1/product/raw/master/Unbenannte%20Pra%CC%88sentation.jpg)
-
 
 Screenshot of the product page when it running on http://localhost:3000
 

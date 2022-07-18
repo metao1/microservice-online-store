@@ -23,9 +23,10 @@ public class ProductService implements ProductServiceInterface {
 
     @Override
     public Optional<ProductEntity> getProductById(String productId) throws ProductNotFoundException {
-        return Optional.of(productRepository.findById(new ProductId(productId )))
+        return Optional.of(productRepository.findById(new ProductId(productId)))
                 .orElseThrow(() -> new ProductNotFoundException("product " + productId + " not found."));
     }
+
     @Override
     public Optional<List<ProductEntity>> getAllProductsPageable(int limit, int offset) throws ProductNotFoundException {
         var pageable = new OffsetBasedPageRequest(offset, limit);
@@ -33,6 +34,7 @@ public class ProductService implements ProductServiceInterface {
         return Optional.of(option.map(Page::toList))
                 .orElseThrow(() -> new ProductNotFoundException("product list is empty."));
     }
+
     @Override
     public void saveProduct(ProductEntity pe) {
         log.info("save product:" + pe.toString());

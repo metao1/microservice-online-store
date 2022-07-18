@@ -7,6 +7,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotBlank;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor

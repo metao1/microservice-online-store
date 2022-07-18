@@ -66,7 +66,7 @@ class CartProducts extends Component {
             <div className="cart-container">
                 <div className="container">
                     <h5>{this.state.isCompleted ? "Thank you!" : "Items in cart"} {Boolean(this.props.cart.total) &&
-                    <span className="total-in-cart">({this.props.cart.total})</span>}</h5>
+                        <span className="total-in-cart">({this.props.cart.total})</span>}</h5>
                     {this.state.products && <div className="items">
                         {this.state.products.filter((product) => this.props.cart.data[product.asin]).map(product => (
                             <div key={product.asin} className="cart-item">
@@ -89,32 +89,32 @@ class CartProducts extends Component {
                         ))}
                     </div>}
                     {!this.props.cart.total &&
-                    <h6>{this.state.isCompleted ?
-                        <span>Your order <b>#kmp-{this.state.result.orderNumber}</b> is received.</span> : "Cart is empty"}</h6>
+                        <h6>{this.state.isCompleted ?
+                            <span>Your order <b>#kmp-{this.state.result.orderNumber}</b> is received.</span> : "Cart is empty"}</h6>
                     }
                     {Boolean(this.state.isCompleted) && this.state.result &&
-                    <div className="order-details">{this.state.result.orderDetails}</div>
+                        <div className="order-details">{this.state.result.orderDetails}</div>
                     }
                     {Boolean(this.props.cart.total) &&
-                    <div className="total">
-                        <div className="details">
-                        </div>
+                        <div className="total">
+                            <div className="details">
+                            </div>
 
-                        <div className="pricing">
-                            Total:<br/>
-                            Taxes:
+                            <div className="pricing">
+                                Total:<br/>
+                                Taxes:
+                            </div>
+                            <div className="pricing">
+                                {this.props.currency}<h6> {totalCost.toFixed(2)} * 0.19 + {totalCost.toFixed(2)}</h6>
+                                {this.props.currency}<h6> {totalCost.toFixed(2)} * 0.19</h6>
+                            </div>
+                            <div className="actions">
+                                <Button onClick={() => {
+                                    this.submitCheckout();
+                                    this.setState({isCompleted: true})
+                                }} size="medium" disabled={!Boolean(this.props.cart.total)}>Checkout</Button>
+                            </div>
                         </div>
-                        <div className="pricing">
-                            {this.props.currency}<h6> {totalCost.toFixed(2)} * 0.19 + {totalCost.toFixed(2)}</h6>
-                            {this.props.currency}<h6> {totalCost.toFixed(2)} * 0.19</h6>
-                        </div>
-                        <div className="actions">
-                            <Button onClick={() => {
-                                this.submitCheckout();
-                                this.setState({isCompleted: true})
-                            }} size="medium" disabled={!Boolean(this.props.cart.total)}>Checkout</Button>
-                        </div>
-                    </div>
                     }
                 </div>
             </div>

@@ -27,12 +27,12 @@ public class OrderManageService {
     public void reserve(OrderAvro order) {
         final ProductEntity product;
         try {
-            product = productRepository.findById(new ProductId(order.getProductId())).orElseThrow(()-> new ProductNotFoundException(""));
+            product = productRepository.findById(new ProductId(order.getProductId())).orElseThrow(() -> new ProductNotFoundException(""));
             log.info("Found: {}", product);
             //if (order.getPrice() < product.getPriceValue()) {
-                order.setStatus(ACCEPT);
-                product.setReservedItems(product.getReservedItems() + order.getQuantity());
-                product.setAvailableItems(product.getAvailableItems() - order.getQuantity());
+            order.setStatus(ACCEPT);
+            product.setReservedItems(product.getReservedItems() + order.getQuantity());
+            product.setAvailableItems(product.getAvailableItems() - order.getQuantity());
 //            } else {
 //                order.setStatus(REJECT);
 //            }
@@ -46,7 +46,7 @@ public class OrderManageService {
     }
 
     public void confirm(OrderAvro order) {
-        var product = productRepository.findById(new ProductId(order.getProductId() +"")).orElseThrow();
+        var product = productRepository.findById(new ProductId(order.getProductId() + "")).orElseThrow();
         log.info("Found: {}", product);
         if (order.getStatus().equals(CONFIRM)) {
             product.setReservedItems(product.getReservedItems() - order.getPrice());

@@ -1,12 +1,11 @@
 package com.metao.book.shared.infra.eventlog;
 
+import com.metao.book.shared.domain.base.IdentifiableDomainObject;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 import java.util.List;
 import java.util.Optional;
-
-import com.metao.book.shared.domain.base.IdentifiableDomainObject;
 
 /**
  * A domain event log is an identifiable list of {@link StoredDomainEvent}s. A
@@ -23,7 +22,7 @@ public class DomainEventLog implements IdentifiableDomainObject<DomainEventLogId
     private final List<StoredDomainEvent> events;
 
     DomainEventLog(@NonNull DomainEventLogId id, @Nullable DomainEventLogId previous,
-            @Nullable DomainEventLogId next, @NonNull List<StoredDomainEvent> events) {
+                   @Nullable DomainEventLogId next, @NonNull List<StoredDomainEvent> events) {
         this.id = id;
         this.previous = previous;
         this.next = next;

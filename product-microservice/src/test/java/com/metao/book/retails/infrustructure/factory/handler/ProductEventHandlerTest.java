@@ -15,20 +15,20 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 public class ProductEventHandlerTest {
 
-        @InjectMocks
-        ProductEventHandler eventHandler;
+    @InjectMocks
+    ProductEventHandler eventHandler;
 
-        @Mock
-        LogMessageHandler messageHandler;
+    @Mock
+    LogMessageHandler messageHandler;
 
-        @Test
-        void whenCreateProductEvent_sendEvent_isOk() {
-                eventHandler.addMessageHandler(messageHandler);
-                var productDto = ProductTestUtils.createProductDTO();
+    @Test
+    void whenCreateProductEvent_sendEvent_isOk() {
+        eventHandler.addMessageHandler(messageHandler);
+        var productDto = ProductTestUtils.createProductDTO();
 
-                var event = new CreateProductEvent(productDto, Instant.now(), Instant.now());
+        var event = new CreateProductEvent(productDto, Instant.now(), Instant.now());
 
-                eventHandler.sendEvent(event);
-                verify(messageHandler).onMessage(event);
-        }
+        eventHandler.sendEvent(event);
+        verify(messageHandler).onMessage(event);
+    }
 }

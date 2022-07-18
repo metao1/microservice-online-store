@@ -1,14 +1,12 @@
 package com.metao.book.shared.infra.eventlog;
 
+import com.metao.book.shared.domain.base.IdentifiableDomainObject;
 import org.springframework.lang.NonNull;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-
-import com.metao.book.shared.domain.base.IdentifiableDomainObject;
-
 import java.util.Objects;
 
 /**

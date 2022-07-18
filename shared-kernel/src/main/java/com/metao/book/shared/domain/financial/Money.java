@@ -3,7 +3,6 @@ package com.metao.book.shared.domain.financial;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.metao.book.shared.domain.base.ValueObject;
-
 import org.springframework.lang.NonNull;
 
 import java.util.Objects;
@@ -51,7 +50,7 @@ public class Money implements ValueObject {
      * @param value    fixed-point integer where the last two digits represent
      *                 decimals.
      * @return a new {@code Money} object or {@code null} if any of the parameters
-     *         are {@code null}.
+     * are {@code null}.
      */
     public static Money valueOf(Currency currency, Integer value) {
         if (currency == null || value == null) {

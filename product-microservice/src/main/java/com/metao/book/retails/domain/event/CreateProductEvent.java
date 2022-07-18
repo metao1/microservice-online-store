@@ -22,6 +22,7 @@ public class CreateProductEvent extends ApplicationEvent implements DomainEvent 
         this.productDTO = productDTO;
     }
 
+    @NonNull
     @Override
     public Instant occurredOn() {
         return occurredOn;

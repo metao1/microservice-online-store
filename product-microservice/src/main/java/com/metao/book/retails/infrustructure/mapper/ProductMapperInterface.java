@@ -19,28 +19,6 @@ import java.util.stream.Stream;
 
 public interface ProductMapperInterface {
 
-    default ProductDTO toDto(@Valid ProductEntity pr) {
-        return ProductDTO.builder()
-                .title(pr.getTitle())
-                .asin(pr.id().toUUID())
-                .currency(pr.getPriceCurrency())
-                .description(pr.getDescription())
-                .price(pr.getPriceValue())
-                .categories(mapCategoryEntitieToDTOs(pr.getProductCategory()))
-                .imageUrl(pr.getImage().url())
-                .build();
-    }
-
-    default Optional<ProductEntity> toEntity(@NonNull ProductDTO productDTO) {
-        return Optional
-                .of(productDTO)
-                .map(ProductMapperInterface::buildProductEntity);
-    }
-
-    default List<ProductDTO> toDtos(@NonNull List<ProductEntity> allPr) {
-        return allPr.stream().map(this::toDto).toList();
-    }
-
     private static Set<CategoryDTO> mapCategoryEntitieToDTOs(@NonNull Set<ProductCategoryEntity> source) {
         return source
                 .stream()
@@ -71,5 +49,27 @@ public interface ProductMapperInterface {
                 .flatMap(Collection::stream)
                 .forEach(productEntity::addCategory);
         return productEntity;
+    }
+
+    default ProductDTO toDto(@Valid ProductEntity pr) {
+        return ProductDTO.builder()
+                .title(pr.getTitle())
+                .asin(pr.id().toUUID())
+                .currency(pr.getPriceCurrency())
+                .description(pr.getDescription())
+                .price(pr.getPriceValue())
+                .categories(mapCategoryEntitieToDTOs(pr.getProductCategory()))
+                .imageUrl(pr.getImage().url())
+                .build();
+    }
+
+    default Optional<ProductEntity> toEntity(@NonNull ProductDTO productDTO) {
+        return Optional
+                .of(productDTO)
+                .map(ProductMapperInterface::buildProductEntity);
+    }
+
+    default List<ProductDTO> toDtos(@NonNull List<ProductEntity> allPr) {
+        return allPr.stream().map(this::toDto).toList();
     }
 }

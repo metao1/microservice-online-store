@@ -38,10 +38,10 @@ class RemoteEventProcessor {
     private final TransactionTemplate transactionTemplate;
 
     RemoteEventProcessor(@NonNull ProcessedRemoteEventRepository processedRemoteEventRepository,
-            @NonNull Map<String, RemoteEventLogService> remoteEventLogs,
-            @NonNull Map<String, RemoteEventTranslator> remoteEventTranslators,
-            @NonNull ApplicationEventPublisher applicationEventPublisher,
-            @NonNull PlatformTransactionManager platformTransactionManager) {
+                         @NonNull Map<String, RemoteEventLogService> remoteEventLogs,
+                         @NonNull Map<String, RemoteEventTranslator> remoteEventTranslators,
+                         @NonNull ApplicationEventPublisher applicationEventPublisher,
+                         @NonNull PlatformTransactionManager platformTransactionManager) {
         this.processedRemoteEventRepository = processedRemoteEventRepository;
         this.remoteEventLogs = remoteEventLogs;
         this.remoteEventTranslators = remoteEventTranslators;
@@ -89,7 +89,7 @@ class RemoteEventProcessor {
     }
 
     private void processEvents(@NonNull RemoteEventLogService remoteEventLogService, long lastProcessedId,
-            @NonNull List<StoredDomainEvent> events) {
+                               @NonNull List<StoredDomainEvent> events) {
         events.forEach(event -> {
             if (event.id() > lastProcessedId) {
                 transactionTemplate.execute(new TransactionCallbackWithoutResult() {

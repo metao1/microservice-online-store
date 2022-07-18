@@ -3,7 +3,6 @@ package com.metao.book.shared.domain.geo;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.metao.book.shared.domain.base.ValueObject;
-
 import org.springframework.lang.NonNull;
 
 import java.util.Objects;

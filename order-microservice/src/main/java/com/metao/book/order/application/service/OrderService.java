@@ -32,12 +32,13 @@ public class OrderService implements OrderServiceInterface {
     private final KafkaOrderProducer kafkaProducer;
     private final FileHandler fileHandler;
     private final ProductDtoMapper mapper;
+    AtomicInteger atomicInteger = new AtomicInteger(1);
     @Value("${kafka.stream.topic.order}")
     private String topic;
-
     @Value("${kafka.stream.topic.order}")
     private String orderTopic;
     private List<String> productAsinList = new ArrayList<>();
+    private Random random = new Random();
 
     @Override
     public void saveOrder(OrderAvro orderAvro) {
@@ -48,9 +49,6 @@ public class OrderService implements OrderServiceInterface {
     public Optional<OrderAvro> getOrderByProductId(String productId) {
         return kafkaOrderService.getOrder(productId);
     }
-    private Random random = new Random();
-
-    AtomicInteger atomicInteger = new AtomicInteger(1);
 
     @Scheduled(fixedDelay = 10000, initialDelay = 2000)
     public void commandLineRunner() {
@@ -72,7 +70,7 @@ public class OrderService implements OrderServiceInterface {
     public void loadProducts() {
         log.info("importing products data from resources");
         try (var source = fileHandler.readFromFile("data/products.txt")) {
-            this.productAsinList =  source
+            this.productAsinList = source
                     .map(mapper::convertToDto)
                     .filter(Optional::isPresent)
                     .map(Optional::get)

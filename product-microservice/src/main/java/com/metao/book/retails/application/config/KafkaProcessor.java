@@ -25,8 +25,8 @@ import java.util.Map;
 @EnableKafka
 @RequiredArgsConstructor
 public class KafkaProcessor {
+    private static final String STOCK = "STOCK";
     private final OrderManageService orderManager;
-    private static final String STOCK= "STOCK";
     private final KafkaTemplate<Long, OrderAvro> template;
 
     @Value("${spring.kafka.properties.schema.registry.url}")
@@ -62,10 +62,10 @@ public class KafkaProcessor {
         return serde;
     }
 
-    @KafkaListener(id = "orders", topics =  "order-test-3", groupId = "order-group")
+    @KafkaListener(id = "orders", topics = "order-test-3", groupId = "order-group")
     public void onEvent(ConsumerRecord<Long, OrderAvro> record) {
         log.info("Consumed message -> {}", record.value());
-        var order =  record.value();
+        var order = record.value();
         try {
             if (order.getStatus().equals(Status.NEW)) {
                 orderManager.reserve(order);

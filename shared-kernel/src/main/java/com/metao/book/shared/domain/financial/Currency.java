@@ -9,26 +9,26 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 public enum Currency {
     EUR("eur"), DLR("dlr");
-    
+
     private final String value;
 
-    private Currency(String value){
+    private Currency(String value) {
         this.value = value;
     }
 
     @JsonCreator
     public Currency fromValues(@JsonProperty("currency") String value) {
-        for(Currency val: Currency.values()) {
-            if(val.value.equals(this.value)){
+        for (Currency val : Currency.values()) {
+            if (val.value.equals(this.value)) {
                 return val;
             }
         }
-        throw new RuntimeException("can't deserialize the value "+ value + " to currency");
+        throw new RuntimeException("can't deserialize the value " + value + " to currency");
     }
 
     @Override
-    @JsonValue    
+    @JsonValue
     public String toString() {
-            return value;
+        return value;
     }
 }

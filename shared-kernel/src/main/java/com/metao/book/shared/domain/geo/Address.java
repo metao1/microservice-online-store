@@ -2,7 +2,6 @@ package com.metao.book.shared.domain.geo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.metao.book.shared.domain.base.ValueObject;
-
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
@@ -30,7 +29,7 @@ public class Address implements ValueObject {
     }
 
     public Address(@NonNull String addressLine1, @Nullable String addressLine2, @NonNull CityName city,
-            @NonNull PostalCode postalCode, @NonNull Country country) {
+                   @NonNull PostalCode postalCode, @NonNull Country country) {
         this.addressLine1 = addressLine1;
         this.addressLine2 = addressLine2;
         this.city = city;

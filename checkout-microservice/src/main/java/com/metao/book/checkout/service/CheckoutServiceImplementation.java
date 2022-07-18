@@ -9,7 +9,7 @@ package com.metao.book.checkout.service;
 // com.metao.book.checkout.exception.NotEnoughProductsInStockException;
 // import com.metao.book.checkout.exception.UserException;
 // import com.metao.book.checkout.repository.ProductInventoryRepository;
-// import com.metao.book.checkout.domain.CheckoutService;
+// import com.metao.book.checkout.application.CheckoutService;
 // import com.metao.book.retail.models.ProductDTO;
 // import lombok.RequiredArgsConstructor;
 // import lombok.extern.slf4j.Slf4j;

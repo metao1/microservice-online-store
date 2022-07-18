@@ -1,6 +1,5 @@
 package com.metao.book.checkout.application;
 
-import com.metao.book.checkout.domain.CheckoutService;
 import com.order.microservice.avro.OrderAvro;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,10 +24,9 @@ import static com.order.microservice.avro.Status.NEW;
 public class KafkaConfig {
 
     private final Random random = new Random();
-
+    private final CheckoutService checkoutService;
     @Value("${kafka.stream.topic.payment-order}")
     String paymentOrderTopic;
-    private final CheckoutService checkoutService;
 
     @KafkaListener(id = "payment-order-listener", topics = "${kafka.stream.topic.payment-order}")
     public void listen(OrderAvro order) {

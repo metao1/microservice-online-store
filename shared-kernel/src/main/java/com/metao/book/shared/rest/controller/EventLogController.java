@@ -1,5 +1,9 @@
 package com.metao.book.shared.rest.controller;
 
+import com.metao.book.shared.infra.eventlog.DomainEventLog;
+import com.metao.book.shared.infra.eventlog.DomainEventLogId;
+import com.metao.book.shared.infra.eventlog.DomainEventLogService;
+import com.metao.book.shared.infra.eventlog.StoredDomainEvent;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,11 +14,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
-
-import com.metao.book.shared.infra.eventlog.DomainEventLog;
-import com.metao.book.shared.infra.eventlog.DomainEventLogId;
-import com.metao.book.shared.infra.eventlog.DomainEventLogService;
-import com.metao.book.shared.infra.eventlog.StoredDomainEvent;
 
 /**
  * REST controller that exposes the domain event log as a REST service.
@@ -35,8 +34,8 @@ class EventLogController {
 
     @GetMapping(path = "/{low},{high}")
     public ResponseEntity<List<StoredDomainEvent>> domainEvents(@PathVariable("low") long low,
-            @PathVariable("high") long high,
-            UriComponentsBuilder uriBuilder) {
+                                                                @PathVariable("high") long high,
+                                                                UriComponentsBuilder uriBuilder) {
         var logId = new DomainEventLogId(low, high);
         return domainEventLogService.retrieveLog(logId)
                 .map(log -> createResponse(log, uriBuilder))
@@ -50,7 +49,7 @@ class EventLogController {
 
     @NonNull
     private ResponseEntity<List<StoredDomainEvent>> createResponse(@NonNull DomainEventLog log,
-            @NonNull UriComponentsBuilder uriBuilder) {
+                                                                   @NonNull UriComponentsBuilder uriBuilder) {
         var responseBuilder = ResponseEntity.ok();
         log.previousId().ifPresent(previous -> addLink(responseBuilder, buildURI(uriBuilder, previous), "previous"));
         log.nextId().ifPresent(next -> addLink(responseBuilder, buildURI(uriBuilder, next), "next"));

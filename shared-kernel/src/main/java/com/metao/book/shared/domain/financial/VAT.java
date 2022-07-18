@@ -3,7 +3,6 @@ package com.metao.book.shared.domain.financial;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.metao.book.shared.domain.base.ValueObject;
-
 import org.springframework.lang.NonNull;
 
 import java.util.Objects;
@@ -33,7 +32,7 @@ public class VAT implements ValueObject {
      *
      * @param percentage the percentage as an integer where e.g. 24 means 24 %.
      * @return the new {@code VAT} object or {@code null} if {@code percentage} is
-     *         null.
+     * null.
      */
     public static VAT valueOf(Integer percentage) {
         return percentage == null ? null : new VAT(percentage);

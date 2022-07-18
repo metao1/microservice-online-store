@@ -29,9 +29,9 @@ class ProductDtoMapperTest {
     void givenString_convertToDto_thenIsOk() throws IOException {
         var sb = new StringBuilder();
         try (var source = fileHandler.readFromFile("data/one_product.json")) {
-            source.forEach(sb::append);                
+            source.forEach(sb::append);
         } catch (IOException e) {
-                log.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
         }
         assertTrue(Optional.of(sb.toString())
                 .map(dtoMapper::convertToDto)

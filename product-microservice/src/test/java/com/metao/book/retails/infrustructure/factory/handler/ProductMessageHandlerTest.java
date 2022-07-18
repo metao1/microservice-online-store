@@ -20,36 +20,36 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 public class ProductMessageHandlerTest {
 
-        @Mock
-        ProductRepository productRepo;
+    @Mock
+    ProductRepository productRepo;
 
-        @Test
-        void testOnMessage() {
-                var productMapper = new ProductMapper();
-                var productService = new ProductService(productRepo);
-                var productMsgHandler = new ProductMessageHandler(productService, productMapper);
-                var product = ProductTestUtils.createProductDTO();
-                var entity = productMapper.toEntity(product);
-                var event = new CreateProductEvent(product, Instant.now(), Instant.now());
-                productMsgHandler.onMessage(event);
-                verify(productRepo).save(argThat(new EventMatcher(entity.orElseThrow())));
+    @Test
+    void testOnMessage() {
+        var productMapper = new ProductMapper();
+        var productService = new ProductService(productRepo);
+        var productMsgHandler = new ProductMessageHandler(productService, productMapper);
+        var product = ProductTestUtils.createProductDTO();
+        var entity = productMapper.toEntity(product);
+        var event = new CreateProductEvent(product, Instant.now(), Instant.now());
+        productMsgHandler.onMessage(event);
+        verify(productRepo).save(argThat(new EventMatcher(entity.orElseThrow())));
+    }
+
+    private static class EventMatcher implements ArgumentMatcher<ProductEntity> {
+
+        private final ProductEntity entity;
+
+        public EventMatcher(ProductEntity entity) {
+            this.entity = entity;
         }
 
-        private static class EventMatcher implements ArgumentMatcher<ProductEntity> {
-
-                private final ProductEntity entity;
-
-                public EventMatcher(ProductEntity entity) {
-                        this.entity = entity;
-                }
-
-                @Override
-                public boolean matches(ProductEntity argument) {
-                        return entity.getTitle().equals(argument.getTitle()) &&
-                                        entity.getDescription().equals(argument.getDescription()) &&
-                                        entity.getPriceCurrency().equals(argument.getPriceCurrency()) &&
-                                        entity.getImage().equals(argument.getImage());
-                }
-
+        @Override
+        public boolean matches(ProductEntity argument) {
+            return entity.getTitle().equals(argument.getTitle()) &&
+                    entity.getDescription().equals(argument.getDescription()) &&
+                    entity.getPriceCurrency().equals(argument.getPriceCurrency()) &&
+                    entity.getImage().equals(argument.getImage());
         }
+
+    }
 }

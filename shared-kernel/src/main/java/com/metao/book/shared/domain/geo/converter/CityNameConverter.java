@@ -1,9 +1,9 @@
 package com.metao.book.shared.domain.geo.converter;
 
+import com.metao.book.shared.domain.geo.CityName;
+
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
-
-import com.metao.book.shared.domain.geo.CityName;
 
 /**
  * JPA attribute converter for {@link CityName}.

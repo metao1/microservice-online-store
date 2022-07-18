@@ -1,7 +1,7 @@
 package com.metao.book.retails.service;
 /*
  * package com.metao.book.retail.retails.service;
- * 
+ *
  * import com.metao.book.retail.retails.BaseTest;
  * import com.metao.book.retail.retails.domain.ProductEntity;
  * import com.metao.book.retail.retails.exception.ProductNotFoundException;
@@ -18,26 +18,26 @@ package com.metao.book.retails.service;
  * import org.mockito.Mock;
  * import org.mockito.junit.jupiter.MockitoExtension;
  * import org.springframework.data.domain.Pageable;
- * 
+ *
  * import java.util.List;
- * 
+ *
  * import static java.util.List.of;
  * import static org.junit.jupiter.api.Assertions.assertSame;
  * import static org.mockito.Mockito.when;
- * 
+ *
  * @ExtendWith(MockitoExtension.class)
  * class ProductServiceTest extends BaseTest {
- * 
+ *
  * @Mock
  * ProductRepository productRepository;
- * 
+ *
  * @Mock
  * ProductMapper productMapper;
- * 
+ *
  * @InjectMocks
  * ProductServiceImplementation productService;
- * 
- * 
+ *
+ *
  * @Test
  * void getAllProductsPageable() {
  * when(productMapper.mapToDto(productEntity))
@@ -52,7 +52,7 @@ package com.metao.book.retails.service;
  * .hasSize(1)
  * .contains(productDTO);
  * }
- * 
+ *
  * @Test
  * void getProductById() {
  * ProductNotFoundException productNotFoundException =
@@ -62,7 +62,7 @@ package com.metao.book.retails.service;
  * productNotFoundException.getClass());
  * assertSame(PRODUCT_ID, productNotFoundException.getProductId());
  * }
- * 
+ *
  * @Test
  * void saveProduct() {
  * when(productRepository.save(productEntity))

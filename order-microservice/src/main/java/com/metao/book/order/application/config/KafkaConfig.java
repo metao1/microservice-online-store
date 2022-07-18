@@ -82,7 +82,7 @@ public class KafkaConfig {
     public KStream<Long, OrderAvro> stream(StreamsBuilder builder, SpecificAvroSerde<OrderAvro> orderSerde) {
         KStream<Long, OrderAvro> paymentOrders = builder
                 .stream("payment-test1", Consumed.with(Serdes.Long(), orderSerde));
-        KStream<Long,OrderAvro> stockOrderStream = builder
+        KStream<Long, OrderAvro> stockOrderStream = builder
                 .stream("stock-test1", Consumed.with(Serdes.Long(), orderSerde));
 
         paymentOrders.join(

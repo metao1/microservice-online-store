@@ -33,17 +33,13 @@ import static org.mockito.Mockito.when;
 public class ProductControllerTests {
 
     private static final String PRODUCT_URL = "/products/";
-
+    private final String productId = UUID.randomUUID().toString();
     @MockBean
     ProductRepository productRepository;
-
     @MockBean
     ProductCategoryRepository categoryRepository;
-
     @Autowired
     WebTestClient webTestClient;
-
-    private final String productId = UUID.randomUUID().toString();
 
     @Test
     public void loadOneProduct_isNotFound() {

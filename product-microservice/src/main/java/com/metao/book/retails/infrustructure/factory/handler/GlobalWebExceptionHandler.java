@@ -15,17 +15,17 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class GlobalWebExceptionHandler implements ErrorWebExceptionHandler {
 
-        public Mono<Void> handle(ServerWebExchange exchange, Throwable ex) {
-                ex.printStackTrace();
-                DataBufferFactory bufferFactory = exchange.getResponse().bufferFactory();
-                return badRequest(bufferFactory, exchange, new RuntimeException(ex.getMessage()));
-        }
+    public Mono<Void> handle(ServerWebExchange exchange, Throwable ex) {
+        ex.printStackTrace();
+        DataBufferFactory bufferFactory = exchange.getResponse().bufferFactory();
+        return badRequest(bufferFactory, exchange, new RuntimeException(ex.getMessage()));
+    }
 
-        private Mono<Void> badRequest(final DataBufferFactory bufferFactory, ServerWebExchange serverWebExchange,
-                        Throwable exception) {
-                serverWebExchange.getResponse().setStatusCode(HttpStatus.NOT_FOUND);
-                serverWebExchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
-                return serverWebExchange.getResponse().setComplete();
-        }
+    private Mono<Void> badRequest(final DataBufferFactory bufferFactory, ServerWebExchange serverWebExchange,
+                                  Throwable exception) {
+        serverWebExchange.getResponse().setStatusCode(HttpStatus.NOT_FOUND);
+        serverWebExchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        return serverWebExchange.getResponse().setComplete();
+    }
 
 }

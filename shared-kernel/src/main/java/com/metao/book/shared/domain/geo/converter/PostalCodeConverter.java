@@ -1,9 +1,9 @@
 package com.metao.book.shared.domain.geo.converter;
 
+import com.metao.book.shared.domain.geo.PostalCode;
+
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
-
-import com.metao.book.shared.domain.geo.PostalCode;
 
 /**
  * JPA attribute converter for {@link PostalCode}.

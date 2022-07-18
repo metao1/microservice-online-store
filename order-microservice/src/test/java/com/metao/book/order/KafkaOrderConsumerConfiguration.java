@@ -6,8 +6,8 @@ import org.springframework.context.annotation.Bean;
 @TestConfiguration
 public class KafkaOrderConsumerConfiguration {
 
-        @Bean
-        KafkaOrderConsumer kafkaOrderConsumer() {
-                return new KafkaOrderConsumer();
-        }
+    @Bean
+    KafkaOrderConsumer kafkaOrderConsumer() {
+        return new KafkaOrderConsumer();
+    }
 }

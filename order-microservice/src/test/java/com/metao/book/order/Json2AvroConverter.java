@@ -1,7 +1,5 @@
 package com.metao.book.order;
 
-import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericData;
 import tech.allegro.schema.json2avro.converter.AvroConversionException;
 import tech.allegro.schema.json2avro.converter.JsonAvroConverter;
 

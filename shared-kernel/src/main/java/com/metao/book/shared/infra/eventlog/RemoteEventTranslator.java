@@ -1,10 +1,9 @@
 package com.metao.book.shared.infra.eventlog;
 
+import com.metao.book.shared.domain.base.DomainEvent;
 import org.springframework.lang.NonNull;
 
 import java.util.Optional;
-
-import com.metao.book.shared.domain.base.DomainEvent;
 
 /**
  * Interface for a remote event translator that translates a remote
