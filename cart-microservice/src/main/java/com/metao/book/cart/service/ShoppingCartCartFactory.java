@@ -31,7 +31,7 @@ public class ShoppingCartCartFactory implements ShoppingCartService {
             shoppingCartRepository.updateQuantityForShoppingCart(userId, asin);
             log.info("Updating product: " + asin);
         } else {
-            ShoppingCart currentShoppingCart = createCart(currentKey);
+            ShoppingCart currentShoppingCart = ShoppingCart.createCart(currentKey);
             shoppingCartRepository.save(currentShoppingCart);
             log.info("Adding product: " + asin);
         }

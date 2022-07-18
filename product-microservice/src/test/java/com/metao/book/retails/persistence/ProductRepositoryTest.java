@@ -50,7 +50,7 @@ class ProductRepositoryTest {
     }
 
     @Test
-    void findAllProductsWithOffset_whenTwoItemsRequests_isOk() {
+    void findAllProductsWithOffset_whenTwoItemsRequests_Ok() {
         var pes = ProductTestUtils.creteMultipleProductEntity(2);
         pes.forEach(productRepository::save);
         Pageable pageable = new OffsetBasedPageRequest(0, 2);

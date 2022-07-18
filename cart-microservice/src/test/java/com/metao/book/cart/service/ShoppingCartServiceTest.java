@@ -7,8 +7,8 @@ import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@ActiveProfiles("test")
 @SpringBootTest
+@ActiveProfiles("test")
 class ShoppingCartServiceTest {
 
     @Autowired
@@ -19,7 +19,7 @@ class ShoppingCartServiceTest {
         shoppingCartService.addProductToShoppingCart("userId", "asin");
 
         var productsInCart = shoppingCartService.getProductsInCartByUserId("userId");
-        assertTrue(productsInCart.containsKey("asin"));
+        assertTrue(productsInCart.containsKey("userId"));
     }
 
     @Test

@@ -17,6 +17,9 @@ import java.util.Objects;
 @Table(name = "shopping_cart")
 public class ShoppingCart {
 
+    @Transient
+    private static final int DEFAULT_QUANTITY = 1;
+
     @Id
     @Column(name = "user_id")
     private String userId;
@@ -31,6 +34,16 @@ public class ShoppingCart {
     @Column(name = "quantity")
     private int quantity;
 
+    public static ShoppingCart createCart(ShoppingCartKey currentKey) {
+        return ShoppingCart
+                .builder()
+                .userId(currentKey.getUserId())
+                .asin(currentKey.getAsin())
+                .quantity(DEFAULT_QUANTITY)
+                .timeAdded(Instant.now())
+                .build();
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
@@ -38,7 +51,6 @@ public class ShoppingCart {
         ShoppingCart that = (ShoppingCart) obj;
         return Objects.equals(userId, that.userId) &&
                 Objects.equals(asin, that.asin)
-                && Objects.equals(timeAdded, that.timeAdded)
                 && Objects.equals(quantity, that.quantity);
     }
 
@@ -46,4 +58,6 @@ public class ShoppingCart {
     public int hashCode() {
         return Objects.hash(userId, asin, timeAdded, quantity);
     }
+
+
 }

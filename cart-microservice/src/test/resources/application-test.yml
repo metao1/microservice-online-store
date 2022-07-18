@@ -14,3 +14,5 @@ spring:
   sql:
     init:
       platform: h2
+  main:
+    banner-mode: off
