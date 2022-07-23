@@ -14,6 +14,7 @@ import org.springframework.web.context.WebApplicationContext;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -41,28 +42,30 @@ public class ShoppingCartCartFactory implements ShoppingCartService {
     public Map<String, List<ShoppingCart>> getProductsInCartByUserId(String userId) {
         var productsInCartAsin = new HashMap<String, List<ShoppingCart>>();
         var items = shoppingCartRepository.findProductsInCartByUserId(userId);
-        productsInCartAsin.computeIfAbsent(userId, k -> items);
+        productsInCartAsin.putIfAbsent(userId, items);
         return productsInCartAsin;
     }
 
     @Override
     public void removeProductFromCart(String userId, String asin) {
         ShoppingCartKey currentKey = new ShoppingCartKey(userId, asin);
-        if (shoppingCartRepository.findById(currentKey).isPresent()) {
-            if (shoppingCartRepository.findById(currentKey).get().getQuantity() > 1) {
-                shoppingCartRepository.decrementQuantityForShoppingCart(userId, asin);
-                log.info("Decrementing product: " + asin + " quantity");
-            } else if (shoppingCartRepository.findById(currentKey).get().getQuantity() == 1) {
-                shoppingCartRepository.deleteById(currentKey);
-                log.info("Removing product: " + asin + " since it was qty 1");
+        Optional<ShoppingCart> shoppingCartOptional = shoppingCartRepository.findById(currentKey);
+        shoppingCartOptional.ifPresent(shoppingCart -> {
+            if (shoppingCart.getQuantity() > 1) {
+                shoppingCart.decreaseQuantity();
+                shoppingCartRepository.save(shoppingCart);
+                log.info("Decremented product: " + asin);
+            } else {
+                shoppingCartRepository.delete(shoppingCart);
+                log.info("Deleted product: " + asin);
             }
-        }
+        });
     }
 
     @Override
     public int clearCart(String userId) {
         if (shoppingCartRepository.findProductsInCartByUserId(userId) != null) {
-            int deletedRow = shoppingCartRepository.deleteProductsInCartByUserId(userId);
+            int deletedRow = shoppingCartRepository.findProductsInCartByUserId(userId).size();
             log.info("Deleted all products for user: {} with code: {} since checkout was successful.", userId,
                     deletedRow);
             return 0;
