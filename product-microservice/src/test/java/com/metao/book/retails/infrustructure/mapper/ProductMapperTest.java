@@ -47,13 +47,14 @@ public class ProductMapperTest {
     @Test
     public void givenProductEntity_whenConvertToProductDTO_isOk() {
         var pe = ProductTestUtils.createProductEntity();
-        var productDto = productMapper.toDto(pe);
+        var productDto = ProductEntity.toDto(pe);
         var categories = pe.getProductCategory();
+
         productDto.getCategories()
                 .stream()
                 .map(CategoryDTO::getCategory)
-                .forEach(category -> categories
-                        .contains(new ProductCategoryEntity(new Category(category))));
+                .forEach(category -> assertTrue(categories.contains(new ProductCategoryEntity(new Category(category)))));
+
         assertThat(productDto)
                 .extracting(
                         ProductDTO::getTitle,

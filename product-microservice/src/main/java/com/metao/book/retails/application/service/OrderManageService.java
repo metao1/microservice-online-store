@@ -8,6 +8,7 @@ import com.order.microservice.avro.OrderAvro;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import static com.order.microservice.avro.Status.*;
@@ -15,6 +16,7 @@ import static com.order.microservice.avro.Status.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "kafka.enabled", havingValue = "true")
 public class OrderManageService {
 
     private static final String SOURCE = "payment";

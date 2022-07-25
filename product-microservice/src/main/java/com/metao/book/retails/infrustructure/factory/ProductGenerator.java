@@ -9,7 +9,7 @@ import com.metao.book.retails.infrustructure.util.EventUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -19,8 +19,8 @@ import java.util.Optional;
 
 @Slf4j
 @Component
-@Profile("!test")
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "spring.profiles.active", havingValue = "test")
 public class ProductGenerator implements InitializingBean {
 
     private final ProductMessageHandler productMessageHandler;

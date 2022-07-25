@@ -9,7 +9,6 @@ import com.metao.book.retails.domain.image.Image;
 import com.metao.book.shared.domain.financial.Money;
 import org.springframework.lang.NonNull;
 
-import javax.validation.Valid;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -18,15 +17,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public interface ProductMapperInterface {
-
-    private static Set<CategoryDTO> mapCategoryEntitieToDTOs(@NonNull Set<ProductCategoryEntity> source) {
-        return source
-                .stream()
-                .map(ProductCategoryEntity::getCategory)
-                .map(Category::category)
-                .map(CategoryDTO::of)
-                .collect(Collectors.toSet());
-    }
 
     private static Set<ProductCategoryEntity> mapCategoryDTOsToEntities(@NonNull Set<CategoryDTO> source) {
         return source
@@ -51,18 +41,6 @@ public interface ProductMapperInterface {
         return productEntity;
     }
 
-    default ProductDTO toDto(@Valid ProductEntity pr) {
-        return ProductDTO.builder()
-                .title(pr.getTitle())
-                .asin(pr.id().toUUID())
-                .currency(pr.getPriceCurrency())
-                .description(pr.getDescription())
-                .price(pr.getPriceValue())
-                .categories(mapCategoryEntitieToDTOs(pr.getProductCategory()))
-                .imageUrl(pr.getImage().url())
-                .build();
-    }
-
     default Optional<ProductEntity> toEntity(@NonNull ProductDTO productDTO) {
         return Optional
                 .of(productDTO)
@@ -70,6 +48,6 @@ public interface ProductMapperInterface {
     }
 
     default List<ProductDTO> toDtos(@NonNull List<ProductEntity> allPr) {
-        return allPr.stream().map(this::toDto).toList();
+        return allPr.stream().map(ProductEntity::toDto).toList();
     }
 }

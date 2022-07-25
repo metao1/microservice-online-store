@@ -1,65 +1,31 @@
-package com.metao.book.retails.application.config;
+package com.metao.book.retails.application.service;
 
-import com.metao.book.retails.application.service.OrderManageService;
+import com.metao.book.retails.domain.event.GetProductEvent;
+import com.metao.book.retails.infrustructure.factory.handler.RemoteProductService;
 import com.order.microservice.avro.OrderAvro;
-import com.order.microservice.avro.Reservation;
 import com.order.microservice.avro.Status;
-import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
-import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.kafka.annotation.EnableKafka;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
-
-import java.util.Map;
 
 @Slf4j
 @Component
 @Validated
-@EnableKafka
 @RequiredArgsConstructor
-public class KafkaProcessor {
-    private static final String STOCK = "STOCK";
+@ConditionalOnProperty(name = "kafka.enabled", havingValue = "true")
+public class KafkaListenerService {
     private final OrderManageService orderManager;
-    private final KafkaTemplate<Long, OrderAvro> template;
+    private final RemoteProductService remoteProductService;
 
-    @Value("${spring.kafka.properties.schema.registry.url}")
-    String srUrl;
-
-    @Value("${spring.kafka.properties.basic.auth.credentials.source}")
-    String crSource;
-
-    @Value("${spring.kafka.properties.schema.registry.basic.auth.user.info}")
-    String authUser;
-
-    @Bean
-    SpecificAvroSerde<OrderAvro> orderAvroSerde() {
-        SpecificAvroSerde<OrderAvro> serde = new SpecificAvroSerde<>();
-        final Map<String, String>
-                config =
-                Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, srUrl,
-                        "basic.auth.credentials.source", crSource,
-                        AbstractKafkaSchemaSerDeConfig.USER_INFO_CONFIG, authUser);
-        serde.configure(config, false);
-        return serde;
-    }
-
-    @Bean
-    SpecificAvroSerde<Reservation> reservationAvroSerde() {
-        SpecificAvroSerde<Reservation> serde = new SpecificAvroSerde<>();
-        final Map<String, String>
-                config =
-                Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, srUrl,
-                        "basic.auth.credentials.source", crSource,
-                        AbstractKafkaSchemaSerDeConfig.USER_INFO_CONFIG, authUser);
-        serde.configure(config, false);
-        return serde;
+    @KafkaListener(id = "get-products", topics = "get-products", groupId = "get-products")
+    public void processProductRequestedEvent(ConsumerRecord<String, GetProductEvent> record) {
+        log.info("Received order-request='{}'", record);
+        GetProductEvent getProductEvent = record.value();
+        remoteProductService.handle(getProductEvent);
     }
 
     @KafkaListener(id = "orders", topics = "order-test-3", groupId = "order-group")

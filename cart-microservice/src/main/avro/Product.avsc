@@ -1,0 +1,15 @@
+{
+  "type": "record",
+  "name": "Product",
+  "namespace": "com.order.microservice.avro",
+  "fields": [
+    {
+      "name": "amountAvailable",
+      "type": "int"
+    },
+    {
+      "name": "amountReserved",
+      "type": "int"
+    }
+  ]
+}

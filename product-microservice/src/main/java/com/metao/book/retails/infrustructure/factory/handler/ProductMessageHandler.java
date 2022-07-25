@@ -17,10 +17,10 @@ public class ProductMessageHandler implements MessageHandler<CreateProductEvent>
 
     private final ProductServiceInterface productService;
     private final ProductMapperInterface productMapper;
-
     @Override
     public void onMessage(@NonNull CreateProductEvent event) {
         try {
+            log.info("event occurred on: {}", event.occurredOn());
             var productDto = event.productDTO();
             Optional.of(productDto)
                     .flatMap(productMapper::toEntity)

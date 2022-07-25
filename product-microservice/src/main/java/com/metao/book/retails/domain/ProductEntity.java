@@ -1,5 +1,8 @@
 package com.metao.book.retails.domain;
 
+import com.metao.book.retails.application.dto.CategoryDTO;
+import com.metao.book.retails.application.dto.ProductDTO;
+import com.metao.book.retails.domain.category.Category;
 import com.metao.book.retails.domain.image.Image;
 import com.metao.book.shared.domain.base.AbstractAggregateRoot;
 import com.metao.book.shared.domain.base.ConcurrencySafeDomainObject;
@@ -16,6 +19,7 @@ import javax.persistence.*;
 import javax.validation.Valid;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @NoArgsConstructor
@@ -117,5 +121,26 @@ public class ProductEntity extends AbstractAggregateRoot<ProductId> implements C
     @Override
     public Long version() {
         return version;
+    }
+
+    public static ProductDTO toDto(@Valid ProductEntity pr) {
+        return ProductDTO.builder()
+                .title(pr.getTitle())
+                .asin(pr.id().toUUID())
+                .currency(pr.getPriceCurrency())
+                .description(pr.getDescription())
+                .price(pr.getPriceValue())
+                .categories(mapCategoryEntitiesToDTOs(pr.getProductCategory()))
+                .imageUrl(pr.getImage().url())
+                .build();
+    }
+
+    private static Set<CategoryDTO> mapCategoryEntitiesToDTOs(@NonNull Set<ProductCategoryEntity> source) {
+        return source
+                .stream()
+                .map(ProductCategoryEntity::getCategory)
+                .map(Category::category)
+                .map(CategoryDTO::of)
+                .collect(Collectors.toSet());
     }
 }

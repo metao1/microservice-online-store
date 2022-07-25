@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Optional;
 
@@ -18,7 +17,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
-@ActiveProfiles("test")
 class ProductRepositoryTest {
 
     @Autowired
@@ -52,7 +50,7 @@ class ProductRepositoryTest {
     @Test
     void findAllProductsWithOffset_whenTwoItemsRequests_Ok() {
         var pes = ProductTestUtils.creteMultipleProductEntity(2);
-        pes.forEach(productRepository::save);
+        productRepository.saveAll(pes);
         Pageable pageable = new OffsetBasedPageRequest(0, 2);
         var productEntities = productRepository.findAll(pageable);
         var list = productEntities.get();

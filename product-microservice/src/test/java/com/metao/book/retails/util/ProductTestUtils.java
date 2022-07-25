@@ -18,13 +18,13 @@ public class ProductTestUtils {
     public static ProductEntity createProductEntity() {
         var description = "description";
         var title = "title";
-        return createProductEntity(title, description);
+        var id = "id";
+        return createProductEntity(id, title, description);
     }
 
-    public static ProductEntity createProductEntity(String title, String description) {
+    public static ProductEntity createProductEntity(String id, String title, String description) {
         var url = "https://example.com/image.jpg";
         var price = 12d;
-        var id = "id";
         var currency = Currency.DLR;
         var category = new ProductCategoryEntity(new Category("book"));
         var pe = new ProductEntity(id, title, description, new Money(currency, price), new Image(url));
@@ -35,9 +35,10 @@ public class ProductTestUtils {
     public static List<ProductEntity> creteMultipleProductEntity(int size) {
         final var description = "description";
         var title = "title";
-        return IntStream.range(0, size)
+        return IntStream
+                .range(0, size)
                 .boxed()
-                .map(a -> createProductEntity(title + a, description))
+                .map(a -> createProductEntity(a.toString(), title + a, description))
                 .toList();
 
     }

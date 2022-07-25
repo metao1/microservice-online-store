@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.lang.NonNull;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
@@ -26,7 +25,7 @@ import java.util.Map;
  * published on
  * the local {@link ApplicationEventPublisher application event bus}.
  */
-@Service
+//@Service
 class RemoteEventProcessor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RemoteEventProcessor.class);
@@ -88,7 +87,8 @@ class RemoteEventProcessor {
         LOGGER.info("Finished processing remote events from {}", remoteEventLogService.source());
     }
 
-    private void processEvents(@NonNull RemoteEventLogService remoteEventLogService, long lastProcessedId,
+    private void processEvents(@NonNull RemoteEventLogService remoteEventLogService,
+                               long lastProcessedId,
                                @NonNull List<StoredDomainEvent> events) {
         events.forEach(event -> {
             if (event.id() > lastProcessedId) {
@@ -116,7 +116,8 @@ class RemoteEventProcessor {
     }
 
     private void publishEvent(@NonNull StoredDomainEvent event) {
-        remoteEventTranslators.values().stream()
+        remoteEventTranslators.values()
+                .stream()
                 .filter(translator -> translator.supports(event))
                 .findFirst()
                 .flatMap(translator -> translator.translate(event))

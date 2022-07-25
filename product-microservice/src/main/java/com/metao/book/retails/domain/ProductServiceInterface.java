@@ -10,4 +10,5 @@ public interface ProductServiceInterface {
     Optional<List<ProductEntity>> getAllProductsPageable(int limit, int offset);
 
     void saveProduct(ProductEntity pe);
+
 }

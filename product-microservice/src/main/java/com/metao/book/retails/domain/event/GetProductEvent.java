@@ -1,23 +1,22 @@
 package com.metao.book.retails.domain.event;
 
-import com.metao.book.retails.application.dto.ProductDTO;
 import com.metao.book.shared.domain.base.DomainEvent;
 import org.springframework.lang.NonNull;
 
 import java.time.Instant;
 
-public class CreateProductEvent implements DomainEvent {
-    private final ProductDTO productDTO;
+public class GetProductEvent implements DomainEvent {
+    private final String productId;
     private final Instant createdOn;
     private final Instant occurredOn;
 
-    public CreateProductEvent(
-            @NonNull final ProductDTO productDTO,
+    public GetProductEvent(
+            @NonNull final String productId,
             @NonNull final Instant createdOn,
             @NonNull final Instant occurredOn) {
         this.occurredOn = occurredOn;
         this.createdOn = createdOn;
-        this.productDTO = productDTO;
+        this.productId = productId;
     }
 
     @NonNull
@@ -30,7 +29,7 @@ public class CreateProductEvent implements DomainEvent {
         return createdOn;
     }
 
-    public ProductDTO productDTO() {
-        return productDTO;
+    public String productId() {
+        return productId;
     }
 }
