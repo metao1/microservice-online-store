@@ -28,14 +28,24 @@ public class ShoppingCartCartFactory implements ShoppingCartService {
     @Override
     public void addProductToShoppingCart(String userId, String asin) {
         ShoppingCartKey currentKey = new ShoppingCartKey(userId, asin);
-        if (shoppingCartRepository.findById(currentKey).isPresent()) {
-            shoppingCartRepository.updateQuantityForShoppingCart(userId, asin);
-            log.info("Updating product: " + asin);
-        } else {
-            ShoppingCart currentShoppingCart = ShoppingCart.createCart(currentKey);
-            shoppingCartRepository.save(currentShoppingCart);
-            log.info("Adding product: " + asin);
-        }
+        shoppingCartRepository.findById(currentKey)
+                .ifPresentOrElse(shoppingCart -> {
+                    updateProduct(asin, shoppingCart);
+                }, () -> {
+                    createProduct(asin, currentKey);
+                });
+    }
+
+    private void createProduct(String asin, ShoppingCartKey currentKey) {
+        log.info("Adding product: " + asin);
+        ShoppingCart shoppingCart = ShoppingCart.createCart(currentKey);
+        shoppingCartRepository.save(shoppingCart);
+    }
+
+    private void updateProduct(String asin, ShoppingCart shoppingCart) {
+        log.info("Updating product: " + asin);
+        shoppingCart.increaseQuantity();
+        shoppingCartRepository.save(shoppingCart);
     }
 
     @Override
