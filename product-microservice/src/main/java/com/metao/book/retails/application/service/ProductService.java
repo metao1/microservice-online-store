@@ -5,7 +5,7 @@ import com.metao.book.retails.domain.ProductEntity;
 import com.metao.book.retails.domain.ProductId;
 import com.metao.book.retails.domain.ProductRepository;
 import com.metao.book.retails.domain.ProductServiceInterface;
-import com.metao.book.retails.infrustructure.repository.model.OffsetBasedPageRequest;
+import com.metao.book.retails.infrastructure.repository.model.OffsetBasedPageRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

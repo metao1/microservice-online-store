@@ -5,7 +5,7 @@ import com.metao.book.retails.application.service.ProductService;
 import com.metao.book.retails.domain.*;
 import com.metao.book.retails.domain.category.Category;
 import com.metao.book.retails.domain.image.Image;
-import com.metao.book.retails.infrustructure.mapper.ProductMapper;
+import com.metao.book.retails.infrastructure.mapper.ProductMapper;
 import com.metao.book.retails.util.ProductTestUtils;
 import com.metao.book.shared.domain.financial.Currency;
 import com.metao.book.shared.domain.financial.Money;

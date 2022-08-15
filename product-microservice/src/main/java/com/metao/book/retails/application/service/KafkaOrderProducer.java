@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "kafka.enabled", havingValue = "true")
+@ConditionalOnProperty(name = "spring.profiles.active", havingValue = "prod")
 public class KafkaOrderProducer {
 
     private final KafkaTemplate<Long, OrderAvro> kafkaTemplate;

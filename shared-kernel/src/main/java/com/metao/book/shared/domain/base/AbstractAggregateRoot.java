@@ -1,12 +1,8 @@
 package com.metao.book.shared.domain.base;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.springframework.data.domain.AfterDomainEventPublication;
-import org.springframework.data.domain.DomainEvents;
 import org.springframework.lang.NonNull;
 
-import javax.persistence.MappedSuperclass;
-import javax.persistence.Transient;
 import java.util.*;
 
 /**
@@ -14,10 +10,8 @@ import java.util.*;
  *
  * @param <T> the aggregate root T type.
  */
-@MappedSuperclass
 public abstract class AbstractAggregateRoot<T extends DomainObjectId> extends AbstractEntity<T> {
 
-    @Transient
     @JsonIgnore
     private List<DomainEvent> domainEvents = new ArrayList<>();
 
@@ -62,7 +56,6 @@ public abstract class AbstractAggregateRoot<T extends DomainObjectId> extends Ab
      * Called by the persistence framework to clear all registered domain events
      * once they have been published.
      */
-    @AfterDomainEventPublication
     protected void clearDomainEvents() {
         this.domainEvents.clear();
     }
@@ -72,7 +65,6 @@ public abstract class AbstractAggregateRoot<T extends DomainObjectId> extends Ab
      * to be used by the persistence
      * framework only.
      */
-    @DomainEvents
     protected Collection<Object> domainEvents() {
         return Collections.unmodifiableList(domainEvents);
     }

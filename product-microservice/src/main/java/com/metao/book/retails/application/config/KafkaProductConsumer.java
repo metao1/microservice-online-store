@@ -1,7 +1,8 @@
 package com.metao.book.retails.application.config;
 
-import com.metao.book.shared.domain.RemoteEvent;
+import com.metao.book.shared.GetProductEvent;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
@@ -15,9 +16,9 @@ public class KafkaProductConsumer {
 
     private final CountDownLatch latch = new CountDownLatch(1);
 
-    @KafkaListener(id = "product", topics = "products", groupId = "products")
-    public void onEvent(RemoteEvent record) {
-        log.info("Consumed message -> {}", record);
+    @KafkaListener(id = "product-listener", topics = "product-request", groupId = "products-grp")
+    public void onEvent(ConsumerRecord<String, GetProductEvent> record) {
+        log.info("Consumed message -> {}", record.value());
         latch.countDown();
     }
 

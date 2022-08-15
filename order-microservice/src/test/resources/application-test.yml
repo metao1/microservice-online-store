@@ -16,6 +16,3 @@ kafka:
   stream:
     topic:
       order: "order"
-      stock: "stock"
-      output: "output"
-      payment: "payment"

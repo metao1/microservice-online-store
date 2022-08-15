@@ -3,7 +3,7 @@ package com.metao.book.retails.persistence;
 import com.metao.book.retails.domain.ProductEntity;
 import com.metao.book.retails.domain.ProductId;
 import com.metao.book.retails.domain.ProductRepository;
-import com.metao.book.retails.infrustructure.repository.model.OffsetBasedPageRequest;
+import com.metao.book.retails.infrastructure.repository.model.OffsetBasedPageRequest;
 import com.metao.book.retails.util.ProductTestUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

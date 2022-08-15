@@ -8,7 +8,9 @@ import com.metao.book.shared.domain.base.AbstractAggregateRoot;
 import com.metao.book.shared.domain.base.ConcurrencySafeDomainObject;
 import com.metao.book.shared.domain.financial.Currency;
 import com.metao.book.shared.domain.financial.Money;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -22,9 +24,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Entity
+@Getter
+@Setter
 @NoArgsConstructor
 @Table(name = "product")
 public class ProductEntity extends AbstractAggregateRoot<ProductId> implements ConcurrencySafeDomainObject {
+
+    @Id
+    ProductId id;
 
     @Version
     Long version;
@@ -60,67 +67,18 @@ public class ProductEntity extends AbstractAggregateRoot<ProductId> implements C
     private Set<ProductCategoryEntity> productCategory;
 
     public ProductEntity(
-            @NonNull String id,
+            @NonNull String asin,
             @NonNull String title,
             @NonNull String description,
             @NonNull Money money,
             @NonNull Image image) {
-        super(new ProductId(id));
+        super(new ProductId(asin));
         this.title = title;
         this.description = description;
         this.priceValue = money.doubleAmount();
         this.priceCurrency = money.currency();
         this.image = image;
         this.productCategory = new HashSet<>();
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public Double getPriceValue() {
-        return priceValue;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void addCategory(@NonNull ProductCategoryEntity category) {
-        productCategory.add(category);
-    }
-
-    public Currency getPriceCurrency() {
-        return priceCurrency;
-    }
-
-    public Set<ProductCategoryEntity> getProductCategory() {
-        return productCategory;
-    }
-
-    public Image getImage() {
-        return image;
-    }
-
-    public int getAvailableItems() {
-        return availableItems;
-    }
-
-    public void setAvailableItems(int availableItems) {
-        this.availableItems = availableItems;
-    }
-
-    public int getReservedItems() {
-        return reservedItems;
-    }
-
-    public void setReservedItems(int reservedItems) {
-        this.reservedItems = reservedItems;
-    }
-
-    @Override
-    public Long version() {
-        return version;
     }
 
     public static ProductDTO toDto(@Valid ProductEntity pr) {
@@ -142,5 +100,9 @@ public class ProductEntity extends AbstractAggregateRoot<ProductId> implements C
                 .map(Category::category)
                 .map(CategoryDTO::of)
                 .collect(Collectors.toSet());
+    }
+
+    public void addCategory(@NonNull ProductCategoryEntity category) {
+        productCategory.add(category);
     }
 }

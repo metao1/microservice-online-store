@@ -4,7 +4,7 @@ import com.metao.book.retails.application.dto.ProductDTO;
 import com.metao.book.retails.application.exception.ProductNotFoundException;
 import com.metao.book.retails.domain.ProductEntity;
 import com.metao.book.retails.domain.ProductServiceInterface;
-import com.metao.book.retails.infrustructure.mapper.ProductMapperInterface;
+import com.metao.book.retails.infrastructure.mapper.ProductMapperInterface;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

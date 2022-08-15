@@ -6,12 +6,16 @@ import com.metao.book.shared.domain.base.DomainObjectId;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "product_category")
 public class ProductCategoryEntity extends AbstractEntity<ProductCategoryId> {
+
+    @Id
+    private ProductCategoryId id;
 
     @Column(name = "category", nullable = false)
     private Category category;

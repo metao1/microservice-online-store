@@ -1,7 +1,7 @@
 package com.metao.book.retails.application.service;
 
-import com.metao.book.retails.domain.event.GetProductEvent;
-import com.metao.book.retails.infrustructure.factory.handler.RemoteProductService;
+import com.metao.book.retails.infrastructure.factory.handler.RemoteProductService;
+import com.metao.book.shared.GetProductEvent;
 import com.order.microservice.avro.OrderAvro;
 import com.order.microservice.avro.Status;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,7 @@ import org.springframework.validation.annotation.Validated;
 @Component
 @Validated
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "kafka.enabled", havingValue = "true")
+@ConditionalOnProperty(name = "spring.profiles.active", havingValue = "prod")
 public class KafkaListenerService {
     private final OrderManageService orderManager;
     private final RemoteProductService remoteProductService;

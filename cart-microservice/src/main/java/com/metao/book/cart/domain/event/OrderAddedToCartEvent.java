@@ -14,6 +14,10 @@ public class OrderAddedToCartEvent implements DomainEvent {
     Instant occurredOn;
 
     @Override
+    public String id() {
+        return asin;
+    }
+
     public Instant occurredOn() {
         return occurredOn;
     }

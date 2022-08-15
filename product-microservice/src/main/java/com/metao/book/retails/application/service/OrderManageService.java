@@ -16,7 +16,7 @@ import static com.order.microservice.avro.Status.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "kafka.enabled", havingValue = "true")
+@ConditionalOnProperty(name = "spring.profiles.active", havingValue = "prod")
 public class OrderManageService {
 
     private static final String SOURCE = "payment";

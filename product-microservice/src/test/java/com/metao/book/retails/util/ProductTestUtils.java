@@ -46,13 +46,13 @@ public class ProductTestUtils {
     public static ProductDTO createProductDTO() {
         return ProductDTO
                 .builder()
-                .asin("1234567899")
-                .title("title")
-                .description("description")
                 .price(12d)
+                .title("title")
+                .asin("1234567899")
                 .currency(Currency.DLR)
+                .description("description")
+                .imageUrl("https://example.com/image.jpg")
                 .categories(Set.of(CategoryDTO.of("book")))
-                .imageUrl("http://example.com/image.jpg")
                 .build();
     }
 

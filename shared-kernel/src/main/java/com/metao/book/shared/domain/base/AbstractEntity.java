@@ -1,11 +1,8 @@
 package com.metao.book.shared.domain.base;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.springframework.data.util.ProxyUtils;
 import org.springframework.lang.NonNull;
 
-import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
 import java.util.Objects;
 
 /**
@@ -13,12 +10,11 @@ import java.util.Objects;
  *
  * @param <T> the entity T type.
  */
-@MappedSuperclass
+
 public abstract class AbstractEntity<T extends DomainObjectId> implements IdentifiableDomainObject<T> {
 
-    @Id
     @JsonProperty("id")
-    private T id;
+    protected T id;
 
     /**
      * Default constructor
@@ -57,7 +53,7 @@ public abstract class AbstractEntity<T extends DomainObjectId> implements Identi
         if (obj == this) {
             return true;
         }
-        if (obj == null || !getClass().equals(ProxyUtils.getUserClass(obj))) {
+        if (obj == null || !getClass().equals(obj.getClass())) {
             return false;
         }
 
