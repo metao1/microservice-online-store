@@ -5,11 +5,13 @@ server:
   port: 8083
 
 kafka:
-  stream:
-    topic:
-      order: "order-test-3"
-      stock-order: "stock-test-2"
-      payment-order: "payment-test-2"
+  properties:
+    num-partitions: 1
+    replication-factor: 1
+  topic:
+    order: "order"
+    stock: "stock"
+    payment: "payment"
 
 spring:
   kafka:

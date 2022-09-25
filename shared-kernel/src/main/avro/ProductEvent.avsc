@@ -1,0 +1,47 @@
+{
+  "type": "record",
+  "name": "ProductEvent",
+  "namespace": "com.metao.book.shared",
+  "fields": [
+    {
+      "name": "productId",
+      "type": "string"
+    },
+    {
+      "name": "imageUrl",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    {
+      "name": "title",
+      "type": "string"
+    },
+    {
+      "name": "description",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    {
+      "name": "price",
+      "type": "int"
+    },
+    {
+      "name": "currency",
+      "type": {
+        "type": "enum",
+        "name": "Currency",
+        "symbols": [
+          "eur",
+          "dlr"
+        ]
+      },
+      "namespace": "com.metao.book.shared"
+    }
+  ]
+}

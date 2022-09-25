@@ -8,7 +8,6 @@ dependencies {
     implementation 'com.h2database:h2:2.1.212'
     implementation 'org.apache.avro:avro'
     implementation 'org.springframework.kafka:spring-kafka'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.apache.kafka:kafka-streams'
     implementation 'io.confluent:kafka-avro-serializer'
     implementation 'io.confluent:kafka-streams-avro-serde'

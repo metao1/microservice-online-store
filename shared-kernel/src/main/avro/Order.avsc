@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "OrderAvro",
-  "namespace": "com.order.microservice.avro",
+  "namespace": "com.metao.book.shared",
   "fields": [
     {
       "name": "orderId",
@@ -31,7 +31,7 @@
           "ROLLBACK"
         ]
       },
-      "namespace": "com.order.microservice.avro"
+      "namespace": "com.metao.book.shared"
     },
     {
       "name": "quantity",
@@ -55,7 +55,7 @@
           "dlr"
         ]
       },
-      "namespace": "com.order.microservice.avro"
+      "namespace": "com.metao.book.shared"
     }
   ]
 }

@@ -34,8 +34,6 @@ public class OrderService implements OrderServiceInterface {
     private final ProductDtoMapper mapper;
     AtomicInteger atomicInteger = new AtomicInteger(1);
     @Value("${kafka.stream.topic.order}")
-    private String topic;
-    @Value("${kafka.stream.topic.order}")
     private String orderTopic;
     private List<String> productAsinList = new ArrayList<>();
     private Random random = new Random();
@@ -64,7 +62,7 @@ public class OrderService implements OrderServiceInterface {
                         .setCurrency(Currency.dlr)
                         .setSource("PAYMENT")
                         .build())
-                .ifPresent(order -> kafkaProducer.send(topic, order.getOrderId(), order));
+                .ifPresent(order -> kafkaProducer.send(orderTopic, order.getOrderId(), order));
     }
 
     public void loadProducts() {

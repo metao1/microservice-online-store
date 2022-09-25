@@ -3,8 +3,8 @@ import org.springframework.boot.gradle.plugin.SpringBootPlugin
 plugins {
     id 'base'
     id 'idea'
-    id 'com.google.cloud.tools.jib' version '3.1.4'
-    id 'org.springframework.boot' version '2.6.2'
+    id 'com.google.cloud.tools.jib' version '3.1.4'  apply false
+    id 'org.springframework.boot' version '2.6.2' apply false
     id 'com.github.davidmc24.gradle.plugin.avro' version '1.2.0'
 }
 
@@ -16,7 +16,7 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'io.spring.dependency-management'
     apply plugin: 'com.github.davidmc24.gradle.plugin.avro'
-
+    boolean isSpringProject = gradle.springBootProjects.contains(it.path)
     repositories {
         mavenCentral()
         maven { url 'https://packages.confluent.io/maven/' }
@@ -25,6 +25,16 @@ subprojects {
     avro {
         outputCharacterEncoding = 'UTF-8'
         fieldVisibility = 'PRIVATE'
+    }
+
+    if (isSpringProject) {
+        apply plugin: 'org.springframework.boot'
+        apply plugin: 'com.google.cloud.tools.jib'
+
+        dependencies {
+            implementation 'org.springframework.boot:spring-boot-starter-web'
+            implementation 'org.springframework.boot:spring-boot-starter-validation'
+        }
     }
 
     configurations.all {

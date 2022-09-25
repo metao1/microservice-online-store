@@ -1,8 +1,11 @@
 package com.metao.book.retails.infrastructure.factory.handler;
 
+import com.metao.book.retails.application.dto.ProductDTO;
 import com.metao.book.retails.domain.ProductEntity;
 import com.metao.book.retails.domain.ProductServiceInterface;
 import com.metao.book.shared.GetProductEvent;
+import com.metao.book.shared.ProductEvent;
+import com.metao.book.shared.ProductsResponseEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -12,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 
 import java.time.Instant;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -26,8 +30,9 @@ public class RemoteProductService {
                 .getProductById(getProductEvent.getProductId())
                 .map(ProductEntity::toDto)
                 .ifPresent(product -> {
-                    var productRequestedEvent = new GetProductEvent(product.getAsin(), Instant.now().toEpochMilli());
-                    kafkaTemplate.send("product-request", productRequestedEvent.getProductId(), productRequestedEvent)
+                    var productEvent = mapToProductEvent(product);
+                    var productsResponseEvent = new ProductsResponseEvent(List.of(productEvent), Instant.now().toEpochMilli());
+                    kafkaTemplate.send("products-response", product.getAsin(), productsResponseEvent)
                             .addCallback(
                                     new ListenableFutureCallback<>() {
                                         @Override
@@ -42,5 +47,9 @@ public class RemoteProductService {
                                     }
                             );
                 });
+    }
+
+    private ProductEvent mapToProductEvent(ProductDTO productDTO) {
+
     }
 }
