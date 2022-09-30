@@ -92,7 +92,8 @@ class ShoppingCartRepositoryTest {
         ShoppingCart currentShoppingCart = ShoppingCart.createCart(new ShoppingCartKey("userId", "asin1"));
         shoppingCartRepository.save(currentShoppingCart);
         assertThat(shoppingCartRepository.findById(new ShoppingCartKey("userId", "asin1"))
-                .get().getQuantity()).isEqualTo(1);
+                .get().getQuantity())
+                .isEqualTo(1);
     }
 
 }

@@ -5,10 +5,9 @@ import com.metao.book.order.application.config.SerdsConfig;
 import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
 import com.metao.book.order.kafka.KafkaProductConsumerConfiguration;
 import com.metao.book.order.kafka.SpringBootEmbeddedKafka;
-import com.order.microservice.avro.Currency;
-import com.order.microservice.avro.OrderAvro;
-import com.order.microservice.avro.Status;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
+import com.metao.book.shared.Currency;
+import com.metao.book.shared.OrderAvro;
+import com.metao.book.shared.Status;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,13 +17,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
-import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.util.Random;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
@@ -50,15 +47,10 @@ public class OrderControllerTest extends SpringBootEmbeddedKafka {
     @Value("${kafka.stream.topic.order}")
     private String topic;
 
-    private KafkaMessageListenerContainer<String, OrderAvro> container;
-    private LinkedBlockingQueue<ConsumerRecord<String, OrderAvro>> records;
-
     @BeforeEach
     void setUp() {
         ContainerProperties containerProperties = new ContainerProperties("orders");
-        container = new KafkaMessageListenerContainer<>(consumerFactory, containerProperties);
-        records = new LinkedBlockingQueue<>();
-        container.setupMessageListener((MessageListener<String, OrderAvro>) record -> records.add(record));
+        var container = new KafkaMessageListenerContainer<>(consumerFactory, containerProperties);
         container.start();
         ContainerTestUtils.waitForAssignment(container, kafkaEmbeddedBroker.getPartitionsPerTopic());
     }

@@ -1,6 +1,7 @@
 package com.metao.book.retails.application.service;
 
-import com.order.microservice.avro.OrderAvro;
+
+import com.metao.book.shared.OrderAvro;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

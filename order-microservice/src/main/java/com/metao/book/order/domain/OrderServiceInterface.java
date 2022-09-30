@@ -1,6 +1,7 @@
 package com.metao.book.order.domain;
 
-import com.order.microservice.avro.OrderAvro;
+
+import com.metao.book.shared.OrderAvro;
 
 import java.util.List;
 import java.util.Optional;

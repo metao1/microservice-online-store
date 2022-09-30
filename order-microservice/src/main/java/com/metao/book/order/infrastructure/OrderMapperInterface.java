@@ -1,9 +1,9 @@
 package com.metao.book.order.infrastructure;
 
 import com.metao.book.order.application.dto.OrderDTO;
-import com.order.microservice.avro.Currency;
-import com.order.microservice.avro.OrderAvro;
-import com.order.microservice.avro.Status;
+import com.metao.book.shared.Currency;
+import com.metao.book.shared.OrderAvro;
+import com.metao.book.shared.Status;
 
 public interface OrderMapperInterface {
 

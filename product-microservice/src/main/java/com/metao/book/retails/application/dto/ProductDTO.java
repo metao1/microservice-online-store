@@ -12,6 +12,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Set;
 
 @Data
@@ -36,7 +37,7 @@ public class ProductDTO implements Serializable {
     @NotNull
     @Min(1)
     @Max(20000)
-    private Double price;
+    private BigDecimal price;
 
     @NotNull
     private Currency currency;

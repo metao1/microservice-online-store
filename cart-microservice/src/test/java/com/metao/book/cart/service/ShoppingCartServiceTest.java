@@ -19,19 +19,20 @@ class ShoppingCartServiceTest {
 
     @Test
     void addProductToShoppingCart() {
-        shoppingCartService.addProductToShoppingCart("userId", "asin");
-        var productsInCart = shoppingCartService.getProductsInCartByUserId("userId");
-        assertTrue(productsInCart.containsKey("userId"));
-        var shoppingList = List.of(ShoppingCart.createCart(new ShoppingCartKey("userId", "asin")));
+        shoppingCartService.addProductToShoppingCart(ConstantsTest.USER_ID, ConstantsTest.ASIN);
+        var productsInCart = shoppingCartService.getProductsInCartByUserId(ConstantsTest.USER_ID);
+        assertTrue(productsInCart.containsKey(ConstantsTest.USER_ID));
+        var shoppingList = List.of(ShoppingCart.createCart(new ShoppingCartKey(ConstantsTest.USER_ID, ConstantsTest.ASIN)));
         assertThat(productsInCart
-                .get("userId"))
+                .get(ConstantsTest.USER_ID))
                 .isEqualTo(shoppingList)
                 .hasSize(1)
-                .contains(ShoppingCart.createCart(new ShoppingCartKey("userId", "asin")));
+                .contains(ShoppingCart.createCart(new ShoppingCartKey(ConstantsTest.USER_ID, ConstantsTest.ASIN)));
     }
 
     @Test
     void getProductsInCart() {
+        shoppingCartService.getProductsInCartByUserId(ConstantsTest.USER_ID);
     }
 
     @Test

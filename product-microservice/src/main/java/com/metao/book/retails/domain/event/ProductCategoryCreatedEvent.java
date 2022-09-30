@@ -3,19 +3,17 @@ package com.metao.book.retails.domain.event;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.metao.book.retails.domain.category.CategoryId;
 import com.metao.book.shared.domain.base.DomainEvent;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
 import java.time.Instant;
 
-@Getter
-@RequiredArgsConstructor
+@Value
 public class ProductCategoryCreatedEvent implements DomainEvent {
 
-    private final String id;
+    String id;
     @JsonProperty("occurred_on")
-    private final Instant occurredOn;
+    Instant occurredOn;
     @JsonProperty("category_id")
-    private final CategoryId categoryId;
+    CategoryId categoryId;
 
 }

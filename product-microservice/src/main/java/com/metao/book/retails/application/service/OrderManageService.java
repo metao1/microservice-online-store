@@ -4,14 +4,14 @@ import com.metao.book.retails.application.exception.ProductNotFoundException;
 import com.metao.book.retails.domain.ProductEntity;
 import com.metao.book.retails.domain.ProductId;
 import com.metao.book.retails.domain.ProductRepository;
-import com.order.microservice.avro.OrderAvro;
+import com.metao.book.shared.OrderAvro;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
-import static com.order.microservice.avro.Status.*;
+import static com.metao.book.shared.Status.*;
 
 @Slf4j
 @Service

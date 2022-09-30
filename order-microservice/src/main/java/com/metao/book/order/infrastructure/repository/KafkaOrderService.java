@@ -1,6 +1,6 @@
 package com.metao.book.order.infrastructure.repository;
 
-import com.order.microservice.avro.OrderAvro;
+import com.metao.book.shared.OrderAvro;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

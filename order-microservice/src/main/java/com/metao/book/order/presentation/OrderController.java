@@ -3,7 +3,7 @@ package com.metao.book.order.presentation;
 import com.metao.book.order.application.dto.OrderDTO;
 import com.metao.book.order.domain.OrderServiceInterface;
 import com.metao.book.order.infrastructure.OrderMapperInterface;
-import com.order.microservice.avro.OrderAvro;
+import com.metao.book.shared.OrderAvro;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.StoreQueryParameters;

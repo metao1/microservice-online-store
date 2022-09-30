@@ -1,9 +1,9 @@
 package com.metao.book.retails.application.service;
 
 import com.metao.book.retails.infrastructure.factory.handler.RemoteProductService;
-import com.metao.book.shared.GetProductEvent;
-import com.order.microservice.avro.OrderAvro;
-import com.order.microservice.avro.Status;
+import com.metao.book.shared.OrderAvro;
+import com.metao.book.shared.ProductEvent;
+import com.metao.book.shared.Status;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -22,13 +22,13 @@ public class KafkaListenerService {
     private final RemoteProductService remoteProductService;
 
     @KafkaListener(id = "get-products", topics = "get-products", groupId = "get-products")
-    public void processProductRequestedEvent(ConsumerRecord<String, GetProductEvent> record) {
+    public void processProductRequestedEvent(ConsumerRecord<String, ProductEvent> record) {
         log.info("Received order-request='{}'", record);
-        GetProductEvent getProductEvent = record.value();
+        var getProductEvent = record.value();
         remoteProductService.handle(getProductEvent);
     }
 
-    @KafkaListener(id = "orders", topics = "order-test-3", groupId = "order-group")
+    @KafkaListener(id = "orders", topics = "order-test", groupId = "order-group")
     public void onEvent(ConsumerRecord<Long, OrderAvro> record) {
         log.info("Consumed message -> {}", record.value());
         var order = record.value();

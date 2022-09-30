@@ -1,6 +1,6 @@
 package com.metao.book.order.kafka;
 
-import com.order.microservice.avro.OrderAvro;
+import com.metao.book.shared.OrderAvro;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;

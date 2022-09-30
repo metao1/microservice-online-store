@@ -2,16 +2,14 @@ package com.metao.book.retails.domain.event;
 
 import com.metao.book.retails.application.dto.ProductDTO;
 import com.metao.book.shared.domain.base.DomainEvent;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
 import java.time.Instant;
 
-@Getter
-@RequiredArgsConstructor
+@Value
 public class CreateProductEvent implements DomainEvent {
 
-    private final String id;
-    private final ProductDTO productDTO;
-    private final Instant occurredOn;
+    String id;
+    ProductDTO productDTO;
+    Instant occurredOn;
 }

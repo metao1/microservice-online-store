@@ -4,7 +4,7 @@ server:
 kafka:
   stream:
     topic:
-      order: "order-test-2"
+      order: "order-test"
       payment-order: "payment-test-2"
 
 spring:

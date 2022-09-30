@@ -2,8 +2,8 @@ package com.metao.book.order.application.config;
 
 import com.metao.book.order.application.dto.ProductDTO;
 import com.metao.book.order.domain.OrderManageService;
+import com.metao.book.shared.OrderAvro;
 import com.metao.book.shared.ProductEvent;
-import com.order.microservice.avro.OrderAvro;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
