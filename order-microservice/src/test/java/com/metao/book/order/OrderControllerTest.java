@@ -39,7 +39,7 @@ public class OrderControllerTest extends SpringBootEmbeddedKafka {
 
     @Test
     public void givenKafkaOrderTopic_whenSendingToTopic_thenMessageReceivedCorrectly() throws Exception {
-        IntStream.range(0, 1)
+        IntStream.range(0, 10)
             .boxed()
             .map(String::valueOf)
             .map(this::createOrderFromCustomerId)
