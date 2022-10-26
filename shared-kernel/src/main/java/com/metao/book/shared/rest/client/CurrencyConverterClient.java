@@ -4,6 +4,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.metao.book.shared.domain.financial.Currency;
 import com.metao.book.shared.domain.financial.CurrencyConverter;
 import com.metao.book.shared.domain.financial.Money;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,12 +20,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import java.time.LocalDate;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Implementation of {@link CurrencyConverter} that uses
@@ -57,20 +58,21 @@ class CurrencyConverterClient implements CurrencyConverter {
         if (amount.currency() == Currency.EUR) {
             return amount;
         } else {
-            return new Money(Currency.EUR, amount.doubleAmount() / getConversionRateFor(amount.currency()));
+            return new Money(Currency.EUR,
+                amount.doubleAmount().divide(getConversionRateFor(amount.currency()), RoundingMode.HALF_UP));
         }
     }
 
     private Money convertEuroTo(@NonNull Money amount, @NonNull Currency newCurrency) {
-        return new Money(newCurrency, amount.doubleAmount() * getConversionRateFor(newCurrency));
+        return new Money(newCurrency, amount.doubleAmount().multiply(getConversionRateFor(newCurrency)));
     }
 
-    private double getConversionRateFor(@NonNull Currency currency) {
+    private BigDecimal getConversionRateFor(@NonNull Currency currency) {
         var rate = conversionRates.get(currency);
         if (rate == null) {
             throw new IllegalStateException("Missing conversion rate for " + currency);
         }
-        return rate;
+        return BigDecimal.valueOf(rate);
     }
 
     @Scheduled(fixedRate = 6 * 60 * 60 * 1000) // Refresh every 6 hours

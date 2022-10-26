@@ -1,6 +1,6 @@
 package com.metao.book.retails.infrastructure.factory.handler.kafka;
 
-import com.metao.book.shared.GetProductEvent;
+import com.metao.book.shared.ProductsResponseEvent;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.springframework.beans.factory.ObjectProvider;
@@ -23,16 +23,16 @@ public class KafkaProductConsumerConfiguration {
     private final KafkaProperties properties;
 
     @Bean
-    public KafkaTemplate<String, GetProductEvent> defaultKafkaTemplate(
+    public KafkaTemplate<String, ProductsResponseEvent> defaultKafkaTemplate(
             ObjectProvider<RecordMessageConverter> messageConverter,
-            ProducerFactory<String, GetProductEvent> defaultKafkaProducerFactory) {
+            ProducerFactory<String, ProductsResponseEvent> defaultKafkaProducerFactory) {
         var kafkaTemplate = new KafkaTemplate<>(defaultKafkaProducerFactory);
         messageConverter.ifUnique(kafkaTemplate::setMessageConverter);
         return kafkaTemplate;
     }
 
     @Bean
-    public ProducerFactory<String, GetProductEvent> defaultKafkaProducerFactory() {
+    public ProducerFactory<String, ProductsResponseEvent> defaultKafkaProducerFactory() {
         var configProps = this.properties.buildProducerProperties();
         configProps.put(ProducerConfig.LINGER_MS_CONFIG, "0");
         configProps.put(ProducerConfig.ACKS_CONFIG, "all");

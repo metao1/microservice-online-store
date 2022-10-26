@@ -3,9 +3,10 @@ package com.metao.book.shared.domain.financial;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.metao.book.shared.domain.base.ValueObject;
-import org.springframework.lang.NonNull;
-
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Objects;
+import org.springframework.lang.NonNull;
 
 /**
  * Value object representing an amount of money. The amount is stored as a
@@ -17,42 +18,28 @@ public class Money implements ValueObject {
     @JsonProperty("currency")
     private final Currency currency;
     @JsonProperty("amount")
-    private final int amount;
+    private final BigDecimal amount;
 
     /**
      * Creates a new {@code Money} object.
      *
      * @param currency the currency.
-     * @param amount   fixed-point integer where the last two digits represent
-     *                 decimals.
+     * @param amount   fixed-point integer where the last two digits represent decimals.
      */
     @JsonCreator
-    public Money(@NonNull @JsonProperty("currency") Currency currency, @JsonProperty("amount") int amount) {
+    public Money(@NonNull @JsonProperty("currency") Currency currency, @JsonProperty("amount") BigDecimal amount) {
         this.currency = Objects.requireNonNull(currency, "currency must not be null");
         this.amount = amount;
     }
 
     /**
-     * Creates a new {@code Money} object.
+     * Creates a new {@code Money} object if both of the parameters are non-{@code null}.
      *
      * @param currency the currency.
-     * @param amount   the amount as a double.
+     * @param value    fixed-point integer where the last two digits represent decimals.
+     * @return a new {@code Money} object or {@code null} if any of the parameters are {@code null}.
      */
-    public Money(@NonNull Currency currency, double amount) {
-        this(currency, (int) (amount * 100));
-    }
-
-    /**
-     * Creates a new {@code Money} object if both of the parameters are
-     * non-{@code null}.
-     *
-     * @param currency the currency.
-     * @param value    fixed-point integer where the last two digits represent
-     *                 decimals.
-     * @return a new {@code Money} object or {@code null} if any of the parameters
-     * are {@code null}.
-     */
-    public static Money valueOf(Currency currency, Integer value) {
+    public static Money valueOf(Currency currency, BigDecimal value) {
         if (currency == null || value == null) {
             return null;
         } else {
@@ -75,7 +62,7 @@ public class Money implements ValueObject {
         if (currency != augend.currency) {
             throw new IllegalArgumentException("Cannot add two Money objects with different currencies");
         }
-        return new Money(currency, amount + augend.amount);
+        return new Money(currency, amount.add(augend.amount));
     }
 
     /**
@@ -93,19 +80,18 @@ public class Money implements ValueObject {
         if (currency != subtrahend.currency) {
             throw new IllegalArgumentException("Cannot subtract two Money objects with different currencies");
         }
-        return new Money(currency, amount - subtrahend.amount);
+        return new Money(currency, amount.subtract(subtrahend.amount));
     }
 
     /**
-     * Returns a new {@code Money} object whose amount is this amount multiplied by
-     * {@code multiplicand}.
+     * Returns a new {@code Money} object whose amount is this amount multiplied by {@code multiplicand}.
      *
      * @param multiplicand the value to multiply the amount by.
      * @return {@code this} * {@code multiplicand}
      */
     @NonNull
-    public Money multiply(int multiplicand) {
-        return new Money(currency, amount * multiplicand);
+    public Money multiply(BigDecimal multiplicand) {
+        return new Money(currency, amount.multiply(multiplicand));
     }
 
     /**
@@ -117,18 +103,17 @@ public class Money implements ValueObject {
     }
 
     /**
-     * Returns the amount as a fixed-point integer where the last two digits
-     * represent decimals.
+     * Returns the amount as a fixed-point integer where the last two digits represent decimals.
      */
-    public int fixedPointAmount() {
+    public BigDecimal fixedPointAmount() {
         return amount;
     }
 
     /**
      * Returns the amount as a double.
      */
-    public double doubleAmount() {
-        return amount / 100d;
+    public BigDecimal doubleAmount() {
+        return amount.divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP);
     }
 
     @Override
@@ -150,10 +135,10 @@ public class Money implements ValueObject {
     @Override
     public String toString() {
         String amountString;
-        if (amount == 0) {
+        if (Objects.equals(amount, BigDecimal.ZERO)) {
             amountString = "000";
         } else {
-            amountString = Integer.toString(amount);
+            amountString = amount.toString();
         }
         return String.format("%s %s.%s", currency, amountString.substring(0, amountString.length() - 2),
                 amountString.substring(amountString.length() - 2));

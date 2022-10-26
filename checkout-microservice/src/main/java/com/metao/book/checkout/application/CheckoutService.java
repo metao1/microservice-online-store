@@ -1,15 +1,18 @@
 package com.metao.book.checkout.application;
 
+import static com.metao.book.shared.Status.ACCEPT;
+import static com.metao.book.shared.Status.CONFIRM;
+import static com.metao.book.shared.Status.REJECT;
+import static com.metao.book.shared.Status.ROLLBACK;
+
 import com.metao.book.checkout.domain.ProductInventoryEntity;
 import com.metao.book.checkout.repository.ProductInventoryRepository;
-import com.order.microservice.avro.OrderAvro;
+import com.metao.book.shared.OrderAvro;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-
-import static com.order.microservice.avro.Status.*;
 
 @Slf4j
 @Service

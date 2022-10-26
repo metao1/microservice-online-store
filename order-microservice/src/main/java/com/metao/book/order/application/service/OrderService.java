@@ -7,20 +7,19 @@ import com.metao.book.order.infrastructure.repository.KafkaOrderService;
 import com.metao.book.shared.Currency;
 import com.metao.book.shared.OrderAvro;
 import com.metao.book.shared.Status;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
@@ -33,7 +32,7 @@ public class OrderService implements OrderServiceInterface {
     private final FileHandler fileHandler;
     private final ProductDtoMapper mapper;
     AtomicInteger atomicInteger = new AtomicInteger(1);
-    @Value("${kafka.stream.topic.order}")
+    @Value("${kafka.topic.order}")
     private String orderTopic;
     private List<String> productAsinList = new ArrayList<>();
     private Random random = new Random();

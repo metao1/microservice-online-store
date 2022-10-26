@@ -2,10 +2,9 @@ server:
   port: ${PORT:8084}
 
 kafka:
-  stream:
-    topic:
-      order: "order-test"
-      payment-order: "payment-test-2"
+  topic:
+    order: "order-test"
+    payment-order: "payment-test-2"
 
 spring:
   kafka:

@@ -15,7 +15,7 @@ public abstract class SpringBootEmbeddedKafka {
     @Autowired
     public EmbeddedKafkaBroker kafkaEmbeddedBroker;
 
-    public static EmbeddedKafkaBroker embeddedKafka = new EmbeddedKafkaBroker(1, true, 0, "products");
+    public static EmbeddedKafkaBroker embeddedKafka = new EmbeddedKafkaBroker(1, true, 0, "product");
 
     @BeforeTestClass
     public void setUpClass() {

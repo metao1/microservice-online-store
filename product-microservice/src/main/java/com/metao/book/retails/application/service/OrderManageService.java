@@ -1,5 +1,9 @@
 package com.metao.book.retails.application.service;
 
+import static com.metao.book.shared.Status.ACCEPT;
+import static com.metao.book.shared.Status.CONFIRM;
+import static com.metao.book.shared.Status.ROLLBACK;
+
 import com.metao.book.retails.application.exception.ProductNotFoundException;
 import com.metao.book.retails.domain.ProductEntity;
 import com.metao.book.retails.domain.ProductId;
@@ -11,8 +15,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
-import static com.metao.book.shared.Status.*;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -23,7 +25,7 @@ public class OrderManageService {
     private final ProductRepository productRepository;
     private final KafkaOrderProducer kafkaOrderProducer;
 
-    @Value("${kafka.stream.topic.payment-order}")
+    @Value("${kafka.topic.payment-order}")
     private String paymentOrderTopic;
 
     public void reserve(OrderAvro order) {

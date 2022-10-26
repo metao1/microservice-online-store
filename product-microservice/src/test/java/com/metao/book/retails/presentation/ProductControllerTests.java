@@ -1,14 +1,24 @@
 package com.metao.book.retails.presentation;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import com.metao.book.retails.application.dto.ProductDTO;
 import com.metao.book.retails.application.service.ProductService;
-import com.metao.book.retails.domain.*;
+import com.metao.book.retails.domain.ProductCategoryEntity;
+import com.metao.book.retails.domain.ProductCategoryRepository;
+import com.metao.book.retails.domain.ProductEntity;
+import com.metao.book.retails.domain.ProductId;
+import com.metao.book.retails.domain.ProductRepository;
 import com.metao.book.retails.domain.category.Category;
 import com.metao.book.retails.domain.image.Image;
 import com.metao.book.retails.infrastructure.mapper.ProductMapper;
 import com.metao.book.retails.util.ProductTestUtils;
 import com.metao.book.shared.domain.financial.Currency;
 import com.metao.book.shared.domain.financial.Money;
+import java.math.BigDecimal;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
@@ -16,12 +26,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
-
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 @Import({
         ProductMapper.class,
@@ -54,7 +58,7 @@ public class ProductControllerTests {
         var url = "https://example.com/image.jpg";
         var description = "description";
         var title = "title";
-        var price = 12d;
+        var price = BigDecimal.valueOf(12);
         var id = "id";
         var currency = Currency.DLR;
         var category = new ProductCategoryEntity(new Category("book"));

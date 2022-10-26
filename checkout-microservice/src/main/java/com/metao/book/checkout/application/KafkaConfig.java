@@ -1,6 +1,9 @@
 package com.metao.book.checkout.application;
 
-import com.order.microservice.avro.OrderAvro;
+import static com.metao.book.shared.Status.NEW;
+
+import com.metao.book.shared.OrderAvro;
+import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,10 +13,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.validation.annotation.Validated;
-
-import java.util.Random;
-
-import static com.order.microservice.avro.Status.NEW;
 
 @Slf4j
 @Validated
@@ -25,7 +24,7 @@ public class KafkaConfig {
 
     private final Random random = new Random();
     private final CheckoutService checkoutService;
-    @Value("${kafka.stream.topic.payment-order}")
+    @Value("${kafka.topic.payment-order}")
     String paymentOrderTopic;
 
     @KafkaListener(id = "payment-order-listener", topics = "${kafka.stream.topic.payment-order}")

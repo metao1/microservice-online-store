@@ -1,3 +1,6 @@
+kafka:
+  topic:
+    product: product
 eureka:
   client:
     enabled: false

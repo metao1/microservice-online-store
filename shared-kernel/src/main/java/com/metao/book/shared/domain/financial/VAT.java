@@ -3,9 +3,10 @@ package com.metao.book.shared.domain.financial;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.metao.book.shared.domain.base.ValueObject;
-import org.springframework.lang.NonNull;
-
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Objects;
+import org.springframework.lang.NonNull;
 
 /**
  * Value object representing a VAT (Value Added Tax) percentage.
@@ -73,8 +74,9 @@ public class VAT implements ValueObject {
      */
     @NonNull
     public Money subtractTax(@NonNull Money amount) {
+        var withoutTax = (amount.fixedPointAmount().multiply(BigDecimal.valueOf(100))
+            .divide(BigDecimal.valueOf(percentage + 100), RoundingMode.HALF_UP));
         Objects.requireNonNull(amount, "amount must not be null");
-        var withoutTax = (amount.fixedPointAmount() * 100) / (percentage + 100);
         return new Money(amount.currency(), withoutTax);
     }
 
@@ -87,7 +89,8 @@ public class VAT implements ValueObject {
     @NonNull
     public Money calculateTax(@NonNull Money amount) {
         Objects.requireNonNull(amount, "amount must not be null");
-        var tax = (amount.fixedPointAmount() * percentage) / 100;
+        var tax = amount.fixedPointAmount()
+            .multiply(BigDecimal.valueOf(percentage).divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP));
         return new Money(amount.currency(), tax);
     }
 

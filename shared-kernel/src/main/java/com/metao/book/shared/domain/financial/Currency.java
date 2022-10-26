@@ -12,9 +12,9 @@ public enum Currency {
 
     private final String value;
 
-    private Currency(String value) {
-        this.value = value;
-    }
+    Currency(String value) {
+         this.value = value;
+     }
 
     @JsonCreator
     public Currency fromValues(@JsonProperty("currency") String value) {

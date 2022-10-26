@@ -9,6 +9,7 @@ import com.metao.book.retails.domain.image.Image;
 import com.metao.book.shared.domain.financial.Currency;
 import com.metao.book.shared.domain.financial.Money;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.IntStream;
@@ -24,7 +25,7 @@ public class ProductTestUtils {
 
     public static ProductEntity createProductEntity(String id, String title, String description) {
         var url = "https://example.com/image.jpg";
-        var price = 12d;
+        var price = BigDecimal.valueOf(12);
         var currency = Currency.DLR;
         var category = new ProductCategoryEntity(new Category("book"));
         var pe = new ProductEntity(id, title, description, new Money(currency, price), new Image(url));
@@ -46,7 +47,7 @@ public class ProductTestUtils {
     public static ProductDTO createProductDTO() {
         return ProductDTO
                 .builder()
-                .price(12d)
+                .price(BigDecimal.valueOf(12))
                 .title("title")
                 .asin("1234567899")
                 .currency(Currency.DLR)

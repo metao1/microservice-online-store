@@ -57,7 +57,7 @@ spring:
     ansi:
       enabled: ALWAYS
   application:
-    name: "order"
+    name: "order-ms"
   cloud:
     discovery:
       enabled: false
