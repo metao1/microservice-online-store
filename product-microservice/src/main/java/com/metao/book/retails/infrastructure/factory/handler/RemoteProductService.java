@@ -23,7 +23,7 @@ import org.springframework.util.concurrent.ListenableFutureCallback;
 @RequiredArgsConstructor
 public class RemoteProductService {
 
-    @Value("${kafka.topic.products-response}")
+    @Value("${kafka.topic.product}")
     private String productEventTopic;
     private final ProductServiceInterface productService;
     private final KafkaTemplate<String, ProductsResponseEvent> kafkaTemplate;

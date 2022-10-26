@@ -19,21 +19,19 @@ import java.util.concurrent.TimeUnit;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.kafka.core.ConsumerFactory;
-import org.springframework.test.context.ActiveProfiles;
 
 @Slf4j
-@ActiveProfiles("test")
-@ExtendWith(MockitoExtension.class)
 @SpringBootTest
-@ImportAutoConfiguration(classes = {KafkaProductConsumerConfiguration.class, KafkaProductConsumer.class, SerdsConfig.class}, exclude = {KafkaConfig.class})
+@ImportAutoConfiguration(classes = {KafkaProductConsumerConfiguration.class, KafkaProductConsumer.class,
+    SerdsConfig.class}, exclude = {KafkaConfig.class})
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RemoteProductServiceTest extends SpringBootEmbeddedKafka {
 
     private static final String PRODUCT_ID = "PRODUCT_ID";

@@ -26,7 +26,9 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class OrderService implements OrderServiceInterface {
 
-    private final KafkaTemplate<Long, OrderAvro> kafkaTemplate;
+    private static final String CUSTOMER_ID = "CUSTOMER_ID";
+    private final Random random = new Random();
+    private final KafkaTemplate<String, OrderAvro> kafkaTemplate;
     private final KafkaOrderService kafkaOrderService;
     private final KafkaOrderProducer kafkaProducer;
     private final FileHandler fileHandler;
@@ -35,7 +37,6 @@ public class OrderService implements OrderServiceInterface {
     @Value("${kafka.topic.order}")
     private String orderTopic;
     private List<String> productAsinList = new ArrayList<>();
-    private Random random = new Random();
 
     @Override
     public void saveOrder(OrderAvro orderAvro) {
@@ -51,10 +52,10 @@ public class OrderService implements OrderServiceInterface {
     public void commandLineRunner() {
         Optional.of(atomicInteger.getAndIncrement())
                 .map(s -> OrderAvro
-                        .newBuilder()
-                        .setOrderId(s)
-                        .setProductId(productAsinList.get(random.nextInt(productAsinList.size())))
-                        .setCustomerId(s)
+                    .newBuilder()
+                    .setOrderId(s + "")
+                    .setProductId(productAsinList.get(random.nextInt(productAsinList.size())))
+                    .setCustomerId(CUSTOMER_ID)
                         .setStatus(Status.NEW)
                         .setQuantity(1)
                         .setPrice(100)

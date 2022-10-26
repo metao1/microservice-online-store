@@ -5,7 +5,7 @@
   "fields": [
     {
       "name": "orderId",
-      "type": "long"
+      "type": "string"
     },
     {
       "name": "productId",
@@ -13,8 +13,7 @@
     },
     {
       "name": "customerId",
-      "type": "long",
-      "default": 0
+      "type": "string"
     },
     {
       "name": "status",

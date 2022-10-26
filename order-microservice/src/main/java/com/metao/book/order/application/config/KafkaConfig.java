@@ -1,6 +1,5 @@
 package com.metao.book.order.application.config;
 
-import com.metao.book.order.domain.OrderManageService;
 import com.metao.book.shared.OrderAvro;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +22,6 @@ import org.springframework.validation.annotation.Validated;
 @EnableConfigurationProperties({KafkaProperties.class})
 public class KafkaConfig {
 
-    private final OrderManageService orderManageService;
     private final KafkaProperties properties;
 
     @Value("${kafka.topic.payment}")

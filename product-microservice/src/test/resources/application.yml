@@ -1,6 +1,7 @@
 kafka:
   topic:
     product: product
+
 eureka:
   client:
     enabled: false
@@ -8,6 +9,7 @@ eureka:
 spring:
   kafka:
     properties:
+      bootstrap-servers: localhost:9092
       schema.registry.url: mock://not-used
       auto.register.schemas: true
       use.latest.version: true
@@ -30,6 +32,7 @@ spring:
             add:
               type:
                 headers: false
+    bootstrap-servers: localhost:9092
   datasource:
     url: jdbc:h2:mem:product-app;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driverClassName: org.h2.Driver

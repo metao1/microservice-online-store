@@ -3,12 +3,11 @@ package com.metao.book.order.application.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.metao.book.order.domain.Currency;
 import com.metao.book.order.domain.Status;
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
 
 @Data
 @Builder
@@ -17,13 +16,13 @@ import java.io.Serializable;
 public class OrderDTO implements Serializable {
 
     @JsonProperty("order_id")
-    Long orderId;
+    String orderId;
 
     @JsonProperty("product_id")
     String productId;
 
     @JsonProperty("customer_id")
-    Long customerId;
+    String customerId;
 
     @JsonProperty("status")
     Status status;

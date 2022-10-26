@@ -14,9 +14,9 @@ import javax.validation.constraints.NotBlank;
 @RequiredArgsConstructor
 public class KafkaOrderProducer {
 
-    private final KafkaTemplate<Long, OrderAvro> kafkaTemplate;
+    private final KafkaTemplate<String, OrderAvro> kafkaTemplate;
 
-    public void send(String topic, @NotBlank Long orderId, @NotBlank OrderAvro order) {
+    public void send(String topic, @NotBlank String orderId, @NotBlank OrderAvro order) {
         log.info("sending order='{}' to topic='{}'", order, topic);
         kafkaTemplate.send(topic, orderId, order)
                 .addCallback(result -> log.info("Sent: {}",

@@ -15,7 +15,7 @@ public class KafkaProductConsumer {
 
     private final CountDownLatch latch = new CountDownLatch(1);
 
-    private static final String productsResponseTopic = "products-response";
+    private static final String productsResponseTopic = "product";
 
     @KafkaListener(id = "product-listener", topics = productsResponseTopic, groupId = "products-grp")
     public void onEvent(ConsumerRecord<String, ProductsResponseEvent> record) {

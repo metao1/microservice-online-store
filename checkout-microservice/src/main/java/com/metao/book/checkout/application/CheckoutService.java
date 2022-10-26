@@ -21,7 +21,7 @@ public class CheckoutService {
 
     private static final String SOURCE = "payment";
     private final ProductInventoryRepository repository;
-    private final KafkaTemplate<Long, OrderAvro> template;
+    private final KafkaTemplate<String, OrderAvro> template;
 
     @Value("${kafka.stream.topic.payment-order}")
     private String paymentOrdersTopic;

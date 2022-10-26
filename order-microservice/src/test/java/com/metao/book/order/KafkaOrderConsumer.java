@@ -3,11 +3,13 @@ package com.metao.book.order;
 import com.metao.book.shared.OrderAvro;
 import java.util.concurrent.CountDownLatch;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.annotation.KafkaListener;
 
 @Slf4j
 @EnableKafka
+@TestConfiguration
 public class KafkaOrderConsumer {
 
     CountDownLatch latch = new CountDownLatch(10);

@@ -45,7 +45,7 @@ public class OrderManageService {
             kafkaOrderProducer.send(paymentOrderTopic, order.getOrderId(), order);
             log.info("Sent: {}", order);
         } catch (Exception e) {
-
+            log.error(e.getMessage());
         }
     }
 

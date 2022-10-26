@@ -4,19 +4,18 @@ import com.metao.book.order.application.dto.OrderDTO;
 import com.metao.book.order.domain.OrderServiceInterface;
 import com.metao.book.order.infrastructure.OrderMapperInterface;
 import com.metao.book.shared.OrderAvro;
+import java.util.Optional;
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.streams.StoreQueryParameters;
-import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.kafka.config.StreamsBuilderFactoryBean;
-import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 
 @Slf4j
@@ -25,7 +24,6 @@ import java.util.Optional;
 @RequestMapping(value = "/order", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
 public class OrderController {
 
-    private final StreamsBuilderFactoryBean kafkaStreamsFactory;
     private final OrderServiceInterface orderService;
     private final OrderMapperInterface mapper;
 
@@ -39,36 +37,22 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<Long> createOrder(@Valid @RequestBody OrderDTO orderDto) {
+    public ResponseEntity<String> createOrder(@Valid @RequestBody OrderDTO orderDto) {
         return Optional.of(orderDto)
-                .map(mapper::toAvro)
-                .stream()
-                .<OrderAvro>mapMulti((order, stream) -> {
-                    if (order != null) {
-                        stream.accept(order);
-                    }
-                })
-                .peek(orderService::saveOrder)
-                .map(OrderAvro::getOrderId)
+            .map(mapper::toAvro)
+            .stream()
+            .<OrderAvro>mapMulti((order, stream) -> {
+                if (order != null) {
+                    stream.accept(order);
+                }
+            })
+            .peek(orderService::saveOrder)
+            .map(OrderAvro::getOrderId)
                 .map(ResponseEntity::ok)
                 .findAny()
                 .orElseThrow(() -> new RuntimeException("could not crate order"));
     }
 
-    @GetMapping(path = "/all")
-    public ResponseEntity<List<OrderDTO>> allOrders(@Valid @RequestParam("limit") Integer limit,
-                                                    @Valid @RequestParam("offset") Integer offset) {
-        var list = new LinkedList<OrderDTO>();
-        kafkaStreamsFactory.getKafkaStreams()
-                .store(StoreQueryParameters.fromNameAndType("order-new2", QueryableStoreTypes.keyValueStore()))
-                .all()
-                .forEachRemaining(kv -> {
-                    var orderAvro = (OrderAvro) kv.value;
-                    var orderDto = mapper.toDto(orderAvro);
-                    list.add(orderDto);
-                });
-        return ResponseEntity.ok().body(list);
-    }
 //
 //    @GetMapping("/counts")
 //    public Map<Long, Set<String>> count() {
