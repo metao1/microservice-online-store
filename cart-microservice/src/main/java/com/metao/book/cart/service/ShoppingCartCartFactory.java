@@ -29,11 +29,7 @@ public class ShoppingCartCartFactory implements ShoppingCartService {
     public void addProductToShoppingCart(String userId, String asin) {
         ShoppingCartKey currentKey = new ShoppingCartKey(userId, asin);
         shoppingCartRepository.findById(currentKey)
-                .ifPresentOrElse(shoppingCart -> {
-                    updateProduct(asin, shoppingCart);
-                }, () -> {
-                    createProduct(asin, currentKey);
-                });
+                .ifPresentOrElse(shoppingCart -> updateProduct(asin, shoppingCart), () -> createProduct(asin, currentKey));
     }
 
     private void createProduct(String asin, ShoppingCartKey currentKey) {
