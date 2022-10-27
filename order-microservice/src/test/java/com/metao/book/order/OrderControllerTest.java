@@ -3,6 +3,7 @@ package com.metao.book.order;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.metao.book.order.application.config.KafkaConfig;
+import com.metao.book.order.application.config.KafkaStreamConfig;
 import com.metao.book.order.application.config.SerdsConfig;
 import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
 import com.metao.book.order.kafka.KafkaProductConsumerConfiguration;
@@ -15,15 +16,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @ActiveProfiles(profiles = "test")
-@ImportAutoConfiguration(classes = {KafkaOrderConsumer.class, KafkaProductConsumerConfiguration.class,
-    SerdsConfig.class}, exclude = {KafkaConfig.class})
+@ImportAutoConfiguration(classes = {KafkaProductConsumerConfiguration.class, KafkaOrderConsumerTestConfig.class,
+    SerdsConfig.class}, exclude = {KafkaConfig.class, KafkaStreamConfig.class})
 public class OrderControllerTest extends SpringBootEmbeddedKafka {
 
     private static final Random RAND = new Random();
@@ -32,10 +32,9 @@ public class OrderControllerTest extends SpringBootEmbeddedKafka {
     private KafkaOrderProducer kafkaProducer;
 
     @Autowired
-    private KafkaOrderConsumer consumer;
+    private KafkaOrderConsumerTestConfig consumer;
 
-    @Value("${kafka.topic.order}")
-    private String topic;
+    private final String topic = "order";
 
     @Test
     public void givenKafkaOrderTopic_whenSendingToTopic_thenMessageReceivedCorrectly() throws Exception {

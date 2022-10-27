@@ -6,7 +6,7 @@ import static org.mockito.Mockito.when;
 import com.metao.book.retails.application.config.KafkaConfig;
 import com.metao.book.retails.application.config.SerdsConfig;
 import com.metao.book.retails.application.service.ProductService;
-import com.metao.book.retails.infrastructure.factory.handler.kafka.KafkaProductConsumer;
+import com.metao.book.retails.infrastructure.factory.handler.kafka.KafkaProductConsumerTestConfig;
 import com.metao.book.retails.infrastructure.factory.handler.kafka.KafkaProductConsumerConfiguration;
 import com.metao.book.retails.util.ProductTestUtils;
 import com.metao.book.shared.Currency;
@@ -25,22 +25,20 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.kafka.core.ConsumerFactory;
 
 @Slf4j
 @SpringBootTest
-@ImportAutoConfiguration(classes = {KafkaProductConsumerConfiguration.class, KafkaProductConsumer.class,
+@ImportAutoConfiguration(classes = {KafkaProductConsumerConfiguration.class, KafkaProductConsumerTestConfig.class,
     SerdsConfig.class}, exclude = {KafkaConfig.class})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RemoteProductServiceTest extends SpringBootEmbeddedKafka {
 
     private static final String PRODUCT_ID = "PRODUCT_ID";
-    @Autowired
-    public ConsumerFactory<String, ProductsResponseEvent> consumerFactory;
+
     @Autowired
     RemoteProductService remoteProductService;
     @Autowired
-    KafkaProductConsumer consumer;
+    KafkaProductConsumerTestConfig consumer;
     @MockBean
     ProductService productService;
 

@@ -11,7 +11,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 @Slf4j
 @EnableKafka
 @TestConfiguration
-public class KafkaOrderConsumer {
+public class KafkaOrderConsumerTestConfig {
 
     private final CountDownLatch latch = new CountDownLatch(10);
 
