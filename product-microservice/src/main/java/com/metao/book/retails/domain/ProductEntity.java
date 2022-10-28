@@ -94,10 +94,10 @@ public class ProductEntity extends AbstractAggregateRoot<ProductId> implements C
 
     public static ProductDTO toDto(@Valid ProductEntity pr) {
         return ProductDTO.builder()
+                .description(pr.getDescription())
                 .title(pr.getTitle())
                 .asin(pr.id().toUUID())
                 .currency(pr.getPriceCurrency())
-                .description(pr.getDescription())
                 .price(pr.getPriceValue())
                 .categories(mapCategoryEntitiesToDTOs(pr.getProductCategory()))
                 .imageUrl(pr.getImage().url())

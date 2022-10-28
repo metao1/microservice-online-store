@@ -1,6 +1,6 @@
 package com.metao.book.retails.presentation;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.metao.book.retails.application.dto.ProductDTO;
@@ -64,7 +64,7 @@ public class ProductControllerTests {
         var category = new ProductCategoryEntity(new Category("book"));
         var pe = new ProductEntity(id, title, description, new Money(currency, price), new Image(url));
         pe.addCategory(category);
-        when(productRepository.findById(any(ProductId.class)))
+        when(productRepository.findById(eq(new ProductId(id))))
                 .thenReturn(Optional.of(pe));
         webTestClient
                 .get()
@@ -79,7 +79,7 @@ public class ProductControllerTests {
                 .jsonPath("$.categories[0].category").isEqualTo("book")
                 .jsonPath("$.imageUrl").exists()
                 .jsonPath("$.currency").isEqualTo("dlr")
-                .jsonPath("$.price").isEqualTo(12d);
+                .jsonPath("$.price").isEqualTo(BigDecimal.valueOf(12));
     }
 
     @Test

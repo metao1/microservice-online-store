@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.metao.book.shared.domain.base.ValueObject;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Objects;
 import org.springframework.lang.NonNull;
 
@@ -113,7 +112,7 @@ public class Money implements ValueObject {
      * Returns the amount as a double.
      */
     public BigDecimal doubleAmount() {
-        return amount.divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP);
+        return amount;
     }
 
     @Override
@@ -123,8 +122,7 @@ public class Money implements ValueObject {
         if (o == null || getClass() != o.getClass())
             return false;
         Money money = (Money) o;
-        return amount == money.amount &&
-                currency == money.currency;
+        return Objects.equals(amount, money.amount) && Objects.equals(currency, money.currency);
     }
 
     @Override
