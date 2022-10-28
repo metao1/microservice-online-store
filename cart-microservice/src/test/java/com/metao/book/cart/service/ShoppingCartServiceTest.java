@@ -33,16 +33,26 @@ class ShoppingCartServiceTest {
             assertFalse(shoppingCartService.getProductsInCartByUserId(shoppingCart.getUserId()).isEmpty());
             verify(shoppingCartRepository).save(shoppingCart);
         };
-        Stream<ShoppingCart> of = StreamBuilder.of(ShoppingCart.class, 1, 20);
+        Stream<ShoppingCart> of = buildShoppingCartStream();
         return DynamicTest.stream(of, displayNameGenerator, testExecutor);
+    }
+
+    private Stream<ShoppingCart> buildShoppingCartStream() {
+        return StreamBuilder.of(ShoppingCart.class, 1, 20,
+            i -> ShoppingCart.createCart(new ShoppingCartKey("user_id", "item_"+ i.toString())));
     }
 
     private static class StreamBuilder {
 
-        static <R extends ShoppingCart> Stream<R> of(Class<R> clazz, int low, int range) {
+        static <R extends ShoppingCart> Stream<R> of(
+            Class<R> clazz,
+            int low,
+            int range,
+            Function<? super Integer, ? extends R> mapper
+        ) {
             return IntStream.range(low, range)
                 .boxed()
-                .map(i -> ShoppingCart.createCart(new ShoppingCartKey("user_id_" + i, i.toString())))
+                .map(mapper)
                 .map(clazz::cast);
         }
     }
