@@ -42,13 +42,17 @@ subprojects {
         test {
             useJUnitPlatform()
 
-            testLogging {
+            /*testLogging {
                 showStandardStreams true
                 showStackTraces true
-            }
+            }*/
 
             doFirst {
                 systemProperty 'spring.profiles.active', 'test'
+            }
+
+            testLogging {
+                events "PASSED", "SKIPPED", "FAILED"
             }
         }
 

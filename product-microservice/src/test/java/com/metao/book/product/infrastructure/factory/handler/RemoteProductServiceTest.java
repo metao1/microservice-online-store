@@ -21,6 +21,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -31,7 +32,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ImportAutoConfiguration(classes = {KafkaProductConsumerConfiguration.class, KafkaProductConsumerTestConfig.class,
     SerdsConfig.class}, exclude = {KafkaConfig.class})
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestInstance(Lifecycle.PER_METHOD)
 class RemoteProductServiceTest extends SpringBootEmbeddedKafka {
 
     private static final String PRODUCT_ID = "PRODUCT_ID";
