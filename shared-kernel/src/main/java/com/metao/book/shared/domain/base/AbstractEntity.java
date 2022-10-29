@@ -1,24 +1,29 @@
 package com.metao.book.shared.domain.base;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.springframework.lang.NonNull;
-
 import java.util.Objects;
+import javax.persistence.Column;
+import javax.persistence.Id;
+import javax.persistence.MappedSuperclass;
+import org.springframework.lang.NonNull;
 
 /**
  * Base class for entities.
  *
  * @param <T> the entity T type.
  */
-
+@MappedSuperclass
 public abstract class AbstractEntity<T extends DomainObjectId> implements IdentifiableDomainObject<T> {
 
+    @Id
     @JsonProperty("id")
+    @Column(name = "id", unique = true, nullable = false)
     protected T id;
 
     /**
      * Default constructor
      */
+    @SuppressWarnings("unused")
     protected AbstractEntity() {
     }
 

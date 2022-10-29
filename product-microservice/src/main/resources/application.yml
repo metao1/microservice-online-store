@@ -99,8 +99,10 @@ spring:
 #     username: postgres
 #     password: secset
 
+
 logging:
   level:
     org.springframework.data: DEBUG
     org.springframework.boot.autoconfigure: ERROR
     org.springframework.web.reactive: DEBUG
+    org.hibernate: INFO
