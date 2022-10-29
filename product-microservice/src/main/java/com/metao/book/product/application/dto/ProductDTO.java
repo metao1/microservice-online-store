@@ -21,7 +21,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class ProductDTO implements Serializable {
 
-    @Pattern(regexp = "^[0-9]{10}", message = "asin format is wrong")
+    @Pattern(regexp = "^\\d{10}", message = "asin format is wrong")
     private String asin;
 
     @Length(min = 1, max = 1250)
@@ -31,7 +31,7 @@ public class ProductDTO implements Serializable {
     private String title;
 
     @Length(min = 1, max = 255)
-    @Pattern(regexp = "(http(s?):)([/|.|\\w|-|])*\\.(?:jpg|gif|png)", message = "url format is wrong")
+    @Pattern(regexp = "(http(s?):)([/|.|\\w|])*\\.(?:jpg|gif|png)", message = "url format is wrong")
     private String imageUrl;
 
     @NotNull
