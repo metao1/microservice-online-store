@@ -9,11 +9,11 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class ExceptionHandlerKafkaStreamsBuilderFactoryBeanCustomizer implements StreamsBuilderFactoryBeanCustomizer {
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void customize(StreamsBuilderFactoryBean factoryBean) {
-                factoryBean.setUncaughtExceptionHandler((t, e) -> log.warn("Uncaught Exception for Thread: {}", t, e));
-        }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void customize(StreamsBuilderFactoryBean factoryBean) {
+        factoryBean.setUncaughtExceptionHandler((t, e) -> log.warn("Uncaught Exception for Thread: {}", t, e));
+    }
 }

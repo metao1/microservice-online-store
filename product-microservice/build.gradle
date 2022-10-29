@@ -1,16 +1,29 @@
 group = 'com.metao.book.retails'
 version = '0.0.1-SNAPSHOT'
 
+ext {
+    set('testcontainersVersion', "1.17.3")
+}
+
 dependencies {
     implementation project(':shared-kernel')
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'com.h2database:h2:2.1.214'
     implementation 'org.apache.avro:avro'
-    implementation 'org.apache.kafka:kafka-streams'
     implementation 'org.springframework.kafka:spring-kafka'
-    implementation 'io.confluent:kafka-avro-serializer:7.1.1'
-    implementation 'io.confluent:kafka-streams-avro-serde:7.1.1'
-    testImplementation 'tech.allegro.schema.json2avro:converter:0.2.14'
+    implementation 'org.apache.kafka:kafka-streams'
+    implementation 'io.confluent:kafka-avro-serializer'
+    implementation 'io.confluent:kafka-streams-avro-serde'
 
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
+    testImplementation 'org.testcontainers:testcontainers'
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
+
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
+    }
 }

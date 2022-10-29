@@ -1,21 +1,19 @@
 {
   "type": "record",
   "name": "OrderAvro",
-  "namespace": "com.order.microservice.avro",
+  "namespace": "com.metao.book.shared",
   "fields": [
     {
       "name": "orderId",
-      "type": "long"
+      "type": "string"
     },
     {
       "name": "productId",
-      "type": "long",
-      "default": 0
+      "type": "string"
     },
     {
       "name": "customerId",
-      "type": "long",
-      "default": 0
+      "type": "string"
     },
     {
       "name": "status",
@@ -32,7 +30,7 @@
           "ROLLBACK"
         ]
       },
-      "namespace": "com.order.microservice.avro"
+      "namespace": "com.metao.book.shared"
     },
     {
       "name": "quantity",
@@ -56,7 +54,7 @@
           "dlr"
         ]
       },
-      "namespace": "com.order.microservice.avro"
+      "namespace": "com.metao.book.shared"
     }
   ]
 }

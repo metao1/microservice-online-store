@@ -1,28 +1,17 @@
 package com.metao.book.cart.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import java.io.Serializable;
 
-@Entity
-@AllArgsConstructor
+@Getter
+@Setter
 @NoArgsConstructor
-@Data
-@Builder
-@Table(name = "shopping_cart_key")
-public class ShoppingCartKey {
+@AllArgsConstructor
+@EqualsAndHashCode(of = {"userId", "asin"})
+public class ShoppingCartKey implements Serializable {
 
-    @Id
-    @Column(name = "user_id")
-    private String id;
+    private String userId;
 
-    @Column(name = "asin")
     private String asin;
-
 }

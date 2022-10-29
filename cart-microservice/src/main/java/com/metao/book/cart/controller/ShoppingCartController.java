@@ -1,17 +1,14 @@
 package com.metao.book.cart.controller;
 
+import com.metao.book.cart.domain.ShoppingCart;
+import com.metao.book.cart.domain.dto.ShoppingCartDto;
 import com.metao.book.cart.service.ShoppingCartService;
-
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/cart")
@@ -21,22 +18,33 @@ public class ShoppingCartController {
     private final ShoppingCartService shoppingCartService;
 
     @PostMapping(value = "/add", produces = "application/json")
-    public Map<String, Integer> addProductToCart(@RequestParam("userid") String userId,
-            @RequestParam("asin") String asin) {
+    public String addProductToCart(@RequestParam("userid") String userId,
+                                   @RequestParam("asin") String asin) {
         shoppingCartService.addProductToShoppingCart(userId, asin);
-        return shoppingCartService.getProductsInCart(userId);
+        return asin;
     }
 
     @GetMapping(value = "/productsInCart", produces = "application/json")
-    public Map<String, Integer> getProductsInCart(@RequestParam("userid") String userId) {
-        return shoppingCartService.getProductsInCart(userId);
+    public Map<String, List<ShoppingCartDto>> getProductsInCart(@RequestParam("userid") String userId) {
+        return shoppingCartService.getProductsInCartByUserId(userId)
+                .values()
+                .stream()
+                .flatMap(entry -> entry.stream().map(this::mapToShoppingCartDto))
+                .collect(Collectors.groupingBy(ShoppingCartDto::getAsin));
+    }
+
+    private ShoppingCartDto mapToShoppingCartDto(ShoppingCart shoppingCart) {
+        return ShoppingCartDto.builder()
+                .asin(shoppingCart.getAsin())
+                .quantity(shoppingCart.getQuantity())
+                .build();
     }
 
     @DeleteMapping(value = "/removeProduct", produces = "application/json")
-    public Map<String, Integer> removeProductFromCart(@RequestParam("userid") String userId,
-            @RequestParam("asin") String asin) {
+    public String removeProductFromCart(@RequestParam("userid") String userId,
+                                        @RequestParam("asin") String asin) {
         shoppingCartService.removeProductFromCart(userId, asin);
-        return shoppingCartService.getProductsInCart(userId);
+        return asin;
     }
 
     @GetMapping(value = "/clearCart", produces = "application/json")

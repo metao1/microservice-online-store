@@ -1,7 +1,7 @@
 package com.metao.book.order.domain;
 
-import com.order.microservice.avro.OrderAvro;
-import com.order.microservice.avro.Status;
+import com.metao.book.shared.OrderAvro;
+import com.metao.book.shared.Status;
 import org.springframework.stereotype.Service;
 
 @Service

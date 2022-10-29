@@ -1,60 +1,65 @@
 package com.metao.book.order;
 
-import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
-import com.order.microservice.avro.Currency;
-import com.order.microservice.avro.OrderAvro;
-import com.order.microservice.avro.Status;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.IntStream;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SpringBootTest
-@DirtiesContext
-@ContextConfiguration(classes = KafkaOrderConsumerConfiguration.class)
-public class OrderControllerTest {
+import com.metao.book.order.application.config.KafkaConfig;
+import com.metao.book.order.application.config.KafkaStreamConfig;
+import com.metao.book.order.application.config.SerdsConfig;
+import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
+import com.metao.book.order.kafka.KafkaProductConsumerConfiguration;
+import com.metao.book.order.kafka.SpringBootEmbeddedKafka;
+import com.metao.book.shared.Currency;
+import com.metao.book.shared.OrderAvro;
+import com.metao.book.shared.Status;
+import com.metao.book.shared.test.TestUtils.StreamBuilder;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
-        private static Random RAND = new Random();
+@ActiveProfiles(profiles = "test")
+@TestInstance(Lifecycle.PER_CLASS)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ImportAutoConfiguration(classes = {KafkaProductConsumerConfiguration.class, KafkaOrderConsumerTestConfig.class,
+    SerdsConfig.class}, exclude = {KafkaConfig.class, KafkaStreamConfig.class})
+public class OrderControllerTest extends SpringBootEmbeddedKafka {
 
-        @Autowired
-        private KafkaOrderProducer kafkaProducer;
+    private static final Random RAND = new Random();
 
-        @Autowired
-        private KafkaOrderConsumer consumer;
+    @Autowired
+    private KafkaOrderProducer kafkaProducer;
 
-        @Value("${kafka.stream.topic.order}")
-        private String topic;
+    @Autowired
+    private KafkaOrderConsumerTestConfig consumer;
 
-        @Test
-        public void givenKafkaOrderTopic_whenSendingToTopic_thenMessageReceivedCorrectly() throws Exception {
+    private final String topic = "order";
 
-                IntStream.range(0, 1)
-                                .boxed()
-                                .map(String::valueOf)
-                                .map(s -> OrderAvro
-                                                .newBuilder()
-                                                .setOrderId("order-" + s)
-                                                .setProductId("product - " + s)
-                                                .setCustomerId("customer - " + s)
-                                                .setStatus(Status.NEW)
-                                                .setQuantity(1)
-                                                .setPrice(RAND.nextInt(100))
-                                                .setCurrency(Currency.dlr)
-                                                .build())
-                                        .forEach(orderDTO -> kafkaProducer.send(topic, orderDTO.getOrderId(),
-                                                orderDTO));
+    @Test
+    public void givenKafkaOrderTopic_whenSendingToTopic_thenMessageReceivedCorrectly() throws Exception {
+        StreamBuilder.of(OrderAvro.class, 0, 10, this::createOrderFromCustomerId)
+            .forEach(orderDTO -> kafkaProducer.send(topic, orderDTO.getOrderId(), orderDTO));
 
-                consumer.getLatch().await(6, TimeUnit.SECONDS);
+        consumer.getLatch().await(6, TimeUnit.SECONDS);
 
-                assertEquals(0, consumer.getLatch().getCount());
-        }
+        assertEquals(0, consumer.getLatch().getCount());
+    }
+
+    private OrderAvro createOrderFromCustomerId(int randomId) {
+        return OrderAvro.newBuilder()
+            .setOrderId("order-" + randomId)
+            .setProductId("product - " + randomId)
+            .setCustomerId("customer_id")
+            .setSource("PAYMENT")
+            .setStatus(Status.NEW)
+            .setQuantity(1)
+            .setPrice(RAND.nextInt(100))
+            .setCurrency(Currency.dlr)
+            .build();
+    }
 
 }

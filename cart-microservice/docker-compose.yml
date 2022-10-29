@@ -20,9 +20,9 @@ services:
     ports:
       - "8003:8083"
     environment:
-      SPRING_DATASOURCE_URL : "jdbc:postgresql://postgres:5432/postgres"
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/postgres"
     depends_on:
-     - postgres
+      - postgres
 volumes:
   postgres:
     driver:

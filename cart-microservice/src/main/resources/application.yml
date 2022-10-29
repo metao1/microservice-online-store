@@ -2,8 +2,6 @@ server:
   port: ${PORT:8083}
 
 spring:
-  config:
-    import: "optional:configserver:"
   jpa:
     database: POSTGRESQL
     show-sql: true

@@ -2,10 +2,9 @@ server:
   port: ${PORT:8084}
 
 kafka:
-  stream:
-    topic:
-      order: "order-new2"
-      payment-order: "payment-order-new2"
+  topic:
+    order: "order"
+    payment-order: "payment"
 
 spring:
   kafka:
@@ -13,6 +12,11 @@ spring:
     bootstrap-servers: pkc-6ojv2.us-west4.gcp.confluent.cloud:9092
     # Required connection configs for Confluent Cloud Schema Registry
     properties:
+      stream-properties:
+        application-id: stock
+        schema.registry.url: https://psrc-kk5gg.europe-west3.gcp.confluent.cloud
+        application.id: stock
+        bootstrap.servers: pkc-6ojv2.us-west4.gcp.confluent.cloud:9092
       bootstrap-servers: pkc-6ojv2.us-west4.gcp.confluent.cloud:9092
       schema.registry.url: https://psrc-kk5gg.europe-west3.gcp.confluent.cloud
       security.protocol: SASL_SSL
@@ -21,43 +25,61 @@ spring:
       sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username='OIF7NQANRR6MKOLX'   password='FX+y+hbL+0MSur41+rMJpobTv2rHX/UvLOA6DNXyExeHe3OoIVVWG8VrC6IC67tN';
       schema:
         registry:
-          url: https://psrc-1w11j.eu-central-1.aws.confluent.cloud
+          url: https://psrc-kk5gg.europe-west3.gcp.confluent.cloud
           basic:
             auth:
               user:
-                info: 7ZVNTJ4OMZWUMT7R:5xJEdD6PMssGTh3k8WB8pMk9vYBFr9pGPX2lSg+os2Do0OFD8Nlzw/TPHa2PrJMc
+                info: AC2WDR5L5TFTOKH7:PoTBOmSFbdcMBFnP4GKpaSEpje4INp1jJwXk8SCsJl2IzcpP+Yi/tAF6HxICgSuJ
       basic:
         auth:
           credentials:
             source: USER_INFO
+            user:
+              info: AC2WDR5L5TFTOKH7:PoTBOmSFbdcMBFnP4GKpaSEpje4INp1jJwXk8SCsJl2IzcpP+Yi/tAF6HxICgSuJ
     consumer:
       auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      key-deserializer: org.apache.kafka.common.serialization.LongDeserializer
       value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      properties:
+        auto.offset.reset: earliest
+        specific.avro.reader: true
     producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      key-serializer: org.apache.kafka.common.serialization.LongSerializer
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
     streams:
       properties:
-        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        application.id: stock
+        bootstrap.servers: pkc-6ojv2.us-west4.gcp.confluent.cloud:9092
+        schema.registry.url: http://pkc-6ojv2.us-west4.gcp.confluent.cloud:8081
+        default.key.serde: org.apache.kafka.common.serialization.Serdes$LongSerde
         default.value.serde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
         num.standby.replicas: 1
         num.stream.threads: 2
         max.request.size: 8388608        # 84 MiB
         topic.max.message.bytes: 8388608 # 84 MiB
         topology.optimization: all
-        state.dir: /tmp/kafka-streams02
-  output:
-    ansi:
-      enabled: ALWAYS
-  application:
-    name: "order"
+        state.dir: /tmp/kafka-streams-test
+      application-id: stock
+  output.ansi.enabled: ALWAYS
   cloud:
     discovery:
       enabled: false
-    compatibility-verifier:
-      enabled: false
-  messages:
-    encoding:
+  datasource:
+    url: jdbc:h2:mem:product-app;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    platform: h2
+    driverClassName: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: false
+    generate-ddl: true
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        show_sql: false
+        use_sql_comments: true
+        format_sql: true
+  application:
+    name: "checkout"
 
 logging.pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%15.15t]){yellow} %clr(:){red} %clr(%m){faint}%n"

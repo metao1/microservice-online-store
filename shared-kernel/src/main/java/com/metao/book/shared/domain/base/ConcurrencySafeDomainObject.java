@@ -15,5 +15,5 @@ public interface ConcurrencySafeDomainObject extends DomainObject {
      * @return the version or {@code null} if no version has been assigned yet.
      */
     @Nullable
-    Long version();
+    Long getVersion();
 }

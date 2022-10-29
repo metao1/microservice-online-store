@@ -138,21 +138,21 @@ class Products extends Component {
                         })}
                     </Row>
                     {Boolean(this.state.products.length) && this.state.limit === 12 &&
-                    <div className="pagination">
-                        <Button onClick={() => {
-                            this.setState({products: []});
-                            this.fetchProducts(this.state.category, this.state.limit, this.state.offset - this.state.limit)
-                        }
-                        } size="large" disabled={!Boolean(this.state.offset)}>Previous page</Button>
+                        <div className="pagination">
+                            <Button onClick={() => {
+                                this.setState({products: []});
+                                this.fetchProducts(this.state.category, this.state.limit, this.state.offset - this.state.limit)
+                            }
+                            } size="large" disabled={!Boolean(this.state.offset)}>Previous page</Button>
 
-                        <Button onClick={() => {
-                            this.setState({products: [], isUpdating: true});
-                            this.fetchProducts(this.state.category, this.state.limit, this.state.offset + this.state.limit)
-                        }
-                        } size="large" className="pull-right"
-                                disabled={(this.state.products.length < 12 && this.state.products.length !== 0) || (this.state.products.length === 0 && !this.state.isUpdating)}>Next
-                            page</Button>
-                    </div>
+                            <Button onClick={() => {
+                                this.setState({products: [], isUpdating: true});
+                                this.fetchProducts(this.state.category, this.state.limit, this.state.offset + this.state.limit)
+                            }
+                            } size="large" className="pull-right"
+                                    disabled={(this.state.products.length < 12 && this.state.products.length !== 0) || (this.state.products.length === 0 && !this.state.isUpdating)}>Next
+                                page</Button>
+                        </div>
                     }
                 </div>
             </div>

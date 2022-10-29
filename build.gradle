@@ -3,46 +3,100 @@ import org.springframework.boot.gradle.plugin.SpringBootPlugin
 plugins {
     id 'base'
     id 'idea'
-    id 'com.google.cloud.tools.jib' version '3.1.4'
-    id 'org.springframework.boot' version '2.6.2'
+    id 'com.google.cloud.tools.jib' version '3.1.4'  apply false
+    id 'org.springframework.boot' version '2.7.5' apply false
     id 'com.github.davidmc24.gradle.plugin.avro' version '1.2.0'
+}
+
+allprojects {
+    group 'com.metao.book'
 }
 
 subprojects {
     apply plugin: 'java'
     apply plugin: 'io.spring.dependency-management'
     apply plugin: 'com.github.davidmc24.gradle.plugin.avro'
-
+    boolean isSpringProject = gradle.springBootProjects.contains(it.path)
     repositories {
         mavenCentral()
         maven { url 'https://packages.confluent.io/maven/' }
     }
 
-    dependencies {
-        annotationProcessor 'org.projectlombok:lombok'
-        implementation 'org.projectlombok:lombok'
+    avro {
+        outputCharacterEncoding = 'UTF-8'
+        fieldVisibility = 'PRIVATE'
+    }
 
-        implementation 'org.apache.kafka:kafka-streams:3.0.0'
-        implementation 'org.apache.avro:avro'
+    if (isSpringProject) {
+        apply plugin: 'org.springframework.boot'
+        apply plugin: 'com.google.cloud.tools.jib'
 
-        implementation 'org.springframework.kafka:spring-kafka'
-        implementation 'io.confluent:kafka-avro-serializer:7.1.1'
-        implementation 'io.confluent:kafka-streams-avro-serde:7.1.1'
-
-        // https://stackoverflow.com/questions/53326271/spring-nullable-annotation-generates-unknown-enum-constant-warning
-        implementation 'com.google.code.findbugs:jsr305:3.0.2'
-        testAnnotationProcessor 'org.projectlombok:lombok'
-        testImplementation 'org.projectlombok:lombok'
-        testImplementation('org.springframework.boot:spring-boot-starter-test') {
-            exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
-        }
-        testImplementation 'org.springframework.kafka:spring-kafka-test'
-        }
-
-    dependencyManagement {
-        imports {
-            mavenBom SpringBootPlugin.BOM_COORDINATES
-            mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2020.0.3'
+        dependencies {
+            implementation 'org.springframework.boot:spring-boot-starter-web'
+            implementation 'org.springframework.boot:spring-boot-starter-validation'
+            implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
         }
     }
+
+    configurations.all {
+        test {
+            useJUnitPlatform()
+
+            /*testLogging {
+                showStandardStreams true
+                showStackTraces true
+            }*/
+
+            doFirst {
+                systemProperty 'spring.profiles.active', 'test'
+            }
+
+            testLogging {
+                events "PASSED", "SKIPPED", "FAILED"
+            }
+        }
+
+        dependencyManagement {
+            imports {
+                mavenBom SpringBootPlugin.BOM_COORDINATES
+                mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2020.0.3'
+            }
+        }
+
+        dependencies {
+
+            annotationProcessor 'org.projectlombok:lombok'
+
+            implementation 'org.apache.avro:avro'
+            implementation 'org.projectlombok:lombok'
+            // https://stackoverflow.com/questions/53326271/spring-nullable-annotation-generates-unknown-enum-constant-warning
+            implementation 'com.google.code.findbugs:jsr305:3.0.2'
+
+            testAnnotationProcessor 'org.projectlombok:lombok'
+            testImplementation 'org.projectlombok:lombok'
+
+            testImplementation('org.springframework.boot:spring-boot-starter-test') {
+                exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+            }
+        }
+
+        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+            def confluentVersion = '7.1.1'
+            if (details.requested.group == 'io.confluent') {
+                details.useTarget group: details.requested.group, name: details.requested.name, version: confluentVersion
+                details.because "prefer 'io.confluent' version ${confluentVersion} over any version of 'io.confluent'"
+            }
+            def kafkaStreamVersion = '3.0.0'
+            if (details.requested.name == 'kafka-streams') {
+                details.useTarget group: 'org.apache.kafka', name: 'kafka-streams', version: kafkaStreamVersion
+                details.because "prefer 'kakfa-stream' version ${kafkaStreamVersion} over any other 'kakfa-stream' version"
+            }
+            def avroVersion = '1.11.0'
+            if (details.requested.name == 'avro') {
+                details.useTarget group: 'org.apache.avro', name: 'avro', version: avroVersion
+                details.because "prefer 'avro' version ${avroVersion} over any version of 'avro'"
+            }
+        }
+    }
+
 }

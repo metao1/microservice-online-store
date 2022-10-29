@@ -1,36 +1,21 @@
 package com.metao.book.cart.repository;
 
 import com.metao.book.cart.domain.ShoppingCart;
-import org.springframework.data.jpa.repository.Modifying;
+import com.metao.book.cart.domain.ShoppingCartKey;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ShoppingCartRepository extends CrudRepository<ShoppingCart, String> {
+public interface ShoppingCartRepository extends JpaRepository<ShoppingCart, ShoppingCartKey> {
 
-    @Modifying
-    @Transactional
-    @Query("UPDATE ShoppingCart SET quantity = quantity + 1 WHERE userId=:userId AND asin=:asin")
-    int updateQuantityForShoppingCart(String userId, String asin);
+    @Query("SELECT sc FROM #{#entityName} sc WHERE sc.userId=:userId")
+    List<ShoppingCart> findProductsInCartByUserId(@Param("userId") String userId);
 
-    @Query("SELECT quantity FROM ShoppingCart WHERE userId=:userId AND asin=:asin")
-    Optional<Integer> findByUserIdAndAsin(String userId, String asin);
-
-    @Query("SELECT sc FROM ShoppingCart sc WHERE sc.userId=:userId")
-    Optional<List<ShoppingCart>> findProductsInCartByUserId(String userId);
-
-    @Modifying
-    @Transactional
-    @Query("UPDATE ShoppingCart SET quantity = quantity - 1 WHERE userId=:userId AND asin=:asin")
-    int decrementQuantityForShoppingCart(String userId, String asin);
-
-    @Modifying
-    @Transactional
-    @Query("DELETE FROM ShoppingCart WHERE userId=:userId")
-    int deleteProductsInCartByUserId(String userId);
+    @Query("SELECT sc FROM #{#entityName} sc WHERE sc.userId=:#{#key.userId} AND sc.asin=:#{#key.asin}")
+    Optional<ShoppingCart> findByUserIdAndAsin(@Param("key") ShoppingCartKey shoppingCartKey);
 }
