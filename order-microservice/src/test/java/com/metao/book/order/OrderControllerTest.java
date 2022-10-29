@@ -11,9 +11,9 @@ import com.metao.book.order.kafka.SpringBootEmbeddedKafka;
 import com.metao.book.shared.Currency;
 import com.metao.book.shared.OrderAvro;
 import com.metao.book.shared.Status;
+import com.metao.book.shared.test.TestUtils.StreamBuilder;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -38,10 +38,7 @@ public class OrderControllerTest extends SpringBootEmbeddedKafka {
 
     @Test
     public void givenKafkaOrderTopic_whenSendingToTopic_thenMessageReceivedCorrectly() throws Exception {
-        IntStream.range(0, 10)
-            .boxed()
-            .map(String::valueOf)
-            .map(this::createOrderFromCustomerId)
+        StreamBuilder.of(OrderAvro.class, 0, 10, this::createOrderFromCustomerId)
             .forEach(orderDTO -> kafkaProducer.send(topic, orderDTO.getOrderId(), orderDTO));
 
         consumer.getLatch().await(6, TimeUnit.SECONDS);
@@ -49,11 +46,11 @@ public class OrderControllerTest extends SpringBootEmbeddedKafka {
         assertEquals(0, consumer.getLatch().getCount());
     }
 
-    private OrderAvro createOrderFromCustomerId(String customerId) {
+    private OrderAvro createOrderFromCustomerId(int randomId) {
         return OrderAvro.newBuilder()
-            .setOrderId(customerId)
-            .setProductId("product - " + customerId)
-            .setCustomerId(customerId)
+            .setOrderId("order-" + randomId)
+            .setProductId("product - " + randomId)
+            .setCustomerId("customer_id")
             .setSource("PAYMENT")
             .setStatus(Status.NEW)
             .setQuantity(1)

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.metao.book.cart.domain.ShoppingCart;
 import com.metao.book.cart.domain.ShoppingCartKey;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -30,6 +31,11 @@ public class ShoppingCartServiceIntegrationTest extends BasePostgresIntegrationT
 
     @Test
     void getProductsInCart() {
-        shoppingCartService.getProductsInCartByUserId(ConstantsTest.USER_ID);
+        shoppingCartService.addProductToShoppingCart(ConstantsTest.USER_ID, ConstantsTest.ASIN);
+        assertThat(shoppingCartService.getProductsInCartByUserId(ConstantsTest.USER_ID))
+            .extracting(Map::values)
+            .isNotNull()
+            .asList()
+            .hasSize(1);
     }
 }

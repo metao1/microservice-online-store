@@ -8,11 +8,10 @@ import com.metao.book.retails.domain.category.Category;
 import com.metao.book.retails.domain.image.Image;
 import com.metao.book.shared.domain.financial.Currency;
 import com.metao.book.shared.domain.financial.Money;
-
+import com.metao.book.shared.test.TestUtils.StreamBuilder;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.IntStream;
 
 public class ProductTestUtils {
 
@@ -36,12 +35,9 @@ public class ProductTestUtils {
     public static List<ProductEntity> creteMultipleProductEntity(int size) {
         final var description = "description";
         var title = "title";
-        return IntStream
-                .range(0, size)
-                .boxed()
-                .map(a -> createProductEntity(a.toString(), title + a, description))
-                .toList();
-
+        return StreamBuilder.of(ProductEntity.class, 0, size,
+                a -> createProductEntity(a.toString(), title + a, description))
+            .toList();
     }
 
     public static ProductDTO createProductDTO() {

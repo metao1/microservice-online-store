@@ -7,8 +7,8 @@ import static org.mockito.Mockito.verify;
 import com.metao.book.cart.domain.ShoppingCart;
 import com.metao.book.cart.domain.ShoppingCartKey;
 import com.metao.book.cart.repository.ShoppingCartRepository;
+import com.metao.book.shared.test.TestUtils.StreamBuilder;
 import java.util.function.Function;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -24,14 +24,13 @@ class ShoppingCartServiceTest {
     private final ShoppingCartService shoppingCartService = new ShoppingCartCartFactory(shoppingCartRepository);
 
     @TestFactory
-    Stream<DynamicTest> addProductToShoppingCart() {
+    Stream<DynamicTest> addAndGetShoppingCartScenario() {
         // Generates display names like: input:5, input:37, input:85, etc.
         Function<ShoppingCart, String> displayNameGenerator = (input) -> "input:" + input;
-
         ThrowingConsumer<ShoppingCart> testExecutor = (shoppingCart) -> {
             shoppingCartService.addProductToShoppingCart(shoppingCart.getUserId(), shoppingCart.getAsin());
-            assertFalse(shoppingCartService.getProductsInCartByUserId(shoppingCart.getUserId()).isEmpty());
             verify(shoppingCartRepository).save(shoppingCart);
+            assertFalse(shoppingCartService.getProductsInCartByUserId(shoppingCart.getUserId()).isEmpty());
         };
         Stream<ShoppingCart> of = buildShoppingCartStream();
         return DynamicTest.stream(of, displayNameGenerator, testExecutor);
@@ -40,20 +39,5 @@ class ShoppingCartServiceTest {
     private Stream<ShoppingCart> buildShoppingCartStream() {
         return StreamBuilder.of(ShoppingCart.class, 1, 20,
             i -> ShoppingCart.createCart(new ShoppingCartKey("user_id", "item_"+ i.toString())));
-    }
-
-    private static class StreamBuilder {
-
-        static <R extends ShoppingCart> Stream<R> of(
-            Class<R> clazz,
-            int low,
-            int range,
-            Function<? super Integer, ? extends R> mapper
-        ) {
-            return IntStream.range(low, range)
-                .boxed()
-                .map(mapper)
-                .map(clazz::cast);
-        }
     }
 }
