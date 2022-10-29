@@ -7,7 +7,6 @@ import com.metao.book.cart.domain.ShoppingCart;
 import com.metao.book.cart.domain.ShoppingCartKey;
 import com.metao.book.cart.util.BasePostgresIntegrationTest;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -38,9 +37,8 @@ public class ShoppingCartServiceIntegrationTest extends BasePostgresIntegrationT
     void getProductsInCart() {
         shoppingCartService.addProductToShoppingCart(ConstantsTest.USER_ID, ConstantsTest.ASIN);
         assertThat(shoppingCartService.getProductsInCartByUserId(ConstantsTest.USER_ID))
-            .extracting(Map::values)
+            .flatExtracting(ConstantsTest.USER_ID)
             .isNotNull()
-            .asList()
             .hasSize(1);
     }
 }

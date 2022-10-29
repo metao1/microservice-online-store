@@ -56,8 +56,8 @@ class ProductRepositoryTest extends BasePostgresIntegrationTest {
 
     @Test
     void findAllProductsWithOffset_whenTwoItemsRequests_Ok() {
-        var pes = ProductTestUtils.createProductEntity();
-        productRepository.save(pes);
+        var pes = ProductTestUtils.createMultipleProductEntity(2);
+        productRepository.saveAll(pes);
         Pageable pageable = new OffsetBasedPageRequest(0, 2);
         var productEntities = productRepository.findAll(pageable);
         var list = productEntities.get();

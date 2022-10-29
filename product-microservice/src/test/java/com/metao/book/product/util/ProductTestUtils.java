@@ -35,7 +35,7 @@ public class ProductTestUtils {
         return new ProductCategoryEntity(new Category("book"));
     }
 
-    public static List<ProductEntity> buildMultipleProductEntity(int size) {
+    public static List<ProductEntity> createMultipleProductEntity(int size) {
         final var description = "description";
         var title = "title";
         return StreamBuilder.of(ProductEntity.class, 0, size,
