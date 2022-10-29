@@ -22,8 +22,6 @@ dependencies {
 
 }
 
-
-
 dependencyManagement {
     imports {
         mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
