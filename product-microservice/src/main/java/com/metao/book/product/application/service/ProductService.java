@@ -22,14 +22,16 @@ public class ProductService implements ProductServiceInterface {
 
     @Override
     public Optional<ProductEntity> getProductById(ProductId productId) throws ProductNotFoundException {
-        return Optional.of(productRepository.findById(productId))
+         var productEntity =  productRepository.findById(productId)
             .orElseThrow(() -> new ProductNotFoundException("product " + productId + " not found."));
+        return Optional.ofNullable(productEntity);
     }
 
     @Override
     public Optional<List<ProductEntity>> getAllProductsPageable(int limit, int offset) throws ProductNotFoundException {
         var pageable = new OffsetBasedPageRequest(offset, limit);
-        var option = Optional.of(productRepository.findAll(pageable));
+        var pagedProducts = productRepository.findAll(pageable);
+        var option = Optional.of(pagedProducts);
         return Optional.of(option.map(Page::toList))
                 .orElseThrow(() -> new ProductNotFoundException("product list is empty."));
     }

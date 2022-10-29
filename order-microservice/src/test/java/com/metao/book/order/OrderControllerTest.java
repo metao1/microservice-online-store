@@ -15,13 +15,16 @@ import com.metao.book.shared.test.TestUtils.StreamBuilder;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest
 @ActiveProfiles(profiles = "test")
+@TestInstance(Lifecycle.PER_CLASS)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ImportAutoConfiguration(classes = {KafkaProductConsumerConfiguration.class, KafkaOrderConsumerTestConfig.class,
     SerdsConfig.class}, exclude = {KafkaConfig.class, KafkaStreamConfig.class})
 public class OrderControllerTest extends SpringBootEmbeddedKafka {
