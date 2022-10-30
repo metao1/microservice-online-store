@@ -1,8 +1,9 @@
 package com.metao.book.product.domain;
 
+import java.util.Optional;
 import java.util.Set;
 
 public interface ProductCategoriesInterface {
 
-    Set<ProductCategoryEntity> getProductCategories(String productId);
+    Optional<Set<ProductCategoryEntity>> getProductCategories(String productId);
 }
