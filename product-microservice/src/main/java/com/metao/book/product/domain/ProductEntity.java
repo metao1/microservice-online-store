@@ -78,9 +78,9 @@ public class ProductEntity extends AbstractEntity<ProductId> implements Concurre
     @BatchSize(size = 20)
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinTable(name = "product_category_map", joinColumns = {@JoinColumn(name = "product_id")}, inverseJoinColumns = {
-            @JoinColumn(name = "product_category_id")})
+        @JoinColumn(name = "product_category_id")})
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-    private Set<ProductCategoryEntity> productCategory;
+    private Set<ProductCategoryEntity> productCategory = new HashSet<>();
 
     public ProductEntity(
             @NonNull String asin,

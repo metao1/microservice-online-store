@@ -18,7 +18,7 @@ public class ProductCategoriesService implements ProductCategoriesInterface {
     @Override
     public Optional<Set<ProductCategoryEntity>> getProductCategories(String productId) {
         return Optional.of(productRepository
-            .findProductEntitiesByProductId(new ProductId(productId))
+            .findProductCategoriesByProductId(new ProductId(productId))
             .orElseThrow());
     }
 }

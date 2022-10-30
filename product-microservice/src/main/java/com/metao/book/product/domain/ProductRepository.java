@@ -13,7 +13,7 @@ public interface ProductRepository extends JpaRepository<ProductEntity, ProductI
     @Query("select p from ProductEntity p where p.id = ?1")
     Optional<Integer> findByProductCount(ProductId productId);
 
-    @Query("select p from ProductEntity p join fetch p.productCategory pc on pc.category = :productId")
-    Optional<Set<ProductCategoryEntity>> findProductEntitiesByProductId(@Param("productId") ProductId productId);
+    @Query("select distinct p, pc from ProductEntity p join fetch p.productCategory pc where p.id = :productId")
+    Optional<Set<ProductCategoryEntity>> findProductCategoriesByProductId(@Param("productId") ProductId productId);
 
 }
