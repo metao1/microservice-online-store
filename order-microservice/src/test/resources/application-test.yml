@@ -27,7 +27,7 @@ spring:
       schema.registry.url: mock://not-used
       auto.register.schemas: true
       use.latest.version: true
-      security.protocol: plaintext
+      security.protocol: PLAINTEXT
       json:
         fail.invalid.schema: true
         oneof.for.nullables: false
@@ -48,3 +48,7 @@ spring:
               type:
                 headers: false
     bootstrap-servers: localhost:9092
+
+logging:
+  level:
+    org.apache.kafka.streams.kstream: INFO

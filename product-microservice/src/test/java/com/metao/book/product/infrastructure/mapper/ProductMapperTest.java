@@ -1,6 +1,7 @@
 package com.metao.book.product.infrastructure.mapper;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.metao.book.product.application.dto.CategoryDTO;
@@ -73,7 +74,7 @@ public class ProductMapperTest {
         var pe = ProductTestUtils.createProductEntity();
         var allPr = List.of(pe);
         var allPrDtos = productMapper.toDtos(allPr);
-        assertThat(allPrDtos.size() == allPr.size());
+        assertEquals(allPrDtos.size(), allPr.size());
         allPrDtos.forEach(dto -> assertThat(dto)
                 .extracting(
                         ProductDTO::getTitle,

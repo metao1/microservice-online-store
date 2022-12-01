@@ -12,6 +12,8 @@ dependencies {
     implementation 'org.apache.avro:avro'
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'org.apache.kafka:kafka-streams'
+    implementation 'org.apache.kafka:kafka-clients'
+
     implementation 'io.confluent:kafka-avro-serializer'
     implementation 'io.confluent:kafka-streams-avro-serde'
 
@@ -19,6 +21,7 @@ dependencies {
     testImplementation 'org.testcontainers:postgresql'
     testImplementation 'org.testcontainers:testcontainers'
     testImplementation 'org.springframework.kafka:spring-kafka-test'
+    testImplementation 'org.apache.kafka:kafka-streams-test-utils'
 
 }
 

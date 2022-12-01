@@ -1,13 +1,12 @@
 package com.metao.book.order.application.dto;
 
+import jakarta.validation.constraints.Pattern;
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.avro.reflect.AvroDoc;
-
-import javax.validation.constraints.Pattern;
-import java.io.Serializable;
 
 @Data
 @Builder

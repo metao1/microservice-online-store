@@ -9,22 +9,22 @@ import com.metao.book.shared.domain.base.ConcurrencySafeDomainObject;
 import com.metao.book.shared.domain.base.DomainObjectId;
 import com.metao.book.shared.domain.financial.Currency;
 import com.metao.book.shared.domain.financial.Money;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.Version;
+import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.Table;
-import javax.persistence.Version;
-import javax.validation.Valid;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -71,9 +71,9 @@ public class ProductEntity extends AbstractEntity<ProductId> implements Concurre
     @Enumerated(EnumType.STRING)
     private Currency priceCurrency;
 
-    private int availableItems;
+    private double availableItems;
 
-    private int reservedItems;
+    private double reservedItems;
 
     @BatchSize(size = 20)
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)

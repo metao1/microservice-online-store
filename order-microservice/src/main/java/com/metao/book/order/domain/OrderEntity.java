@@ -4,13 +4,6 @@ package com.metao.book.order.domain;
 //import com.metao.book.shared.domain.financial.Currency;
 //import com.metao.book.shared.domain.financial.Money;
 //
-//import javax.persistence.Column;
-//import javax.persistence.Entity;
-//import javax.persistence.EnumType;
-//import javax.persistence.Enumerated;
-//import javax.persistence.Table;
-//import javax.persistence.Transient;
-//
 //import javax.validation.Valid;
 //
 //@Entity

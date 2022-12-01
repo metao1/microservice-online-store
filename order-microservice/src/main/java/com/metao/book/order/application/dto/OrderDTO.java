@@ -31,8 +31,8 @@ public class OrderDTO implements Serializable {
     int quantity;
 
     @JsonProperty("currency")
-    private Currency currency;
+    Currency currency;
 
     @JsonProperty("price")
-    private int price;
+    double price;
 }

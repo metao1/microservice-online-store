@@ -4,7 +4,8 @@ plugins {
     id 'base'
     id 'idea'
     id 'com.google.cloud.tools.jib' version '3.1.4'  apply false
-    id 'org.springframework.boot' version '2.7.5' apply false
+    id 'org.springframework.boot' version '3.0.0' apply false
+    id 'io.spring.dependency-management' version '1.1.0'
     id 'com.github.davidmc24.gradle.plugin.avro' version '1.2.0'
 }
 
@@ -20,6 +21,16 @@ subprojects {
     repositories {
         mavenCentral()
         maven { url 'https://packages.confluent.io/maven/' }
+    }
+
+    compileTestJava {
+        sourceCompatibility = 17
+        options.encoding = 'UTF-8'
+    }
+
+    compileJava {
+        sourceCompatibility = 17
+        targetCompatibility = 17
     }
 
     avro {
@@ -86,10 +97,35 @@ subprojects {
                 details.useTarget group: details.requested.group, name: details.requested.name, version: confluentVersion
                 details.because "prefer 'io.confluent' version ${confluentVersion} over any version of 'io.confluent'"
             }
-            def kafkaStreamVersion = '3.0.0'
+            def kafkaStreamVersion = '3.3.1'
             if (details.requested.name == 'kafka-streams') {
                 details.useTarget group: 'org.apache.kafka', name: 'kafka-streams', version: kafkaStreamVersion
                 details.because "prefer 'kakfa-stream' version ${kafkaStreamVersion} over any other 'kakfa-stream' version"
+            }
+//            if (details.requested.name == 'kafka-server-common') {
+//                details.useTarget group: 'org.apache.kafka', name: 'kafka-server-common', version: kafkaStreamVersion
+//                details.because "prefer 'kafka-server-common' version ${kafkaStreamVersion} over any other 'kafka-server-common' version"
+//            }
+//            if (details.requested.name == 'kafka-storage') {
+//                details.useTarget group: 'org.apache.kafka', name: 'kafka-storage', version: kafkaStreamVersion
+//                details.because "prefer 'kafka-storage' version ${kafkaStreamVersion} over any other 'kafka-storage' version"
+//            }
+//            if (details.requested.name == 'kafka-storage-api') {
+//                details.useTarget group: 'org.apache.kafka', name: 'kafka-storage-api', version: kafkaStreamVersion
+//                details.because "prefer 'kafka-storage-api' version ${kafkaStreamVersion} over any other 'kafka-storage-api' version"
+//            }
+//            if (details.requested.name == 'kafka_2.13') {
+//                details.useTarget group: 'org.apache.kafka', name: 'kafka_2.13', version: kafkaStreamVersion
+//                details.because "prefer 'kafka_2.13' version ${kafkaStreamVersion} over any other 'kafka_2.13' version"
+//            }
+//            if (details.requested.name == 'kafka-clients') {
+//                details.useTarget group: 'org.apache.kafka', name: 'kafka-clients', version: kafkaStreamVersion
+//                details.because "prefer 'kafka-clients' version ${kafkaStreamVersion} over any other 'kafka-clients' version"
+//            }
+
+            if (details.requested.name == 'kafka-streams-test-utils'){
+                details.useTarget group: 'org.apache.kafka', name: 'kafka-streams-test-utils', version: kafkaStreamVersion
+                details.because "prefer 'kafka-streams-test-utils' version ${kafkaStreamVersion} over any other 'kafka-streams-test-utils' version"
             }
             def avroVersion = '1.11.0'
             if (details.requested.name == 'avro') {
