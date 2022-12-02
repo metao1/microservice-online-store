@@ -19,11 +19,13 @@ import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Produced;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class OrderStreamTest {
 
     @Test
+    @Disabled
     void shouldAggregateRecord() {
         var streamProps = getStreamsProperties();
         final String inputTopicName = "input";
