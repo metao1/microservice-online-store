@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:11.1:///integration-tests-db
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: on
+    open-in-view: false
+    hibernate:
+      ddl-auto: create
+  main:
+    banner-mode: off
