@@ -8,10 +8,9 @@ eureka:
   client:
     enabled: false
 
-
 spring:
   datasource:
-    url: jdbc:tc:postgresql:11.1:///integration-tests-db
+    url: jdbc:tc:postgresql:13.1:///integration-tests-db
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
   jpa:
     properties:

@@ -66,38 +66,24 @@ spring:
       enabled: false
   datasource:
     url: jdbc:h2:mem:product-app;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    platform: h2
     driverClassName: org.h2.Driver
+
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
-    show-sql: false
+    database: POSTGRESQL
+    show-sql: true
     generate-ddl: true
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.PostgreSQL9Dialect
     properties:
+      open-in-view: false
       hibernate:
-        show_sql: false
-        use_sql_comments: true
-        format_sql: true
-  application:
-    name: "product"
-# spring:
-#   jpa:
-#     database: POSTGRESQL
-#     show-sql: true
-#     generate-ddl: true
-#     hibernate:
-#       ddl-auto: update
-#     database-platform: org.hibernate.dialect.PostgreSQL9Dialect
-#     properties:
-#       hibernate:
-#         temp:
-#           use_jdbc_metadata_defaults: false
-#     open-in-view: false
-#   datasource:
-#     url: jdbc:postgresql://localhost:5432/product
-#     username: postgres
-#     password: secset
+        temp:
+          use_jdbc_metadata_defaults: false
+      datasource:
+        url: jdbc:postgresql://localhost:5432/product
+        username: postgres
+        password: secset
 
 
 logging:

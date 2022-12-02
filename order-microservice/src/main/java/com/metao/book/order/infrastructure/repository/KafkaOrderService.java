@@ -1,10 +1,10 @@
 package com.metao.book.order.infrastructure.repository;
 
 import com.metao.book.shared.OrderAvro;
-import jakarta.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import javax.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

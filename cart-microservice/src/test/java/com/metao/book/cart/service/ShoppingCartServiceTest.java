@@ -33,7 +33,7 @@ class ShoppingCartServiceTest {
             assertFalse(shoppingCartService.getProductsInCartByUserId(shoppingCart.getUserId()).isEmpty());
         };
         Stream<ShoppingCart> of = buildShoppingCartStream();
-        return DynamicTest.stream(of, displayNameGenerator, testExecutor);
+        return DynamicTest.stream(of.iterator(), displayNameGenerator, testExecutor);
     }
 
     private Stream<ShoppingCart> buildShoppingCartStream() {

@@ -1,7 +1,7 @@
 package com.metao.book.order.application.dto;
 
-import jakarta.validation.constraints.Pattern;
 import java.io.Serializable;
+import javax.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

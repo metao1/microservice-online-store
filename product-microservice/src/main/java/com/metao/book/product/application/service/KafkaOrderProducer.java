@@ -1,7 +1,6 @@
 package com.metao.book.product.application.service;
 
 import com.metao.book.shared.OrderAvro;
-import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -19,8 +18,8 @@ public class KafkaOrderProducer {
     public void send(String topic, String orderId, OrderAvro order) {
         log.info("sending order='{}' to topic='{}'", order, topic);
         kafkaTemplate.send(topic, orderId, order)
-            .acceptEitherAsync(new CompletableFuture<>(),
-                result -> log.info("Sent: {}",
-                    result != null ? result.getProducerRecord().value() : null));
+            .addCallback(result -> log.info("Sent: {}",
+                result != null ? result.getProducerRecord().value() : null), ex -> {
+            });
     }
 }

@@ -1,8 +1,8 @@
 package com.metao.book.checkout.repository;
 
 import com.metao.book.checkout.domain.ProductInventoryEntity;
-import jakarta.validation.constraints.NotNull;
 import java.util.Optional;
+import javax.validation.constraints.NotNull;
 import org.springframework.data.repository.CrudRepository;
 
 public interface ProductInventoryRepository extends CrudRepository<ProductInventoryEntity, String> {

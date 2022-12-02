@@ -1,15 +1,12 @@
-group = 'com.metao.book.retails'
-version = '0.0.1-SNAPSHOT'
-
 ext {
-    set('testcontainersVersion', "1.17.3")
+    set('testcontainersVersion', "1.17.6")
 }
 
 dependencies {
     implementation project(':shared-kernel')
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'com.h2database:h2:2.1.214'
-    implementation 'org.apache.avro:avro'
+
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'org.apache.kafka:kafka-streams'
     implementation 'org.apache.kafka:kafka-clients'
@@ -17,9 +14,10 @@ dependencies {
     implementation 'io.confluent:kafka-avro-serializer'
     implementation 'io.confluent:kafka-streams-avro-serde'
 
-    testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:postgresql'
     testImplementation 'org.testcontainers:testcontainers'
+    testImplementation 'org.testcontainers:junit-jupiter'
+
     testImplementation 'org.springframework.kafka:spring-kafka-test'
     testImplementation 'org.apache.kafka:kafka-streams-test-utils'
 

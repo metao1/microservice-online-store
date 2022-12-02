@@ -10,7 +10,6 @@ import com.metao.book.shared.ProductsResponseEvent;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,9 +40,9 @@ public class RemoteProductService {
                 var productsResponseEvent = new ProductsResponseEvent(List.of(productEvent),
                     Instant.now().toEpochMilli());
                 kafkaTemplate.send(productEventTopic, product.getAsin(), productsResponseEvent)
-                    .acceptEitherAsync(new CompletableFuture<>(),
-                        e -> log.error("Failed to send message:{}", e.getRecordMetadata())
-                    );
+                    .addCallback(result -> log.info("Sent: {}",
+                        result != null ? result.getProducerRecord().value() : null), ex -> {
+                    });
             });
     }
 

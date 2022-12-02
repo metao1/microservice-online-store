@@ -6,9 +6,9 @@ import com.metao.book.product.infrastructure.factory.handler.ProductEventHandler
 import com.metao.book.product.infrastructure.factory.handler.ProductMessageHandler;
 import com.metao.book.product.infrastructure.mapper.ProductDtoMapper;
 import com.metao.book.product.infrastructure.util.EventUtil;
-import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.Optional;
+import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
