@@ -19,13 +19,11 @@ import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Produced;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class OrderStreamTest {
 
     @Test
-    @Disabled
     void shouldAggregateRecord() {
         var streamProps = getStreamsProperties();
         final String inputTopicName = "input";
@@ -81,6 +79,7 @@ public class OrderStreamTest {
         final Properties streamProps = new Properties();
         streamProps.put(StreamsConfig.APPLICATION_ID_CONFIG, "aggregate_test");
         streamProps.put("schema.registry.url", "mock://aggregation-test");
+        streamProps.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
         return streamProps;
     }
 }

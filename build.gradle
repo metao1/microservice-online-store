@@ -100,11 +100,27 @@ subprojects {
                 details.useTarget group: details.requested.group, name: details.requested.name, version: confluentVersion
                 details.because "prefer 'io.confluent' version ${confluentVersion} over any version of 'io.confluent'"
             }
-//            def kafkaStreamVersion = '3.3.1'
-//            if (details.requested.name == 'kafka-streams') {
-//                details.useTarget group: 'org.apache.kafka', name: 'kafka-streams', version: kafkaStreamVersion
-//                details.because "prefer 'kakfa-stream' version ${kafkaStreamVersion} over any other 'kakfa-stream' version"
-//            }
+            def kafkaStreamVersion = '3.3.1'
+            if (details.requested.name == 'kafka-streams') {
+                details.useTarget group: 'org.apache.kafka', name: 'kafka-streams', version: kafkaStreamVersion
+                details.because "prefer 'kakfa-stream' version ${kafkaStreamVersion} over any other 'kakfa-stream' version"
+            }
+            if (details.requested.name == 'kafka-clients') {
+                details.useTarget group: 'org.apache.kafka', name: 'kafka-clients', version: kafkaStreamVersion
+                details.because "prefer 'kakfa-clients' version ${kafkaStreamVersion} over any other 'kakfa-clients' version"
+            }
+            if (details.requested.name == 'kafka-storage') {
+                details.useTarget group: 'org.apache.kafka', name: 'kafka-storage', version: kafkaStreamVersion
+                details.because "prefer 'kakfa-storage' version ${kafkaStreamVersion} over any other 'kakfa-storage' version"
+            }
+            if (details.requested.name == 'kafka-storage-api') {
+                details.useTarget group: 'org.apache.kafka', name: 'kafka-storage-api', version: kafkaStreamVersion
+                details.because "prefer 'kafka-storage-api' version ${kafkaStreamVersion} over any other 'kafka-storage-api' version"
+            }
+            if (details.requested.name == 'kafka-streams-test-utils') {
+                details.useTarget group: 'org.apache.kafka', name: 'kafka-streams-test-utils', version: kafkaStreamVersion
+                details.because "prefer 'kafka-streams-test-utils version ${kafkaStreamVersion} over any other 'kafka-streams-test-utils' version"
+            }
             def avroVersion = '1.11.0'
             if (details.requested.name == 'avro') {
                 details.useTarget group: 'org.apache.avro', name: 'avro', version: avroVersion
