@@ -6,16 +6,15 @@ import com.metao.book.product.infrastructure.factory.handler.ProductEventHandler
 import com.metao.book.product.infrastructure.factory.handler.ProductMessageHandler;
 import com.metao.book.product.infrastructure.mapper.ProductDtoMapper;
 import com.metao.book.product.infrastructure.util.EventUtil;
+import jakarta.annotation.PostConstruct;
+import java.io.IOException;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.util.Optional;
 
 @Slf4j
 @Component

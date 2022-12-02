@@ -40,7 +40,7 @@ public class ProductMapperTest {
                 Currency.DLR,
                 new Image("https://example.com/image.jpg"));
 
-        assertThat(pe.getProductCategory())
+        assertThat(pe.getCategories())
                 .matches(categoryEntities -> categoryEntities
                         .contains(new ProductCategoryEntity(new Category("book"))));
     }
@@ -49,7 +49,7 @@ public class ProductMapperTest {
     public void givenProductEntity_whenConvertToProductDTO_isOk() {
         var pe = ProductTestUtils.createProductEntity();
         var productDto = ProductEntity.toDto(pe);
-        var categories = pe.getProductCategory();
+        var categories = pe.getCategories();
 
         productDto.getCategories()
                 .stream()

@@ -77,10 +77,14 @@ public class ProductEntity extends AbstractEntity<ProductId> implements Concurre
 
     @BatchSize(size = 20)
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinTable(name = "product_category_map", joinColumns = {@JoinColumn(name = "product_id")}, inverseJoinColumns = {
-        @JoinColumn(name = "product_category_id")})
+    @JoinTable(name = "product_category_map",
+        joinColumns =
+            {@JoinColumn(name = "product_id")},
+        inverseJoinColumns = {
+            @JoinColumn(name = "product_category_id")}
+    )
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-    private Set<ProductCategoryEntity> productCategory = new HashSet<>();
+    private Set<ProductCategoryEntity> categories;
 
     public ProductEntity(
             @NonNull String asin,
@@ -95,28 +99,34 @@ public class ProductEntity extends AbstractEntity<ProductId> implements Concurre
         this.priceValue = money.doubleAmount();
         this.priceCurrency = money.currency();
         this.image = image;
-        this.productCategory = new HashSet<>();
+        this.categories = new HashSet<>();
     }
 
     public static ProductDTO toDto(@Valid ProductEntity pr) {
         return ProductDTO.builder().description(pr.getDescription()).title(pr.getTitle()).asin(pr.getIsin())
             .currency(pr.getPriceCurrency())
             .price(pr.getPriceValue())
-            .categories(mapCategoryEntitiesToDTOs(pr.getProductCategory()))
+            .categories(mapCategoryEntitiesToDTOs(pr.getCategories()))
             .imageUrl(pr.getImage().url())
             .build();
     }
 
     private static Set<CategoryDTO> mapCategoryEntitiesToDTOs(@NonNull Set<ProductCategoryEntity> source) {
         return source
-                .stream()
-                .map(ProductCategoryEntity::getCategory)
-                .map(Category::category)
-                .map(CategoryDTO::of)
-                .collect(Collectors.toSet());
+            .stream()
+            .map(ProductCategoryEntity::getCategory)
+            .map(Category::category)
+            .map(CategoryDTO::of)
+            .collect(Collectors.toSet());
     }
 
     public void addCategory(@NonNull ProductCategoryEntity category) {
-        productCategory.add(category);
+        categories.add(category);
+        category.getProductEntities().add(this);
+    }
+
+    public void removeCategory(@NonNull ProductCategoryEntity category) {
+        categories.remove(category);
+        category.getProductEntities().remove(this);
     }
 }
