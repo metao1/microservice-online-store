@@ -105,6 +105,26 @@ subprojects {
                 details.useTarget group: 'org.apache.kafka', name: 'kafka-streams', version: kafkaStreamVersion
                 details.because "prefer 'kakfa-stream' version ${kafkaStreamVersion} over any other 'kakfa-stream' version"
             }
+            if (details.requested.name == 'kafka_2.13') {
+                details.useTarget group: 'org.apache.kafka', name: 'kafka_2.13', version: kafkaStreamVersion
+                details.because "prefer 'kakfa-stream' version ${kafkaStreamVersion} over any other 'kakfa-stream' version"
+            }
+            if (details.requested.name == 'kafka-server-common') {
+                details.useTarget group: 'org.apache.kafka', name: 'kafka-server-common', version: kafkaStreamVersion
+                details.because "prefer 'kafka-server-common' version ${kafkaStreamVersion} over any other 'kafka-server-common' version"
+            }
+            if (details.requested.name == 'kafka-raft') {
+                details.useTarget group: 'org.apache.kafka', name: 'kafka-raft', version: kafkaStreamVersion
+                details.because "prefer 'kafka-server-common' version ${kafkaStreamVersion} over any other 'kafka-server-common' version"
+            }
+            if (details.requested.name == 'kafka-metadata') {
+                details.useTarget group: 'org.apache.kafka', name: 'kafka-metadata', version: kafkaStreamVersion
+                details.because "prefer 'kafka-server-common' version ${kafkaStreamVersion} over any other 'kafka-server-common' version"
+            }
+            if (details.requested.name == 'kafka-metadata') {
+                details.useTarget group: 'org.apache.kafka', name: 'kafka-metadata', version: kafkaStreamVersion
+                details.because "prefer 'kafka-server-common' version ${kafkaStreamVersion} over any other 'kafka-server-common' version"
+            }
             if (details.requested.name == 'kafka-clients') {
                 details.useTarget group: 'org.apache.kafka', name: 'kafka-clients', version: kafkaStreamVersion
                 details.because "prefer 'kakfa-clients' version ${kafkaStreamVersion} over any other 'kakfa-clients' version"
