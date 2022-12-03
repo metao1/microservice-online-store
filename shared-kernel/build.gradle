@@ -3,4 +3,8 @@ dependencies {
     compileOnly 'com.fasterxml.jackson.core:jackson-databind:2.14.0'
     compileOnly 'org.springframework.boot:spring-boot-starter-web'
     compileOnly 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    compileOnly 'io.micrometer:micrometer-registry-prometheus'
+    compileOnly 'io.micrometer:micrometer-core'
+    compileOnly 'io.opentracing.brave:brave-opentracing'
 }

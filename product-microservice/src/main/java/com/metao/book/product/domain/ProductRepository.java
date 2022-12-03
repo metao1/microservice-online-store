@@ -16,4 +16,6 @@ public interface ProductRepository extends JpaRepository<ProductEntity, ProductI
     @Query("select distinct p, pc from ProductEntity p join fetch p.categories pc where p.id = :productId")
     Optional<Set<ProductCategoryEntity>> findProductCategoriesByProductId(@Param("productId") ProductId productId);
 
+    Optional<ProductEntity> findByIsin(String isin);
+
 }

@@ -5,14 +5,14 @@ import com.metao.book.shared.ProductEvent;
 import com.metao.book.shared.ProductsResponseEvent;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
-
-import java.util.Map;
+import org.springframework.kafka.core.CleanupConfig;
 
 @EnableKafka
 @Configuration
@@ -52,6 +52,11 @@ public class KafkaConfig {
         var result = new SpecificAvroSerde<ProductsResponseEvent>();
         result.configure(kafkaProperties.getProperties(), false);
         return result;
+    }
+
+    @Bean
+    CleanupConfig cleanupConfig() {
+        return new CleanupConfig(false, false);
     }
 
 }

@@ -7,6 +7,7 @@ import java.time.Instant;
  */
 public interface DomainEvent extends DomainObject {
 
-    String getId();
-    Instant getOccurredOn();
+    String id();
+
+    Instant occurredOn();
 }

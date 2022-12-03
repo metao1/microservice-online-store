@@ -1,10 +1,9 @@
 package com.metao.book.product.infrastructure.factory.handler;
 
 import com.metao.book.product.domain.event.CreateProductEvent;
-import org.springframework.stereotype.Service;
-
 import java.util.HashSet;
 import java.util.Set;
+import org.springframework.stereotype.Service;
 
 @Service
 public class ProductEventHandler {
@@ -16,7 +15,6 @@ public class ProductEventHandler {
     }
 
     public void sendEvent(CreateProductEvent event) {
-        messageHandlers
-                .forEach(me -> me.onMessage(event));
+        messageHandlers.forEach(me -> me.onMessage(event));
     }
 }

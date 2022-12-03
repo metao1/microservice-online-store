@@ -12,9 +12,6 @@ import com.metao.book.product.infrastructure.factory.handler.kafka.KafkaProductC
 import com.metao.book.product.util.ProductTestUtils;
 import com.metao.book.shared.Currency;
 import com.metao.book.shared.ProductEvent;
-import com.metao.book.shared.ProductsResponseEvent;
-import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import lombok.SneakyThrows;
@@ -64,11 +61,8 @@ class RemoteProductServiceTest extends SpringBootEmbeddedKafka {
         var pe = ProductTestUtils.createProductEntity();
         when(productService.getProductById(new ProductId(PRODUCT_ID)))
             .thenReturn(Optional.of(pe));
-        var getProductEvent = ProductsResponseEvent.newBuilder()
-            .setOccurredOn(Instant.now().getEpochSecond())
-            .setProducts(List.of(productEvent))
-            .build();
-        remoteProductService.handle(getProductEvent);
+
+        remoteProductService.handle(productEvent);
 
         consumer.getLatch().await(5, TimeUnit.SECONDS);
         assertEquals(0, consumer.getLatch().getCount());
