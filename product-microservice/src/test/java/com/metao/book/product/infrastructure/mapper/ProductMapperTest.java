@@ -1,6 +1,7 @@
 package com.metao.book.product.infrastructure.mapper;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.metao.book.product.application.dto.CategoryDTO;
@@ -39,7 +40,7 @@ public class ProductMapperTest {
                 Currency.DLR,
                 new Image("https://example.com/image.jpg"));
 
-        assertThat(pe.getProductCategory())
+        assertThat(pe.getCategories())
                 .matches(categoryEntities -> categoryEntities
                         .contains(new ProductCategoryEntity(new Category("book"))));
     }
@@ -48,7 +49,7 @@ public class ProductMapperTest {
     public void givenProductEntity_whenConvertToProductDTO_isOk() {
         var pe = ProductTestUtils.createProductEntity();
         var productDto = ProductEntity.toDto(pe);
-        var categories = pe.getProductCategory();
+        var categories = pe.getCategories();
 
         productDto.getCategories()
                 .stream()
@@ -73,7 +74,7 @@ public class ProductMapperTest {
         var pe = ProductTestUtils.createProductEntity();
         var allPr = List.of(pe);
         var allPrDtos = productMapper.toDtos(allPr);
-        assertThat(allPrDtos.size() == allPr.size());
+        assertEquals(allPrDtos.size(), allPr.size());
         allPrDtos.forEach(dto -> assertThat(dto)
                 .extracting(
                         ProductDTO::getTitle,

@@ -14,10 +14,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.concurrent.ListenableFutureCallback;
 
 @Slf4j
 @Service
@@ -42,16 +40,8 @@ public class RemoteProductService {
                 var productsResponseEvent = new ProductsResponseEvent(List.of(productEvent),
                     Instant.now().toEpochMilli());
                 kafkaTemplate.send(productEventTopic, product.getAsin(), productsResponseEvent)
-                    .addCallback(new ListenableFutureCallback<>() {
-                        @Override
-                        public void onFailure(Throwable ex) {
-                            log.error("Failed to send message", ex);
-                        }
-
-                        @Override
-                        public void onSuccess(SendResult<String, ProductsResponseEvent> result) {
-                            log.info("Sent message with offset: {}", result.getRecordMetadata().offset());
-                        }
+                    .addCallback(result -> log.info("Sent: {}",
+                        result != null ? result.getProducerRecord().value() : null), ex -> {
                     });
             });
     }

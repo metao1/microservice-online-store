@@ -18,9 +18,8 @@ public class KafkaOrderProducer {
     public void send(String topic, String orderId, OrderAvro order) {
         log.info("sending order='{}' to topic='{}'", order, topic);
         kafkaTemplate.send(topic, orderId, order)
-                .addCallback(result -> log.info("Sent: {}",
-                                result != null ? result.getProducerRecord().value() : null),
-                        ex -> {
-                        });
+            .addCallback(result -> log.info("Sent: {}",
+                result != null ? result.getProducerRecord().value() : null), ex -> {
+            });
     }
 }

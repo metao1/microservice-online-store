@@ -4,12 +4,14 @@ plugins {
     id 'base'
     id 'idea'
     id 'com.google.cloud.tools.jib' version '3.1.4'  apply false
-    id 'org.springframework.boot' version '2.7.5' apply false
+    id 'org.springframework.boot' version '2.7.6' apply false
+    id 'io.spring.dependency-management' version '1.1.0'
     id 'com.github.davidmc24.gradle.plugin.avro' version '1.2.0'
 }
 
 allprojects {
     group 'com.metao.book'
+    version = System.getenv('CI_COMMIT_REF_NAME') ? System.getenv('CI_COMMIT_REF_NAME') : "${getCurrentGitBranch()}-${getHostName()}"
 }
 
 subprojects {
@@ -20,6 +22,16 @@ subprojects {
     repositories {
         mavenCentral()
         maven { url 'https://packages.confluent.io/maven/' }
+    }
+
+    compileTestJava {
+        sourceCompatibility = 17
+        options.encoding = 'UTF-8'
+    }
+
+    compileJava {
+        sourceCompatibility = 17
+        targetCompatibility = 17
     }
 
     avro {
@@ -42,10 +54,10 @@ subprojects {
         test {
             useJUnitPlatform()
 
-            /*testLogging {
-                showStandardStreams true
-                showStackTraces true
-            }*/
+//            testLogging {
+//                showStandardStreams true
+//                showStackTraces true
+//            }
 
             doFirst {
                 systemProperty 'spring.profiles.active', 'test'
@@ -55,13 +67,17 @@ subprojects {
                 events "PASSED", "SKIPPED", "FAILED"
             }
         }
-
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+        exclude group: 'org.slf4j', module: 'slf4j-simple'
+        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+        exclude group: 'org.junit.vintage:junit-vintage-engine'
         dependencyManagement {
             imports {
                 mavenBom SpringBootPlugin.BOM_COORDINATES
                 mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2020.0.3'
             }
         }
+
 
         dependencies {
 
@@ -75,21 +91,55 @@ subprojects {
             testAnnotationProcessor 'org.projectlombok:lombok'
             testImplementation 'org.projectlombok:lombok'
 
-            testImplementation('org.springframework.boot:spring-boot-starter-test') {
-                exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
-            }
+            testImplementation('org.springframework.boot:spring-boot-starter-test')
         }
 
-        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        resolutionStrategy.eachDependency { details ->
             def confluentVersion = '7.1.1'
             if (details.requested.group == 'io.confluent') {
                 details.useTarget group: details.requested.group, name: details.requested.name, version: confluentVersion
                 details.because "prefer 'io.confluent' version ${confluentVersion} over any version of 'io.confluent'"
             }
-            def kafkaStreamVersion = '3.0.0'
+            def kafkaStreamVersion = '3.3.1'
             if (details.requested.name == 'kafka-streams') {
                 details.useTarget group: 'org.apache.kafka', name: 'kafka-streams', version: kafkaStreamVersion
                 details.because "prefer 'kakfa-stream' version ${kafkaStreamVersion} over any other 'kakfa-stream' version"
+            }
+            if (details.requested.name == 'kafka_2.13') {
+                details.useTarget group: 'org.apache.kafka', name: 'kafka_2.13', version: kafkaStreamVersion
+                details.because "prefer 'kakfa-stream' version ${kafkaStreamVersion} over any other 'kakfa-stream' version"
+            }
+            if (details.requested.name == 'kafka-server-common') {
+                details.useTarget group: 'org.apache.kafka', name: 'kafka-server-common', version: kafkaStreamVersion
+                details.because "prefer 'kafka-server-common' version ${kafkaStreamVersion} over any other 'kafka-server-common' version"
+            }
+            if (details.requested.name == 'kafka-raft') {
+                details.useTarget group: 'org.apache.kafka', name: 'kafka-raft', version: kafkaStreamVersion
+                details.because "prefer 'kafka-server-common' version ${kafkaStreamVersion} over any other 'kafka-server-common' version"
+            }
+            if (details.requested.name == 'kafka-metadata') {
+                details.useTarget group: 'org.apache.kafka', name: 'kafka-metadata', version: kafkaStreamVersion
+                details.because "prefer 'kafka-server-common' version ${kafkaStreamVersion} over any other 'kafka-server-common' version"
+            }
+            if (details.requested.name == 'kafka-metadata') {
+                details.useTarget group: 'org.apache.kafka', name: 'kafka-metadata', version: kafkaStreamVersion
+                details.because "prefer 'kafka-server-common' version ${kafkaStreamVersion} over any other 'kafka-server-common' version"
+            }
+            if (details.requested.name == 'kafka-clients') {
+                details.useTarget group: 'org.apache.kafka', name: 'kafka-clients', version: kafkaStreamVersion
+                details.because "prefer 'kakfa-clients' version ${kafkaStreamVersion} over any other 'kakfa-clients' version"
+            }
+            if (details.requested.name == 'kafka-storage') {
+                details.useTarget group: 'org.apache.kafka', name: 'kafka-storage', version: kafkaStreamVersion
+                details.because "prefer 'kakfa-storage' version ${kafkaStreamVersion} over any other 'kakfa-storage' version"
+            }
+            if (details.requested.name == 'kafka-storage-api') {
+                details.useTarget group: 'org.apache.kafka', name: 'kafka-storage-api', version: kafkaStreamVersion
+                details.because "prefer 'kafka-storage-api' version ${kafkaStreamVersion} over any other 'kafka-storage-api' version"
+            }
+            if (details.requested.name == 'kafka-streams-test-utils') {
+                details.useTarget group: 'org.apache.kafka', name: 'kafka-streams-test-utils', version: kafkaStreamVersion
+                details.because "prefer 'kafka-streams-test-utils version ${kafkaStreamVersion} over any other 'kafka-streams-test-utils' version"
             }
             def avroVersion = '1.11.0'
             if (details.requested.name == 'avro') {
@@ -98,5 +148,24 @@ subprojects {
             }
         }
     }
+}
 
+def static getHostName() {
+    return InetAddress.localHost.hostName
+}
+
+def getCurrentGitBranch() {
+    def gitBranch = 'unknown-branch'
+    try {
+        def workingDir = new File("${project.projectDir}")
+        def result = 'git rev-parse --abbrev-ref HEAD'.execute(null, workingDir)
+        result.waitFor()
+        if (result.exitValue() == 0) {
+            gitBranch = result.text.trim()
+        }
+    } catch (e) {
+        logger.error('Unable to fetch current GIT branch', e)
+    }
+    logger.info("Your current GIT branch is {}", gitBranch)
+    return gitBranch
 }

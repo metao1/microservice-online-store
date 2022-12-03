@@ -1,12 +1,11 @@
 package com.metao.book.checkout.domain;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 @Setter
@@ -19,9 +18,9 @@ public class ProductInventoryEntity {
     private String asin;
 
     @Column(name = "amount_available")
-    private Integer amountAvailable;
+    private Double amountAvailable;
 
     @Column(name = "amount_reserved")
-    private long amountReserved; // quantity - reservedQuantity
+    private Double amountReserved; // quantity - reservedQuantity
 
 }

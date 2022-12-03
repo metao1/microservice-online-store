@@ -3,8 +3,11 @@ package com.metao.book.product.domain;
 import com.metao.book.product.domain.category.Category;
 import com.metao.book.shared.domain.base.AbstractEntity;
 import com.metao.book.shared.domain.base.DomainObjectId;
+import java.util.HashSet;
+import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import lombok.Getter;
@@ -19,13 +22,17 @@ public class ProductCategoryEntity extends AbstractEntity<ProductCategoryId> {
     @Column(name = "category", nullable = false)
     private Category category;
 
-    public ProductCategoryEntity(@NotNull Category category) {
-        super(DomainObjectId.randomId(ProductCategoryId.class));
-        this.category = category;
-    }
+    @ManyToMany(mappedBy = "categories")
+    private Set<ProductEntity> productEntities;
 
     @SuppressWarnings("unused")
     public ProductCategoryEntity() {
+    }
+
+    public ProductCategoryEntity(@NotNull Category category) {
+        super(DomainObjectId.randomId(ProductCategoryId.class));
+        this.category = category;
+        this.productEntities = new HashSet<>();
     }
 
     public Category getCategory() {

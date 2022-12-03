@@ -38,7 +38,7 @@
     },
     {
       "name": "price",
-      "type": "int"
+      "type": "double"
     },
     {
       "name": "source",

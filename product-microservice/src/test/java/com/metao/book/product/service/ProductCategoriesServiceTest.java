@@ -1,54 +1,54 @@
 package com.metao.book.product.service;
-/*
- * package com.metao.book.retail.retails.service;
- *
- * import com.metao.book.retail.retails.BaseTest;
- * import com.metao.book.retail.retails.mapper.ProductCategoriesMapper;
- * import com.metao.book.retail.retails.model.ProductCategoriesDTO;
- * import com.metao.book.retail.retails.persistence.CategoriesRepository;
- * import com.metao.book.retail.retails.service.impl.
- * ProductCategoriesServiceImplementation;
- * import org.assertj.core.api.Assertions;
- * import org.junit.jupiter.api.Test;
- * import org.junit.jupiter.api.extension.ExtendWith;
- * import org.mockito.InjectMocks;
- * import org.mockito.Mock;
- * import org.mockito.junit.jupiter.MockitoExtension;
- *
- * import java.util.ArrayList;
- * import java.util.List;
- * import java.util.UUID;
- *
- * import static org.mockito.Mockito.when;
- *
- * @ExtendWith(MockitoExtension.class)
- * class ProductCategoriesServiceTest extends BaseTest {
- *
- * @InjectMocks
- * ProductCategoriesServiceImplementation productCategoriesService;
- *
- * @Mock
- * CategoriesRepository categoriesRepository;
- *
- * @Mock
- * ProductCategoriesMapper productCategoriesMapper;
- *
- * @Test
- * void getProductCategories() {
- * String productCategoryId = UUID.randomUUID().toString();
- * when(productCategoriesMapper.toDto(productCategoryEntity))
- * .thenReturn(ProductCategoriesDTO.builder()
- * .categories("book")
- * .id(productCategoryId)
- * .build());
- * when(categoriesRepository.findProductEntities())
- * .thenReturn(new ArrayList<>(productCategoryEntities));
- * List<ProductCategoriesDTO> categories = productCategoriesService
- * .getProductCategories();
- *
- * Assertions.assertThat(categories)
- * .isNotNull()
- * .hasSize(1);
- * }
- * }
- */
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.doReturn;
+
+import com.metao.book.product.application.dto.CategoryDTO;
+import com.metao.book.product.application.service.ProductCategoriesService;
+import com.metao.book.product.domain.ProductCategoryEntity;
+import com.metao.book.product.domain.ProductId;
+import com.metao.book.product.domain.ProductRepository;
+import com.metao.book.product.domain.category.Category;
+import com.metao.book.product.infrastructure.mapper.ProductCategoryMapper;
+import com.metao.book.product.util.ProductTestUtils;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
+class ProductCategoriesServiceTest {
+
+    public static final String PRODUCT_ID = "id";
+    @Mock
+    ProductRepository productRepository;
+
+    @InjectMocks
+    ProductCategoriesService productCategoriesService;
+
+    @InjectMocks
+    ProductCategoryMapper productCategoriesMapper;
+
+    @Test
+    void getProductCategories() {
+        var productCategory = Set.of(ProductTestUtils.createProductCategoryEntity());
+        var returnedProductCategories = Optional.of(Set.of(new ProductCategoryEntity(new Category("book"))));
+        doReturn(returnedProductCategories)
+            .when(productRepository)
+            .findProductCategoriesByProductId(new ProductId(PRODUCT_ID));
+        var categories = productCategoriesService
+            .getProductCategories(PRODUCT_ID)
+            .map(productCategoriesMapper::convertToDtoSet);
+
+        assertTrue(categories.isPresent());
+        assertThat(categories.get())
+            .extracting(CategoryDTO::getCategory)
+            .isEqualTo(List.of("book"));
+
+    }
+}
