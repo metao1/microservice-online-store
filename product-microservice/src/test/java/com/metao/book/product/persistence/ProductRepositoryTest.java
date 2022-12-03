@@ -12,15 +12,20 @@ import com.metao.book.product.infrastructure.repository.model.OffsetBasedPageReq
 import com.metao.book.product.util.BasePostgresIntegrationTest;
 import com.metao.book.product.util.ProductTestUtils;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 
+@Slf4j
 @DataJpaTest
-@AutoConfigureTestDatabase(replace =  Replace.NONE)
+@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
+@AutoConfigureTestDatabase(replace = Replace.NONE)
 class ProductRepositoryTest extends BasePostgresIntegrationTest {
 
     @Autowired
@@ -46,12 +51,12 @@ class ProductRepositoryTest extends BasePostgresIntegrationTest {
         var pe = ProductTestUtils.createProductEntity();
         productRepository.save(pe);
         Pageable pageable = new OffsetBasedPageRequest(0, 1);
-        var productEntities = productRepository.findAll(pageable);
-        var list = productEntities.get();
-        assertThat(list)
-                .isNotNull()
-                .hasSize(1)
-                .contains(pe);
+        var productEntities = productRepository.findByIsin(pe.getIsin());
+        var productEntity = productEntities.get();
+        log.error(pe.toString());
+        assertThat(productEntity)
+            .isNotNull()
+            .isEqualTo(pe);
     }
 
     @Test
@@ -62,8 +67,8 @@ class ProductRepositoryTest extends BasePostgresIntegrationTest {
         var productEntities = productRepository.findAll(pageable);
         var list = productEntities.get();
         assertThat(list)
-                .isNotNull()
-                .hasSize(2);
+            .isNotNull()
+            .hasSize(2);
     }
 
     @Test

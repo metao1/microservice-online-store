@@ -1,6 +1,5 @@
 package com.metao.book.product.application.service;
 
-import com.metao.book.product.infrastructure.factory.handler.RemoteProductService;
 import com.metao.book.shared.OrderAvro;
 import com.metao.book.shared.ProductsResponseEvent;
 import com.metao.book.shared.Status;
@@ -19,13 +18,10 @@ import org.springframework.validation.annotation.Validated;
 @ConditionalOnProperty(name = "spring.profiles.active", havingValue = "prod")
 public class KafkaListenerService {
     private final OrderManageService orderManager;
-    private final RemoteProductService remoteProductService;
 
     @KafkaListener(id = "get-products", topics = "get-products", groupId = "get-products")
     public void processProductRequestedEvent(ConsumerRecord<String, ProductsResponseEvent> record) {
         log.info("Received order-request='{}'", record);
-        var getProductEvent = record.value();
-        remoteProductService.handle(getProductEvent);
     }
 
     @KafkaListener(id = "orders", topics = "order-test", groupId = "order-group")

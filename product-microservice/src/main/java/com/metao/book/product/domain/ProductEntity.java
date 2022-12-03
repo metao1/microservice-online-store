@@ -11,6 +11,7 @@ import com.metao.book.shared.domain.financial.Currency;
 import com.metao.book.shared.domain.financial.Money;
 import java.math.BigDecimal;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.persistence.CascadeType;
@@ -128,5 +129,25 @@ public class ProductEntity extends AbstractEntity<ProductId> implements Concurre
     public void removeCategory(@NonNull ProductCategoryEntity category) {
         categories.remove(category);
         category.getProductEntities().remove(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        ProductEntity that = (ProductEntity) o;
+        return Objects.equals(getIsin(), that.getIsin());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), getIsin());
     }
 }
