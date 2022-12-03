@@ -8,7 +8,7 @@
 Products is an E-commerce and management tool for products
 running on Spring boot , React using Microservice architecture
 
-![bookstore](online-book-store.png)
+![bookstore](img/online-book-store.png)
 
 How to install and run instructions:
 
