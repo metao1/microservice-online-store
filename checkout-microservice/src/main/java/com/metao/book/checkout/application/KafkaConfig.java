@@ -2,7 +2,7 @@ package com.metao.book.checkout.application;
 
 import static com.metao.book.shared.Status.NEW;
 
-import com.metao.book.shared.OrderAvro;
+import com.metao.book.shared.OrderEvent;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +28,7 @@ public class KafkaConfig {
     String paymentOrderTopic;
 
     @KafkaListener(id = "payment-order-listener", topics = "${kafka.stream.topic.payment-order}")
-    public void listen(OrderAvro order) {
+    public void listen(OrderEvent order) {
         log.info("Received: {}", order);
         if (order.getStatus().equals(NEW)) {
             checkoutService.reserve(order);
@@ -38,18 +38,18 @@ public class KafkaConfig {
     }
 
 //    @Bean("order-payment")
-//    public KStream<String, OrderAvro> stream(@Value("${kafka.stream.topic.payment-order}") String paymentOrderTopic,
+//    public KStream<String, OrderEvent> stream(@Value("${kafka.stream.topic.payment-order}") String paymentOrderTopic,
 //                                             @Value("${kafka.stream.topic.order}") String orderTopic,
 //                                             KafkaOrderProducer template,
 //                                             StreamsBuilder builder) {
-//        var orderSerde = new SpecificAvroSerde<OrderAvro>();
+//        var orderSerde = new SpecificAvroSerde<OrderEvent>();
 //        var rsvSerde = new SpecificAvroSerde<Reservation>();
-//        KStream<String, OrderAvro> stream = builder
+//        KStream<String, OrderEvent> stream = builder
 //                .stream(orderTopic, Consumed.with(Serdes.String(), orderSerde))
 //                .peek((k, order) -> log.info("New: {}", order));
 //
 //        var customerOrderStoreSupplier = Stores.persistentKeyValueStore("stock-order");
-//        Aggregator<String, OrderAvro, Reservation> aggregatorService = (id, order, rsv) -> {
+//        Aggregator<String, OrderEvent, Reservation> aggregatorService = (id, order, rsv) -> {
 //            if (order.getStatus().equals(Status.CONFIRM)) {
 //                rsv.setAmountReserved(rsv.getAmountReserved() - order.getPrice());
 //            } else if (order.getStatus().equals(Status.ROLLBACK)) {

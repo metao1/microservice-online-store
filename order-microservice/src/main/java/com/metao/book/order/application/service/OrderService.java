@@ -5,7 +5,7 @@ import com.metao.book.order.domain.OrderServiceInterface;
 import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
 import com.metao.book.order.infrastructure.repository.KafkaOrderService;
 import com.metao.book.shared.Currency;
-import com.metao.book.shared.OrderAvro;
+import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.Status;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,7 +28,7 @@ public class OrderService implements OrderServiceInterface {
 
     private static final String CUSTOMER_ID = "CUSTOMER_ID";
     private final Random random = new Random();
-    private final KafkaTemplate<String, OrderAvro> kafkaTemplate;
+    private final KafkaTemplate<String, OrderEvent> kafkaTemplate;
     private final KafkaOrderService kafkaOrderService;
     private final KafkaOrderProducer kafkaProducer;
     private final FileHandler fileHandler;
@@ -39,19 +39,19 @@ public class OrderService implements OrderServiceInterface {
     private List<String> productAsinList = new ArrayList<>();
 
     @Override
-    public void saveOrder(OrderAvro orderAvro) {
-        kafkaTemplate.send(orderTopic, orderAvro.getOrderId(), orderAvro);
+    public void saveOrder(OrderEvent OrderEvent) {
+        kafkaTemplate.send(orderTopic, OrderEvent.getOrderId(), OrderEvent);
     }
 
     @Override
-    public Optional<OrderAvro> getOrderByProductId(String productId) {
+    public Optional<OrderEvent> getOrderByProductId(String productId) {
         return kafkaOrderService.getOrder(productId);
     }
 
     @Scheduled(fixedDelay = 10000, initialDelay = 2000)
     public void commandLineRunner() {
         Optional.of(atomicInteger.getAndIncrement())
-                .map(s -> OrderAvro
+                .map(s -> OrderEvent
                     .newBuilder()
                     .setOrderId(s + "")
                     .setProductId(productAsinList.get(random.nextInt(productAsinList.size())))
@@ -81,7 +81,7 @@ public class OrderService implements OrderServiceInterface {
     }
 
     @Override
-    public Optional<List<OrderAvro>> getAllOrdersPageable(int from, int to) {
+    public Optional<List<OrderEvent>> getAllOrdersPageable(int from, int to) {
         return Optional.empty();
     }
 

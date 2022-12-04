@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "OrderAvro",
+  "name": "OrderEvent",
   "namespace": "com.metao.book.shared",
   "fields": [
     {

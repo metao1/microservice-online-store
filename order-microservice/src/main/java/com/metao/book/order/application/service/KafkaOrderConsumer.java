@@ -8,7 +8,7 @@ package com.metao.book.order.application.service;
 //    private String payload = null;
 //
 //    @KafkaListener(id = "orders", topics = "order", groupId = "payment")
-//    public void onEvent(ConsumerRecord<String, OrderAvro> record) {
+//    public void onEvent(ConsumerRecord<String, OrderEvent> record) {
 //        log.info("Consumed message -> {}", record.value());
 //        latch.countDown();
 //    }

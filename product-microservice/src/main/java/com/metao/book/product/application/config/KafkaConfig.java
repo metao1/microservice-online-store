@@ -1,6 +1,6 @@
 package com.metao.book.product.application.config;
 
-import com.metao.book.shared.OrderAvro;
+import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.ProductEvent;
 import com.metao.book.shared.ProductsResponseEvent;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
@@ -31,8 +31,8 @@ public class KafkaConfig {
     }
 
     @Bean
-    SpecificAvroSerde<OrderAvro> orderAvroSerde(KafkaProperties properties) {
-        SpecificAvroSerde<OrderAvro> serde = new SpecificAvroSerde<>();
+    SpecificAvroSerde<OrderEvent> OrderEventSerde(KafkaProperties properties) {
+        SpecificAvroSerde<OrderEvent> serde = new SpecificAvroSerde<>();
         serde.configure(properties.getProperties(), false);
         return serde;
     }

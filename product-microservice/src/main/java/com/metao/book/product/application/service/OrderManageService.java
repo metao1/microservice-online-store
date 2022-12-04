@@ -8,7 +8,7 @@ import com.metao.book.product.application.exception.ProductNotFoundException;
 import com.metao.book.product.domain.ProductEntity;
 import com.metao.book.product.domain.ProductId;
 import com.metao.book.product.domain.ProductRepository;
-import com.metao.book.shared.OrderAvro;
+import com.metao.book.shared.OrderEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,7 +28,7 @@ public class OrderManageService {
     @Value("${kafka.topic.payment-order}")
     private String paymentOrderTopic;
 
-    public void reserve(OrderAvro order) {
+    public void reserve(OrderEvent order) {
         final ProductEntity product;
         try {
             product = productRepository.findById(new ProductId(order.getProductId())).orElseThrow(() -> new ProductNotFoundException(""));
@@ -49,7 +49,7 @@ public class OrderManageService {
         }
     }
 
-    public void confirm(OrderAvro order) {
+    public void confirm(OrderEvent order) {
         var product = productRepository.findById(new ProductId(order.getProductId() + "")).orElseThrow();
         log.info("Found: {}", product);
         if (order.getStatus().equals(CONFIRM)) {

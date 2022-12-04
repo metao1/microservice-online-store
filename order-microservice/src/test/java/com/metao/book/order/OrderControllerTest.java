@@ -9,7 +9,7 @@ import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
 import com.metao.book.order.kafka.KafkaProductConsumerConfiguration;
 import com.metao.book.order.kafka.SpringBootEmbeddedKafka;
 import com.metao.book.shared.Currency;
-import com.metao.book.shared.OrderAvro;
+import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.Status;
 import com.metao.book.shared.test.TestUtils.StreamBuilder;
 import java.util.Random;
@@ -41,7 +41,7 @@ public class OrderControllerTest extends SpringBootEmbeddedKafka {
 
     @Test
     public void givenKafkaOrderTopic_whenSendingToTopic_thenMessageReceivedCorrectly() throws Exception {
-        StreamBuilder.of(OrderAvro.class, 0, 10, this::createOrderFromCustomerId)
+        StreamBuilder.of(OrderEvent.class, 0, 10, this::createOrderFromCustomerId)
             .forEach(orderDTO -> kafkaProducer.send(topic, orderDTO.getOrderId(), orderDTO));
 
         consumer.getLatch().await(6, TimeUnit.SECONDS);
@@ -49,8 +49,8 @@ public class OrderControllerTest extends SpringBootEmbeddedKafka {
         assertEquals(0, consumer.getLatch().getCount());
     }
 
-    private OrderAvro createOrderFromCustomerId(int randomId) {
-        return OrderAvro.newBuilder()
+    private OrderEvent createOrderFromCustomerId(int randomId) {
+        return OrderEvent.newBuilder()
             .setOrderId("order-" + randomId)
             .setProductId("product - " + randomId)
             .setCustomerId("customer_id")

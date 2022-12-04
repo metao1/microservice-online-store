@@ -1,14 +1,14 @@
 package com.metao.book.order.domain;
 
-import com.metao.book.shared.OrderAvro;
+import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.Status;
 import org.springframework.stereotype.Service;
 
 @Service
 public class OrderManageService {
 
-    public OrderAvro confirm(OrderAvro orderPayment, OrderAvro orderStock) {
-        var o = OrderAvro.newBuilder()
+    public OrderEvent confirm(OrderEvent orderPayment, OrderEvent orderStock) {
+        var o = OrderEvent.newBuilder()
                 .setOrderId(orderPayment.getOrderId())
                 .setCustomerId(orderPayment.getCustomerId())
                 .setProductId(orderPayment.getProductId())

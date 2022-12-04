@@ -2,13 +2,13 @@ package com.metao.book.order.infrastructure;
 
 import com.metao.book.order.application.dto.OrderDTO;
 import com.metao.book.shared.Currency;
-import com.metao.book.shared.OrderAvro;
+import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.Status;
 
 public interface OrderMapperInterface {
 
-    default OrderAvro toAvro(OrderDTO dto) {
-        return OrderAvro.newBuilder()
+    default OrderEvent toAvro(OrderDTO dto) {
+        return OrderEvent.newBuilder()
                 .setStatus(Status.NEW)
                 .setCurrency(Currency.dlr)
                 .setPrice(dto.getPrice())
@@ -20,7 +20,7 @@ public interface OrderMapperInterface {
                 .build();
     }
 
-    default OrderDTO toDto(OrderAvro order) {
+    default OrderDTO toDto(OrderEvent order) {
         return new OrderDTO(order.getOrderId(),
                 order.getProductId(),
                 order.getCustomerId(),

@@ -1,6 +1,6 @@
 package com.metao.book.product.application.service;
 
-import com.metao.book.shared.OrderAvro;
+import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.ProductsResponseEvent;
 import com.metao.book.shared.Status;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ public class KafkaListenerService {
     }
 
     @KafkaListener(id = "orders", topics = "order-test", groupId = "order-group")
-    public void onEvent(ConsumerRecord<Long, OrderAvro> record) {
+    public void onEvent(ConsumerRecord<Long, OrderEvent> record) {
         log.info("Consumed message -> {}", record.value());
         var order = record.value();
         try {
@@ -41,18 +41,18 @@ public class KafkaListenerService {
 
     // this builds a stream from orders then aggregates the order with reservation
     //@Bean
-//    public KStream<Long, OrderAvro> stream(StreamsBuilder builder,
+//    public KStream<Long, OrderEvent> stream(StreamsBuilder builder,
 //                                           ProductService productService,
-//                                           SpecificAvroSerde<OrderAvro> orderAvroSerde,
+//                                           SpecificAvroSerde<OrderEvent> OrderEventSerde,
 //                                           SpecificAvroSerde<Reservation> rsvSerde) {
 //
-//        KStream<Long, OrderAvro> stream = builder
-//                .stream(orderKafkaTopic, Consumed.with(Serdes.Long(), orderAvroSerde));
+//        KStream<Long, OrderEvent> stream = builder
+//                .stream(orderKafkaTopic, Consumed.with(Serdes.Long(), OrderEventSerde));
 //
 //        KeyValueBytesStoreSupplier stockOrderStoreSupplier =
 //                Stores.persistentKeyValueStore(orderKafkaTopic);
 //
-//        Aggregator<Long, OrderAvro, Reservation> aggrSrv = (id, order, rsv) -> {
+//        Aggregator<Long, OrderEvent, Reservation> aggrSrv = (id, order, rsv) -> {
 //            switch (order.getStatus()) {
 //                case CONFIRM -> rsv.setAmountReserved(rsv.getAmountReserved() - order.getQuantity());
 //                case ROLLBACK -> {
@@ -79,7 +79,7 @@ public class KafkaListenerService {
 //        };
 //
 //        stream.selectKey((k, v) -> v.getProductId())
-//                .groupByKey(Grouped.with(Serdes.Long(), orderAvroSerde))
+//                .groupByKey(Grouped.with(Serdes.Long(), OrderEventSerde))
 //                .aggregate(() -> Reservation.newBuilder()
 //                                .setAmountAvailable(productService.countProducts())
 //                                .setAmountReserved(0)

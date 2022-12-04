@@ -1,6 +1,6 @@
 package com.metao.book.product.application.service;
 
-import com.metao.book.shared.OrderAvro;
+import com.metao.book.shared.OrderEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -13,9 +13,9 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "spring.profiles.active", havingValue = "prod")
 public class KafkaOrderProducer {
 
-    private final KafkaTemplate<String, OrderAvro> kafkaTemplate;
+    private final KafkaTemplate<String, OrderEvent> kafkaTemplate;
 
-    public void send(String topic, String orderId, OrderAvro order) {
+    public void send(String topic, String orderId, OrderEvent order) {
         log.info("sending order='{}' to topic='{}'", order, topic);
         kafkaTemplate.send(topic, orderId, order)
             .addCallback(result -> log.info("Sent: {}",
