@@ -4,38 +4,37 @@ server:
 kafka:
   topic:
     order: "order"
-    payment-order: "payment"
+    payment: "payment"
 
 spring:
   kafka:
     # Required connection configs for Kafka producer, consumer, and admin
-    bootstrap-servers: pkc-6ojv2.us-west4.gcp.confluent.cloud:9092
+    bootstrap-servers: ${BOOTSTRAP_SERVERS}
     # Required connection configs for Confluent Cloud Schema Registry
     properties:
       stream-properties:
-        application-id: stock
-        schema.registry.url: https://psrc-kk5gg.europe-west3.gcp.confluent.cloud
-        application.id: stock
-        bootstrap.servers: pkc-6ojv2.us-west4.gcp.confluent.cloud:9092
-      bootstrap-servers: pkc-6ojv2.us-west4.gcp.confluent.cloud:9092
-      schema.registry.url: https://psrc-kk5gg.europe-west3.gcp.confluent.cloud
+        application-id: checkout
+        schema.registry.url: ${SCHEMA_HOST}
+        application.id: product
+        bootstrap.servers: ${BOOTSTRAP_SERVERS}
+      bootstrap-servers: ${BOOTSTRAP_SERVERS}
       security.protocol: SASL_SSL
       sasl.mechanism: PLAIN
       credentials.source: USER_INFO
-      sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username='OIF7NQANRR6MKOLX'   password='FX+y+hbL+0MSur41+rMJpobTv2rHX/UvLOA6DNXyExeHe3OoIVVWG8VrC6IC67tN';
+      sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username=${KAFKA_USER} password='${KAFKA_PASS}';
       schema:
         registry:
-          url: https://psrc-kk5gg.europe-west3.gcp.confluent.cloud
+          url: ${SCHEMA_HOST}
           basic:
             auth:
               user:
-                info: AC2WDR5L5TFTOKH7:PoTBOmSFbdcMBFnP4GKpaSEpje4INp1jJwXk8SCsJl2IzcpP+Yi/tAF6HxICgSuJ
+                info: ${SCHEMA_INFO}
       basic:
         auth:
           credentials:
             source: USER_INFO
             user:
-              info: AC2WDR5L5TFTOKH7:PoTBOmSFbdcMBFnP4GKpaSEpje4INp1jJwXk8SCsJl2IzcpP+Yi/tAF6HxICgSuJ
+              info: ${INFO_PASS}
     consumer:
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.LongDeserializer
@@ -48,7 +47,7 @@ spring:
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
     streams:
       properties:
-        application.id: stock
+        application.id: checkout
         bootstrap.servers: pkc-6ojv2.us-west4.gcp.confluent.cloud:9092
         schema.registry.url: http://pkc-6ojv2.us-west4.gcp.confluent.cloud:8081
         default.key.serde: org.apache.kafka.common.serialization.Serdes$LongSerde
@@ -59,14 +58,13 @@ spring:
         topic.max.message.bytes: 8388608 # 84 MiB
         topology.optimization: all
         state.dir: /tmp/kafka-streams-test
-      application-id: stock
+      application-id: checkout
   output.ansi.enabled: ALWAYS
   cloud:
     discovery:
       enabled: false
   datasource:
     url: jdbc:h2:mem:product-app;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    platform: h2
     driverClassName: org.h2.Driver
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
@@ -81,5 +79,8 @@ spring:
         format_sql: true
   application:
     name: "checkout"
+  sql:
+    init:
+      platform: h2
 
 logging.pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%15.15t]){yellow} %clr(:){red} %clr(%m){faint}%n"

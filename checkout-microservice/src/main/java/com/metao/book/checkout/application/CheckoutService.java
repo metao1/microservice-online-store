@@ -6,7 +6,7 @@ import static com.metao.book.shared.Status.REJECT;
 import static com.metao.book.shared.Status.ROLLBACK;
 
 import com.metao.book.checkout.domain.ProductInventoryEntity;
-import com.metao.book.checkout.repository.ProductInventoryRepository;
+import com.metao.book.checkout.infrastructure.ProductInventoryRepository;
 import com.metao.book.shared.OrderEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,7 @@ public class CheckoutService {
     private final ProductInventoryRepository repository;
     private final KafkaTemplate<String, OrderEvent> template;
 
-    @Value("${kafka.stream.topic.payment-order}")
+    @Value("${kafka.stream.topic.payment}")
     private String paymentOrdersTopic;
 
     public void reserve(OrderEvent order) {

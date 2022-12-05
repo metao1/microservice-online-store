@@ -4,7 +4,7 @@ server:
 kafka:
   topic:
     product: "product"
-    payment-order: "payment"
+    payment: "payment"
 
 spring:
   kafka:
@@ -13,7 +13,7 @@ spring:
     # Required connection configs for Confluent Cloud Schema Registry
     properties:
       stream-properties:
-        application-id: stock
+        application-id: product
         schema.registry.url: ${SCHEMA_HOST}
         application.id: product
         bootstrap.servers: ${BOOTSTRAP_SERVERS}
@@ -57,8 +57,8 @@ spring:
         max.request.size: 8388608        # 84 MiB
         topic.max.message.bytes: 8388608 # 84 MiB
         topology.optimization: all
-        state.dir: /tmp/kafka-streams-test
-      application-id: stock
+        state.dir: /tmp/kafka-streams
+      application-id: product
   output.ansi.enabled: ALWAYS
   cloud:
     discovery:

@@ -40,8 +40,15 @@ public class KafkaStreamConfig {
     @Value("${kafka.topic.order}")
     String orderTopic;
 
-    @Value("${kafka.topic.stock}")
-    String stockTopic;
+    @Value("${kafka.topic.product}")
+    String productTopic;
+
+    @Bean
+    SpecificAvroSerde<ProductEvent> productEventSpecificAvroSerde(KafkaProperties kafkaProperties) {
+        var result = new SpecificAvroSerde<ProductEvent>();
+        result.configure(kafkaProperties.getProperties(), false);
+        return result;
+    }
 
     @Bean
     SpecificAvroSerde<OrderEvent> OrderEventSerde() {
@@ -55,7 +62,7 @@ public class KafkaStreamConfig {
         KStream<Long, OrderEvent> paymentOrders = builder
             .stream(paymentTopic, Consumed.with(Serdes.Long(), orderSerde));
         KStream<Long, OrderEvent> stockOrderStream = builder
-            .stream(stockTopic, Consumed.with(Serdes.Long(), orderSerde));
+            .stream(productTopic, Consumed.with(Serdes.Long(), orderSerde));
         paymentOrders.join(
                 stockOrderStream,
                 orderManageService::confirm,
@@ -74,13 +81,6 @@ public class KafkaStreamConfig {
     ) {
         return sb.table(orderTopic, Consumed.with(Serdes.String(), serde))
             .mapValues(val -> Objects.requireNonNull(conversionService.convert(val, ProductDTO.class)));
-    }
-
-    @Bean
-    SpecificAvroSerde<ProductEvent> productEventSpecificAvroSerde(KafkaProperties kafkaProperties) {
-        var result = new SpecificAvroSerde<ProductEvent>();
-        result.configure(kafkaProperties.getProperties(), false);
-        return result;
     }
 
     @Bean

@@ -26,7 +26,7 @@
           "CONFIRM",
           "REJECT",
           "PAYMENT",
-          "STOCK",
+          "PRODUCT",
           "ROLLBACK"
         ]
       },

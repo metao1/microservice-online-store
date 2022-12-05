@@ -1,4 +1,4 @@
-package com.metao.book.checkout.repository;
+package com.metao.book.checkout.infrastructure;
 
 import com.metao.book.checkout.domain.ProductInventoryEntity;
 import java.util.Optional;

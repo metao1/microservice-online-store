@@ -24,24 +24,4 @@ public class KafkaConfig {
             .build();
     }
 
-    @Bean
-    public NewTopic payment(@Value("${kafka.topic.payment}") String topic) {
-        return TopicBuilder
-            .name(topic)
-            .partitions(3)
-            .config(TopicConfig.COMPRESSION_TYPE_CONFIG, "zstd")
-            .compact()
-            .build();
-    }
-
-    @Bean
-    public NewTopic stock(@Value("${kafka.topic.stock}") String topic) {
-        return TopicBuilder
-            .name(topic)
-            .partitions(3)
-            .config(TopicConfig.COMPRESSION_TYPE_CONFIG, "zstd")
-            .compact()
-            .build();
-    }
-
 }

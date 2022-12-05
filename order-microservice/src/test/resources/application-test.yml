@@ -1,7 +1,7 @@
 kafka:
   topic:
     order: order
-    stock: stock
+    product: product
     payment: payment
 
 eureka:

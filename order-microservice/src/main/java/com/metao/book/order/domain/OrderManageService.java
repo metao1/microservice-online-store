@@ -26,7 +26,7 @@ public class OrderManageService {
             o.setStatus(Status.REJECT);
         } else if (orderPayment.getStatus().equals(Status.REJECT) ||
                 orderStock.getStatus().equals(Status.REJECT)) {
-            String source = orderPayment.getStatus().equals(Status.REJECT) ? "PAYMENT" : "STOCK";
+            String source = orderPayment.getStatus().equals(Status.REJECT) ? "PAYMENT" : "PRODUCT";
             o.setStatus(Status.ROLLBACK);
             o.setSource(source);
         }

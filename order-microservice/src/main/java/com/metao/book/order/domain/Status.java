@@ -9,7 +9,7 @@ public enum Status {
     CONFIRM("confirm"),
     REJECT("reject"),
     PAYMENT("payment"),
-    STOCK("stock"),
+    PRODUCT("product"),
     ROLLBACK("rollback");
 
     private final String value;

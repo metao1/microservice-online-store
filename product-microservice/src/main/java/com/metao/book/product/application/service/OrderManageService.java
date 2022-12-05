@@ -25,8 +25,8 @@ public class OrderManageService {
     private final ProductRepository productRepository;
     private final KafkaOrderProducer kafkaOrderProducer;
 
-    @Value("${kafka.topic.payment-order}")
-    private String paymentOrderTopic;
+    @Value("${kafka.topic.payment}")
+    private String paymentTopic;
 
     public void reserve(OrderEvent order) {
         final ProductEntity product;
@@ -42,7 +42,7 @@ public class OrderManageService {
 //            }
             order.setSource(SOURCE);
             productRepository.save(product);
-            kafkaOrderProducer.send(paymentOrderTopic, order.getOrderId(), order);
+            kafkaOrderProducer.send(paymentTopic, order.getOrderId(), order);
             log.info("Sent: {}", order);
         } catch (Exception e) {
             log.error(e.getMessage());
