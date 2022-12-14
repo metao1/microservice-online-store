@@ -10,7 +10,7 @@ kafka:
     replication-factor: 1
   topic:
     order: "order"
-    stock: "stock"
+    product: "product"
     payment: "payment"
 
 spring:

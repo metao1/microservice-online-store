@@ -4,62 +4,61 @@ server:
 kafka:
   topic:
     product: "product"
-    payment-order: "payment-test"
+    payment: "payment"
 
 spring:
   kafka:
     # Required connection configs for Kafka producer, consumer, and admin
-    bootstrap-servers: pkc-6ojv2.us-west4.gcp.confluent.cloud:9092
+    bootstrap-servers: ${BOOTSTRAP_SERVERS}
     # Required connection configs for Confluent Cloud Schema Registry
     properties:
       stream-properties:
-        application-id: stock
-        schema.registry.url: https://psrc-kk5gg.europe-west3.gcp.confluent.cloud
-        application.id: stock
-        bootstrap.servers: pkc-6ojv2.us-west4.gcp.confluent.cloud:9092
-      bootstrap-servers: pkc-6ojv2.us-west4.gcp.confluent.cloud:9092
-      schema.registry.url: https://psrc-kk5gg.europe-west3.gcp.confluent.cloud
+        application-id: product
+        schema.registry.url: ${SCHEMA_HOST}
+        application.id: product
+        bootstrap.servers: ${BOOTSTRAP_SERVERS}
+      bootstrap-servers: ${BOOTSTRAP_SERVERS}
       security.protocol: SASL_SSL
       sasl.mechanism: PLAIN
       credentials.source: USER_INFO
-      sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username='OIF7NQANRR6MKOLX'   password='FX+y+hbL+0MSur41+rMJpobTv2rHX/UvLOA6DNXyExeHe3OoIVVWG8VrC6IC67tN';
+      sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username=${KAFKA_USER} password='${KAFKA_PASS}';
       schema:
         registry:
-          url: https://psrc-kk5gg.europe-west3.gcp.confluent.cloud
+          url: ${SCHEMA_HOST}
           basic:
             auth:
               user:
-                info: AC2WDR5L5TFTOKH7:PoTBOmSFbdcMBFnP4GKpaSEpje4INp1jJwXk8SCsJl2IzcpP+Yi/tAF6HxICgSuJ
+                info: ${SCHEMA_INFO}
       basic:
         auth:
           credentials:
             source: USER_INFO
             user:
-              info: AC2WDR5L5TFTOKH7:PoTBOmSFbdcMBFnP4GKpaSEpje4INp1jJwXk8SCsJl2IzcpP+Yi/tAF6HxICgSuJ
+              info: ${INFO_PASS}
     consumer:
       auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.LongDeserializer
+      key-deserializer: org.apache.kafka.common.serialization.StringSerializer
       value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
       properties:
         auto.offset.reset: earliest
         specific.avro.reader: true
     producer:
-      key-serializer: org.apache.kafka.common.serialization.LongSerializer
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
     streams:
       properties:
         application.id: stock
-        bootstrap.servers: pkc-6ojv2.us-west4.gcp.confluent.cloud:9092
-        schema.registry.url: http://pkc-6ojv2.us-west4.gcp.confluent.cloud:8081
-        default.key.serde: org.apache.kafka.common.serialization.Serdes$LongSerde
+        bootstrap.servers: ${BOOTSTRAP_SERVERS}
+        schema.registry.url: ${SCHEMA_HOST}
+        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
         default.value.serde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
         num.standby.replicas: 1
         num.stream.threads: 2
         max.request.size: 8388608        # 84 MiB
         topic.max.message.bytes: 8388608 # 84 MiB
         topology.optimization: all
-        state.dir: /tmp/kafka-streams-test
-      application-id: stock
+        state.dir: /tmp/kafka-streams
+      application-id: product
   output.ansi.enabled: ALWAYS
   cloud:
     discovery:
@@ -85,6 +84,7 @@ spring:
         username: postgres
         password: secset
 
+product-sample-data-path: data/products.txt
 
 logging:
   level:

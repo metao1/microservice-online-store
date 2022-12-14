@@ -1,17 +1,17 @@
 package com.metao.book.order.domain;
 
 
-import com.metao.book.shared.OrderAvro;
+import com.metao.book.shared.OrderEvent;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface OrderServiceInterface {
 
-    void saveOrder(OrderAvro orderEntity);
+    void saveOrder(OrderEvent orderEntity);
 
-    Optional<OrderAvro> getOrderByProductId(String productId);
+    Optional<OrderEvent> getOrderByProductId(String productId);
 
-    Optional<List<OrderAvro>> getAllOrdersPageable(int from, int to);
+    Optional<List<OrderEvent>> getAllOrdersPageable(int from, int to);
 
 }

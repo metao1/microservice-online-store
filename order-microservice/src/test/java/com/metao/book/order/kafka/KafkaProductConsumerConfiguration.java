@@ -1,6 +1,6 @@
 package com.metao.book.order.kafka;
 
-import com.metao.book.shared.OrderAvro;
+import com.metao.book.shared.OrderEvent;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.springframework.beans.factory.ObjectProvider;
@@ -23,9 +23,9 @@ public class KafkaProductConsumerConfiguration {
     private final KafkaProperties properties;
 
     @Bean
-    public KafkaTemplate<String, OrderAvro> defaultKafkaTemplate(
+    public KafkaTemplate<String, OrderEvent> defaultKafkaTemplate(
         ObjectProvider<RecordMessageConverter> messageConverter,
-        ProducerFactory<String, OrderAvro> defaultKafkaProducerFactory
+        ProducerFactory<String, OrderEvent> defaultKafkaProducerFactory
     ) {
         var kafkaTemplate = new KafkaTemplate<>(defaultKafkaProducerFactory);
         messageConverter.ifUnique(kafkaTemplate::setMessageConverter);
@@ -33,7 +33,7 @@ public class KafkaProductConsumerConfiguration {
     }
 
     @Bean
-    public ProducerFactory<String, OrderAvro> defaultKafkaProducerFactory() {
+    public ProducerFactory<String, OrderEvent> defaultKafkaProducerFactory() {
         var configProps = this.properties.buildProducerProperties();
         configProps.put(ProducerConfig.LINGER_MS_CONFIG, "0");
         configProps.put(ProducerConfig.ACKS_CONFIG, "all");

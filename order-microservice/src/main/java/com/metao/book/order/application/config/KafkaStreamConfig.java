@@ -2,7 +2,7 @@ package com.metao.book.order.application.config;
 
 import com.metao.book.order.application.dto.ProductDTO;
 import com.metao.book.order.domain.OrderManageService;
-import com.metao.book.shared.OrderAvro;
+import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.ProductEvent;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import java.time.Duration;
@@ -40,31 +40,29 @@ public class KafkaStreamConfig {
     @Value("${kafka.topic.order}")
     String orderTopic;
 
-    @Value("${kafka.topic.stock}")
-    String stockTopic;
-
-    @Value("${spring.kafka.properties.schema.registry.url}")
-    String srUrl;
-
-    @Value("${spring.kafka.properties.basic.auth.credentials.source}")
-    String crSource;
-
-    @Value("${spring.kafka.properties.schema.registry.basic.auth.user.info}")
-    String authUser;
+    @Value("${kafka.topic.product}")
+    String productTopic;
 
     @Bean
-    SpecificAvroSerde<OrderAvro> orderAvroSerde() {
-        var serde = new SpecificAvroSerde<OrderAvro>();
+    SpecificAvroSerde<ProductEvent> productEventSpecificAvroSerde(KafkaProperties kafkaProperties) {
+        var result = new SpecificAvroSerde<ProductEvent>();
+        result.configure(kafkaProperties.getProperties(), false);
+        return result;
+    }
+
+    @Bean
+    SpecificAvroSerde<OrderEvent> OrderEventSerde() {
+        var serde = new SpecificAvroSerde<OrderEvent>();
         serde.configure(properties.getProperties(), false);
         return serde;
     }
 
     @Bean
-    public KStream<Long, OrderAvro> stream(StreamsBuilder builder, SpecificAvroSerde<OrderAvro> orderSerde) {
-        KStream<Long, OrderAvro> paymentOrders = builder
+    public KStream<Long, OrderEvent> stream(StreamsBuilder builder, SpecificAvroSerde<OrderEvent> orderSerde) {
+        KStream<Long, OrderEvent> paymentOrders = builder
             .stream(paymentTopic, Consumed.with(Serdes.Long(), orderSerde));
-        KStream<Long, OrderAvro> stockOrderStream = builder
-            .stream(stockTopic, Consumed.with(Serdes.Long(), orderSerde));
+        KStream<Long, OrderEvent> stockOrderStream = builder
+            .stream(productTopic, Consumed.with(Serdes.Long(), orderSerde));
         paymentOrders.join(
                 stockOrderStream,
                 orderManageService::confirm,
@@ -86,17 +84,10 @@ public class KafkaStreamConfig {
     }
 
     @Bean
-    SpecificAvroSerde<ProductEvent> productEventSpecificAvroSerde(KafkaProperties kafkaProperties) {
-        var result = new SpecificAvroSerde<ProductEvent>();
-        result.configure(kafkaProperties.getProperties(), false);
-        return result;
-    }
-
-    @Bean
-    public KTable<String, OrderAvro> table(StreamsBuilder sb, SpecificAvroSerde<OrderAvro> specificAvroSerde) {
+    public KTable<String, OrderEvent> table(StreamsBuilder sb, SpecificAvroSerde<OrderEvent> specificAvroSerde) {
         var store = Stores.persistentKeyValueStore(orderTopic);
         var stream = sb.stream(orderTopic, Consumed.with(Serdes.String(), specificAvroSerde));
-        return stream.toTable(Materialized.<String, OrderAvro>as(store)
+        return stream.toTable(Materialized.<String, OrderEvent>as(store)
             .withKeySerde(Serdes.String())
             .withValueSerde(specificAvroSerde));
     }

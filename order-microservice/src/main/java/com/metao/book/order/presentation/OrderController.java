@@ -3,7 +3,7 @@ package com.metao.book.order.presentation;
 import com.metao.book.order.application.dto.OrderDTO;
 import com.metao.book.order.domain.OrderServiceInterface;
 import com.metao.book.order.infrastructure.OrderMapperInterface;
-import com.metao.book.shared.OrderAvro;
+import com.metao.book.shared.OrderEvent;
 import java.util.Optional;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -40,13 +40,13 @@ public class OrderController {
         return Optional.of(orderDto)
             .map(mapper::toAvro)
             .stream()
-            .<OrderAvro>mapMulti((order, stream) -> {
+            .<OrderEvent>mapMulti((order, stream) -> {
                 if (order != null) {
                     stream.accept(order);
                 }
             })
             .peek(orderService::saveOrder)
-            .map(OrderAvro::getOrderId)
+            .map(OrderEvent::getOrderId)
                 .map(ResponseEntity::ok)
                 .findAny()
                 .orElseThrow(() -> new RuntimeException("could not crate order"));

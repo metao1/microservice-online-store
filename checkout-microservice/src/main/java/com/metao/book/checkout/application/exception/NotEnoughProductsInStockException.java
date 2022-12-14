@@ -1,4 +1,4 @@
-package com.metao.book.checkout.exception;
+package com.metao.book.checkout.application.exception;
 
 public class NotEnoughProductsInStockException extends RuntimeException {
 

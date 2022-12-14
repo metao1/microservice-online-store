@@ -4,7 +4,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import com.metao.book.order.utils.StreamsUtils;
 import com.metao.book.shared.Currency;
-import com.metao.book.shared.OrderAvro;
+import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.Status;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import java.util.LinkedList;
@@ -29,12 +29,12 @@ public class OrderStreamTest {
         final String inputTopicName = "input";
         final String outputTopicName = "output";
         final Map<String, Object> configMap = StreamsUtils.propertiesToMap(streamProps);
-        final SpecificAvroSerde<OrderAvro> orderSerds = StreamsUtils.getSpecificAvroSerds(configMap);
+        final SpecificAvroSerde<OrderEvent> orderSerds = StreamsUtils.getSpecificAvroSerds(configMap);
 
         final StreamsBuilder sb = new StreamsBuilder();
-        final KStream<String, OrderAvro> orderAvroStream =
+        final KStream<String, OrderEvent> OrderEventStream =
             sb.stream(inputTopicName, Consumed.with(Serdes.String(), orderSerds));
-        orderAvroStream
+        OrderEventStream
             .groupByKey()
             .aggregate(() -> 0.0, (key, order, total) -> total + order.getPrice()
                 , Materialized.with(Serdes.String(), Serdes.Double())).toStream()
@@ -46,8 +46,8 @@ public class OrderStreamTest {
             var outputTopic = testDriver.createOutputTopic(outputTopicName,
                 Serdes.String().deserializer(),
                 Serdes.Double().deserializer());
-            List<OrderAvro> orderList = new LinkedList<>();
-            orderList.add(OrderAvro.newBuilder()
+            List<OrderEvent> orderList = new LinkedList<>();
+            orderList.add(OrderEvent.newBuilder()
                 .setOrderId("1")
                 .setCurrency(Currency.eur)
                 .setProductId("1")
@@ -57,7 +57,7 @@ public class OrderStreamTest {
                 .setStatus(Status.ACCEPT)
                 .setSource("source")
                 .build());
-            orderList.add(OrderAvro.newBuilder()
+            orderList.add(OrderEvent.newBuilder()
                 .setOrderId("2")
                 .setCurrency(Currency.eur)
                 .setProductId("2")

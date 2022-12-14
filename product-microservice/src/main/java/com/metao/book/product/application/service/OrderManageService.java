@@ -8,7 +8,7 @@ import com.metao.book.product.application.exception.ProductNotFoundException;
 import com.metao.book.product.domain.ProductEntity;
 import com.metao.book.product.domain.ProductId;
 import com.metao.book.product.domain.ProductRepository;
-import com.metao.book.shared.OrderAvro;
+import com.metao.book.shared.OrderEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,10 +25,10 @@ public class OrderManageService {
     private final ProductRepository productRepository;
     private final KafkaOrderProducer kafkaOrderProducer;
 
-    @Value("${kafka.topic.payment-order}")
-    private String paymentOrderTopic;
+    @Value("${kafka.topic.payment}")
+    private String paymentTopic;
 
-    public void reserve(OrderAvro order) {
+    public void reserve(OrderEvent order) {
         final ProductEntity product;
         try {
             product = productRepository.findById(new ProductId(order.getProductId())).orElseThrow(() -> new ProductNotFoundException(""));
@@ -42,14 +42,14 @@ public class OrderManageService {
 //            }
             order.setSource(SOURCE);
             productRepository.save(product);
-            kafkaOrderProducer.send(paymentOrderTopic, order.getOrderId(), order);
+            kafkaOrderProducer.send(paymentTopic, order.getOrderId(), order);
             log.info("Sent: {}", order);
         } catch (Exception e) {
             log.error(e.getMessage());
         }
     }
 
-    public void confirm(OrderAvro order) {
+    public void confirm(OrderEvent order) {
         var product = productRepository.findById(new ProductId(order.getProductId() + "")).orElseThrow();
         log.info("Found: {}", product);
         if (order.getStatus().equals(CONFIRM)) {

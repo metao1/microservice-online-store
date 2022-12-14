@@ -6,8 +6,8 @@ import static com.metao.book.shared.Status.REJECT;
 import static com.metao.book.shared.Status.ROLLBACK;
 
 import com.metao.book.checkout.domain.ProductInventoryEntity;
-import com.metao.book.checkout.repository.ProductInventoryRepository;
-import com.metao.book.shared.OrderAvro;
+import com.metao.book.checkout.infrastructure.ProductInventoryRepository;
+import com.metao.book.shared.OrderEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,12 +21,12 @@ public class CheckoutService {
 
     private static final String SOURCE = "payment";
     private final ProductInventoryRepository repository;
-    private final KafkaTemplate<String, OrderAvro> template;
+    private final KafkaTemplate<String, OrderEvent> template;
 
-    @Value("${kafka.stream.topic.payment-order}")
+    @Value("${kafka.stream.topic.payment}")
     private String paymentOrdersTopic;
 
-    public void reserve(OrderAvro order) {
+    public void reserve(OrderEvent order) {
         var productInventory = repository.findByAsin(order.getProductId()).orElseThrow();
         log.info("Found: {}", productInventory);
         if (order.getPrice() < productInventory.getAmountAvailable()) {
@@ -42,7 +42,7 @@ public class CheckoutService {
         log.info("Sent: {}", order);
     }
 
-    public void confirm(OrderAvro order) {
+    public void confirm(OrderEvent order) {
         var productInventory = repository.findByAsin(order.getProductId()).orElseThrow();
         log.info("Found: {}", productInventory);
         if (order.getStatus().equals(CONFIRM)) {
@@ -53,7 +53,7 @@ public class CheckoutService {
         }
     }
 
-    private void rollbackOrder(OrderAvro order, ProductInventoryEntity customer) {
+    private void rollbackOrder(OrderEvent order, ProductInventoryEntity customer) {
         customer.setAmountReserved(customer.getAmountReserved() - order.getPrice());
         repository.save(customer);
     }

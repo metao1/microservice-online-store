@@ -15,6 +15,6 @@ public class ProductEventHandler {
     }
 
     public void sendEvent(CreateProductEvent event) {
-        messageHandlers.forEach(me -> me.onMessage(event));
+        messageHandlers.stream().forEachOrdered(me -> me.onMessage(event));
     }
 }

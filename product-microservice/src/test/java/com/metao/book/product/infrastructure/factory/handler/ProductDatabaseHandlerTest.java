@@ -16,7 +16,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-public class ProductMessageHandlerTest {
+public class ProductDatabaseHandlerTest {
 
     @Mock
     ProductRepository productRepo;
@@ -25,7 +25,7 @@ public class ProductMessageHandlerTest {
     void testOnMessage() {
         var productMapper = new ProductMapper();
         var productService = new ProductService(productRepo);
-        var productMsgHandler = new ProductMessageHandler(productService, productMapper);
+        var productMsgHandler = new ProductDatabaseHandler(productService, productMapper);
         var product = ProductTestUtils.createProductDTO();
         var entity = productMapper.toEntity(product);
         var event = EventUtil.createEvent(product);

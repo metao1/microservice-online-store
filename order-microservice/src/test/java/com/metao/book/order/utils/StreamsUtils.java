@@ -1,6 +1,6 @@
 package com.metao.book.order.utils;
 
-import com.metao.book.shared.OrderAvro;
+import com.metao.book.shared.OrderEvent;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,8 +16,8 @@ public class StreamsUtils {
         return hasMap;
     }
 
-    public static SpecificAvroSerde<OrderAvro> getSpecificAvroSerds(Map<String, Object> configMap) {
-        var serde = new SpecificAvroSerde<OrderAvro>();
+    public static SpecificAvroSerde<OrderEvent> getSpecificAvroSerds(Map<String, Object> configMap) {
+        var serde = new SpecificAvroSerde<OrderEvent>();
         serde.configure(configMap, false);
         return serde;
     }
