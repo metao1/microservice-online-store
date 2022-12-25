@@ -20,8 +20,6 @@ import org.springframework.validation.annotation.Validated;
 @EnableConfigurationProperties(KafkaProperties.class)
 public class KafkaProductConsumerConfiguration {
 
-    private final KafkaProperties properties;
-
     @Bean
     public KafkaTemplate<String, OrderEvent> defaultKafkaTemplate(
         ObjectProvider<RecordMessageConverter> messageConverter,
@@ -33,8 +31,8 @@ public class KafkaProductConsumerConfiguration {
     }
 
     @Bean
-    public ProducerFactory<String, OrderEvent> defaultKafkaProducerFactory() {
-        var configProps = this.properties.buildProducerProperties();
+    public ProducerFactory<String, OrderEvent> defaultKafkaProducerFactory(KafkaProperties properties) {
+        var configProps = properties.buildProducerProperties();
         configProps.put(ProducerConfig.LINGER_MS_CONFIG, "0");
         configProps.put(ProducerConfig.ACKS_CONFIG, "all");
         configProps.put(ProducerConfig.RETRIES_CONFIG, "0");

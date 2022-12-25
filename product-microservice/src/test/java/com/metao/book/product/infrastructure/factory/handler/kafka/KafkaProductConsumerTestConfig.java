@@ -1,6 +1,6 @@
 package com.metao.book.product.infrastructure.factory.handler.kafka;
 
-import com.metao.book.shared.ProductsResponseEvent;
+import com.metao.book.shared.ProductEvent;
 import java.util.concurrent.CountDownLatch;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -15,10 +15,8 @@ public class KafkaProductConsumerTestConfig {
 
     private final CountDownLatch latch = new CountDownLatch(1);
 
-    private static final String productsResponseTopic = "product";
-
-    @KafkaListener(id = "product-listener", topics = productsResponseTopic, groupId = "products-grp")
-    public void onEvent(ConsumerRecord<String, ProductsResponseEvent> record) {
+    @KafkaListener(id = "product-listener", topics = "product-topic", groupId = "products-grp")
+    public void onEvent(ConsumerRecord<String, ProductEvent> record) {
         log.info("Consumed message -> {}", record.value());
         latch.countDown();
     }

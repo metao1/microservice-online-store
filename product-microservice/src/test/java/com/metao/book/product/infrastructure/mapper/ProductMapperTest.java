@@ -4,6 +4,12 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.math.BigDecimal;
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+
+import com.metao.book.product.application.config.ProductMapper;
 import com.metao.book.product.application.dto.CategoryDTO;
 import com.metao.book.product.application.dto.ProductDTO;
 import com.metao.book.product.domain.ProductCategoryEntity;
@@ -12,9 +18,6 @@ import com.metao.book.product.domain.category.Category;
 import com.metao.book.product.domain.image.Image;
 import com.metao.book.product.util.ProductTestUtils;
 import com.metao.book.shared.domain.financial.Currency;
-import java.math.BigDecimal;
-import java.util.List;
-import org.junit.jupiter.api.Test;
 
 public class ProductMapperTest {
 
@@ -48,7 +51,8 @@ public class ProductMapperTest {
     @Test
     public void givenProductEntity_whenConvertToProductDTO_isOk() {
         var pe = ProductTestUtils.createProductEntity();
-        var productDto = ProductEntity.toDto(pe);
+        var productMapper = new ProductMapper();
+        var productDto = productMapper.toDto(pe);
         var categories = pe.getCategories();
 
         productDto.getCategories()

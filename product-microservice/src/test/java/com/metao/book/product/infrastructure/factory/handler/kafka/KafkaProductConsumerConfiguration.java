@@ -1,9 +1,12 @@
 package com.metao.book.product.infrastructure.factory.handler.kafka;
 
+import com.metao.book.product.application.config.ProductStreamConfig;
+import com.metao.book.product.application.config.SerdsConfig;
 import com.metao.book.shared.ProductEvent;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -17,16 +20,14 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @TestConfiguration
 @RequiredArgsConstructor
-@EnableConfigurationProperties(KafkaProperties.class)
 public class KafkaProductConsumerConfiguration {
 
     private final KafkaProperties properties;
 
     @Bean
     public KafkaTemplate<String, ProductEvent> defaultKafkaTemplate(
-        ObjectProvider<RecordMessageConverter> messageConverter,
-        ProducerFactory<String, ProductEvent> defaultKafkaProducerFactory
-    ) {
+            ObjectProvider<RecordMessageConverter> messageConverter,
+            ProducerFactory<String, ProductEvent> defaultKafkaProducerFactory) {
         var kafkaTemplate = new KafkaTemplate<>(defaultKafkaProducerFactory);
         messageConverter.ifUnique(kafkaTemplate::setMessageConverter);
         return kafkaTemplate;

@@ -17,7 +17,7 @@ spring:
   ###
   h2:
     console:
-      enabled: true
+      enabled: false
       path: /console
       settings:
         trace: false

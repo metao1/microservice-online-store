@@ -5,8 +5,7 @@ spring:
   jpa:
     properties:
       hibernate:
-        format_sql: true
-    show-sql: on
+        format_sql: true    
     open-in-view: false
     hibernate:
       ddl-auto: create

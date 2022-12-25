@@ -34,7 +34,7 @@
     },
     {
       "name": "quantity",
-      "type": "int"
+      "type": "double"
     },
     {
       "name": "price",
@@ -55,6 +55,10 @@
         ]
       },
       "namespace": "com.metao.book.shared"
+    },
+    {
+      "name": "created_on",
+      "type": "long"
     }
   ]
 }

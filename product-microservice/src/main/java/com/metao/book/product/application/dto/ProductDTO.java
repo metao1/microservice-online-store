@@ -42,6 +42,10 @@ public class ProductDTO implements Serializable {
     private Currency currency;
 
     @NotNull
+    @Min(1)
+    private BigDecimal volume;
+
+    @NotNull
     private Set<CategoryDTO> categories;
 
 }

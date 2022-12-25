@@ -1,19 +1,20 @@
 package com.metao.book.product.infrastructure.factory.handler;
 
-import com.metao.book.product.application.service.ProductService;
-import com.metao.book.product.domain.ProductEntity;
-import com.metao.book.product.domain.ProductRepository;
-import com.metao.book.product.infrastructure.mapper.ProductMapper;
-import com.metao.book.product.infrastructure.util.EventUtil;
-import com.metao.book.product.util.ProductTestUtils;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.verify;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.verify;
+import com.metao.book.product.application.config.ProductMapper;
+import com.metao.book.product.application.service.ProductService;
+import com.metao.book.product.domain.ProductEntity;
+import com.metao.book.product.domain.ProductRepository;
+import com.metao.book.product.infrastructure.util.EventUtil;
+import com.metao.book.product.util.ProductTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 public class ProductDatabaseHandlerTest {
@@ -28,7 +29,7 @@ public class ProductDatabaseHandlerTest {
         var productMsgHandler = new ProductDatabaseHandler(productService, productMapper);
         var product = ProductTestUtils.createProductDTO();
         var entity = productMapper.toEntity(product);
-        var event = EventUtil.createEvent(product);
+        var event = EventUtil.createProductEvent(product);
         productMsgHandler.onMessage(event);
         verify(productRepo).save(argThat(new EventMatcher(entity.orElseThrow())));
     }

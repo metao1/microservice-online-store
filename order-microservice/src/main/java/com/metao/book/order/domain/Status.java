@@ -4,13 +4,13 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum Status {
-    NEW("new"),
-    ACCEPT("accept"),
-    CONFIRM("confirm"),
-    REJECT("reject"),
-    PAYMENT("payment"),
-    PRODUCT("product"),
-    ROLLBACK("rollback");
+    NEW("NEW"),
+    ACCEPT("ACCEPT"),
+    CONFIRM("CONFIRM"),
+    REJECT("REJECT"),
+    PAYMENT("PAYMENT"),
+    PRODUCT("PRODUCT"),
+    ROLLBACK("ROLLABACK");
 
     private final String value;
 

@@ -1,18 +1,22 @@
 package com.metao.book.product.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.metao.book.product.domain.ProductCategoryRepository;
+import com.metao.book.product.domain.ProductCategoryEntity;
 import com.metao.book.product.domain.ProductEntity;
 import com.metao.book.product.domain.ProductId;
 import com.metao.book.product.domain.ProductRepository;
+import com.metao.book.product.domain.category.Category;
 import com.metao.book.product.infrastructure.repository.model.OffsetBasedPageRequest;
 import com.metao.book.product.util.BasePostgresIntegrationTest;
 import com.metao.book.product.util.ProductTestUtils;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+
+import org.assertj.core.api.Condition;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -31,9 +35,6 @@ class ProductRepositoryTest extends BasePostgresIntegrationTest {
     @Autowired
     ProductRepository productRepository;
 
-    @Autowired
-    ProductCategoryRepository categoryRepository;
-
     @Test
     void saveProductEntity() {
         var productEntity = ProductTestUtils.createProductEntity();
@@ -50,13 +51,12 @@ class ProductRepositoryTest extends BasePostgresIntegrationTest {
     void findAllProductsWithOffset_whenOnlyOneItemRequests_isOk() {
         var pe = ProductTestUtils.createProductEntity();
         productRepository.save(pe);
-        Pageable pageable = new OffsetBasedPageRequest(0, 1);
-        var productEntities = productRepository.findByIsin(pe.getIsin());
+        var productEntities = productRepository.findByAsin(pe.getAsin());
         var productEntity = productEntities.get();
         log.error(pe.toString());
         assertThat(productEntity)
-            .isNotNull()
-            .isEqualTo(pe);
+                .isNotNull()
+                .isEqualTo(pe);
     }
 
     @Test
@@ -67,12 +67,45 @@ class ProductRepositoryTest extends BasePostgresIntegrationTest {
         var productEntities = productRepository.findAll(pageable);
         var list = productEntities.get();
         assertThat(list)
-            .isNotNull()
-            .hasSize(2);
+                .isNotNull()
+                .hasSize(2);
     }
 
     @Test
     void findAllProductsWithOffset_Exception() {
         assertThrows(IllegalArgumentException.class, () -> new OffsetBasedPageRequest(1, 0));
+    }
+
+    @Test
+    void findProductById() {
+        var pe = ProductTestUtils.createProductEntity();
+        productRepository.save(pe);
+        var product = productRepository.findById(pe.id());
+        assertTrue(product.isPresent());
+        assertEquals(product.get(), pe);
+    }
+
+    @Test
+    void findByProductCategory() {
+        var pe = ProductTestUtils.createProductEntity();
+        productRepository.save(pe);
+
+        var optionalProductCategories = productRepository.findProductCategoriesByProductId(pe.id());
+        assertTrue(optionalProductCategories.isPresent());
+        assertThat(optionalProductCategories.get())
+                .hasSize(1)
+                .haveExactly(1, new Condition<>(m -> pe.id().equals(m.id()), "with this id there is only one product"))
+                .element(0)
+                .isEqualTo(pe)
+                .extracting(ProductEntity::getCategories)
+                .satisfies(categories -> {
+                    assertThat(categories)
+                            .hasSize(1)
+                            .element(0)
+                            .extracting(ProductCategoryEntity::getCategory)
+                            .extracting(Category::category)
+                            .isEqualTo("book");
+                });
+
     }
 }

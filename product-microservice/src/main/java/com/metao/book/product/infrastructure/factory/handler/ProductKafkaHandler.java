@@ -2,9 +2,9 @@ package com.metao.book.product.infrastructure.factory.handler;
 
 import com.metao.book.product.application.dto.ProductDTO;
 import com.metao.book.product.domain.event.CreateProductEvent;
-import com.metao.book.product.infrastructure.mapper.ProductMapperInterface;
 import com.metao.book.shared.Currency;
 import com.metao.book.shared.ProductEvent;
+import java.time.Instant;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 public class ProductKafkaHandler implements MessageHandler<CreateProductEvent> {
 
     private final RemoteProductService remoteProductService;
-    private final ProductMapperInterface productMapperInterface;
 
     @Override
     public void onMessage(@NonNull CreateProductEvent event) {
@@ -25,8 +24,8 @@ public class ProductKafkaHandler implements MessageHandler<CreateProductEvent> {
             log.info("sending product  to kafka on: {}", event.occurredOn());
             var productDto = event.productDTO();
             Optional.of(productDto)
-                .map(this::mapToProductEvent)
-                .ifPresent(remoteProductService::handle);
+                    .map(this::mapToProductEvent)
+                    .ifPresent(remoteProductService::handle);
         } catch (Exception ex) {
             log.warn(ex.getMessage());
         }
@@ -36,10 +35,12 @@ public class ProductKafkaHandler implements MessageHandler<CreateProductEvent> {
         return ProductEvent.newBuilder()
             .setProductId(productDTO.getAsin())
             .setTitle(productDTO.getTitle())
-            .setDescription(productDTO.getDescription())
-            .setCurrency(this.mapCurrency(productDTO.getCurrency()))
-            .setPrice(productDTO.getPrice().doubleValue())
             .setImageUrl(productDTO.getImageUrl())
+            .setDescription(productDTO.getDescription())
+            .setCurrency(mapCurrency(productDTO.getCurrency()))
+            .setPrice(productDTO.getPrice().doubleValue())
+            .setVolume(productDTO.getVolume().doubleValue())
+            .setCreatedOn(Instant.now().toEpochMilli())
             .build();
     }
 

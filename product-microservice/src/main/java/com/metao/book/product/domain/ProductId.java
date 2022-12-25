@@ -5,7 +5,7 @@ import com.metao.book.shared.domain.base.DomainObjectId;
 import java.io.Serializable;
 import org.springframework.lang.NonNull;
 
-public class ProductId extends DomainObjectId implements Serializable {
+public class ProductId extends DomainObjectId {
 
     @JsonCreator
     public ProductId(@NonNull String asin) {

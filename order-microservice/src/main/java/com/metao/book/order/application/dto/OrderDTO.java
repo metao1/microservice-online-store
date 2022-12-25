@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.metao.book.order.domain.Currency;
 import com.metao.book.order.domain.Status;
 import java.io.Serializable;
+import java.math.BigDecimal;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,11 +30,12 @@ public class OrderDTO implements Serializable {
     Status status;
 
     @JsonProperty("quantity")
-    int quantity;
+    BigDecimal quantity;
 
     @JsonProperty("currency")
     Currency currency;
 
     @JsonProperty("price")
-    double price;
+    BigDecimal price;
+
 }

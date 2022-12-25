@@ -1,11 +1,10 @@
 kafka:
   topic:
-    product: product
-
-eureka:
-  client:
-    enabled: false
-
+    order: "order-topic"
+    product: "product-topic"
+    reservation: "reservation-topic"
+    order-product: "order-product-topic"
+    
 spring:
   kafka:
     properties:
@@ -17,6 +16,10 @@ spring:
         fail.invalid.schema: true
         oneof.for.nullables: false
         write.dates.iso8601: true
+    streams:
+      application-id: product-microservice-test
+      properties:
+        state.dir: /tmp/kafka-streams-test
     consumer:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer

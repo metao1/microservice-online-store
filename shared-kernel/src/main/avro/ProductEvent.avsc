@@ -32,6 +32,11 @@
       "type": "double"
     },
     {
+      "name": "volume",
+      "type": ["null", "double"],
+      "default": null
+    },
+    {
       "name": "currency",
       "type": {
         "type": "enum",
@@ -42,6 +47,22 @@
         ]
       },
       "namespace": "com.metao.book.shared"
+    },
+    {
+      "name": "created_on",
+      "type": [
+        "null",
+        "long"
+      ],
+      "default": null
+    },
+    {
+      "name": "categories",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
     }
   ]
 }

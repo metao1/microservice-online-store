@@ -1,41 +1,24 @@
-kafka:
-  topic:
-    order: order
-    product: product
-    payment: payment
-
-eureka:
-  client:
-    enabled: false
-
 spring:
-  datasource:
-    url: jdbc:tc:postgresql:13.1:///integration-tests-db
-    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
-  jpa:
-    properties:
-      hibernate:
-        format_sql: true
-    show-sql: on
-    open-in-view: false
-    hibernate:
-      ddl-auto: create
   kafka:
     properties:
-      bootstrap-servers: localhost:9092
+      bootstrap-servers: PLAINTEXT://localhost:9092
       schema.registry.url: mock://not-used
       auto.register.schemas: true
       use.latest.version: true
-      security.protocol: PLAINTEXT
+      security.protocol: PLAINTEXT 
       json:
         fail.invalid.schema: true
         oneof.for.nullables: false
         write.dates.iso8601: true
+    streams:
+      application-id: order-microservice-test
+      properties:
+        state.dir: /tmp/kafka-streams-test
     consumer:
+      auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
       group-id: test-order-grp
-      auto-offset-reset: earliest
     producer:
       acks: 1
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -47,7 +30,18 @@ spring:
               type:
                 headers: false
     bootstrap-servers: localhost:9092
-
-logging:
-  level:
-    org.apache.kafka.streams.kstream: INFO
+  datasource:
+    url: jdbc:h2:mem:order-app;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driverClassName: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+        use_sql_comments: true
+        format_sql: true
+  sql:
+    init:
+      platform: h2

@@ -73,6 +73,8 @@ public abstract class AbstractEntity<T extends DomainObjectId> implements Identi
 
     @Override
     public String toString() {
-        return String.format("%s[%s]", getClass().getSimpleName(), id);
+        return "AbstractEntity{" +
+            "id=" + id +
+            '}';
     }
 }

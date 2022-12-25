@@ -5,5 +5,5 @@ import java.util.Set;
 
 public interface ProductCategoriesInterface {
 
-    Optional<Set<ProductCategoryEntity>> getProductCategories(String productId);
+    Optional<Set<ProductCategoryEntity>> getProductCategories(ProductId productId);
 }

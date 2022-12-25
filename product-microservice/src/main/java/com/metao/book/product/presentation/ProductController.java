@@ -5,7 +5,9 @@ import com.metao.book.product.application.exception.ProductNotFoundException;
 import com.metao.book.product.domain.ProductEntity;
 import com.metao.book.product.domain.ProductId;
 import com.metao.book.product.domain.ProductServiceInterface;
+import com.metao.book.product.infrastructure.factory.handler.ProductKafkaHandler;
 import com.metao.book.product.infrastructure.mapper.ProductMapperInterface;
+import com.metao.book.product.infrastructure.util.EventUtil;
 import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
@@ -27,25 +29,24 @@ public class ProductController {
 
     private final ProductServiceInterface productService;
     private final ProductMapperInterface productMapper;
+    private final ProductKafkaHandler productKafkaHandler;
 
-    @PostMapping(value = "/")
+    @PostMapping
     public void saveProduct(@Valid @RequestBody ProductDTO productDTO) {
-        Optional.of(productMapper.toEntity(productDTO))
-                .orElseThrow()
-                .ifPresent(productService::saveProduct);
+        Optional.of(productDTO).map(EventUtil::createProductEvent).ifPresent(productKafkaHandler::onMessage);
     }
 
     @GetMapping(value = "/details/{asin}")
     public ResponseEntity<ProductDTO> getOneProduct(@PathVariable ProductId asin) throws ProductNotFoundException {
         return productService.getProductById(asin)
-                .map(ProductEntity::toDto)
+                .map(productMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping(value = "/offset")
     public ResponseEntity<List<ProductDTO>> getAllProductsWithOffset(@RequestParam("limit") int limit,
-                                                                     @RequestParam("offset") int offset) {
+            @RequestParam("offset") int offset) {
         var l = Optional.of(limit).orElse(10);
         var o = Optional.of(offset).orElse(0);
         return productService.getAllProductsPageable(l, o)

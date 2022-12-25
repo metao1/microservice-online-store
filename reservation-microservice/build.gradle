@@ -1,0 +1,25 @@
+
+ext {
+    set('testcontainersVersion', "1.17.6")
+}
+
+dependencies {
+    implementation project(':shared-kernel')    
+    
+    implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'org.apache.kafka:kafka-streams'
+    implementation 'org.apache.kafka:kafka-clients'
+
+    implementation 'io.confluent:kafka-avro-serializer'
+    implementation 'io.confluent:kafka-streams-avro-serde'        
+
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
+    testImplementation 'org.apache.kafka:kafka-streams-test-utils'
+
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
+    }
+}

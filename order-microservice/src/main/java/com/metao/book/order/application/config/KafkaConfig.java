@@ -1,27 +1,75 @@
 package com.metao.book.order.application.config;
 
-import lombok.extern.slf4j.Slf4j;
+import com.metao.book.shared.OrderEvent;
+import com.metao.book.shared.ProductEvent;
+import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
+import lombok.RequiredArgsConstructor;
+
+import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.config.TopicConfig;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.validation.annotation.Validated;
 
-@Slf4j
 @Validated
 @Configuration
+@RequiredArgsConstructor
+@EnableConfigurationProperties(KafkaProperties.class)
 public class KafkaConfig {
 
     @Bean
-    public NewTopic orders(@Value("${kafka.topic.order}") String topic) {
+    public NewTopic orderTopic(@Value("${kafka.topic.order}") String topic) {
+        return createTopic(topic);        
+    }
+
+    @Bean
+    public NewTopic reservationTopic(@Value("${kafka.topic.reservation}") String topic) {
+        return createTopic(topic);
+    }
+
+    @Bean
+    public NewTopic paymentTopic(@Value("${kafka.topic.payment}") String topic) {
+        return createTopic(topic);
+    }
+
+    @Bean
+    public NewTopic productTopic(@Value("${kafka.topic.product}") String topic) {
+        return createTopic(topic);
+    }
+
+    @Bean
+    public NewTopic orderProductTopic(@Value("${kafka.topic.order-product}") String topic) {
+        return createTopic(topic);
+    }
+
+    @Bean
+    SpecificAvroSerde<ProductEvent> productEventSerde(KafkaProperties kafkaProperties) {
+        return createAvroSerde(kafkaProperties);
+    }
+
+    @Bean
+    SpecificAvroSerde<OrderEvent> orderEventSerde(KafkaProperties kafkaProperties) {
+        return createAvroSerde(kafkaProperties);
+    }
+
+    private <T extends SpecificRecord> SpecificAvroSerde<T> createAvroSerde(KafkaProperties kafkaProperties) {
+        var result = new SpecificAvroSerde<T>();
+        result.configure(kafkaProperties.getProperties(), false);
+        return result;
+    }
+
+    private NewTopic createTopic(String topicName) {
         return TopicBuilder
-            .name(topic)
-            .partitions(3)
-            .config(TopicConfig.COMPRESSION_TYPE_CONFIG, "zstd")
-            .compact()
-            .build();
+                .name(topicName)
+                .partitions(3)
+                .config(TopicConfig.COMPRESSION_TYPE_CONFIG, "zstd")
+                .compact()
+                .build();
     }
 
 }

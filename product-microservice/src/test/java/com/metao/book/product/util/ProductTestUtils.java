@@ -1,5 +1,9 @@
 package com.metao.book.product.util;
 
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Set;
+
 import com.metao.book.product.application.dto.CategoryDTO;
 import com.metao.book.product.application.dto.ProductDTO;
 import com.metao.book.product.domain.ProductCategoryEntity;
@@ -9,9 +13,6 @@ import com.metao.book.product.domain.image.Image;
 import com.metao.book.shared.domain.financial.Currency;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.test.TestUtils.StreamBuilder;
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Set;
 
 public class ProductTestUtils {
 
@@ -26,7 +27,8 @@ public class ProductTestUtils {
         var url = "https://example.com/image.jpg";
         var price = BigDecimal.valueOf(12);
         var currency = Currency.DLR;
-        var pe = new ProductEntity(id, title, description, new Money(currency, price), new Image(url));
+        var volume = BigDecimal.valueOf(100d);
+        var pe = new ProductEntity(id, title, description, volume, new Money(currency, price), new Image(url));
         pe.addCategory(createProductCategoryEntity());
         return pe;
     }
@@ -40,7 +42,7 @@ public class ProductTestUtils {
         var title = "title";
         return StreamBuilder.of(ProductEntity.class, 0, size,
                 a -> createProductEntity(a.toString(), title + a, description))
-            .toList();
+                .toList();
     }
 
     public static ProductDTO createProductDTO() {

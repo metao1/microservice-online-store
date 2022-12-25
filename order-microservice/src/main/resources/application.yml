@@ -2,87 +2,101 @@ server:
   error:
     include-message: always
     include-binding-errors: always
-  port: 8083
+  port: ${PORT:8083}
 
 kafka:
   properties:
     num-partitions: 1
     replication-factor: 1
   topic:
-    order: "order"
-    product: "product"
-    payment: "payment"
+    product: "product-topic"
+    order: "order-topic"
+    order-product: "order-product-topic"
+    reservation: "reservation-topic"
+    payment: "payment-topic"
 
 spring:
   kafka:
     # Required connection configs for Kafka producer, consumer, and admin
-    bootstrap-servers: pkc-6ojv2.us-west4.gcp.confluent.cloud:9092
+    bootstrap-servers: ${BOOTSTRAP_SERVERS}
     # Required connection configs for Confluent Cloud Schema Registry
     properties:
-      bootstrap-servers: pkc-6ojv2.us-west4.gcp.confluent.cloud:9092
-      schema.registry.url: https://psrc-kk5gg.europe-west3.gcp.confluent.cloud
+      stream-properties:
+        application-id: order-mi
+        schema.registry.url: ${SCHEMA_HOST}
+        application.id: order-microservice
+        bootstrap.servers: ${BOOTSTRAP_SERVERS}
+      bootstrap-servers: ${BOOTSTRAP_SERVERS}
       security.protocol: SASL_SSL
       sasl.mechanism: PLAIN
       credentials.source: USER_INFO
-      sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username='OIF7NQANRR6MKOLX'   password='FX+y+hbL+0MSur41+rMJpobTv2rHX/UvLOA6DNXyExeHe3OoIVVWG8VrC6IC67tN';
+      sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username=${KAFKA_USER} password='${KAFKA_PASS}';
       schema:
         registry:
-          url: https://psrc-kk5gg.europe-west3.gcp.confluent.cloud
+          url: ${SCHEMA_HOST}
           basic:
             auth:
               user:
-                info: AC2WDR5L5TFTOKH7:PoTBOmSFbdcMBFnP4GKpaSEpje4INp1jJwXk8SCsJl2IzcpP+Yi/tAF6HxICgSuJ
+                info: ${SCHEMA_INFO}
       basic:
         auth:
           credentials:
             source: USER_INFO
+            user:
+              info: ${SCHEMA_INFO}
     consumer:
       auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      key-deserializer: org.apache.kafka.common.serialization.StringDerializer
       value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      properties:
+        auto.offset.reset: earliest
+        specific.avro.reader: true
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
     streams:
       properties:
-        default.key.serde: org.apache.kafka.common.serialization.Serdes$LongSerde
+        application.id: order-microservice
+        bootstrap.servers: ${BOOTSTRAP_SERVERS}
+        schema.registry.url: ${SCHEMA_HOST}
+        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
         default.value.serde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
         num.standby.replicas: 1
         num.stream.threads: 2
         max.request.size: 8388608        # 84 MiB
         topic.max.message.bytes: 8388608 # 84 MiB
         topology.optimization: all
-        state.dir: /tmp/kafka-streams01
-  output:
-    ansi:
-      enabled: ALWAYS
-  application:
-    name: "order-ms"
+        state.dir: /tmp/kafka-streams-order
+      application-id: order-microservice
+  output.ansi.enabled: ALWAYS
   cloud:
     discovery:
       enabled: false
-    compatibility-verifier:
-      enabled: false
-  messages:
-    encoding:
+  datasource:
+    url: jdbc:h2:mem:product-app;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driverClassName: org.h2.Driver
+
   jpa:
     database: POSTGRESQL
-    show-sql: true
-    generate-ddl: true
+    show-sql: false
+    generate-ddl: false
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     database-platform: org.hibernate.dialect.PostgreSQL9Dialect
     properties:
+      open-in-view: false
       hibernate:
         temp:
           use_jdbc_metadata_defaults: false
-    open-in-view: false
-  datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
-    username: postgres
-    password: postgres
+      datasource:
+        url: jdbc:postgresql://localhost:5432/order
+        username: postgres
+        password: secset
 
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%15.15t]){yellow} %clr(:){red} %clr(%m){faint}%n"
   level:
     org.apache.kafka.streams.kstream: INFO
+    org.springframework.data: DEBUG
+    org.springframework.boot.autoconfigure: ERROR  
+    org.hibernate: DEBUG
