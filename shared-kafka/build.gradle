@@ -1,0 +1,10 @@
+plugins {
+  id 'java-library'
+}
+
+dependencies {
+  api 'io.confluent:kafka-avro-serializer'
+  api 'io.confluent:kafka-streams-avro-serde'
+  api 'org.apache.kafka:kafka-streams'
+  api 'org.apache.kafka:kafka-clients'
+}

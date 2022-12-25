@@ -24,7 +24,7 @@ import org.springframework.kafka.annotation.EnableKafkaStreams;
 @Slf4j
 @Configuration
 @EnableKafkaStreams
-@Profile("!test")
+@Profile({"!test"})
 @RequiredArgsConstructor
 @ImportAutoConfiguration(KafkaConfig.class)
 public class OrderStreamConfig {

@@ -4,14 +4,10 @@ ext {
 }
 
 dependencies {
-    implementation project(':shared-kernel')    
-    
-    implementation 'org.springframework.kafka:spring-kafka'
-    implementation 'org.apache.kafka:kafka-streams'
-    implementation 'org.apache.kafka:kafka-clients'
+    implementation project(':shared-kernel')
+    implementation project(':shared-kafka')
 
-    implementation 'io.confluent:kafka-avro-serializer'
-    implementation 'io.confluent:kafka-streams-avro-serde'        
+    implementation 'org.springframework.kafka:spring-kafka'
 
     testImplementation 'org.springframework.kafka:spring-kafka-test'
     testImplementation 'org.apache.kafka:kafka-streams-test-utils'

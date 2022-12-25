@@ -49,13 +49,15 @@ subprojects {
 
         dependencies {            
             implementation 'org.springframework.boot:spring-boot-starter-web'            
-            implementation 'org.mapstruct:mapstruct'
-            implementation 'org.mapstruct.extensions.spring:mapstruct-spring-annotations'
-            
-            annotationProcessor 'org.mapstruct:mapstruct-processor'
-            annotationProcessor 'org.mapstruct.extensions.spring:mapstruct-spring-extensions'
             annotationProcessor 'org.projectlombok:lombok'
-            annotationProcessor "org.projectlombok:lombok-mapstruct-binding:0.1.0"
+
+//            implementation 'org.mapstruct:mapstruct'
+//            implementation 'org.mapstruct.extensions.spring:mapstruct-spring-annotations'
+//
+//            annotationProcessor 'org.mapstruct:mapstruct-processor'
+//            annotationProcessor 'org.mapstruct.extensions.spring:mapstruct-spring-extensions'
+//
+//            annotationProcessor "org.projectlombok:lombok-mapstruct-binding:0.1.0"
  
             testAnnotationProcessor 'org.projectlombok:lombok'
             
@@ -65,20 +67,15 @@ subprojects {
 
     configurations.all {
         test {
-            useJUnitPlatform()
+          useJUnitPlatform()
 
-//            testLogging {
-//                showStandardStreams true
-//                showStackTraces true
-//            }
+          doFirst {
+            systemProperty 'spring.profiles.active', 'test'
+          }
 
-            doFirst {
-                systemProperty 'spring.profiles.active', 'test'
-            }
-
-            // testLogging {
-            //     events "PASSED", "SKIPPED", "FAILED"
-            // }
+          // testLogging {
+          //     events "PASSED", "SKIPPED", "FAILED"
+          // }
         }
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
         exclude group: 'org.slf4j', module: 'slf4j-simple'
@@ -93,9 +90,7 @@ subprojects {
 
 
         dependencies {
-
             annotationProcessor 'org.projectlombok:lombok'
-
             implementation 'org.apache.avro:avro'
             implementation 'org.projectlombok:lombok'
             // https://stackoverflow.com/questions/53326271/spring-nullable-annotation-generates-unknown-enum-constant-warning

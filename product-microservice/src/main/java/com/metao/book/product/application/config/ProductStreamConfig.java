@@ -1,6 +1,14 @@
 package com.metao.book.product.application.config;
 
+import com.metao.book.product.application.service.OrderAggregator;
+import com.metao.book.product.application.service.OrderProductJoiner;
 import com.metao.book.shared.OrderEvent;
+import com.metao.book.shared.ProductEvent;
+import com.metao.book.shared.ReservationEvent;
+import com.metao.book.shared.Status;
+import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -17,21 +25,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.annotation.EnableKafkaStreams;
 
-import com.metao.book.product.application.service.OrderAggregator;
-import com.metao.book.product.application.service.OrderProductJoiner;
-import com.metao.book.shared.ProductEvent;
-import com.metao.book.shared.ReservationEvent;
-import com.metao.book.shared.Status;
-
-import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 @Slf4j
 @Configuration
-@Profile("!test")
 @EnableKafkaStreams
 @RequiredArgsConstructor
+@Profile({"!test"})
 @ImportAutoConfiguration(value = KafkaConfig.class)
 public class ProductStreamConfig {
 

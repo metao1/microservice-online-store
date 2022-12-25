@@ -1,5 +1,10 @@
+kafka:
+  topic:
+    order: "order-topic"
+
 spring:
   kafka:
+    bootstrap-servers: PLAINTEXT://localhost:9092
     properties:
       bootstrap-servers: PLAINTEXT://localhost:9092
       schema.registry.url: mock://not-used
@@ -28,20 +33,4 @@ spring:
           json:
             add:
               type:
-                headers: false
-    bootstrap-servers: localhost:9092
-  datasource:
-    url: jdbc:h2:mem:order-app;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driverClassName: org.h2.Driver
-  jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
-    hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        show_sql: true
-        use_sql_comments: true
-        format_sql: true
-  sql:
-    init:
-      platform: h2
+                headers: false 

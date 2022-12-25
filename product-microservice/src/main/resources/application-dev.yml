@@ -1,27 +1,21 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:product-app;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driverClassName: org.h2.Driver
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgres
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database: POSTGRESQL
+    show-sql: false
+    generate-ddl: false
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.PostgreSQL9Dialect
     properties:
+      open-in-view: false
       hibernate:
-        show_sql: true
-        use_sql_comments: true
-        format_sql: true
-
-  ###
-  #   H2 Settings
-  ###
-  h2:
-    console:
-      enabled: false
-      path: /console
-      settings:
-        trace: false
-        web-allow-others: false
-  sql:
-    init:
-      platform: h2
+        temp:
+          use_jdbc_metadata_defaults: false
+      datasource:
+        url: jdbc:postgresql://localhost:5432/order
+        username: postgres
+        password: secset

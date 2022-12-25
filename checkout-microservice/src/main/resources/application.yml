@@ -3,10 +3,11 @@ server:
 
 kafka:
   topic:
-    order: "order"
     payment: "payment"
 
 spring:
+  application:
+    name: "checkout"
   kafka:
     # Required connection configs for Kafka producer, consumer, and admin
     bootstrap-servers: ${BOOTSTRAP_SERVERS}
@@ -48,8 +49,8 @@ spring:
     streams:
       properties:
         application.id: checkout
-        bootstrap.servers: pkc-6ojv2.us-west4.gcp.confluent.cloud:9092
-        schema.registry.url: http://pkc-6ojv2.us-west4.gcp.confluent.cloud:8081
+        bootstrap.servers: ${BOOTSTRAP_SERVERS}
+        schema.registry.url: ${SCHEMA_HOST}
         default.key.serde: org.apache.kafka.common.serialization.Serdes$LongSerde
         default.value.serde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
         num.standby.replicas: 1
@@ -64,23 +65,23 @@ spring:
     discovery:
       enabled: false
   datasource:
-    url: jdbc:h2:mem:product-app;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driverClassName: org.h2.Driver
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgres
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database: POSTGRESQL
     show-sql: false
-    generate-ddl: true
+    generate-ddl: false
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.PostgreSQL9Dialect
     properties:
+      open-in-view: false
       hibernate:
-        show_sql: false
-        use_sql_comments: true
-        format_sql: true
-  application:
-    name: "checkout"
-  sql:
-    init:
-      platform: h2
-
+        temp:
+          use_jdbc_metadata_defaults: false
+      datasource:
+        url: jdbc:postgresql://localhost:5432/order
+        username: postgres
+        password: secset
 logging.pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%15.15t]){yellow} %clr(:){red} %clr(%m){faint}%n"

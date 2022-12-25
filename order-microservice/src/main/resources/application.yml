@@ -45,8 +45,7 @@ spring:
             user:
               info: ${SCHEMA_INFO}
     consumer:
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDerializer
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
       properties:
         auto.offset.reset: earliest
@@ -73,15 +72,14 @@ spring:
     discovery:
       enabled: false
   datasource:
-    url: jdbc:h2:mem:product-app;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driverClassName: org.h2.Driver
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgres
 
   jpa:
     database: POSTGRESQL
     show-sql: false
     generate-ddl: false
-    hibernate:
-      ddl-auto: update
     database-platform: org.hibernate.dialect.PostgreSQL9Dialect
     properties:
       open-in-view: false
@@ -91,12 +89,12 @@ spring:
       datasource:
         url: jdbc:postgresql://localhost:5432/order
         username: postgres
-        password: secset
+        password: postgres
 
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%15.15t]){yellow} %clr(:){red} %clr(%m){faint}%n"
   level:
     org.apache.kafka.streams.kstream: INFO
     org.springframework.data: DEBUG
-    org.springframework.boot.autoconfigure: ERROR  
+    org.springframework.boot.autoconfigure: ERROR
     org.hibernate: DEBUG

@@ -5,26 +5,30 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'book'
+rootProject.name = 'microservice-online-book-store'
 
 include(':cart-microservice')
 include(':product-microservice')
 include(':checkout-microservice')
 include(':order-microservice')
 include(':reservation-microservice')
+include(':reservation-microservice')
 include(':shared-kernel')
+include(':shared-kafka')
 
 project(":cart-microservice").projectDir = file('cart-microservice')
 project(":product-microservice").projectDir = file('product-microservice')
 project(":checkout-microservice").projectDir = file('checkout-microservice')
 project(":order-microservice").projectDir = file('order-microservice')
 project(":reservation-microservice").projectDir = file('reservation-microservice')
+project(":reservation-microservice").projectDir = file('reservation-microservice')
 project(":shared-kernel").projectDir = file('shared-kernel')
+project(":shared-kafka").projectDir = file('shared-kafka')
 
 gradle.ext.springBootProjects = [
         ':order-microservice',
         ':cart-microservice',
         ':product-microservice',
         ':reservation-microservice',
-        ':checkout-microservice',
+        ':checkout-microservice'        
 ]

@@ -1,14 +1,10 @@
-package com.metao.book.order.kafka;
+package com.metao.book.reservation.application.config;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-
-import java.time.Instant;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
+import com.metao.book.shared.Currency;
 import com.metao.book.shared.OrderEvent;
+import com.metao.book.shared.Status;
 import com.metao.book.shared.kafka.StreamsUtils;
+import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.TopologyTestDriver;
@@ -17,13 +13,14 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Produced;
 import org.junit.jupiter.api.Test;
+import java.time.Instant;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
-import com.metao.book.shared.Currency;
-import com.metao.book.shared.Status;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
-
-public class OrderStreamTest {
+public class ReservationStreamConfigTest {
 
         @Test
         void shouldAggregateRecord() {
@@ -78,6 +75,6 @@ public class OrderStreamTest {
                         assertThat(expectedValues).isNotNull();
                         assertThat(expectedValues).isEqualTo(10);
                 }
-        }
 
+        }
 }
