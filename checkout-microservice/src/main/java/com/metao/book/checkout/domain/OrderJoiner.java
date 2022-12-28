@@ -1,4 +1,5 @@
-package com.metao.book.reservation.application.service;
+package com.metao.book.checkout.domain;
+
 
 import org.apache.kafka.streams.kstream.ValueJoiner;
 import org.springframework.stereotype.Component;

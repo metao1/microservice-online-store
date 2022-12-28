@@ -3,20 +3,23 @@ server:
 
 kafka:
   topic:
-    payment: "payment"
+    order: "order-topic"
+    product: "product-topic"
+    reservation: "reservation-topic"
+    order-product: "order-product-topic"
 
-spring:
+spring:  
   application:
-    name: "checkout"
+    name: checkout-microservice
   kafka:
     # Required connection configs for Kafka producer, consumer, and admin
     bootstrap-servers: ${BOOTSTRAP_SERVERS}
     # Required connection configs for Confluent Cloud Schema Registry
     properties:
       stream-properties:
-        application-id: checkout
+        application-id: checkout-microservice
         schema.registry.url: ${SCHEMA_HOST}
-        application.id: product
+        application.id: reservation-microservice
         bootstrap.servers: ${BOOTSTRAP_SERVERS}
       bootstrap-servers: ${BOOTSTRAP_SERVERS}
       security.protocol: SASL_SSL
@@ -44,44 +47,29 @@ spring:
         auto.offset.reset: earliest
         specific.avro.reader: true
     producer:
-      key-serializer: org.apache.kafka.common.serialization.LongSerializer
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
     streams:
+      application-id: checkout-microservice
+      replication-factor: 3
       properties:
-        application.id: checkout
+        application.id: checkout-microservice
         bootstrap.servers: ${BOOTSTRAP_SERVERS}
         schema.registry.url: ${SCHEMA_HOST}
-        default.key.serde: org.apache.kafka.common.serialization.Serdes$LongSerde
+        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
         default.value.serde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
         num.standby.replicas: 1
         num.stream.threads: 2
         max.request.size: 8388608        # 84 MiB
         topic.max.message.bytes: 8388608 # 84 MiB
         topology.optimization: all
-        state.dir: /tmp/kafka-streams-test
-      application-id: checkout
+        state.dir: /tmp/kafka-streams
   output.ansi.enabled: ALWAYS
-  cloud:
-    discovery:
-      enabled: false
-  datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
-    username: postgres
-    password: postgres
-  jpa:
-    database: POSTGRESQL
-    show-sql: false
-    generate-ddl: false
-    hibernate:
-      ddl-auto: update
-    database-platform: org.hibernate.dialect.PostgreSQL9Dialect
-    properties:
-      open-in-view: false
-      hibernate:
-        temp:
-          use_jdbc_metadata_defaults: false
-      datasource:
-        url: jdbc:postgresql://localhost:5432/order
-        username: postgres
-        password: secset
-logging.pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%15.15t]){yellow} %clr(:){red} %clr(%m){faint}%n"
+ 
+logging:
+  pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%15.15t]){yellow} %clr(:){red} %clr(%m){faint}%n"
+  level:
+    org.apache.kafka.streams.kstream: INFO
+    org.springframework.data: DEBUG
+    org.springframework.boot.autoconfigure: ERROR  
+    org.hibernate: DEBUG

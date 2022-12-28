@@ -3,7 +3,7 @@ package com.metao.book.order.kafka;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.metao.book.order.application.config.KafkaConfig;
-import com.metao.book.order.application.config.SerdsConfig;
+import com.metao.book.order.application.config.SerdesConfig;
 import com.metao.book.order.application.service.OrderMapper;
 import com.metao.book.order.application.service.OrderService;
 import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
@@ -37,11 +37,11 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
         OrderMapper.class,
         KafkaProductConsumerConfiguration.class,
         KafkaOrderConsumerTestConfig.class,
-        SerdsConfig.class
+        SerdesConfig.class
 })
 @AutoConfigureTestDatabase(replace = Replace.NONE)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class KafkaOrderProducerTest extends SpringBootEmbeddedKafka{
+public class KafkaOrderProducerTest extends SpringBootEmbeddedKafka {
 
     private static final Random RAND = new Random();
 

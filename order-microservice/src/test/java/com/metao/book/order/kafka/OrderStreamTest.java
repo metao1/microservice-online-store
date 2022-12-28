@@ -31,11 +31,11 @@ public class OrderStreamTest {
                 final String inputTopicName = "input";
                 final String outputTopicName = "output";
                 final Map<String, Object> configMap = StreamsUtils.propertiesToMap(streamProps);
-                final SpecificAvroSerde<OrderEvent> orderSerds = StreamsUtils.getSpecificAvroSerds(configMap);
+                final SpecificAvroSerde<OrderEvent> orderSerdes = StreamsUtils.getSpecificAvroSerdes(configMap);
 
                 final StreamsBuilder sb = new StreamsBuilder();
                 final KStream<String, OrderEvent> orderEventStream = sb.stream(inputTopicName,
-                                Consumed.with(Serdes.String(), orderSerds));
+                                Consumed.with(Serdes.String(), orderSerdes));
                 orderEventStream
                                 .groupByKey()
                                 .aggregate(() -> 0.0, (key, order, total) -> total + order.getPrice(),
@@ -45,7 +45,7 @@ public class OrderStreamTest {
                 try (final TopologyTestDriver testDriver = new TopologyTestDriver(sb.build(), streamProps)) {
                         var inputTopic = testDriver.createInputTopic(inputTopicName,
                                         Serdes.String().serializer(),
-                                        orderSerds.serializer());
+                                        orderSerdes.serializer());
                         var outputTopic = testDriver.createOutputTopic(outputTopicName,
                                         Serdes.String().deserializer(),
                                         Serdes.Double().deserializer());

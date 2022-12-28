@@ -1,7 +1,7 @@
 package com.metao.book.product.infrastructure.factory.handler.kafka;
 
 import com.metao.book.product.application.config.ProductStreamConfig;
-import com.metao.book.product.application.config.SerdsConfig;
+import com.metao.book.product.application.config.SerdesConfig;
 import com.metao.book.shared.ProductEvent;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.producer.ProducerConfig;

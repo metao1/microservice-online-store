@@ -1,11 +1,10 @@
-package com.metao.book.checkout.application;
+package com.metao.book.checkout.domain;
 
 import static com.metao.book.shared.Status.ACCEPT;
 import static com.metao.book.shared.Status.CONFIRM;
 import static com.metao.book.shared.Status.REJECT;
 import static com.metao.book.shared.Status.ROLLBACK;
 
-import com.metao.book.checkout.domain.ProductInventoryEntity;
 import com.metao.book.checkout.infrastructure.ProductInventoryRepository;
 import com.metao.book.shared.OrderEvent;
 import lombok.RequiredArgsConstructor;

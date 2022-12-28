@@ -4,7 +4,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.metao.book.order.application.config.KafkaConfig;
-import com.metao.book.order.application.config.SerdsConfig;
+import com.metao.book.order.application.config.SerdesConfig;
 import com.metao.book.order.application.dto.OrderDTO;
 import com.metao.book.order.application.service.OrderMapper;
 import com.metao.book.order.application.service.OrderService;
@@ -32,7 +32,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-@ActiveProfiles({"test"})
+@ActiveProfiles({ "test" })
 @AutoConfigureMockMvc
 @AutoConfigureTestDatabase(replace = Replace.NONE)
 @TestInstance(Lifecycle.PER_CLASS)
@@ -43,7 +43,7 @@ import org.springframework.test.web.servlet.MockMvc;
                 OrderMapper.class,
                 KafkaProductConsumerConfiguration.class,
                 KafkaOrderConsumerTestConfig.class,
-                SerdsConfig.class
+                SerdesConfig.class
 })
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)

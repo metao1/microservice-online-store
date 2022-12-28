@@ -18,7 +18,7 @@ public class StreamsUtils {
         return hasMap;
     }
 
-    public static <T extends SpecificRecord> SpecificAvroSerde<T> getSpecificAvroSerds(Map<String, Object> configMap) {
+    public static <T extends SpecificRecord> SpecificAvroSerde<T> getSpecificAvroSerdes(Map<String, Object> configMap) {
         var serde = new SpecificAvroSerde<T>();
         serde.configure(configMap, false);
         return serde;
@@ -31,7 +31,7 @@ public class StreamsUtils {
         streamProps.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
         streamProps.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         streamProps.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG,
-            SpecificAvroSerde.class.getName());
+                SpecificAvroSerde.class.getName());
 
         return streamProps;
     }

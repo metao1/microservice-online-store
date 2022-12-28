@@ -18,7 +18,7 @@ public class StreamsUtils {
                 return hasMap;
         }
 
-        public static <T extends SpecificRecord> SpecificAvroSerde<T> getSpecificAvroSerds(
+        public static <T extends SpecificRecord> SpecificAvroSerde<T> getSpecificAvroSerdes(
                         Map<String, Object> configMap) {
                 var serde = new SpecificAvroSerde<T>();
                 serde.configure(configMap, false);

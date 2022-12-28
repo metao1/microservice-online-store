@@ -29,7 +29,7 @@ import org.springframework.kafka.annotation.EnableKafkaStreams;
 @Configuration
 @EnableKafkaStreams
 @RequiredArgsConstructor
-@Profile({"!test"})
+@Profile({ "!test" })
 @ImportAutoConfiguration(value = KafkaConfig.class)
 public class ProductStreamConfig {
 
@@ -44,13 +44,13 @@ public class ProductStreamConfig {
                         NewTopic reservationTopic,
                         NewTopic productTopic,
                         NewTopic orderTopic,
-                        SpecificAvroSerde<ProductEvent> productSerds,
-                        SpecificAvroSerde<OrderEvent> orderSerds,
-                        SpecificAvroSerde<ReservationEvent> reservationSerds) {
+                        SpecificAvroSerde<ProductEvent> productSerdes,
+                        SpecificAvroSerde<OrderEvent> orderSerdes,
+                        SpecificAvroSerde<ReservationEvent> reservationSerdes) {
 
-                var orderStream = builder.stream(orderTopic.name(), Consumed.with(Serdes.String(), orderSerds))
+                var orderStream = builder.stream(orderTopic.name(), Consumed.with(Serdes.String(), orderSerdes))
                                 .peek((k, order) -> log.info("order:{}", order));
-                var productStream = builder.stream(productTopic.name(), Consumed.with(Serdes.String(), productSerds))
+                var productStream = builder.stream(productTopic.name(), Consumed.with(Serdes.String(), productSerdes))
                                 .peek((k, product) -> log.info("product:{}", product));
 
                 var customerOrderStoreSupplier = Stores.persistentKeyValueStore(ORDER_RESERVATION_STORE_NAME);
@@ -62,12 +62,12 @@ public class ProductStreamConfig {
                 var stream = orderStream
                                 .filter((k, order) -> order.getStatus() == Status.NEW)
                                 .selectKey((k, v) -> v.getProductId())
-                                .groupByKey(Grouped.with(Serdes.String(), orderSerds))
+                                .groupByKey(Grouped.with(Serdes.String(), orderSerdes))
                                 .aggregate(() -> 0.0d, orderAggregator, reservationStateStore)
                                 .toStream()
                                 .join(productStream.toTable(), orderProductJoiner)
                                 .peek((k, v) -> log.info("k:{}, v:{}", k, v));
-                stream.to(reservationTopic.name(), Produced.with(Serdes.String(), reservationSerds));
+                stream.to(reservationTopic.name(), Produced.with(Serdes.String(), reservationSerdes));
                 return stream;
         }
 

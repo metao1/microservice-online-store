@@ -1,4 +1,4 @@
-package com.metao.book.checkout.application;
+package com.metao.book.checkout.application.config;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.admin.NewTopic;
