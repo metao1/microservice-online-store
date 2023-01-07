@@ -1,0 +1,43 @@
+{
+    "type": "record",
+    "name": "StockReservationEvent",
+    "namespace": "com.metao.book.shared",
+    "fields": [
+        {
+            "name": "created_on",
+            "type": "long"
+        },
+        {
+            "name": "productId",
+            "type": [
+                "null",
+                "string"
+            ],
+            "default": null
+        },
+        {
+            "name": "customerId",
+            "type": [
+                "null",
+                "string"
+            ],
+            "default": null
+        },
+        {
+            "name": "reserved",
+            "type": [
+                "null",
+                "double"
+            ],
+            "default": null
+        },
+        {
+            "name": "available",
+            "type": [
+                "null",
+                "double"
+            ],
+            "default": null
+        }
+    ]
+}

@@ -4,22 +4,21 @@ import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
 import com.metao.book.shared.Currency;
 import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.Status;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.PostConstruct;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-//@ConditionalOnProperty(havingValue = "dev", name = "spring.profiles.active")
+@ConditionalOnProperty(havingValue = "dev", name = "spring.profiles.active")
 public class OrderGenerator {
 
         @Value("${kafka.topic.order}")
@@ -44,7 +43,7 @@ public class OrderGenerator {
                                 .setCurrency(Currency.dlr)
                                 .setSource("PAYMENT")
                                 .build();
-                kafkaProducer.produceOrderMessage(order);
+                kafkaProducer.handle(order);
         }
 
         /*public void loadProducts() {

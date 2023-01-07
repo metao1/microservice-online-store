@@ -3,10 +3,11 @@ server:
 
 kafka:
   topic:
-    order: "order-topic"
+    
     product: "product-topic"
-    reservation: "reservation-topic"
-    order-product: "order-product-topic"
+    order: "book-order-topic"
+    order-checkout: "order-product-topic"
+    payment: "payment-topic"
 
 spring:  
   application:
@@ -17,28 +18,13 @@ spring:
     # Required connection configs for Confluent Cloud Schema Registry
     properties:
       stream-properties:
-        application-id: checkout-microservice
         schema.registry.url: ${SCHEMA_HOST}
-        application.id: reservation-microservice
         bootstrap.servers: ${BOOTSTRAP_SERVERS}
       bootstrap-servers: ${BOOTSTRAP_SERVERS}
-      security.protocol: SASL_SSL
+      security.protocol: PLAINTEXT
+      schema.registry.url: ${SCHEMA_HOST}
       sasl.mechanism: PLAIN
       credentials.source: USER_INFO
-      sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username=${KAFKA_USER} password='${KAFKA_PASS}';
-      schema:
-        registry:
-          url: ${SCHEMA_HOST}
-          basic:
-            auth:
-              user:
-                info: ${SCHEMA_INFO}
-      basic:
-        auth:
-          credentials:
-            source: USER_INFO
-            user:
-              info: ${INFO_PASS}
     consumer:
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -49,9 +35,11 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      transaction-id-prefix: checkout-tx-
+      properties:
+        enable.idempotence: true
     streams:
-      application-id: checkout-microservice
-      replication-factor: 3
+      replication-factor: 1
       properties:
         application.id: checkout-microservice
         bootstrap.servers: ${BOOTSTRAP_SERVERS}
@@ -65,7 +53,22 @@ spring:
         topology.optimization: all
         state.dir: /tmp/kafka-streams
   output.ansi.enabled: ALWAYS
- 
+  jpa:
+    database: POSTGRESQL
+    show-sql: true
+    generate-ddl: true
+    hibernate:
+      ddl-auto: validate
+    database-platform: org.hibernate.dialect.PostgreSQL9Dialect
+    properties:
+      hibernate:
+        temp:
+          use_jdbc_metadata_defaults: false
+    open-in-view: false
+  datasource:
+    url: jdbc:postgresql://localhost:5432/checkout
+    username: checkout
+    password: checkout
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%15.15t]){yellow} %clr(:){red} %clr(%m){faint}%n"
   level:

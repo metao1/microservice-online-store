@@ -9,6 +9,7 @@ import com.metao.book.product.domain.image.Image;
 import com.metao.book.shared.Currency;
 import com.metao.book.shared.ProductEvent;
 import com.metao.book.shared.domain.financial.Money;
+import io.netty.util.internal.StringUtil;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collection;
@@ -57,7 +58,10 @@ public interface ProductMapperInterface {
     }
 
     default Optional<ProductEntity> toEntity(ProductEvent event) {
-        var categories = Arrays.stream(event.getCategories().split(",")).map(CategoryDTO::of);
+        Stream<CategoryDTO> categories= Stream.empty();
+        if (!StringUtil.isNullOrEmpty(event.getCategories())) {
+            categories = Arrays.stream(event.getCategories().split(",")).map(CategoryDTO::of);
+        }
         var productDto = ProductDTO.builder()
             .description(event.getDescription())
             .title(event.getTitle())

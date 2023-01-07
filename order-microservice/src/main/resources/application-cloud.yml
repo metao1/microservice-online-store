@@ -1,0 +1,91 @@
+server:
+  error:
+    include-message: always
+    include-binding-errors: always
+  port: ${PORT:8083}
+
+kafka:
+  properties:
+    num-partitions: 1
+    replication-factor: 1
+  topic:
+    product: "product-topic"
+    order: "book-order-topic"
+    order-product: "order-product-topic"
+    payment: "payment-topic"
+
+spring:
+  kafka:
+    # Required connection configs for Kafka producer, consumer, and admin
+    bootstrap-servers: ${BOOTSTRAP_SERVERS}
+    # Required connection configs for Confluent Cloud Schema Registry
+    properties:
+      stream-properties:
+        schema.registry.url: ${SCHEMA_HOST}
+        bootstrap.servers: ${BOOTSTRAP_SERVERS}
+      bootstrap-servers: ${BOOTSTRAP_SERVERS}
+      security.protocol: SASL_SSL
+      sasl.mechanism: PLAIN
+      credentials.source: USER_INFO
+      sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username=${KAFKA_USER} password='${KAFKA_PASS}';
+      schema:
+        registry:
+          url: ${SCHEMA_HOST}
+      basic:
+        auth:
+          credentials:
+            source: USER_INFO
+          user:
+            info: ${USER_INFO}
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      properties:
+        auto.offset.reset: earliest
+        specific.avro.reader: true
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+    streams:
+      properties:
+        application.id: order-ms
+        bootstrap.servers: ${BOOTSTRAP_SERVERS}
+        schema.registry.url: ${SCHEMA_HOST}
+        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        default.value.serde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
+        num.standby.replicas: 1
+        num.stream.threads: 2
+        max.request.size: 8388608        # 84 MiB
+        topic.max.message.bytes: 8388608 # 84 MiB
+        topology.optimization: all
+        state.dir: /tmp/kafka-streams-order
+  output.ansi.enabled: ALWAYS
+  cloud:
+    discovery:
+      enabled: false
+  datasource:
+    url: jdbc:postgresql://localhost:5432/order
+    username: postgres
+    password: postgres
+  jpa:
+    database: POSTGRESQL
+    show-sql: false
+    generate-ddl: false
+    database-platform: org.hibernate.dialect.PostgreSQL9Dialect
+    properties:
+      open-in-view: false
+      hibernate:
+        temp:
+          use_jdbc_metadata_defaults: false
+      datasource:
+        url: jdbc:postgresql://localhost:5432/order
+        username: postgres
+        password: postgres
+
+logging:
+  pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%15.15t]){yellow} %clr(:){red} %clr(%m){faint}%n"
+  level:
+    org.apache.kafka.streams.kstream: INFO
+    org.springframework.data: DEBUG
+    org.springframework.boot.autoconfigure: ERROR
+    org.hibernate: DEBUG

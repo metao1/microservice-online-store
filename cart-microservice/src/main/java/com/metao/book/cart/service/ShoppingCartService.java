@@ -14,4 +14,6 @@ public interface ShoppingCartService {
     void removeProductFromCart(String userId, String asin);
 
     int clearCart(String userId);
+
+    String submitProducts(String userId);
 }

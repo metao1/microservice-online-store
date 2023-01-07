@@ -1,25 +1,29 @@
 package com.metao.book.product.application.service;
 
-import java.time.Instant;
-
-import org.apache.kafka.streams.kstream.ValueJoiner;
-
 import com.metao.book.shared.ProductEvent;
-import com.metao.book.shared.ReservationEvent;
+import com.metao.book.shared.StockReservationEvent;
+import java.time.Instant;
+import org.apache.kafka.streams.kstream.ValueJoiner;
+import org.springframework.stereotype.Component;
 
-public class OrderProductJoiner implements ValueJoiner<Double, ProductEvent, ReservationEvent> {
+@Component
+public class OrderProductJoiner implements ValueJoiner<Double, ProductEvent, StockReservationEvent> {
 
-        private static final String CUSTOMER_ID = "CUSTOMER_ID";
+    private static final String CUSTOMER_ID = "CUSTOMER_ID";
 
-        @Override
-        public ReservationEvent apply(Double reserved, ProductEvent product) {
-                return ReservationEvent.newBuilder()
-                                .setCreatedOn(Instant.now().toEpochMilli())
-                                .setProductId(product.getProductId())
-                                .setAvailable((product.getVolume() == null) ? 100 : (product.getVolume() - reserved))
-                                .setReserved(reserved)
-                                .setCustomerId(CUSTOMER_ID)
-                                .build();
-        }
+    @Override
+    public StockReservationEvent apply(Double totalOrderQuantity, ProductEvent product) {
+        return StockReservationEvent.newBuilder()
+            .setCreatedOn(Instant.now().toEpochMilli())
+            .setProductId(product.getProductId())
+            .setAvailable(calculateAvailableItems(totalOrderQuantity, product.getVolume()))
+            .setReserved(totalOrderQuantity)
+            .setCustomerId(CUSTOMER_ID)
+            .build();
+    }
+
+    private Double calculateAvailableItems(Double totalOrderQuantity, Double totalProductCount) {
+        return totalOrderQuantity == null ? 100 : (totalProductCount - totalOrderQuantity);
+    }
 
 }

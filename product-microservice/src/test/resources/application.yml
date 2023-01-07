@@ -1,9 +1,8 @@
 kafka:
   topic:
-    order: "order-topic"
+    order: "book-order-topic"
     product: "product-topic"
-    reservation: "reservation-topic"
-    order-product: "order-product-topic"
+    order-stock: "order-stock-topic"
 
 spring:
   kafka:
@@ -18,7 +17,6 @@ spring:
         oneof.for.nullables: false
         write.dates.iso8601: true
     streams:
-      application-id: product-microservice-test
       properties:
         state.dir: /tmp/kafka-streams-test
     consumer:
@@ -27,7 +25,6 @@ spring:
       group-id: test-product-grp
       auto-offset-reset: earliest
     producer:
-      acks: 1
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
       properties:

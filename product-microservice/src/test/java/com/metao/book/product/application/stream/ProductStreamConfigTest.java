@@ -3,27 +3,24 @@ package com.metao.book.product.application.stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.metao.book.product.application.config.ProductStreamConfig;
+import com.metao.book.product.application.service.OrderAggregator;
+import com.metao.book.product.application.service.OrderProductJoiner;
+import com.metao.book.shared.Currency;
+import com.metao.book.shared.OrderEvent;
+import com.metao.book.shared.ProductEvent;
+import com.metao.book.shared.Status;
+import com.metao.book.shared.StockReservationEvent;
+import com.metao.book.shared.kafka.StreamsUtils;
 import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
-
-import com.metao.book.product.application.service.OrderAggregator;
-import com.metao.book.product.application.service.OrderProductJoiner;
-import com.metao.book.shared.OrderEvent;
-import com.metao.book.shared.kafka.StreamsUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.Test;
-
-import com.metao.book.product.application.config.ProductStreamConfig;
-import com.metao.book.shared.Currency;
-import com.metao.book.shared.ProductEvent;
-import com.metao.book.shared.ReservationEvent;
-import com.metao.book.shared.Status;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 class ProductStreamConfigTest {
@@ -34,27 +31,27 @@ class ProductStreamConfigTest {
 
         @Test
         void productReservationStream() {
-                final var orderInputTopicName = new NewTopic("order", 1, (short) 1);
-                final var productInputTopicName = new NewTopic("product", 1, (short) 1);
-                final var orderStockTopicName = new NewTopic("order-product-test", 1, (short) 1);
-                final var reservationTopicName = new NewTopic("order-reservation-test", 1, (short) 1);
+            final var orderInputTopicName = new NewTopic("order", 1, (short) 1);
+            final var productInputTopicName = new NewTopic("product", 1, (short) 1);
+            final var orderStockTopicName = new NewTopic("order-product-test", 1, (short) 1);
+            final var reservationTopicName = new NewTopic("order-reservation-test", 1, (short) 1);
 
-                final var streamProps = StreamsUtils.getStreamsProperties();
-                final var configMap = StreamsUtils.propertiesToMap(streamProps);
+            final var streamProps = StreamsUtils.getStreamsProperties();
+            final var configMap = StreamsUtils.propertiesToMap(streamProps);
 
-                final var sb = new StreamsBuilder();
-                final var orderSerdes = StreamsUtils.<OrderEvent>getSpecificAvroSerdes(configMap);
-                final var productSerdes = StreamsUtils.<ProductEvent>getSpecificAvroSerdes(configMap);
-                final var reservationSerdes = StreamsUtils.<ReservationEvent>getSpecificAvroSerdes(configMap);
+            final var sb = new StreamsBuilder();
+            final var orderSerdes = StreamsUtils.<OrderEvent>getSpecificAvroSerdes(configMap);
+            final var productSerdes = StreamsUtils.<ProductEvent>getSpecificAvroSerdes(configMap);
+            final var reservationSerdes = StreamsUtils.<StockReservationEvent>getSpecificAvroSerdes(configMap);
 
-                kafkaStreamsConfig.reservationStream(
-                                sb,
-                                reservationTopicName,
-                                productInputTopicName,
-                                orderInputTopicName,
-                                productSerdes,
-                                orderSerdes,
-                                reservationSerdes);
+            kafkaStreamsConfig.reservationStream(
+                sb,
+                reservationTopicName,
+                productInputTopicName,
+                orderInputTopicName,
+                productSerdes,
+                orderSerdes,
+                reservationSerdes);
 
                 try (final TopologyTestDriver testDriver = new TopologyTestDriver(sb.build(), streamProps)) {
                         var orderList = createOrderInput();
@@ -86,7 +83,7 @@ class ProductStreamConfigTest {
                                                 .isNotNull();
                         }
 
-                        ReservationEvent expectedReservationValues;
+                    StockReservationEvent expectedReservationValues;
                         expectedReservationValues = reservationOutput.readValue();
                         log.info("reservation:" + expectedReservationValues);
                         assertThat(expectedReservationValues)

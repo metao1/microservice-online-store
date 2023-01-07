@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.metao.book.shared.kafka.KafkaTemplateConfig

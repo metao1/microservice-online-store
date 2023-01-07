@@ -7,21 +7,37 @@ import static org.mockito.Mockito.verify;
 import com.metao.book.cart.domain.ShoppingCart;
 import com.metao.book.cart.domain.ShoppingCartKey;
 import com.metao.book.cart.repository.ShoppingCartRepository;
+import com.metao.book.cart.service.mapper.CartMapperService;
+import com.metao.book.shared.OrderEvent;
+import com.metao.book.shared.kafka.RemoteKafkaService;
 import com.metao.book.shared.test.TestUtils.StreamBuilder;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.function.ThrowingConsumer;
+import org.mockito.Mock;
 
 @TestInstance(Lifecycle.PER_CLASS)
 class ShoppingCartServiceTest {
 
     ShoppingCartRepository shoppingCartRepository = spy(ShoppingCartRepository.class);
 
-    private final ShoppingCartService shoppingCartService = new ShoppingCartCartFactory(shoppingCartRepository);
+    @Mock
+    RemoteKafkaService<String, OrderEvent> remoteKafkaService;
+    CartMapperService cartMapperService = new CartMapperService();
+    NewTopic orderTopic = new NewTopic("order-topic", 1, (short) 1);
+
+    private final ShoppingCartService shoppingCartService = new ShoppingCartCartFactory
+        (
+            remoteKafkaService,
+            shoppingCartRepository,
+            cartMapperService,
+            orderTopic
+        );
 
     @TestFactory
     Stream<DynamicTest> addAndGetShoppingCartScenario() {

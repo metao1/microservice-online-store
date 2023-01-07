@@ -2,7 +2,6 @@ package com.metao.book.product.presentation;
 
 import com.metao.book.product.application.dto.ProductDTO;
 import com.metao.book.product.application.exception.ProductNotFoundException;
-import com.metao.book.product.domain.ProductEntity;
 import com.metao.book.product.domain.ProductId;
 import com.metao.book.product.domain.ProductServiceInterface;
 import com.metao.book.product.infrastructure.factory.handler.ProductKafkaHandler;
@@ -37,11 +36,11 @@ public class ProductController {
     }
 
     @GetMapping(value = "/details/{asin}")
-    public ResponseEntity<ProductDTO> getOneProduct(@PathVariable ProductId asin) throws ProductNotFoundException {
-        return productService.getProductById(asin)
-                .map(productMapper::toDto)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<ProductDTO> getOneProduct(@PathVariable String asin) throws ProductNotFoundException {
+        return productService.getProductByAsin(asin)
+            .map(productMapper::toDto)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping(value = "/offset")

@@ -5,13 +5,12 @@ import static org.mockito.Mockito.when;
 
 import com.metao.book.product.application.service.ProductService;
 import com.metao.book.product.domain.ProductId;
-import com.metao.book.product.infrastructure.factory.handler.kafka.KafkaProductConsumerConfiguration;
 import com.metao.book.product.infrastructure.factory.handler.kafka.KafkaProductConsumerTestConfig;
 import com.metao.book.product.util.ProductTestUtils;
 import com.metao.book.shared.Currency;
-import com.metao.book.shared.ProductEvent;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import com.metao.book.shared.ProductEvent;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -28,8 +27,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles({ "test", "container" })
 @Import({
-                KafkaProductConsumerConfiguration.class,
-                KafkaProductConsumerTestConfig.class
+    KafkaProductConsumerTestConfig.class
 })
 @AutoConfigureTestDatabase(replace = Replace.NONE)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

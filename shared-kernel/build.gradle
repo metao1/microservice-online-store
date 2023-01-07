@@ -10,5 +10,4 @@ dependencies {
 
     compileOnly 'io.micrometer:micrometer-registry-prometheus'
     compileOnly 'io.micrometer:micrometer-core'
-    compileOnly 'io.opentracing.brave:brave-opentracing'
 }

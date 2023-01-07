@@ -45,7 +45,6 @@ public class ProductDTO implements Serializable {
     @Min(1)
     private BigDecimal volume;
 
-    @NotNull
     private Set<CategoryDTO> categories;
 
 }

@@ -84,8 +84,9 @@ class CurrencyConverterClient implements CurrencyConverter {
         LOGGER.info("Fetching conversion rates from web service");
         var uri = UriComponentsBuilder.fromUriString("https://api.exchangeratesapi.io/latest")
                 .queryParam("symbols", Stream.of(Currency.values())
-                        .filter(c -> c != Currency.EUR)
-                        .map(Enum::name).collect(Collectors.joining(",")))
+                    .filter(c -> c != Currency.EUR)
+                    .map(Enum::name)
+                    .collect(Collectors.joining(",")))
                 .build().toUri();
         LOGGER.debug("Using URI {}", uri);
         var rates = restTemplate.getForEntity(uri, RatesDTO.class).getBody();

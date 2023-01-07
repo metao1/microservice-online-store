@@ -2,8 +2,8 @@ package com.metao.book.order.kafka;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.metao.book.order.application.config.KafkaConfig;
-import com.metao.book.order.application.config.SerdesConfig;
+import com.metao.book.order.application.config.KafkaSerdesConfig;
+import com.metao.book.order.application.config.ObjectMapperConfig;
 import com.metao.book.order.application.service.OrderMapper;
 import com.metao.book.order.application.service.OrderService;
 import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
@@ -20,24 +20,17 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 
-@ActiveProfiles("test")
-@AutoConfigureMockMvc
+@ActiveProfiles({"test", "container"})
 @TestInstance(Lifecycle.PER_CLASS)
 @Import({
-        KafkaConfig.class,
-        OrderService.class,
-        KafkaOrderService.class,
-        OrderMapper.class,
-        KafkaProductConsumerConfiguration.class,
-        KafkaOrderConsumerTestConfig.class,
-        SerdesConfig.class
+    KafkaOrderConsumerTestConfig.class,
+    ObjectMapperConfig.class
 })
 @AutoConfigureTestDatabase(replace = Replace.NONE)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -45,8 +38,6 @@ public class KafkaOrderProducerTest extends SpringBootEmbeddedKafka {
 
     private static final Random RAND = new Random();
 
-    @MockBean
-    KafkaOrderService orderService;
 
     @Autowired
     private KafkaOrderProducer kafkaProducer;
@@ -57,7 +48,7 @@ public class KafkaOrderProducerTest extends SpringBootEmbeddedKafka {
     @Test
     public void givenKafkaOrderTopic_whenSendingToTopic_thenMessageReceivedCorrectly() throws Exception {
         StreamBuilder.of(OrderEvent.class, 0, 10, this::createOrderFromCustomerId)
-                .forEach(order -> kafkaProducer.produceOrderMessage(order));
+            .forEach(kafkaProducer::handle);
 
         consumer.getLatch().await(6, TimeUnit.SECONDS);
 

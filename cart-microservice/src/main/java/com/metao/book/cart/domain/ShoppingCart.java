@@ -1,13 +1,14 @@
 package com.metao.book.cart.domain;
 
+import com.metao.book.cart.service.mapper.BaseDTO;
+import java.time.Instant;
+import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-import java.time.Instant;
-import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -25,7 +26,7 @@ import org.hibernate.Hibernate;
 @Entity(name = "shopping_cart")
 @IdClass(ShoppingCartKey.class)
 @Table(name = "shopping_cart")
-public class ShoppingCart {
+public class ShoppingCart extends BaseDTO {
 
     @Transient
     private static final int DEFAULT_QUANTITY = 1;
@@ -38,26 +39,29 @@ public class ShoppingCart {
     @Column(name = "asin")
     private String asin;
 
-    @Column(name = "time_added")
-    private Instant timeAdded;
+    @Column(name = "time_created")
+    private Long createdOn;
+
+    @Column(name = "time_updated")
+    private Long updateOn;
 
     @Column(name = "quantity")
     private int quantity;
 
     public static ShoppingCart createCart(ShoppingCartKey currentKey) {
-        return ShoppingCart
-                .builder()
-                .userId(currentKey.getUserId())
-                .asin(currentKey.getAsin())
-                .quantity(DEFAULT_QUANTITY)
-                .timeAdded(Instant.now())
-                .build();
+        return ShoppingCart.builder()
+            .createdOn(Instant.now().toEpochMilli())
+            .userId(currentKey.getUserId())
+            .asin(currentKey.getAsin())
+            .quantity(DEFAULT_QUANTITY)
+            .build();
     }
 
     public int increaseQuantity() {
         if (quantity == Integer.MAX_VALUE) {
             throw new IllegalStateException("Quantity is already at max value");
         }
+        setUpdateOn(Instant.now().toEpochMilli());
         return ++quantity;
     }
 
@@ -65,6 +69,7 @@ public class ShoppingCart {
         if(this.quantity > 1) {
             this.quantity--;
         }
+        setUpdateOn(Instant.now().toEpochMilli());
         return this.quantity;
     }
 

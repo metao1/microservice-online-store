@@ -3,8 +3,8 @@ package com.metao.book.order.presentation;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.metao.book.order.application.config.KafkaConfig;
-import com.metao.book.order.application.config.SerdesConfig;
+import com.metao.book.order.application.config.KafkaSerdesConfig;
+import com.metao.book.order.application.config.ObjectMapperConfig;
 import com.metao.book.order.application.dto.OrderDTO;
 import com.metao.book.order.application.service.OrderMapper;
 import com.metao.book.order.application.service.OrderService;
@@ -12,7 +12,6 @@ import com.metao.book.order.domain.Currency;
 import com.metao.book.order.domain.Status;
 import com.metao.book.order.infrastructure.repository.KafkaOrderService;
 import com.metao.book.order.kafka.KafkaOrderConsumerTestConfig;
-import com.metao.book.order.kafka.KafkaProductConsumerConfiguration;
 import com.metao.book.order.kafka.SpringBootEmbeddedKafka;
 import com.metao.book.order.utils.TestUtils;
 import java.math.BigDecimal;
@@ -32,18 +31,17 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-@ActiveProfiles({ "test" })
+@ActiveProfiles({"test", "container"})
 @AutoConfigureMockMvc
 @AutoConfigureTestDatabase(replace = Replace.NONE)
 @TestInstance(Lifecycle.PER_CLASS)
 @Import({
-                KafkaConfig.class,
-                OrderService.class,
-                KafkaOrderService.class,
-                OrderMapper.class,
-                KafkaProductConsumerConfiguration.class,
-                KafkaOrderConsumerTestConfig.class,
-                SerdesConfig.class
+    KafkaSerdesConfig.class,
+    OrderService.class,
+    KafkaOrderService.class,
+    OrderMapper.class,
+    KafkaOrderConsumerTestConfig.class,
+    ObjectMapperConfig.class
 })
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)

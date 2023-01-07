@@ -96,6 +96,7 @@ public class ProductEntity extends AbstractEntity<ProductId> implements Concurre
         this.title = title;
         this.description = description;
         this.volume = volume;
+        this.reservedItems = BigDecimal.ZERO;
         this.priceValue = money.doubleAmount();
         this.priceCurrency = money.currency();
         this.image = image;

@@ -14,9 +14,6 @@ allprojects {
     version = System.getenv('CI_COMMIT_REF_NAME') ? System.getenv('CI_COMMIT_REF_NAME') : "${getCurrentGitBranch()}-${getHostName()}"
 }
 
-ext {
-    set('springCloudVersion', "2020.0.3")
-}
 
 subprojects {
     apply plugin: 'java'
@@ -44,25 +41,18 @@ subprojects {
     }
 
     if (isSpringProject) {
-        apply plugin: 'org.springframework.boot'
-        apply plugin: 'com.google.cloud.tools.jib'
+      apply plugin: 'org.springframework.boot'
+      apply plugin: 'com.google.cloud.tools.jib'
 
-        dependencies {            
-            implementation 'org.springframework.boot:spring-boot-starter-web'            
-            annotationProcessor 'org.projectlombok:lombok'
+      dependencies {
+        implementation 'org.springframework.boot:spring-boot-starter-web'
 
-//            implementation 'org.mapstruct:mapstruct'
-//            implementation 'org.mapstruct.extensions.spring:mapstruct-spring-annotations'
-//
-//            annotationProcessor 'org.mapstruct:mapstruct-processor'
-//            annotationProcessor 'org.mapstruct.extensions.spring:mapstruct-spring-extensions'
-//
-//            annotationProcessor "org.projectlombok:lombok-mapstruct-binding:0.1.0"
- 
-            testAnnotationProcessor 'org.projectlombok:lombok'
-            
-            testImplementation 'org.projectlombok:lombok'
-        }
+        annotationProcessor 'org.projectlombok:lombok'
+
+        testAnnotationProcessor 'org.projectlombok:lombok'
+
+        testImplementation 'org.projectlombok:lombok'
+      }
     }
 
     configurations.all {
@@ -83,8 +73,7 @@ subprojects {
         exclude group: 'org.junit.vintage:junit-vintage-engine'
         dependencyManagement {
             imports {
-                mavenBom SpringBootPlugin.BOM_COORDINATES
-                mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+              mavenBom SpringBootPlugin.BOM_COORDINATES
             }
         }
 

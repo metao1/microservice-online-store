@@ -12,8 +12,6 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.JoinWindows;
 import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.KTable;
-import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.StreamJoined;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -26,39 +24,32 @@ import org.springframework.kafka.annotation.EnableKafkaStreams;
 @EnableKafkaStreams
 @Profile({"!test"})
 @RequiredArgsConstructor
-@ImportAutoConfiguration(KafkaConfig.class)
+@ImportAutoConfiguration({KafkaSerdesConfig.class, KafkaConfig.class})
 public class OrderStreamConfig {
 
-        private final OrderManageService orderManageService;
+    private final OrderManageService orderManageService;
 
-        @Bean
-        public KStream<String, OrderEvent> stream(
-                        StreamsBuilder builder,
-                        SpecificAvroSerde<OrderEvent> orderEventSerde,
-                        NewTopic paymentTopic,
-                        NewTopic orderTopic,
-                        NewTopic productTopic) {
-                KStream<String, OrderEvent> paymentOrders = builder
-                                .stream(paymentTopic.name(), Consumed.with(Serdes.String(), orderEventSerde));
-                KStream<String, OrderEvent> stockOrderStream = builder
-                                .stream(productTopic.name(), Consumed.with(Serdes.String(), orderEventSerde));
-                paymentOrders.join(
-                                stockOrderStream,
-                                orderManageService::confirm,
-                                JoinWindows.ofTimeDifferenceWithNoGrace(Duration.ofHours(1)),
-                                StreamJoined.with(Serdes.String(), orderEventSerde, orderEventSerde))
-                                .peek((k, o) -> log.info("Output: {}", o))
-                                .to(orderTopic.name());
+    @Bean
+    public KStream<String, OrderEvent> orderKafkaStreamsMerger(
+        StreamsBuilder builder,
+        SpecificAvroSerde<OrderEvent> orderEventSerde,
+        NewTopic orderStockTopic,
+        NewTopic orderTopic,
+        NewTopic orderPaymentTopic
+    ) {
 
-                return paymentOrders;
-        }
+        KStream<String, OrderEvent> orderPaymentStream = builder
+            .stream(orderPaymentTopic.name(), Consumed.with(Serdes.String(), orderEventSerde));
+        KStream<String, OrderEvent> orderStockStream = builder
+            .stream(orderStockTopic.name(), Consumed.with(Serdes.String(), orderEventSerde));
+        orderPaymentStream.join(
+                orderStockStream,
+                orderManageService::confirm,
+                JoinWindows.ofTimeDifferenceWithNoGrace(Duration.ofHours(1)),
+                StreamJoined.with(Serdes.String(), orderEventSerde, orderEventSerde))
+            .peek((k, o) -> log.info("Output: {}", o))
+            .to(orderTopic.name());
 
-        @Bean
-        public KTable<String, OrderEvent> productTable(
-                        StreamsBuilder sb,
-                        NewTopic orderProductTopic,
-                        SpecificAvroSerde<OrderEvent> serde) {
-                return sb.table(orderProductTopic.name(), Consumed.with(Serdes.String(), serde),
-                                Materialized.as("ORDERS"));
-        }
+        return orderPaymentStream;
+    }
 }

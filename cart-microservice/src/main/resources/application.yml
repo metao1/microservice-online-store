@@ -1,13 +1,62 @@
 server:
   port: ${PORT:8083}
 
+kafka:
+  topic:
+    order: "book-order-topic"
+    order-payment: "order-payment-topic"
+    order-stock: "order-stock-topic"
+
 spring:
+  application:
+    name: cart-microservice
+  kafka:
+    # Required connection configs for Kafka producer, consumer, and admin
+    bootstrap-servers: ${BOOTSTRAP_SERVERS}
+    # Required connection configs for Confluent Cloud Schema Registry
+    properties:
+      stream-properties:
+        schema.registry.url: ${SCHEMA_HOST}
+        bootstrap.servers: ${BOOTSTRAP_SERVERS}
+      bootstrap-servers: ${BOOTSTRAP_SERVERS}
+      security.protocol: PLAINTEXT
+      schema.registry.url: ${SCHEMA_HOST}
+      sasl.mechanism: PLAIN
+      credentials.source: USER_INFO
+    consumer:
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      properties:
+        auto.offset.reset: earliest
+        specific.avro.reader: true
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      transaction-id-prefix: cart-tx-
+      properties:
+        enable.idempotence: true
+    streams:
+      replication-factor: 1
+      properties:
+        application.id: cart-microservice
+        bootstrap.servers: ${BOOTSTRAP_SERVERS}
+        schema.registry.url: ${SCHEMA_HOST}
+        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        default.value.serde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
+        num.standby.replicas: 1
+        num.stream.threads: 2
+        max.request.size: 8388608        # 84 MiB
+        topic.max.message.bytes: 8388608 # 84 MiB
+        topology.optimization: all
+        state.dir: /tmp/kafka-streams
+  output.ansi.enabled: ALWAYS
   jpa:
     database: POSTGRESQL
     show-sql: true
     generate-ddl: true
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
     database-platform: org.hibernate.dialect.PostgreSQL9Dialect
     properties:
       hibernate:
@@ -15,6 +64,13 @@ spring:
           use_jdbc_metadata_defaults: false
     open-in-view: false
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
-    username: postgres
-    password: postgres
+    url: jdbc:postgresql://localhost:5432/cart
+    username: cart
+    password: cart
+logging:
+  pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%15.15t]){yellow} %clr(:){red} %clr(%m){faint}%n"
+  level:
+    org.apache.kafka.streams.kstream: INFO
+    org.springframework.data: DEBUG
+    org.springframework.boot.autoconfigure: ERROR
+    org.hibernate: DEBUG

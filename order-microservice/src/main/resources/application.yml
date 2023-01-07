@@ -2,48 +2,33 @@ server:
   error:
     include-message: always
     include-binding-errors: always
-  port: ${PORT:8083}
+  port: ${PORT:8085}
 
 kafka:
   properties:
     num-partitions: 1
     replication-factor: 1
   topic:
-    product: "product-topic"
-    order: "order-topic"
-    order-product: "order-product-topic"
-    reservation: "reservation-topic"
-    payment: "payment-topic"
+    order: "book-order-topic"
+    order-payment: "order-payment-topic"
+    order-stock: "order-stock-topic"
 
 spring:
+  application:
+    name: order-ms
   kafka:
     # Required connection configs for Kafka producer, consumer, and admin
     bootstrap-servers: ${BOOTSTRAP_SERVERS}
     # Required connection configs for Confluent Cloud Schema Registry
     properties:
       stream-properties:
-        application-id: order-mi
         schema.registry.url: ${SCHEMA_HOST}
-        application.id: order-microservice
         bootstrap.servers: ${BOOTSTRAP_SERVERS}
       bootstrap-servers: ${BOOTSTRAP_SERVERS}
-      security.protocol: SASL_SSL
+      security.protocol: PLAINTEXT
+      schema.registry.url: ${SCHEMA_HOST}
       sasl.mechanism: PLAIN
       credentials.source: USER_INFO
-      sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username=${KAFKA_USER} password='${KAFKA_PASS}';
-      schema:
-        registry:
-          url: ${SCHEMA_HOST}
-          basic:
-            auth:
-              user:
-                info: ${SCHEMA_INFO}
-      basic:
-        auth:
-          credentials:
-            source: USER_INFO
-            user:
-              info: ${SCHEMA_INFO}
     consumer:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
@@ -53,9 +38,12 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      transaction-id-prefix: order-tx-
+      properties:
+        enable.idempotence: true
     streams:
       properties:
-        application.id: order-microservice
+        application.id: order-ms
         bootstrap.servers: ${BOOTSTRAP_SERVERS}
         schema.registry.url: ${SCHEMA_HOST}
         default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
@@ -66,20 +54,20 @@ spring:
         topic.max.message.bytes: 8388608 # 84 MiB
         topology.optimization: all
         state.dir: /tmp/kafka-streams-order
-      application-id: order-microservice
   output.ansi.enabled: ALWAYS
   cloud:
     discovery:
       enabled: false
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
-    username: postgres
-    password: postgres
-
+    url: jdbc:postgresql://localhost:5432/product
+    username: product
+    password: product
   jpa:
     database: POSTGRESQL
     show-sql: false
     generate-ddl: false
+    hibernate:
+      ddl-auto: update
     database-platform: org.hibernate.dialect.PostgreSQL9Dialect
     properties:
       open-in-view: false
@@ -87,7 +75,7 @@ spring:
         temp:
           use_jdbc_metadata_defaults: false
       datasource:
-        url: jdbc:postgresql://localhost:5432/order
+        url: jdbc:postgresql://localhost:5432/product
         username: postgres
         password: postgres
 

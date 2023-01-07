@@ -1,30 +1,26 @@
 package com.metao.book.product.infrastructure.factory.handler;
 
 import com.metao.book.shared.ProductEvent;
+import com.metao.book.shared.kafka.RemoteKafkaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
+import org.apache.kafka.clients.admin.NewTopic;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@ComponentScan(basePackageClasses = RemoteKafkaService.class)
 public class RemoteProductService {
 
-    @Value("${kafka.topic.product}")
-    String productEventTopic;
-
-    private final KafkaTemplate<String, ProductEvent> kafkaTemplate;
+    private final RemoteKafkaService<String, ProductEvent> kafkaTemplate;
+    private final NewTopic productTopic;
 
     @Transactional
     public void handle(ProductEvent productEvent) {
-        kafkaTemplate.send(productEventTopic, productEvent.getProductId(), productEvent)
-            .addCallback(result -> log.info("Sent: {}",
-                result != null ? result.getProducerRecord().value() : null), ex -> {
-            });
-
+        kafkaTemplate.sendToTopic(productTopic.name(), productEvent.getProductId(), productEvent);
     }
 
 }
