@@ -6,9 +6,9 @@ kafka:
 
 spring:
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: PLAINTEXT://localhost:9092
     properties:
-      bootstrap-servers: localhost:9092
+      bootstrap-servers: PLAINTEXT://localhost:9092
       schema.registry.url: mock://not-used
       auto.register.schemas: true
       use.latest.version: true
@@ -28,6 +28,7 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
       properties:
+        enable.idempotence: true
         spring:
           json:
             add:

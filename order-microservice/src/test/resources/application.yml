@@ -11,13 +11,12 @@ kafka:
 
 spring:
   kafka:
-    bootstrap-servers: PLAINTEXT://localhost:9093
+    bootstrap-servers: PLAINTEXT://localhost:9092
     properties:
-      bootstrap-servers: PLAINTEXT://localhost:9093
+      bootstrap-servers: PLAINTEXT://localhost:9092
       schema.registry.url: mock://not-used
       auto.register.schemas: true
       use.latest.version: true
-      security.protocol: PLAINTEXT 
       json:
         fail.invalid.schema: true
         oneof.for.nullables: false
@@ -25,6 +24,7 @@ spring:
     streams:
       properties:
         state.dir: /tmp/kafka-streams-test
+
     consumer:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
@@ -33,3 +33,10 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      properties:
+        enable.idempotence: true
+        spring:
+          json:
+            add:
+              type:
+                headers: false

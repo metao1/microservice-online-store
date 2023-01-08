@@ -1,13 +1,14 @@
 package com.metao.book.order.kafka;
 
-import com.metao.book.order.application.dto.OrderDTO;
+import com.metao.book.shared.OrderEvent;
+
+import java.util.concurrent.CountDownLatch;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.concurrent.CountDownLatch;
 
 @Slf4j
 @EnableKafka
@@ -16,9 +17,8 @@ public class KafkaOrderConsumerTestConfig {
 
     private final CountDownLatch latch = new CountDownLatch(10);
 
-    @Transactional
-    @KafkaListener(id = "order-id", topics = "book-order-topic", groupId = "order-grp-id")
-    public void onEvent(ConsumerRecord<String, OrderDTO> record) {
+    @KafkaListener(id = "order-id", topics = "${kafka.topic.order}", groupId = "order-grp-id-test")
+    public void onEvent(ConsumerRecord<String, OrderEvent> record) {
         log.info("Consumed message -> {}", record);
         latch.countDown();
     }

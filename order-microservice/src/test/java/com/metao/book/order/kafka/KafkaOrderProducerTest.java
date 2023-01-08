@@ -11,6 +11,7 @@ import com.metao.book.order.infrastructure.repository.KafkaOrderService;
 import com.metao.book.shared.Currency;
 import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.Status;
+import com.metao.book.shared.kafka.RemoteKafkaService;
 import com.metao.book.shared.test.TestUtils.StreamBuilder;
 import java.time.Instant;
 import java.util.Random;
@@ -26,18 +27,17 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
-@ActiveProfiles({"test", "container"})
+@ActiveProfiles({ "test", "container" })
 @TestInstance(Lifecycle.PER_CLASS)
 @Import({
-    KafkaOrderConsumerTestConfig.class,
-    ObjectMapperConfig.class
+        KafkaOrderConsumerTestConfig.class,
+        ObjectMapperConfig.class
 })
 @AutoConfigureTestDatabase(replace = Replace.NONE)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class KafkaOrderProducerTest extends SpringBootEmbeddedKafka {
 
     private static final Random RAND = new Random();
-
 
     @Autowired
     private KafkaOrderProducer kafkaProducer;
@@ -48,7 +48,7 @@ public class KafkaOrderProducerTest extends SpringBootEmbeddedKafka {
     @Test
     public void givenKafkaOrderTopic_whenSendingToTopic_thenMessageReceivedCorrectly() throws Exception {
         StreamBuilder.of(OrderEvent.class, 0, 10, this::createOrderFromCustomerId)
-            .forEach(kafkaProducer::handle);
+                .forEach(kafkaProducer::handle);
 
         consumer.getLatch().await(6, TimeUnit.SECONDS);
 

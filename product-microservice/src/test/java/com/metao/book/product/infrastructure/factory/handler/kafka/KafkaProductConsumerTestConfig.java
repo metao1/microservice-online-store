@@ -16,7 +16,7 @@ public class KafkaProductConsumerTestConfig {
 
     private final CountDownLatch latch = new CountDownLatch(1);
 
-    @Transactional
+    @Transactional("transactionManager")
     @KafkaListener(id = "product-listener", topics = "product-topic", groupId = "products-grp")
     public void onEvent(ConsumerRecord<String, ProductEvent> record) {
         log.info("Consumed message -> {}", record.value());
