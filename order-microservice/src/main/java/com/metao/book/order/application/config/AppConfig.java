@@ -10,9 +10,9 @@ import javax.persistence.EntityManagerFactory;
 @Configuration
 public class AppConfig {
 
-    @Bean
-    @Primary
-    public JpaTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
-        return new JpaTransactionManager(entityManagerFactory);
-    }
+//    @Bean
+//    @Primary
+//    public JpaTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
+//        return new JpaTransactionManager(entityManagerFactory);
+//    }
 }

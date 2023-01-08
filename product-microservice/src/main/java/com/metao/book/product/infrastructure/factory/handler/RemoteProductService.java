@@ -18,7 +18,7 @@ public class RemoteProductService {
     private final RemoteKafkaService<String, ProductEvent> kafkaTemplate;
     private final NewTopic productTopic;
 
-    @Transactional
+    @Transactional("kafkaTransactionManager")
     public void handle(ProductEvent productEvent) {
         kafkaTemplate.sendToTopic(productTopic.name(), productEvent.getProductId(), productEvent);
     }

@@ -32,6 +32,7 @@ public class KafkaListenerComponent {
     private final ProductMapper mapper;
     private final CountDownLatch count = new CountDownLatch(1);
 
+    @Transactional("transactionManager")
     @KafkaListener(id = "products", topics = "${kafka.topic.product}", groupId = "12")
     public void onProductEvent(ConsumerRecord<String, ProductEvent> productEvent) {
         var product = productEvent.value();
@@ -46,6 +47,7 @@ public class KafkaListenerComponent {
     }
 
 
+    @Transactional("transactionManager")
     @KafkaListener(id = "orders", topics = "${kafka.topic.order}")
     public void onOrderEvent(ConsumerRecord<String, OrderEvent> orderRecord) {
         try {

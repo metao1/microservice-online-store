@@ -32,6 +32,7 @@ spring:
     consumer:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      isolation-level: read_committed
       properties:
         auto.offset.reset: earliest
         specific.avro.reader: true

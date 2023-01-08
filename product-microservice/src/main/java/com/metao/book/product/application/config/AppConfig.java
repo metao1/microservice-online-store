@@ -1,17 +1,25 @@
 package com.metao.book.product.application.config;
 
-import javax.persistence.EntityManagerFactory;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.orm.jpa.JpaTransactionManager;
 
 @Configuration
 public class AppConfig {
 
-    @Bean
-    @Primary
-    public JpaTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
-        return new JpaTransactionManager(entityManagerFactory);
-    }
+    /**
+     * After including Spring Data JPA there are two registered TransactionManager beans with names transactionManager
+     * and kafkaTransactionManager. Therefore we need to choose the name of the transaction manager inside the
+     * @Transactional annotation or introduce {@link JpaTransactionManager}.
+     * In the first step, we add a new entity to the database.
+     * The primary key id is auto-generated in the database and then returned to the object. After that, we
+     * get groupId and generate the sequence of orders within that group. Of course, both operations (save to database,
+     * sent to Kafka) are part of the same transaction.
+     * There is also possible to configure  {@link JpaTransactionManager} as below to chain it using JPA
+     * In this project I decided to use the first approach
+     **/
+//    @Bean
+//    @Primary
+//    public JpaTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
+//        return new JpaTransactionManager(entityManagerFactory);
+//    }
 }
