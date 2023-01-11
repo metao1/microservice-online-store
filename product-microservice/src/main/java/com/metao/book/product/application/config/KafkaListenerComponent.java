@@ -5,6 +5,7 @@ import com.metao.book.product.domain.ProductRepository;
 import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.ProductEvent;
 import com.metao.book.shared.Status;
+import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -24,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @RequiredArgsConstructor
 @Profile({"!test"})
-@ImportAutoConfiguration(value = KafkaSerdesConfig.class)
+@ImportAutoConfiguration(value = {KafkaSerdesConfig.class})
 public class KafkaListenerComponent {
 
     private final OrderManagerService orderManagerService;
@@ -33,34 +34,34 @@ public class KafkaListenerComponent {
     private final CountDownLatch count = new CountDownLatch(1);
 
     @Transactional("transactionManager")
-    @KafkaListener(id = "products", topics = "${kafka.topic.product}", groupId = "12")
-    public void onProductEvent(ConsumerRecord<String, ProductEvent> productEvent) {
-        var product = productEvent.value();
-        log.info("Consumed product -> {}", product);
-        var foundProduct = productRepository.findByAsin(product.getProductId());
-        if (foundProduct.isEmpty()) {
-            Optional.of(product)
-                .flatMap(mapper::toEntity)
-                .ifPresent(productRepository::save);
+    @KafkaListener(id = "products", topics = "${kafka.topic.product}", groupId = "123")
+    public void onProductEvent(ConsumerRecord<String, ProductEvent> productEvent) throws IOException {
+        try {
+            var product = productEvent.value();
+            log.info("Consumed product -> {}", product);
+            var foundProduct = productRepository.findByAsin(product.getProductId());
+            if (foundProduct.isEmpty()) {
+                Optional.of(product)
+                    .flatMap(mapper::toEntity)
+                    .ifPresent(productRepository::save);
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+        } finally {
+            count.countDown();
         }
-        count.countDown();
+
     }
 
-
     @Transactional("transactionManager")
-    @KafkaListener(id = "orders", topics = "${kafka.topic.order}")
+    @KafkaListener(id = "orders", topics = "${kafka.topic.order}", groupId = "2230")
     public void onOrderEvent(ConsumerRecord<String, OrderEvent> orderRecord) {
-        try {
-            count.await(5, TimeUnit.MINUTES);
-            var order = orderRecord.value();
-            log.info("Consumed order -> {}", order);
-            if (Status.NEW.equals(order.getStatus())) {
-                orderManagerService.reserve(order);
-            } else {
-                orderManagerService.confirm(order);
-            }
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        var order = orderRecord.value();
+        log.info("Consumed order -> {}", order);
+        if (Status.NEW.equals(order.getStatus())) {
+            orderManagerService.reserve(order);
+        } else {
+            orderManagerService.confirm(order);
         }
     }
 

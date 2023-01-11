@@ -6,7 +6,7 @@ import com.metao.book.shared.OrderEvent;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

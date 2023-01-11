@@ -16,7 +16,7 @@ public class KafkaOrderProducer {
     private final RemoteKafkaService<String, OrderEvent> kafkaTemplate;
     private final NewTopic orderTopic;
 
-    @Transactional
+    @Transactional("kafkaTransactionManager")
     public void handle(OrderEvent orderEvent) {
         kafkaTemplate.sendToTopic(orderTopic.name(), orderEvent.getProductId(), orderEvent);
     }

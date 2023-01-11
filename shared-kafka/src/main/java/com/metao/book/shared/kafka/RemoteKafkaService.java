@@ -15,8 +15,7 @@ public class RemoteKafkaService<S, T extends SpecificRecord> {
 
     public void sendToTopic(String topic, S key, T event) {
         kafkaTemplate.send(topic, key, event)
-                .addCallback(result -> log.info("Sent: {}",
-                        result != null ? result.getProducerRecord().value() : null), ex -> {
-                        });
+            .thenAccept(result -> log.info("Sent: {}",
+                result != null ? result.getProducerRecord().value() : null));
     }
 }

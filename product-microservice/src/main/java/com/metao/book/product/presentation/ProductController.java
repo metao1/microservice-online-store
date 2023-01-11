@@ -2,14 +2,13 @@ package com.metao.book.product.presentation;
 
 import com.metao.book.product.application.dto.ProductDTO;
 import com.metao.book.product.application.exception.ProductNotFoundException;
-import com.metao.book.product.domain.ProductId;
 import com.metao.book.product.domain.ProductServiceInterface;
 import com.metao.book.product.infrastructure.factory.handler.ProductKafkaHandler;
 import com.metao.book.product.infrastructure.mapper.ProductMapperInterface;
 import com.metao.book.product.infrastructure.util.EventUtil;
 import java.util.List;
 import java.util.Optional;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

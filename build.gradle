@@ -4,7 +4,7 @@ plugins {
     id 'base'
     id 'idea'
     id 'com.google.cloud.tools.jib' version '3.1.4'  apply false
-    id 'org.springframework.boot' version '2.7.6' apply false
+    id 'org.springframework.boot' version '3.0.1' apply false
     id 'io.spring.dependency-management' version '1.1.0'
     id 'com.github.davidmc24.gradle.plugin.avro' version '1.2.0'
 }
@@ -21,6 +21,7 @@ subprojects {
     apply plugin: 'com.github.davidmc24.gradle.plugin.avro'
     boolean isSpringProject = gradle.springBootProjects.contains(it.path)
     repositories {
+      mavenLocal()
         mavenCentral()
         maven { url 'https://packages.confluent.io/maven/' }
     }
@@ -45,8 +46,10 @@ subprojects {
       apply plugin: 'com.google.cloud.tools.jib'
 
       dependencies {
-        implementation 'org.springframework.boot:spring-boot-starter-web'
 
+        implementation("org.springframework.boot:spring-boot-starter-web") {
+          exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+        }
         annotationProcessor 'org.projectlombok:lombok'
 
         testAnnotationProcessor 'org.projectlombok:lombok'
@@ -77,8 +80,8 @@ subprojects {
             }
         }
 
-
         dependencies {
+            implementation 'org.springframework.boot:spring-boot-starter'
             annotationProcessor 'org.projectlombok:lombok'
             implementation 'org.apache.avro:avro'
             implementation 'org.projectlombok:lombok'
@@ -101,55 +104,55 @@ subprojects {
             }
             if (details.requested.name == 'kafka_2.13') {
                 details.useTarget group: 'org.apache.kafka', name: 'kafka_2.13', version: kafkaStreamVersion
-                details.because "prefer 'kakfa-stream' version ${kafkaStreamVersion} over any other 'kakfa-stream' version"
+              details.because "prefer 'kakfa-stream' version ${kafkaStreamVersion} over any other 'kakfa-stream' version"
             }
-            if (details.requested.name == 'kafka-server-common') {
-                details.useTarget group: 'org.apache.kafka', name: 'kafka-server-common', version: kafkaStreamVersion
-                details.because "prefer 'kafka-server-common' version ${kafkaStreamVersion} over any other 'kafka-server-common' version"
-            }
-            if (details.requested.name == 'kafka-raft') {
-                details.useTarget group: 'org.apache.kafka', name: 'kafka-raft', version: kafkaStreamVersion
-                details.because "prefer 'kafka-server-common' version ${kafkaStreamVersion} over any other 'kafka-server-common' version"
-            }
-            if (details.requested.name == 'kafka-metadata') {
-                details.useTarget group: 'org.apache.kafka', name: 'kafka-metadata', version: kafkaStreamVersion
-                details.because "prefer 'kafka-server-common' version ${kafkaStreamVersion} over any other 'kafka-server-common' version"
-            }
-            if (details.requested.name == 'kafka-metadata') {
-                details.useTarget group: 'org.apache.kafka', name: 'kafka-metadata', version: kafkaStreamVersion
-                details.because "prefer 'kafka-server-common' version ${kafkaStreamVersion} over any other 'kafka-server-common' version"
-            }
-            if (details.requested.name == 'kafka-clients') {
-                details.useTarget group: 'org.apache.kafka', name: 'kafka-clients', version: kafkaStreamVersion
-                details.because "prefer 'kakfa-clients' version ${kafkaStreamVersion} over any other 'kakfa-clients' version"
-            }
-            if (details.requested.name == 'kafka-storage') {
-                details.useTarget group: 'org.apache.kafka', name: 'kafka-storage', version: kafkaStreamVersion
-                details.because "prefer 'kakfa-storage' version ${kafkaStreamVersion} over any other 'kakfa-storage' version"
-            }
-            if (details.requested.name == 'kafka-storage-api') {
-                details.useTarget group: 'org.apache.kafka', name: 'kafka-storage-api', version: kafkaStreamVersion
-                details.because "prefer 'kafka-storage-api' version ${kafkaStreamVersion} over any other 'kafka-storage-api' version"
-            }
-            if (details.requested.name == 'kafka-streams-test-utils') {
-                details.useTarget group: 'org.apache.kafka', name: 'kafka-streams-test-utils', version: kafkaStreamVersion
-                details.because "prefer 'kafka-streams-test-utils version ${kafkaStreamVersion} over any other 'kafka-streams-test-utils' version"
-            }
-            def avroVersion = '1.11.0'
-            if (details.requested.name == 'avro') {
-                details.useTarget group: 'org.apache.avro', name: 'avro', version: avroVersion
-                details.because "prefer 'avro' version ${avroVersion} over any version of 'avro'"
-            }
-            def mapStructVersion = '1.5.3.Final'
-            if (details.requested.group == 'org.mapstruct') {
-              details.useTarget group: details.requested.group, name: details.requested.name, version: mapStructVersion
-              details.because "prefer 'org.mapstruct' version ${mapStructVersion} over any version of 'org.mapstruct'"
-            }
-            def mapStructSpringVersion = '0.1.0'
-            if (details.requested.group == 'org.mapstruct.extensions.spring') {
-                details.useTarget group: details.requested.group, name: details.requested.name, version: mapStructSpringVersion
-                details.because "prefer 'org.mapstruct.extensions.spring' version ${mapStructSpringVersion} over any version of 'org.mapstruct.extensions.spring'"
-            }
+          if (details.requested.name == 'kafka-server-common') {
+            details.useTarget group: 'org.apache.kafka', name: 'kafka-server-common', version: kafkaStreamVersion
+            details.because "prefer 'kafka-server-common' version ${kafkaStreamVersion} over any other 'kafka-server-common' version"
+          }
+          if (details.requested.name == 'kafka-raft') {
+            details.useTarget group: 'org.apache.kafka', name: 'kafka-raft', version: kafkaStreamVersion
+            details.because "prefer 'kafka-server-common' version ${kafkaStreamVersion} over any other 'kafka-server-common' version"
+          }
+          if (details.requested.name == 'kafka-metadata') {
+            details.useTarget group: 'org.apache.kafka', name: 'kafka-metadata', version: kafkaStreamVersion
+            details.because "prefer 'kafka-server-common' version ${kafkaStreamVersion} over any other 'kafka-server-common' version"
+          }
+          if (details.requested.name == 'kafka-metadata') {
+            details.useTarget group: 'org.apache.kafka', name: 'kafka-metadata', version: kafkaStreamVersion
+            details.because "prefer 'kafka-server-common' version ${kafkaStreamVersion} over any other 'kafka-server-common' version"
+          }
+          if (details.requested.name == 'kafka-clients') {
+            details.useTarget group: 'org.apache.kafka', name: 'kafka-clients', version: kafkaStreamVersion
+            details.because "prefer 'kakfa-clients' version ${kafkaStreamVersion} over any other 'kakfa-clients' version"
+          }
+          if (details.requested.name == 'kafka-storage') {
+            details.useTarget group: 'org.apache.kafka', name: 'kafka-storage', version: kafkaStreamVersion
+            details.because "prefer 'kakfa-storage' version ${kafkaStreamVersion} over any other 'kakfa-storage' version"
+          }
+          if (details.requested.name == 'kafka-storage-api') {
+            details.useTarget group: 'org.apache.kafka', name: 'kafka-storage-api', version: kafkaStreamVersion
+            details.because "prefer 'kafka-storage-api' version ${kafkaStreamVersion} over any other 'kafka-storage-api' version"
+          }
+          if (details.requested.name == 'kafka-streams-test-utils') {
+            details.useTarget group: 'org.apache.kafka', name: 'kafka-streams-test-utils', version: kafkaStreamVersion
+            details.because "prefer 'kafka-streams-test-utils version ${kafkaStreamVersion} over any other 'kafka-streams-test-utils' version"
+          }
+          def avroVersion = '1.11.0'
+          if (details.requested.name == 'avro') {
+            details.useTarget group: 'org.apache.avro', name: 'avro', version: avroVersion
+            details.because "prefer 'avro' version ${avroVersion} over any version of 'avro'"
+          }
+          def mapStructVersion = '1.5.3.Final'
+          if (details.requested.group == 'org.mapstruct') {
+            details.useTarget group: details.requested.group, name: details.requested.name, version: mapStructVersion
+            details.because "prefer 'org.mapstruct' version ${mapStructVersion} over any version of 'org.mapstruct'"
+          }
+          def mapStructSpringVersion = '0.1.0'
+          if (details.requested.group == 'org.mapstruct.extensions.spring') {
+            details.useTarget group: details.requested.group, name: details.requested.name, version: mapStructSpringVersion
+            details.because "prefer 'org.mapstruct.extensions.spring' version ${mapStructSpringVersion} over any version of 'org.mapstruct.extensions.spring'"
+          }
         }
     }
 }

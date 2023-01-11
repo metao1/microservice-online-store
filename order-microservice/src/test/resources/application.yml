@@ -11,9 +11,9 @@ kafka:
 
 spring:
   kafka:
-    bootstrap-servers: PLAINTEXT://localhost:9092
+    bootstrap-servers: PLAINTEXT://localhost:9093
     properties:
-      bootstrap-servers: PLAINTEXT://localhost:9092
+      bootstrap-servers: PLAINTEXT://localhost:9093
       schema.registry.url: mock://not-used
       auto.register.schemas: true
       use.latest.version: true
@@ -22,9 +22,9 @@ spring:
         oneof.for.nullables: false
         write.dates.iso8601: true
     streams:
+      replication-factor: 1
       properties:
         state.dir: /tmp/kafka-streams-test
-
     consumer:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer

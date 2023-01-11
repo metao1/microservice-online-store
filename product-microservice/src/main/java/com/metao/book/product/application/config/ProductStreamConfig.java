@@ -3,6 +3,7 @@ package com.metao.book.product.application.config;
 import com.metao.book.product.application.service.OrderAggregator;
 import com.metao.book.product.application.service.OrderProductJoiner;
 import com.metao.book.shared.OrderEvent;
+
 import com.metao.book.shared.ProductEvent;
 import com.metao.book.shared.Status;
 import com.metao.book.shared.StockReservationEvent;

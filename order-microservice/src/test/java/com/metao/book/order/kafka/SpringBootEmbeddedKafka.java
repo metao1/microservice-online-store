@@ -4,7 +4,7 @@ import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
 
 @DirtiesContext
-@EmbeddedKafka(brokerProperties = {"listeners=PLAINTEXT://localhost:9092"})
+@EmbeddedKafka(brokerProperties = {"listeners=PLAINTEXT://localhost:9093"})
 public class SpringBootEmbeddedKafka {
 
 }

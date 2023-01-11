@@ -10,9 +10,9 @@ import com.metao.book.order.application.service.OrderMapper;
 import com.metao.book.order.application.service.OrderService;
 import com.metao.book.order.domain.Currency;
 import com.metao.book.order.domain.Status;
+import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
 import com.metao.book.order.infrastructure.repository.KafkaOrderService;
 import com.metao.book.order.kafka.KafkaOrderConsumerTestConfig;
-import com.metao.book.order.kafka.SpringBootEmbeddedKafka;
 import com.metao.book.order.utils.TestUtils;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
@@ -45,17 +45,20 @@ import org.springframework.test.web.servlet.MockMvc;
 })
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
-public class OrderControllerTest extends SpringBootEmbeddedKafka {
+public class OrderControllerTest {
 
-        @Autowired
-        private MockMvc restTemplate;
+    @Autowired
+    private MockMvc restTemplate;
 
-        @MockBean
-        KafkaOrderService orderService;
+    @MockBean
+    KafkaOrderProducer kafkaOrderProducer;
 
-        @Test
-        public void createOrderIsOk() throws Exception {
-                // get request for '/order'
+    @MockBean
+    KafkaOrderService orderService;
+
+    @Test
+    public void createOrderIsOk() throws Exception {
+        // get request for '/order'
                 var order = OrderDTO.builder()
                                 .orderId("123")
                                 .productId("1234567891")

@@ -27,10 +27,12 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
       properties:
+        value.deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
         auto.offset.reset: earliest
         specific.avro.reader: true
       isolation-level: read_committed
       auto-offset-reset: earliest
+      enable-auto-commit: false
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
