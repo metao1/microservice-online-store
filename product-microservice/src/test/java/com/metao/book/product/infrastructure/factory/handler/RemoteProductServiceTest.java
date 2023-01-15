@@ -25,7 +25,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 
-@ActiveProfiles({ "test", "container" })
+@ActiveProfiles({"test", "container"})
 @Import({
     KafkaProductConsumerTestConfig.class
 })
@@ -35,35 +35,35 @@ import org.springframework.test.context.ActiveProfiles;
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class RemoteProductServiceTest extends SpringBootEmbeddedKafka {
 
-        private static final String PRODUCT_ID = "PRODUCT_ID";
+    private static final String PRODUCT_ID = "PRODUCT_ID";
 
-        @Autowired
-        RemoteProductService remoteProductService;
+    @Autowired
+    RemoteProductService remoteProductService;
 
-        @Autowired
-        KafkaProductConsumerTestConfig consumer;
+    @Autowired
+    KafkaProductConsumerTestConfig consumer;
 
-        @MockBean
-        ProductService productService;
+    @MockBean
+    ProductService productService;
 
-        @Test
-        @SneakyThrows
-        void handleGetProductEvent() {
-                var productEvent = ProductEvent.newBuilder()
-                                .setCurrency(Currency.eur)
-                                .setPrice(120)
-                                .setTitle("TITLE")
-                                .setProductId(PRODUCT_ID)
-                                .setDescription("DESCRIPTION")
-                                .setImageUrl("IMAGE_URL")
-                                .build();
-                var pe = ProductTestUtils.createProductEntity();
-                when(productService.getProductById(new ProductId(PRODUCT_ID)))
-                                .thenReturn(Optional.of(pe));
+    @Test
+    @SneakyThrows
+    void handleGetProductEvent() {
+        var productEvent = ProductEvent.newBuilder()
+            .setCurrency(Currency.eur)
+            .setPrice(120)
+            .setTitle("TITLE")
+            .setProductId(PRODUCT_ID)
+            .setDescription("DESCRIPTION")
+            .setImageUrl("IMAGE_URL")
+            .build();
+        var pe = ProductTestUtils.createProductEntity();
+        when(productService.getProductById(new ProductId(PRODUCT_ID)))
+            .thenReturn(Optional.of(pe));
 
-                remoteProductService.handle(productEvent);
+        remoteProductService.handle(productEvent);
 
-                consumer.getLatch().await(5, TimeUnit.SECONDS);
-                assertEquals(0, consumer.getLatch().getCount());
-        }
+        consumer.getLatch().await(5, TimeUnit.SECONDS);
+        assertEquals(0, consumer.getLatch().getCount());
+    }
 }

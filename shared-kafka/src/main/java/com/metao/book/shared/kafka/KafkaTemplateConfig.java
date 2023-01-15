@@ -1,16 +1,8 @@
 package com.metao.book.shared.kafka;
 
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.kafka.core.DefaultKafkaProducerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.core.ProducerFactory;
-import org.springframework.kafka.support.converter.RecordMessageConverter;
 
 @Configuration
 @EnableConfigurationProperties(KafkaProperties.class)

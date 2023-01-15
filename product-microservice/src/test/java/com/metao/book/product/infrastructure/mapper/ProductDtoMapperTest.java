@@ -23,8 +23,8 @@ class ProductDtoMapperTest {
             log.error(e.getMessage(), e);
         }
         assertTrue(Optional.of(sb.toString())
-                .map(dtoMapper::convertToDto)
-                .map(Optional::isPresent)
-                .isPresent());
+            .map(dtoMapper::convertToDto)
+            .map(Optional::isPresent)
+            .isPresent());
     }
 }

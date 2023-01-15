@@ -1,18 +1,15 @@
 package com.metao.book.order.application.service;
 
-import java.util.List;
-import java.util.Optional;
-
-import com.metao.book.shared.OrderEvent;
-import org.springframework.stereotype.Service;
-
 import com.metao.book.order.application.dto.OrderDTO;
 import com.metao.book.order.domain.OrderServiceInterface;
 import com.metao.book.order.infrastructure.OrderMapperInterface;
 import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
 import com.metao.book.order.infrastructure.repository.KafkaOrderService;
-
+import com.metao.book.shared.OrderEvent;
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -25,16 +22,16 @@ public class OrderService implements OrderServiceInterface {
     @Override
     public Optional<String> createOrder(OrderDTO orderDto) {
         return Optional.of(orderDto)
-                .map(mapper::toAvro)
-                .stream()
-                .<OrderEvent>mapMulti((order, consumer) -> {
-                    if (order != null) {
-                        consumer.accept(order);
-                    }
-                })
-                .peek(kafkaOrderProducer::handle)
-                .map(OrderEvent::getOrderId)
-                .findAny();
+            .map(mapper::toAvro)
+            .stream()
+            .<OrderEvent>mapMulti((order, consumer) -> {
+                if (order != null) {
+                    consumer.accept(order);
+                }
+            })
+            .peek(kafkaOrderProducer::handle)
+            .map(OrderEvent::getOrderId)
+            .findAny();
     }
 
     @Override

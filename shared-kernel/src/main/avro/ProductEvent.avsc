@@ -33,7 +33,10 @@
     },
     {
       "name": "volume",
-      "type": ["null", "double"],
+      "type": [
+        "null",
+        "double"
+      ],
       "default": null
     },
     {

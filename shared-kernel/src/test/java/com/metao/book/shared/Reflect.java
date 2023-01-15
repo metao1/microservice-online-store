@@ -10,14 +10,14 @@ public class Reflect {
     public void main() {
         //Instantiating generated emp class
         Schema avroHttpRequest = SchemaBuilder.record("ProductsResponseEvent")
-                .namespace("com.metao.book.shared")
-                .fields()
-                .requiredString("productId")
-                .name("occurredOn")
-                .type()
-                .longType()
-                .noDefault()
-                .endRecord();
+            .namespace("com.metao.book.shared")
+            .fields()
+            .requiredString("productId")
+            .name("occurredOn")
+            .type()
+            .longType()
+            .noDefault()
+            .endRecord();
         System.out.println(avroHttpRequest.toString());
     }
 

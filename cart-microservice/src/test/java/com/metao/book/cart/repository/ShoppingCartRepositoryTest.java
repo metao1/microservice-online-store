@@ -1,18 +1,17 @@
 package com.metao.book.cart.repository;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
 import com.metao.book.cart.domain.ShoppingCart;
 import com.metao.book.cart.domain.ShoppingCartKey;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
-
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
-
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles("container")
 @DataJpaTest
@@ -48,10 +47,10 @@ class ShoppingCartRepositoryTest {
         var id = shoppingCartRepository.findByUserIdAndAsin(shoppingCartKey);
         assertThat(id).isPresent();
         assertThat(shoppingCartRepository.findProductsInCartByUserId("userId")).isNotNull()
-                .matches(shoppingCart -> shoppingCart.size() == 1)
-                .matches(shoppingCart -> shoppingCart.get(0).getAsin().equals("asin"))
-                .matches(shoppingCart -> shoppingCart.get(0).getUserId().equals("userId"))
-                .matches(shoppingCart -> shoppingCart.get(0).getQuantity() == 1);
+            .matches(shoppingCart -> shoppingCart.size() == 1)
+            .matches(shoppingCart -> shoppingCart.get(0).getAsin().equals("asin"))
+            .matches(shoppingCart -> shoppingCart.get(0).getUserId().equals("userId"))
+            .matches(shoppingCart -> shoppingCart.get(0).getQuantity() == 1);
     }
 
     @Test
@@ -86,13 +85,13 @@ class ShoppingCartRepositoryTest {
         shoppingCartRepository.save(currentShoppingCart2);
         assertThat(shoppingCartRepository.findProductsInCartByUserId("userId")).satisfies(sc -> {
             assertThat(sc).isNotNull()
-                    .matches(shoppingCart -> shoppingCart.size() == 2)
-                    .matches(shoppingCart -> shoppingCart.get(0).getAsin().equals("asin1"))
-                    .matches(shoppingCart -> shoppingCart.get(0).getUserId().equals("userId"))
-                    .matches(shoppingCart -> shoppingCart.get(0).getQuantity() == 1)
-                    .matches(shoppingCart -> shoppingCart.get(1).getAsin().equals("asin2"))
-                    .matches(shoppingCart -> shoppingCart.get(1).getUserId().equals("userId"))
-                    .matches(shoppingCart -> shoppingCart.get(1).getQuantity() == 1);
+                .matches(shoppingCart -> shoppingCart.size() == 2)
+                .matches(shoppingCart -> shoppingCart.get(0).getAsin().equals("asin1"))
+                .matches(shoppingCart -> shoppingCart.get(0).getUserId().equals("userId"))
+                .matches(shoppingCart -> shoppingCart.get(0).getQuantity() == 1)
+                .matches(shoppingCart -> shoppingCart.get(1).getAsin().equals("asin2"))
+                .matches(shoppingCart -> shoppingCart.get(1).getUserId().equals("userId"))
+                .matches(shoppingCart -> shoppingCart.get(1).getQuantity() == 1);
         });
     }
 
@@ -101,8 +100,8 @@ class ShoppingCartRepositoryTest {
         ShoppingCart currentShoppingCart = ShoppingCart.createCart(new ShoppingCartKey("userId", "asin1"));
         shoppingCartRepository.save(currentShoppingCart);
         assertThat(shoppingCartRepository.findById(new ShoppingCartKey("userId", "asin1"))
-                .get().getQuantity())
-                .isEqualTo(1);
+            .get().getQuantity())
+            .isEqualTo(1);
     }
 
 }

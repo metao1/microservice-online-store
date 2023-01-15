@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 @ImportAutoConfiguration(value = KafkaSerdesConfig.class)
 public class CheckoutKafkaListenerConfig {
 
-
     @Transactional
     @KafkaListener(id = "checkout-order-id", topics = "${kafka.topic.order}")
     public void orderKafkaListener(ConsumerRecord<String, OrderEvent> record) {

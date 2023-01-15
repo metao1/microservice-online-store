@@ -8,6 +8,7 @@ import lombok.Setter;
 @Getter
 @Builder
 public class ShoppingCartDto {
+
     private String asin;
     private int quantity;
 }

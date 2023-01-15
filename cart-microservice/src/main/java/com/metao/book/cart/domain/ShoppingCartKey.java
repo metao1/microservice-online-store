@@ -1,7 +1,6 @@
 package com.metao.book.cart.domain;
 
 import lombok.*;
-
 import java.io.Serializable;
 
 @Getter

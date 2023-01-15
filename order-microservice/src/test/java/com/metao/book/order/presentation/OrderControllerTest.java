@@ -47,32 +47,30 @@ import org.springframework.test.web.servlet.MockMvc;
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class OrderControllerTest {
 
-    @Autowired
-    private MockMvc restTemplate;
-
     @MockBean
     KafkaOrderProducer kafkaOrderProducer;
-
     @MockBean
     KafkaOrderService orderService;
+    @Autowired
+    private MockMvc restTemplate;
 
     @Test
     public void createOrderIsOk() throws Exception {
         // get request for '/order'
-                var order = OrderDTO.builder()
-                                .orderId("123")
-                                .productId("1234567891")
-                                .customerId("CUSTOMER_ID")
-                                .status(Status.NEW)
-                                .currency(Currency.EUR)
-                                .quantity(BigDecimal.valueOf(100))
-                                .price(BigDecimal.valueOf(123d))
-                                .build();
+        var order = OrderDTO.builder()
+            .orderId("123")
+            .productId("1234567891")
+            .customerId("CUSTOMER_ID")
+            .status(Status.NEW)
+            .currency(Currency.EUR)
+            .quantity(BigDecimal.valueOf(100))
+            .price(BigDecimal.valueOf(123d))
+            .build();
 
-                this.restTemplate.perform(post("/order")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(TestUtils.convertObjectToJsonBytes(order)))
-                                .andExpect(status().isOk());
-        }
+        this.restTemplate.perform(post("/order")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(TestUtils.convertObjectToJsonBytes(order)))
+            .andExpect(status().isOk());
+    }
 
 }

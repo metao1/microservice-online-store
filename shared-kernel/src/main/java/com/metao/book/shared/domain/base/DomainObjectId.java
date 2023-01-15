@@ -3,13 +3,11 @@ package com.metao.book.shared.domain.base;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import org.springframework.lang.NonNull;
-
 import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Base class for value objects that are used as identifiers for
- * {@link IdentifiableDomainObject}s. These are
+ * Base class for value objects that are used as identifiers for {@link IdentifiableDomainObject}s. These are
  * essentially UUID-wrappers.
  */
 public abstract class DomainObjectId implements ValueObject {
@@ -45,10 +43,12 @@ public abstract class DomainObjectId implements ValueObject {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
+        if (this == o) {
             return true;
-        if (o == null || getClass() != o.getClass())
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
+        }
         DomainObjectId that = (DomainObjectId) o;
         return Objects.equals(uuid, that.uuid);
     }

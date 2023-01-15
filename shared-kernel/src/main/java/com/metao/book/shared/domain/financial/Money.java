@@ -8,8 +8,7 @@ import java.util.Objects;
 import org.springframework.lang.NonNull;
 
 /**
- * Value object representing an amount of money. The amount is stored as a
- * fixed-point integer where the last two digits
+ * Value object representing an amount of money. The amount is stored as a fixed-point integer where the last two digits
  * represent the decimals.
  */
 public class Money implements ValueObject {
@@ -47,13 +46,11 @@ public class Money implements ValueObject {
     }
 
     /**
-     * Returns a new {@code Money} object whose amount is the sum of this amount and
-     * {@code augend}'s amount.
+     * Returns a new {@code Money} object whose amount is the sum of this amount and {@code augend}'s amount.
      *
      * @param augend the {@code Money} object to add to this object.
      * @return {@code this} + {@code augend}
-     * @throws IllegalArgumentException if this object and {@code augend} have
-     *                                  different currencies.
+     * @throws IllegalArgumentException if this object and {@code augend} have different currencies.
      */
     @NonNull
     public Money add(@NonNull Money augend) {
@@ -65,13 +62,12 @@ public class Money implements ValueObject {
     }
 
     /**
-     * Returns a new {@code Money} object whose amount is the difference between
-     * this amount and {@code subtrahend}'s amount.
+     * Returns a new {@code Money} object whose amount is the difference between this amount and {@code subtrahend}'s
+     * amount.
      *
      * @param subtrahend the {@code Money} object to remove from this object.
      * @return {@code this} - {@code augend}
-     * @throws IllegalArgumentException if this object and {@code subtrahend} have
-     *                                  different currencies.
+     * @throws IllegalArgumentException if this object and {@code subtrahend} have different currencies.
      */
     @NonNull
     public Money subtract(@NonNull Money subtrahend) {
@@ -117,10 +113,12 @@ public class Money implements ValueObject {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
+        if (this == o) {
             return true;
-        if (o == null || getClass() != o.getClass())
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
+        }
         Money money = (Money) o;
         return Objects.equals(amount, money.amount) && Objects.equals(currency, money.currency);
     }
@@ -139,6 +137,6 @@ public class Money implements ValueObject {
             amountString = amount.toString();
         }
         return String.format("%s %s.%s", currency, amountString.substring(0, amountString.length() - 2),
-                amountString.substring(amountString.length() - 2));
+            amountString.substring(amountString.length() - 2));
     }
 }

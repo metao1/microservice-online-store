@@ -1,28 +1,28 @@
 ext {
-    set('testcontainersVersion', "1.17.6")
+  set('testcontainersVersion', "1.17.6")
 }
 
 dependencies {
-    implementation project(':shared-kernel')
-    implementation project(':shared-kafka')
-    
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
-    
-    implementation 'org.postgresql:postgresql:42.5.1'
+  implementation project(':shared-kernel')
+  implementation project(':shared-kafka')
 
-    testImplementation 'org.testcontainers:postgresql'
-    testImplementation 'org.testcontainers:testcontainers'
-    testImplementation 'org.testcontainers:junit-jupiter'
+  implementation 'org.springframework.boot:spring-boot-starter-webflux'
+  implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+  implementation 'org.springframework.boot:spring-boot-starter-validation'
 
-    testImplementation 'org.springframework.kafka:spring-kafka-test'
-    testImplementation 'org.apache.kafka:kafka-streams-test-utils'
+  implementation 'org.postgresql:postgresql:42.5.1'
+
+  testImplementation 'org.testcontainers:postgresql'
+  testImplementation 'org.testcontainers:testcontainers'
+  testImplementation 'org.testcontainers:junit-jupiter'
+
+  testImplementation 'org.springframework.kafka:spring-kafka-test'
+  testImplementation 'org.apache.kafka:kafka-streams-test-utils'
 
 }
 
 dependencyManagement {
-    imports {
-        mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
-    }
+  imports {
+    mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
+  }
 }

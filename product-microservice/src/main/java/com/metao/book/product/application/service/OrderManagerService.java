@@ -19,6 +19,12 @@ public class OrderManagerService {
     private final ProductRepository productRepository;
     private final RemoteOrderService RemoteOrderService;
 
+    private static boolean availableInStock(OrderEvent order, ProductEntity productEntity) {
+        return productEntity.getVolume()
+            .subtract(productEntity.getReservedItems())
+            .subtract(BigDecimal.valueOf(order.getQuantity())).doubleValue() >= 0;
+    }
+
     public void reserve(OrderEvent order) {
         var productEntity = productRepository.findByAsin(order.getProductId()).orElseThrow();
         if (Objects.requireNonNull(order.getStatus()) == Status.NEW) {
@@ -69,11 +75,5 @@ public class OrderManagerService {
         var quantity = BigDecimal.valueOf(order.getQuantity());
         productEntity.setVolume(volume.add(quantity));
         order.setStatus(Status.CONFIRM);
-    }
-
-    private static boolean availableInStock(OrderEvent order, ProductEntity productEntity) {
-        return productEntity.getVolume()
-            .subtract(productEntity.getReservedItems())
-            .subtract(BigDecimal.valueOf(order.getQuantity())).doubleValue() >= 0;
     }
 }

@@ -1,14 +1,14 @@
 package com.metao.book.cart.domain;
 
 import com.metao.book.cart.service.mapper.BaseDTO;
-import java.time.Instant;
-import java.util.Objects;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import java.time.Instant;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -66,7 +66,7 @@ public class ShoppingCart extends BaseDTO {
     }
 
     public int decreaseQuantity() {
-        if(this.quantity > 1) {
+        if (this.quantity > 1) {
             this.quantity--;
         }
         setUpdateOn(Instant.now().toEpochMilli());
@@ -75,11 +75,15 @@ public class ShoppingCart extends BaseDTO {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
+            return false;
+        }
         ShoppingCart that = (ShoppingCart) o;
         return userId != null && Objects.equals(userId, that.userId)
-                && asin != null && Objects.equals(asin, that.asin);
+            && asin != null && Objects.equals(asin, that.asin);
     }
 
     @Override

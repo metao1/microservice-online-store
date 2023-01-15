@@ -22,58 +22,58 @@ import org.junit.jupiter.api.Test;
 
 public class OrderStreamTest {
 
-        @Test
-        void shouldAggregateRecord() {
-                var streamProps = StreamsUtils.getStreamsProperties();
-                final String inputTopicName = "input";
-            final String outputTopicName = "output";
-            final Map<String, String> configMap = StreamsUtils.propertiesToMap(streamProps);
-            final SpecificAvroSerde<OrderEvent> orderSerdes = StreamsUtils.getSpecificAvroSerdes(configMap);
+    @Test
+    void shouldAggregateRecord() {
+        var streamProps = StreamsUtils.getStreamsProperties();
+        final String inputTopicName = "input";
+        final String outputTopicName = "output";
+        final Map<String, String> configMap = StreamsUtils.propertiesToMap(streamProps);
+        final SpecificAvroSerde<OrderEvent> orderSerdes = StreamsUtils.getSpecificAvroSerdes(configMap);
 
-                final StreamsBuilder sb = new StreamsBuilder();
-                final KStream<String, OrderEvent> orderEventStream = sb.stream(inputTopicName,
-                                Consumed.with(Serdes.String(), orderSerdes));
-            orderEventStream.groupByKey()
-                                .aggregate(() -> 0.0, (key, order, total) -> total + order.getPrice(),
-                                                Materialized.with(Serdes.String(), Serdes.Double()))
-                                .toStream()
-                                .to(outputTopicName, Produced.with(Serdes.String(), Serdes.Double()));
-                try (final TopologyTestDriver testDriver = new TopologyTestDriver(sb.build(), streamProps)) {
-                        var inputTopic = testDriver.createInputTopic(inputTopicName,
-                                        Serdes.String().serializer(),
-                                        orderSerdes.serializer());
-                        var outputTopic = testDriver.createOutputTopic(outputTopicName,
-                                        Serdes.String().deserializer(),
-                                        Serdes.Double().deserializer());
-                        List<OrderEvent> orderList = new LinkedList<>();
-                        orderList.add(OrderEvent.newBuilder()
-                            .setCreatedOn(Instant.now().toEpochMilli())
-                            .setOrderId("1")
-                            .setCurrency(Currency.eur)
-                            .setProductId("1")
-                            .setQuantity(1)
-                            .setPrice(10)
-                            .setCustomerId("id")
-                            .setStatus(Status.ACCEPT)
-                            .setSource("SOURCE")
-                                        .build());
-                        orderList.add(OrderEvent.newBuilder()
-                            .setCreatedOn(Instant.now().toEpochMilli())
-                            .setOrderId("2")
-                            .setCurrency(Currency.eur)
-                            .setProductId("2")
-                            .setQuantity(1)
-                            .setPrice(15)
-                            .setCustomerId("id")
-                            .setStatus(Status.ACCEPT)
-                            .setSource("SOURCE")
-                                        .build());
-                        orderList.forEach(order -> inputTopic.pipeInput(order.getOrderId(), order));
+        final StreamsBuilder sb = new StreamsBuilder();
+        final KStream<String, OrderEvent> orderEventStream = sb.stream(inputTopicName,
+            Consumed.with(Serdes.String(), orderSerdes));
+        orderEventStream.groupByKey()
+            .aggregate(() -> 0.0, (key, order, total) -> total + order.getPrice(),
+                Materialized.with(Serdes.String(), Serdes.Double()))
+            .toStream()
+            .to(outputTopicName, Produced.with(Serdes.String(), Serdes.Double()));
+        try (final TopologyTestDriver testDriver = new TopologyTestDriver(sb.build(), streamProps)) {
+            var inputTopic = testDriver.createInputTopic(inputTopicName,
+                Serdes.String().serializer(),
+                orderSerdes.serializer());
+            var outputTopic = testDriver.createOutputTopic(outputTopicName,
+                Serdes.String().deserializer(),
+                Serdes.Double().deserializer());
+            List<OrderEvent> orderList = new LinkedList<>();
+            orderList.add(OrderEvent.newBuilder()
+                .setCreatedOn(Instant.now().toEpochMilli())
+                .setOrderId("1")
+                .setCurrency(Currency.eur)
+                .setProductId("1")
+                .setQuantity(1)
+                .setPrice(10)
+                .setCustomerId("id")
+                .setStatus(Status.ACCEPT)
+                .setSource("SOURCE")
+                .build());
+            orderList.add(OrderEvent.newBuilder()
+                .setCreatedOn(Instant.now().toEpochMilli())
+                .setOrderId("2")
+                .setCurrency(Currency.eur)
+                .setProductId("2")
+                .setQuantity(1)
+                .setPrice(15)
+                .setCustomerId("id")
+                .setStatus(Status.ACCEPT)
+                .setSource("SOURCE")
+                .build());
+            orderList.forEach(order -> inputTopic.pipeInput(order.getOrderId(), order));
 
-                        var expectedValues = outputTopic.readValue();
-                        assertThat(expectedValues).isNotNull();
-                        assertThat(expectedValues).isEqualTo(10);
-                }
+            var expectedValues = outputTopic.readValue();
+            assertThat(expectedValues).isNotNull();
+            assertThat(expectedValues).isEqualTo(10);
         }
+    }
 
 }

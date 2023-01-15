@@ -11,12 +11,12 @@ import org.springframework.core.convert.support.DefaultConversionService;
 @ComponentScan
 public class ConverterConfiguration {
 
-        @Bean
-        public ConfigurableConversionService conversionService(Converter<?, ?>[] converters) {
-                var result = new DefaultConversionService();
-                for (Converter<?, ?> c : converters) {
-                        result.addConverter(c);
-                }
-                return result;
+    @Bean
+    public ConfigurableConversionService conversionService(Converter<?, ?>[] converters) {
+        var result = new DefaultConversionService();
+        for (Converter<?, ?> c : converters) {
+            result.addConverter(c);
         }
+        return result;
+    }
 }

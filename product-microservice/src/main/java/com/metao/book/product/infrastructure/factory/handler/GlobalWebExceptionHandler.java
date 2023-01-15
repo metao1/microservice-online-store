@@ -21,8 +21,10 @@ public class GlobalWebExceptionHandler implements ErrorWebExceptionHandler {
         return badRequest(bufferFactory, exchange, new RuntimeException(ex.getMessage()));
     }
 
-    private Mono<Void> badRequest(final DataBufferFactory bufferFactory, ServerWebExchange serverWebExchange,
-                                  Throwable exception) {
+    private Mono<Void> badRequest(
+        final DataBufferFactory bufferFactory, ServerWebExchange serverWebExchange,
+        Throwable exception
+    ) {
         serverWebExchange.getResponse().setStatusCode(HttpStatus.NOT_FOUND);
         serverWebExchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
         return serverWebExchange.getResponse().setComplete();

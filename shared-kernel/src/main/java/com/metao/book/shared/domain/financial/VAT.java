@@ -3,10 +3,10 @@ package com.metao.book.shared.domain.financial;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.metao.book.shared.domain.base.ValueObject;
+import org.springframework.lang.NonNull;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
-import org.springframework.lang.NonNull;
 
 /**
  * Value object representing a VAT (Value Added Tax) percentage.
@@ -32,8 +32,7 @@ public class VAT implements ValueObject {
      * Creates a new {@code VAT} object of {@code percentage} is not null.
      *
      * @param percentage the percentage as an integer where e.g. 24 means 24 %.
-     * @return the new {@code VAT} object or {@code null} if {@code percentage} is
-     * null.
+     * @return the new {@code VAT} object or {@code null} if {@code percentage} is null.
      */
     public static VAT valueOf(Integer percentage) {
         return percentage == null ? null : new VAT(percentage);
@@ -96,10 +95,12 @@ public class VAT implements ValueObject {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
+        if (this == o) {
             return true;
-        if (o == null || getClass() != o.getClass())
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
+        }
         VAT vat = (VAT) o;
         return percentage == vat.percentage;
     }

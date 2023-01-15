@@ -3,8 +3,7 @@ package com.metao.book.shared.domain.base;
 import org.springframework.lang.Nullable;
 
 /**
- * Interface for domain objects that use optimistic locking to prevent multiple
- * concurrent sessions from updating the
+ * Interface for domain objects that use optimistic locking to prevent multiple concurrent sessions from updating the
  * object at the same time.
  */
 public interface ConcurrencySafeDomainObject extends DomainObject {

@@ -3,18 +3,17 @@ package com.metao.book.product.infrastructure.factory.handler;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatcher;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.metao.book.product.application.config.ProductMapper;
 import com.metao.book.product.application.service.ProductService;
 import com.metao.book.product.domain.ProductEntity;
 import com.metao.book.product.domain.ProductRepository;
 import com.metao.book.product.infrastructure.util.EventUtil;
 import com.metao.book.product.util.ProductTestUtils;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatcher;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class ProductDatabaseHandlerTest {
@@ -45,9 +44,9 @@ public class ProductDatabaseHandlerTest {
         @Override
         public boolean matches(ProductEntity argument) {
             return entity.getTitle().equals(argument.getTitle()) &&
-                    entity.getDescription().equals(argument.getDescription()) &&
-                    entity.getPriceCurrency().equals(argument.getPriceCurrency()) &&
-                    entity.getImage().equals(argument.getImage());
+                entity.getDescription().equals(argument.getDescription()) &&
+                entity.getPriceCurrency().equals(argument.getPriceCurrency()) &&
+                entity.getImage().equals(argument.getImage());
         }
 
     }

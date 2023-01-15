@@ -1,5 +1,5 @@
 ext {
-    set('testcontainersVersion', "1.17.6")
+  set('testcontainersVersion', "1.17.6")
 }
 
 dependencies {
@@ -16,7 +16,7 @@ dependencies {
 }
 
 dependencyManagement {
-    imports {
-        mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
-    }
+  imports {
+    mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
+  }
 }

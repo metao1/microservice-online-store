@@ -40,8 +40,12 @@ export default class App extends Component {
             let supportPageOffset = window.pageXOffset !== undefined;
             let isCSS1Compat = ((document.compatMode || '') === 'CSS1Compat');
             const scroll = {
-                x: supportPageOffset ? window.pageXOffset : isCSS1Compat ? document.documentElement.scrollLeft : document.body.scrollLeft,
-                y: supportPageOffset ? window.pageYOffset : isCSS1Compat ? document.documentElement.scrollTop : document.body.scrollTop
+                x: supportPageOffset ? window.pageXOffset : isCSS1Compat
+                    ? document.documentElement.scrollLeft
+                    : document.body.scrollLeft,
+                y: supportPageOffset ? window.pageYOffset : isCSS1Compat
+                    ? document.documentElement.scrollTop
+                    : document.body.scrollTop
             };
 
             if (scroll.y > 50 && !this.state.scrolled) {
@@ -66,14 +70,14 @@ export default class App extends Component {
                 'Content-Type': 'application/json'
             }
         })
-            .then(res => res.json())
-            .then(cart => this.setState({
-                cart: {
-                    data: cart,
-                    total: self.totalReducer(cart),
-                    error: false
-                }
-            }));
+        .then(res => res.json())
+        .then(cart => this.setState({
+            cart: {
+                data: cart,
+                total: self.totalReducer(cart),
+                error: false
+            }
+        }));
     }
 
     totalReducer = (data) => {
@@ -90,7 +94,8 @@ export default class App extends Component {
         if (product) {
             console.log("Added to Cart " + product.asin);
             const self = this;
-            const url = '/api/cart/addProduct?asin=' + (product.asin.asin || product.asin) +
+            const url = '/api/cart/addProduct?asin=' + (product.asin.asin
+                    || product.asin) +
                 "&userid=" + this.userId;
             let requestData = new FormData();
             requestData.append("json", JSON.stringify({asin: product.asin}));
@@ -103,26 +108,26 @@ export default class App extends Component {
                     'Content-Type': 'application/json'
                 }
             })
-                .then(res => res.json())
-                .then(data => {
-                    self.setState({
-                        cart: {
-                            data: data,
-                            total: self.totalReducer(data)
-                        }
-                    });
-                })
-                .catch(error => {
-                    this.setState({
-                        cart: {...this.state.cart, error: true}
-                    });
-
-                    setTimeout(() => this.setState({
-                        cart: {...this.state.cart, error: false}
-                    }), 2500);
-                    console.warn('Request failed', error);
-
+            .then(res => res.json())
+            .then(data => {
+                self.setState({
+                    cart: {
+                        data: data,
+                        total: self.totalReducer(data)
+                    }
                 });
+            })
+            .catch(error => {
+                this.setState({
+                    cart: {...this.state.cart, error: true}
+                });
+
+                setTimeout(() => this.setState({
+                    cart: {...this.state.cart, error: false}
+                }), 2500);
+                console.warn('Request failed', error);
+
+            });
         }
     };
 
@@ -130,7 +135,8 @@ export default class App extends Component {
         if (product) {
             console.log("Removed from Cart " + product.asin);
             const self = this;
-            const url = '/api/cart/removeProduct/?asin=' + product.asin + '&userid=' + this.userId;
+            const url = '/api/cart/removeProduct/?asin=' + product.asin
+                + '&userid=' + this.userId;
             let requestData = new FormData();
             requestData.append("json", JSON.stringify({asin: product.asin}));
 
@@ -142,29 +148,29 @@ export default class App extends Component {
                     'Content-Type': 'application/json'
                 }
             })
-                .then(res => res.json())
-                .then(data => {
-                    // const dataMerged = {};
-                    // const data = self.state.cart.data;
-                    // dataMerged[product.asin.asin || product.asin] = data[product.asin.asin || product.asin] ? data[product.asin.asin || product.asin] + 1 : 1;
+            .then(res => res.json())
+            .then(data => {
+                // const dataMerged = {};
+                // const data = self.state.cart.data;
+                // dataMerged[product.asin.asin || product.asin] = data[product.asin.asin || product.asin] ? data[product.asin.asin || product.asin] + 1 : 1;
 
-                    self.setState({
-                        cart: {
-                            data: data,
-                            total: self.totalReducer(data)
-                        }
-                    });
-                })
-                .catch(error => {
-                    this.setState({
-                        cart: {...this.state.cart, error: true}
-                    });
-
-                    setTimeout(() => this.setState({
-                        cart: {...this.state.cart, error: false}
-                    }), 2500);
-                    console.warn('Request failed', error);
+                self.setState({
+                    cart: {
+                        data: data,
+                        total: self.totalReducer(data)
+                    }
                 });
+            })
+            .catch(error => {
+                this.setState({
+                    cart: {...this.state.cart, error: true}
+                });
+
+                setTimeout(() => this.setState({
+                    cart: {...this.state.cart, error: false}
+                }), 2500);
+                console.warn('Request failed', error);
+            });
         }
     };
 
@@ -185,7 +191,8 @@ export default class App extends Component {
                            render={(props) => (
                                <Cart
                                    currency={this.state.currency}
-                                   cart={this.state.cart} fetchCart={this.fetchCart}
+                                   cart={this.state.cart}
+                                   fetchCart={this.fetchCart}
                                    removeItemFromCart={this.removeItemFromCart}/>
                            )}/>
                     <Route path="/admin"
@@ -237,7 +244,8 @@ export default class App extends Component {
                            )}/>
 
                     <Route exact path="/item/:id" render={(props) => (
-                        <ShowProduct currency={this.state.currency} {...props} addItemToCart={this.addItemToCart}/>
+                        <ShowProduct currency={this.state.currency} {...props}
+                                     addItemToCart={this.addItemToCart}/>
                     )}/>
                 </Switch>
                 <Subscribe/>

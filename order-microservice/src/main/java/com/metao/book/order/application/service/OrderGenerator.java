@@ -4,11 +4,11 @@ import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
 import com.metao.book.shared.Currency;
 import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.Status;
+import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,30 +21,29 @@ import org.springframework.stereotype.Service;
 @ConditionalOnProperty(havingValue = "dev", name = "spring.profiles.active")
 public class OrderGenerator {
 
-        @Value("${kafka.topic.order}")
-        String orderTopic;
+    private static final String CUSTOMER_ID = "CUSTOMER_ID";
+    private final Random random = new Random();
+    private final KafkaOrderProducer kafkaProducer;
+    private final AtomicInteger atomicInteger = new AtomicInteger(1);
+    @Value("${kafka.topic.order}")
+    String orderTopic;
+    private List<String> productAsinList = new ArrayList<>();
 
-        private static final String CUSTOMER_ID = "CUSTOMER_ID";
-        private final Random random = new Random();
-        private final KafkaOrderProducer kafkaProducer;
-        private final AtomicInteger atomicInteger = new AtomicInteger(1);
-        private List<String> productAsinList = new ArrayList<>();
-
-        //@Scheduled(fixedDelay = 30000, initialDelay = 10000)
-        public void commandLineRunner() {
-                var randomNumber = atomicInteger.getAndIncrement();
-                var order = OrderEvent.newBuilder()
-                                .setOrderId(randomNumber + "")
-                                .setProductId(productAsinList.get(random.nextInt(productAsinList.size())))
-                                .setCustomerId(CUSTOMER_ID)
-                                .setStatus(Status.NEW)
-                                .setQuantity(1)
-                                .setPrice(100)
-                                .setCurrency(Currency.dlr)
-                                .setSource("PAYMENT")
-                                .build();
-                kafkaProducer.handle(order);
-        }
+    //@Scheduled(fixedDelay = 30000, initialDelay = 10000)
+    public void commandLineRunner() {
+        var randomNumber = atomicInteger.getAndIncrement();
+        var order = OrderEvent.newBuilder()
+            .setOrderId(randomNumber + "")
+            .setProductId(productAsinList.get(random.nextInt(productAsinList.size())))
+            .setCustomerId(CUSTOMER_ID)
+            .setStatus(Status.NEW)
+            .setQuantity(1)
+            .setPrice(100)
+            .setCurrency(Currency.dlr)
+            .setSource("PAYMENT")
+            .build();
+        kafkaProducer.handle(order);
+    }
 
         /*public void loadProducts() {
                 log.info("importing products data from resources");
@@ -60,8 +59,8 @@ public class OrderGenerator {
                 log.info("finished writing to database.");
         }*/
 
-        @PostConstruct
-        public void afterPropertiesSet() {
-            //loadProducts();
-        }
+    @PostConstruct
+    public void afterPropertiesSet() {
+        //loadProducts();
+    }
 }

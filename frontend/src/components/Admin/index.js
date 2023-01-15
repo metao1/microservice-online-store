@@ -50,20 +50,21 @@ class AdminPanel extends Component {
         console.log("Fetching categories: " + url);
         this.setState({loading: true});
         this._asyncRequest = fetch(url)
-            .then(res => res.json())
-            .then(categories => {
-                this._asyncRequest = null;
-                categories.slice(0, 1200)
-                    .sort(this.sortIt)
-                    .filter(this.onlyUnique)
-                    .flatMap(item => {
-                        this.options.push({value: item.categories, label: item.categories});
-                    });
-                this.setState({loading: false});
-            }).catch(_ => {
-                this.createNotification('error', 'can not get the categories');
-                console.error('no categories found');
+        .then(res => res.json())
+        .then(categories => {
+            this._asyncRequest = null;
+            categories.slice(0, 1200)
+            .sort(this.sortIt)
+            .filter(this.onlyUnique)
+            .flatMap(item => {
+                this.options.push(
+                    {value: item.categories, label: item.categories});
             });
+            this.setState({loading: false});
+        }).catch(_ => {
+            this.createNotification('error', 'can not get the categories');
+            console.error('no categories found');
+        });
     }
 
     sortIt(a, b) {
@@ -118,24 +119,33 @@ class AdminPanel extends Component {
         return (
             <div className="cart-container">
                 <div className="container">
-                    <h5>Welcome to admin page where you can add new products to your repository</h5>
+                    <h5>Welcome to admin page where you can add new products to
+                        your repository</h5>
                     <span>Please fill in the form below and submit it</span>
                     <div className="publish-form">
                         <span>Title</span>
-                        <input type="text" name="title" value={this.state.title} onChange={this.handleChange} required/>
+                        <input type="text" name="title" value={this.state.title}
+                               onChange={this.handleChange} required/>
                         <span>Description</span>
-                        <input type="text" name="description" value={this.state.description}
+                        <input type="text" name="description"
+                               value={this.state.description}
                                onChange={this.handleChange}/>
                         <span>Image URL</span>
-                        <input type="text" name="imageUrl" value={this.state.imageUrl} onChange={this.handleChange}
+                        <input type="text" name="imageUrl"
+                               value={this.state.imageUrl}
+                               onChange={this.handleChange}
                                required/>
                         <span>Price</span>
                         <CurrencyFormat name="price" value={this.state.price}
                                         thousandSeparator={true}
                                         prefix={this.props.currency}
                                         onValueChange={(values) => {
-                                            const {formattedValue, value} = values;
-                                            this.setState({price: formattedValue});
+                                            const {
+                                                formattedValue,
+                                                value
+                                            } = values;
+                                            this.setState(
+                                                {price: formattedValue});
                                         }}/>
                         <div className="margin-top-10">
                             <div className="margin-top-10">
@@ -143,7 +153,8 @@ class AdminPanel extends Component {
                                 <Select onChange={this.onCategoriesChanged}
                                         onMenuOpen={this.loadCategories()}
                                         isLoading={Boolean(this.state.loading)}
-                                        closeMenuOnSelect={false} isMulti options={this.options}/>
+                                        closeMenuOnSelect={false} isMulti
+                                        options={this.options}/>
                             </div>
                             <br/>
                             <div className="actions">
@@ -151,7 +162,8 @@ class AdminPanel extends Component {
                                     this.submitProduct();
                                     this.setState({isCompleted: true})
                                 }} size="medium"
-                                        disabled={!Boolean(this.state.title)}>Publish</Button>
+                                        disabled={!Boolean(
+                                            this.state.title)}>Publish</Button>
                             </div>
                         </div>
                     </div>

@@ -10,7 +10,8 @@ class Subscribe extends Component {
                 <Container>
                     <div className="left">
                         <h5>Let’s keep the conversation going</h5>
-                        <p>Receive our newsletter and discover our stories, collections, and surprises.</p>
+                        <p>Receive our newsletter and discover our stories,
+                            collections, and surprises.</p>
                     </div>
                     <div className="right">
                         <form>

@@ -6,10 +6,6 @@ import com.metao.book.shared.domain.base.ConcurrencySafeDomainObject;
 import com.metao.book.shared.domain.base.DomainObjectId;
 import com.metao.book.shared.domain.financial.Currency;
 import com.metao.book.shared.domain.financial.Money;
-import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -22,6 +18,10 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.validation.Valid;
+import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -78,8 +78,8 @@ public class ProductEntity extends AbstractEntity<ProductId> implements Concurre
 
     @BatchSize(size = 20)
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinTable(name = "product_category_map", joinColumns = { @JoinColumn(name = "product_id") }, inverseJoinColumns = {
-            @JoinColumn(name = "product_category_id") })
+    @JoinTable(name = "product_category_map", joinColumns = {@JoinColumn(name = "product_id")}, inverseJoinColumns = {
+        @JoinColumn(name = "product_category_id")})
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     private Set<ProductCategoryEntity> categories;
 

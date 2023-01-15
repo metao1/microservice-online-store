@@ -4,6 +4,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 public class OffsetBasedPageRequest implements Pageable {
+
     private final int limit;
     private final int offset;
 
@@ -51,7 +52,7 @@ public class OffsetBasedPageRequest implements Pageable {
 
     public Pageable previous() {
         return hasPrevious() ? new OffsetBasedPageRequest(getPageSize(), (int) (getOffset() - getPageSize()))
-                : this;
+            : this;
     }
 
     @Override

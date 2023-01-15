@@ -23,11 +23,14 @@ class ShowProduct extends Component {
             var url = '/api/products/details/' + new_product_id;
             console.log("Fetching url: " + url);
             fetch(url)
-                .then(res => res.json())
-                .then(product => {
-                    this.setState({product});
-                    if (product.also_bought) this.fetchProductAlsoBought(product.also_bought.slice(0, 4));
-                });
+            .then(res => res.json())
+            .then(product => {
+                this.setState({product});
+                if (product.also_bought) {
+                    this.fetchProductAlsoBought(
+                        product.also_bought.slice(0, 4));
+                }
+            });
         }
     }
 
@@ -40,10 +43,15 @@ class ShowProduct extends Component {
                     'Content-Type': 'application/json'
                 }
             })
-                .then(res => res.json())
-                .then(product => {
-                    if (product.asin) this.setState({productAlsoBought: [...this.state.productAlsoBought, product]})
-                });
+            .then(res => res.json())
+            .then(product => {
+                if (product.asin) {
+                    this.setState({
+                        productAlsoBought: [...this.state.productAlsoBought,
+                            product]
+                    })
+                }
+            });
         });
     }
 
@@ -54,7 +62,8 @@ class ShowProduct extends Component {
         if (!currentProduct) {
             return ("");
         }
-        var stars = ["star_border", "star_border", "star_border", "star_border", "star_border"];
+        var stars = ["star_border", "star_border", "star_border", "star_border",
+            "star_border"];
         if (currentProduct.avg_stars > 0) {
             stars[0] = (currentProduct.avg_stars < 1) ? "star_half" : "star";
         }
@@ -79,7 +88,9 @@ class ShowProduct extends Component {
                             <Row>
                                 <Col xs={10} xsPush={1}>
                                     <div className="item-image">
-                                        <img className="product-image" src={currentProduct.imageUrl} alt="product"/>
+                                        <img className="product-image"
+                                             src={currentProduct.imageUrl}
+                                             alt="product"/>
                                     </div>
 
                                     <div className="item-details">
@@ -89,11 +100,16 @@ class ShowProduct extends Component {
                                             </div>
                                             <div className="product-review">
                                                 <div className="stars">
-                                                    <Icon small id="add-icon" className="review-star">{stars[0]}</Icon>
-                                                    <Icon small id="add-icon" className="review-star">{stars[1]}</Icon>
-                                                    <Icon small id="add-icon" className="review-star">{stars[2]}</Icon>
-                                                    <Icon small id="add-icon" className="review-star">{stars[3]}</Icon>
-                                                    <Icon small id="add-icon" className="review-star">{stars[4]}</Icon>
+                                                    <Icon small id="add-icon"
+                                                          className="review-star">{stars[0]}</Icon>
+                                                    <Icon small id="add-icon"
+                                                          className="review-star">{stars[1]}</Icon>
+                                                    <Icon small id="add-icon"
+                                                          className="review-star">{stars[2]}</Icon>
+                                                    <Icon small id="add-icon"
+                                                          className="review-star">{stars[3]}</Icon>
+                                                    <Icon small id="add-icon"
+                                                          className="review-star">{stars[4]}</Icon>
                                                 </div>
                                             </div>
                                             <div className="product-bio">
@@ -103,15 +119,20 @@ class ShowProduct extends Component {
                                                 </div>
                                                 <div className="add-to-cart">
                                                     <Button color="primary"
-                                                            onClick={() => this.props.addItemToCart(currentProduct)}
+                                                            onClick={() => this.props.addItemToCart(
+                                                                currentProduct)}
                                                             size="large">
-                                                        <Icon small className="add-icon">add_shopping_cart</Icon>Add to
+                                                        <Icon small
+                                                              className="add-icon">add_shopping_cart</Icon>Add
+                                                        to
                                                         cart
                                                     </Button>
                                                 </div>
                                                 <div
-                                                    className="product-price">{this.props.currency}{currentProduct.price.toFixed(2)}</div>
-                                                <div className="product-description">{currentProduct.description}</div>
+                                                    className="product-price">{this.props.currency}{currentProduct.price.toFixed(
+                                                    2)}</div>
+                                                <div
+                                                    className="product-description">{currentProduct.description}</div>
                                             </div>
                                         </div>
                                     </div>
@@ -126,62 +147,94 @@ class ShowProduct extends Component {
                             <div className="products">
 
                                 <div className="products-title">
-                                    <h1 className="highlights-title">Also bought</h1>
+                                    <h1 className="highlights-title">Also
+                                        bought</h1>
                                 </div>
                                 <div className="items">
                                     {
-                                        this.state.productAlsoBought.map(product => {
-                                            if (product.avg_stars > 0) {
-                                                stars[0] = (product.avg_stars < 1) ? "star_half" : "star";
-                                            }
-                                            if (product.avg_stars > 1) {
-                                                stars[1] = (product.avg_stars < 2) ? "star_half" : "star";
-                                            }
-                                            if (product.avg_stars > 2) {
-                                                stars[2] = (product.avg_stars < 3) ? "star_half" : "star";
-                                            }
-                                            if (product.avg_stars > 3) {
-                                                stars[3] = (product.avg_stars < 4) ? "star_half" : "star";
-                                            }
-                                            if (product.avg_stars > 4) {
-                                                stars[4] = (product.avg_stars < 5) ? "star_half" : "star";
-                                            }
-                                            return (
-                                                <Col lg={3} md={6} xs={12} key={product.asin}>
-                                                    <div className="item">
-                                                        <Link to={`/item/${product.asin}`}>
-                                                            <div className="product-img"
-                                                                 style={{backgroundImage: `url(${product.imageUrl})`}}></div>
-                                                            <div className="product-details">
-                                                                <div className="reviews-add">
-                                                                    <div className="stars">
-                                                                        <Icon small id="add-icon"
-                                                                              className="review-star">{stars[0]}</Icon>
-                                                                        <Icon small id="add-icon"
-                                                                              className="review-star">{stars[1]}</Icon>
-                                                                        <Icon small id="add-icon"
-                                                                              className="review-star">{stars[2]}</Icon>
-                                                                        <Icon small id="add-icon"
-                                                                              className="review-star">{stars[3]}</Icon>
-                                                                        <Icon small id="add-icon"
-                                                                              className="review-star">{stars[4]}</Icon>
+                                        this.state.productAlsoBought.map(
+                                            product => {
+                                                if (product.avg_stars > 0) {
+                                                    stars[0] = (product.avg_stars
+                                                        < 1) ? "star_half"
+                                                        : "star";
+                                                }
+                                                if (product.avg_stars > 1) {
+                                                    stars[1] = (product.avg_stars
+                                                        < 2) ? "star_half"
+                                                        : "star";
+                                                }
+                                                if (product.avg_stars > 2) {
+                                                    stars[2] = (product.avg_stars
+                                                        < 3) ? "star_half"
+                                                        : "star";
+                                                }
+                                                if (product.avg_stars > 3) {
+                                                    stars[3] = (product.avg_stars
+                                                        < 4) ? "star_half"
+                                                        : "star";
+                                                }
+                                                if (product.avg_stars > 4) {
+                                                    stars[4] = (product.avg_stars
+                                                        < 5) ? "star_half"
+                                                        : "star";
+                                                }
+                                                return (
+                                                    <Col lg={3} md={6} xs={12}
+                                                         key={product.asin}>
+                                                        <div className="item">
+                                                            <Link
+                                                                to={`/item/${product.asin}`}>
+                                                                <div
+                                                                    className="product-img"
+                                                                    style={{backgroundImage: `url(${product.imageUrl})`}}></div>
+                                                                <div
+                                                                    className="product-details">
+                                                                    <div
+                                                                        className="reviews-add">
+                                                                        <div
+                                                                            className="stars">
+                                                                            <Icon
+                                                                                small
+                                                                                id="add-icon"
+                                                                                className="review-star">{stars[0]}</Icon>
+                                                                            <Icon
+                                                                                small
+                                                                                id="add-icon"
+                                                                                className="review-star">{stars[1]}</Icon>
+                                                                            <Icon
+                                                                                small
+                                                                                id="add-icon"
+                                                                                className="review-star">{stars[2]}</Icon>
+                                                                            <Icon
+                                                                                small
+                                                                                id="add-icon"
+                                                                                className="review-star">{stars[3]}</Icon>
+                                                                            <Icon
+                                                                                small
+                                                                                id="add-icon"
+                                                                                className="review-star">{stars[4]}</Icon>
+                                                                        </div>
+                                                                        {product.num_stars} stars
+                                                                        from {product.num_reviews} reviews
                                                                     </div>
-                                                                    {product.num_stars} stars
-                                                                    from {product.num_reviews} reviews
+                                                                    <div
+                                                                        className="product-name">{product.title}</div>
                                                                 </div>
-                                                                <div className="product-name">{product.title}</div>
-                                                            </div>
-                                                        </Link>
-                                                        <button onClick={() => this.props.addItemToCart(product)}
+                                                            </Link>
+                                                            <button
+                                                                onClick={() => this.props.addItemToCart(
+                                                                    product)}
                                                                 className="price-add">
-                                                            <div
-                                                                className="product-price">{this.props.currency}{product.price}</div>
-                                                            <Icon small className="add-icon">add_shopping_cart</Icon>
-                                                        </button>
-                                                    </div>
-                                                </Col>
-                                            )
-                                        })
+                                                                <div
+                                                                    className="product-price">{this.props.currency}{product.price}</div>
+                                                                <Icon small
+                                                                      className="add-icon">add_shopping_cart</Icon>
+                                                            </button>
+                                                        </div>
+                                                    </Col>
+                                                )
+                                            })
                                     }
                                 </div>
                             </div>

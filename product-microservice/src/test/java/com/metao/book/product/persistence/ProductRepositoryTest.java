@@ -56,8 +56,8 @@ public class ProductRepositoryTest extends BasePostgresIntegrationTest {
         var productEntity = productEntities.get();
         log.error(pe.toString());
         assertThat(productEntity)
-                .isNotNull()
-                .isEqualTo(pe);
+            .isNotNull()
+            .isEqualTo(pe);
     }
 
     @Test
@@ -68,8 +68,8 @@ public class ProductRepositoryTest extends BasePostgresIntegrationTest {
         var productEntities = productRepository.findAll(pageable);
         var list = productEntities.get();
         assertThat(list)
-                .isNotNull()
-                .hasSize(2);
+            .isNotNull()
+            .hasSize(2);
     }
 
     @Test
@@ -94,19 +94,19 @@ public class ProductRepositoryTest extends BasePostgresIntegrationTest {
         var optionalProductCategories = productRepository.findProductCategoriesByProductId(pe.id());
         assertTrue(optionalProductCategories.isPresent());
         assertThat(optionalProductCategories.get())
-                .hasSize(1)
-                .haveExactly(1, new Condition<>(m -> pe.id().equals(m.id()), "with this id there is only one product"))
-                .element(0)
-                .isEqualTo(pe)
-                .extracting(ProductEntity::getCategories)
-                .satisfies(categories -> {
-                    assertThat(categories)
-                            .hasSize(1)
-                            .element(0)
-                            .extracting(ProductCategoryEntity::getCategory)
-                            .extracting(Category::category)
-                            .isEqualTo("book");
-                });
+            .hasSize(1)
+            .haveExactly(1, new Condition<>(m -> pe.id().equals(m.id()), "with this id there is only one product"))
+            .element(0)
+            .isEqualTo(pe)
+            .extracting(ProductEntity::getCategories)
+            .satisfies(categories -> {
+                assertThat(categories)
+                    .hasSize(1)
+                    .element(0)
+                    .extracting(ProductCategoryEntity::getCategory)
+                    .extracting(Category::category)
+                    .isEqualTo("book");
+            });
 
     }
 }

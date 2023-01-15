@@ -1,10 +1,10 @@
 package com.metao.book.shared.domain.base;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Objects;
 import jakarta.persistence.Column;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
+import java.util.Objects;
 import org.springframework.lang.NonNull;
 
 /**

@@ -6,9 +6,9 @@ import com.metao.book.product.domain.ProductServiceInterface;
 import com.metao.book.product.infrastructure.factory.handler.ProductKafkaHandler;
 import com.metao.book.product.infrastructure.mapper.ProductMapperInterface;
 import com.metao.book.product.infrastructure.util.EventUtil;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Optional;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -43,13 +43,15 @@ public class ProductController {
     }
 
     @GetMapping(value = "/offset")
-    public ResponseEntity<List<ProductDTO>> getAllProductsWithOffset(@RequestParam("limit") int limit,
-            @RequestParam("offset") int offset) {
+    public ResponseEntity<List<ProductDTO>> getAllProductsWithOffset(
+        @RequestParam("limit") int limit,
+        @RequestParam("offset") int offset
+    ) {
         var l = Optional.of(limit).orElse(10);
         var o = Optional.of(offset).orElse(0);
         return productService.getAllProductsPageable(l, o)
-                .map(productMapper::toDtos)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+            .map(productMapper::toDtos)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
     }
 }

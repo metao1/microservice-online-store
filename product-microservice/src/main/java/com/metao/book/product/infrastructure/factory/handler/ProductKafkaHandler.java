@@ -28,8 +28,8 @@ public class ProductKafkaHandler implements MessageHandler<CreateProductEvent> {
             log.info("sending product to kafka on: {}", event.occurredOn());
             var productDto = event.productDTO();
             Optional.of(productDto)
-                    .map(this::mapToProductEvent)
-                    .ifPresent(remoteProductService::handle);
+                .map(this::mapToProductEvent)
+                .ifPresent(remoteProductService::handle);
         } catch (Exception ex) {
             log.warn(ex.getMessage());
         }

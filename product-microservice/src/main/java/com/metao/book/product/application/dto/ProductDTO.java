@@ -1,13 +1,13 @@
 package com.metao.book.product.application.dto;
 
 import com.metao.book.shared.domain.financial.Currency;
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.Set;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

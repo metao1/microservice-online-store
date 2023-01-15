@@ -1,5 +1,7 @@
 package com.metao.book.cart.service.config;
 
+import static com.metao.book.shared.kafka.StreamsUtils.createTopic;
+
 import com.metao.book.shared.kafka.RemoteKafkaService;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -10,8 +12,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
-
-import static com.metao.book.shared.kafka.StreamsUtils.createTopic;
 
 @Validated
 @Configuration

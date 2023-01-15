@@ -1,10 +1,9 @@
 package com.metao.book.order.application.config;
 
+import java.util.Map;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.errors.RecordTooLargeException;
 import org.apache.kafka.streams.errors.ProductionExceptionHandler;
-
-import java.util.Map;
 
 class IgnoreRecordTooLargeHandler implements ProductionExceptionHandler {
 
@@ -12,8 +11,10 @@ class IgnoreRecordTooLargeHandler implements ProductionExceptionHandler {
     public void configure(Map<String, ?> config) {
     }
 
-    public ProductionExceptionHandlerResponse handle(final ProducerRecord<byte[], byte[]> record,
-                                                     final Exception exception) {
+    public ProductionExceptionHandlerResponse handle(
+        final ProducerRecord<byte[], byte[]> record,
+        final Exception exception
+    ) {
         if (exception instanceof RecordTooLargeException) {
             return ProductionExceptionHandlerResponse.CONTINUE;
         } else {

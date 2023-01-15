@@ -7,11 +7,11 @@ import com.metao.book.product.infrastructure.factory.handler.ProductKafkaHandler
 import com.metao.book.product.infrastructure.mapper.ProductDtoMapper;
 import com.metao.book.product.infrastructure.util.EventUtil;
 import com.metao.book.shared.application.service.FileHandler;
+import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,11 +48,11 @@ public class ProductGenerator {
         log.info("importing products data from resources");
         try (var source = FileHandler.readFromFile(getClass(), productsDataPath)) {
             source
-                    .map(mapper::convertToDto)
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .map(EventUtil::createProductEvent)
-                    .forEach(eventHandler::sendEvent);
+                .map(mapper::convertToDto)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(EventUtil::createProductEvent)
+                .forEach(eventHandler::sendEvent);
         } catch (IOException e) {
             log.error(e.getMessage(), e);
         }
@@ -60,8 +60,7 @@ public class ProductGenerator {
     }
 
     /**
-     * Waits for the {@link ReadinessState#ACCEPTING_TRAFFIC} and starts task
-     * execution
+     * Waits for the {@link ReadinessState#ACCEPTING_TRAFFIC} and starts task execution
      *
      * @param event The {@link AvailabilityChangeEvent}
      * @throws ExecutionException   If task execution failed

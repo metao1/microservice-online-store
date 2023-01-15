@@ -2,16 +2,11 @@ package com.metao.book.order.kafka;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.metao.book.order.application.config.KafkaSerdesConfig;
 import com.metao.book.order.application.config.ObjectMapperConfig;
-import com.metao.book.order.application.service.OrderMapper;
-import com.metao.book.order.application.service.OrderService;
 import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
-import com.metao.book.order.infrastructure.repository.KafkaOrderService;
 import com.metao.book.shared.Currency;
 import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.Status;
-import com.metao.book.shared.kafka.RemoteKafkaService;
 import com.metao.book.shared.test.TestUtils.StreamBuilder;
 import java.time.Instant;
 import java.util.Random;
@@ -24,15 +19,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
-@ActiveProfiles({ "test", "container" })
+@ActiveProfiles({"test", "container"})
 @TestInstance(Lifecycle.PER_CLASS)
 @Import({
-        KafkaOrderConsumerTestConfig.class,
-        ObjectMapperConfig.class
+    KafkaOrderConsumerTestConfig.class,
+    ObjectMapperConfig.class
 })
 @AutoConfigureTestDatabase(replace = Replace.NONE)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -50,7 +44,7 @@ public class KafkaOrderProducerTest extends SpringBootEmbeddedKafka {
     @Disabled("until fix error of using EmbeddedKafka that supports transaction")
     public void givenKafkaOrderTopic_whenSendingToTopic_thenMessageReceivedCorrectly() throws Exception {
         StreamBuilder.of(OrderEvent.class, 0, 10, this::createOrderFromCustomerId)
-                .forEach(kafkaProducer::handle);
+            .forEach(kafkaProducer::handle);
 
         consumer.getLatch().await(6, TimeUnit.SECONDS);
 
@@ -59,16 +53,16 @@ public class KafkaOrderProducerTest extends SpringBootEmbeddedKafka {
 
     private OrderEvent createOrderFromCustomerId(Integer randomId) {
         return OrderEvent.newBuilder()
-                .setOrderId("order-" + randomId)
-                .setProductId("product - " + randomId)
-                .setCustomerId("customer_id")
-                .setCreatedOn(Instant.now().toEpochMilli())
-                .setSource("PAYMENT")
-                .setStatus(Status.NEW)
-                .setQuantity(1)
-                .setPrice(RAND.nextInt(100))
-                .setCurrency(Currency.dlr)
-                .build();
+            .setOrderId("order-" + randomId)
+            .setProductId("product - " + randomId)
+            .setCustomerId("customer_id")
+            .setCreatedOn(Instant.now().toEpochMilli())
+            .setSource("PAYMENT")
+            .setStatus(Status.NEW)
+            .setQuantity(1)
+            .setPrice(RAND.nextInt(100))
+            .setCurrency(Currency.dlr)
+            .build();
     }
 
 }

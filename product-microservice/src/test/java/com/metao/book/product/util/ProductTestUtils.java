@@ -1,9 +1,5 @@
 package com.metao.book.product.util;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Set;
-
 import com.metao.book.product.application.dto.CategoryDTO;
 import com.metao.book.product.application.dto.ProductDTO;
 import com.metao.book.product.domain.ProductCategoryEntity;
@@ -13,6 +9,9 @@ import com.metao.book.product.domain.image.Image;
 import com.metao.book.shared.domain.financial.Currency;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.test.TestUtils.StreamBuilder;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Set;
 
 public class ProductTestUtils {
 
@@ -42,19 +41,19 @@ public class ProductTestUtils {
         var title = "title";
         return StreamBuilder.of(ProductEntity.class, 0, size,
                 a -> createProductEntity(a.toString(), title + a, description))
-                .toList();
+            .toList();
     }
 
     public static ProductDTO createProductDTO() {
         return ProductDTO
-                .builder()
-                .price(BigDecimal.valueOf(12))
-                .title("title")
-                .asin("1234567899")
-                .currency(Currency.DLR)
-                .description("description")
-                .imageUrl("https://example.com/image.jpg")
-                .categories(Set.of(CategoryDTO.of("book")))
-                .build();
+            .builder()
+            .price(BigDecimal.valueOf(12))
+            .title("title")
+            .asin("1234567899")
+            .currency(Currency.DLR)
+            .description("description")
+            .imageUrl("https://example.com/image.jpg")
+            .categories(Set.of(CategoryDTO.of("book")))
+            .build();
     }
 }

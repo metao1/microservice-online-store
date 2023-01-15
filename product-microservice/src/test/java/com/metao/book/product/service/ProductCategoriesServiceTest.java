@@ -10,7 +10,6 @@ import com.metao.book.product.domain.ProductId;
 import com.metao.book.product.domain.ProductRepository;
 import com.metao.book.product.infrastructure.mapper.ProductCategoryMapper;
 import com.metao.book.product.util.ProductTestUtils;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -37,16 +36,16 @@ class ProductCategoriesServiceTest {
     void getProductCategories() {
         var returnedProductCategories = Optional.of(Set.of(ProductTestUtils.createProductEntity()));
         doReturn(returnedProductCategories)
-                .when(productRepository)
-                .findProductCategoriesByProductId(new ProductId(PRODUCT_ID));
+            .when(productRepository)
+            .findProductCategoriesByProductId(new ProductId(PRODUCT_ID));
         var categories = productCategoriesService
-                .getProductCategories(new ProductId(PRODUCT_ID))
-                .map(productCategoriesMapper::convertToDtoSet);
+            .getProductCategories(new ProductId(PRODUCT_ID))
+            .map(productCategoriesMapper::convertToDtoSet);
 
         assertTrue(categories.isPresent());
         assertThat(categories.get())
-                .extracting(CategoryDTO::getCategory)
-                .isEqualTo(List.of("book"));
+            .extracting(CategoryDTO::getCategory)
+            .isEqualTo(List.of("book"));
 
     }
 }

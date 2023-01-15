@@ -10,6 +10,7 @@ import com.metao.book.shared.Currency;
 import com.metao.book.shared.ProductEvent;
 import com.metao.book.shared.domain.financial.Money;
 import io.netty.util.internal.StringUtil;
+import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collection;
@@ -18,18 +19,17 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import jakarta.validation.Valid;
 import lombok.NonNull;
 
 public interface ProductMapperInterface {
 
     private static Set<ProductCategoryEntity> mapCategoryDTOsToEntities(@NonNull Set<CategoryDTO> source) {
         return source
-                .stream()
-                .map(CategoryDTO::getCategory)
-                .map(Category::new)
-                .map(ProductCategoryEntity::new)
-                .collect(Collectors.toSet());
+            .stream()
+            .map(CategoryDTO::getCategory)
+            .map(Category::new)
+            .map(ProductCategoryEntity::new)
+            .collect(Collectors.toSet());
     }
 
     private static ProductEntity buildProductEntity(ProductDTO item) {
@@ -47,6 +47,15 @@ public interface ProductMapperInterface {
         return productEntity;
     }
 
+    private static Set<CategoryDTO> mapCategoryEntitiesToDTOs(@NonNull Set<ProductCategoryEntity> source) {
+        return source
+            .stream()
+            .map(ProductCategoryEntity::getCategory)
+            .map(Category::category)
+            .map(CategoryDTO::of)
+            .collect(Collectors.toSet());
+    }
+
     default Optional<ProductEntity> toEntity(@NonNull ProductDTO productDTO) {
         return Optional
             .of(productDTO)
@@ -58,7 +67,7 @@ public interface ProductMapperInterface {
     }
 
     default Optional<ProductEntity> toEntity(ProductEvent event) {
-        Stream<CategoryDTO> categories= Stream.empty();
+        Stream<CategoryDTO> categories = Stream.empty();
         if (!StringUtil.isNullOrEmpty(event.getCategories())) {
             categories = Arrays.stream(event.getCategories().split(",")).map(CategoryDTO::of);
         }
@@ -86,15 +95,6 @@ public interface ProductMapperInterface {
             .categories(mapCategoryEntitiesToDTOs(pr.getCategories()))
             .imageUrl(pr.getImage().url())
             .build();
-    }
-
-    private static Set<CategoryDTO> mapCategoryEntitiesToDTOs(@NonNull Set<ProductCategoryEntity> source) {
-        return source
-            .stream()
-            .map(ProductCategoryEntity::getCategory)
-            .map(Category::category)
-            .map(CategoryDTO::of)
-            .collect(Collectors.toSet());
     }
 
     private com.metao.book.shared.domain.financial.Currency mapCurrency(Currency currency) {

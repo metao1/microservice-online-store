@@ -54,6 +54,6 @@ class ShoppingCartServiceTest {
 
     private Stream<ShoppingCart> buildShoppingCartStream() {
         return StreamBuilder.of(ShoppingCart.class, 1, 20,
-            i -> ShoppingCart.createCart(new ShoppingCartKey("user_id", "item_"+ i.toString())));
+            i -> ShoppingCart.createCart(new ShoppingCartKey("user_id", "item_" + i.toString())));
     }
 }

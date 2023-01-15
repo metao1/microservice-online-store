@@ -22,18 +22,19 @@ public class OrderController {
 
     @GetMapping
     public ResponseEntity<OrderDTO> getOrderByOrderId(
-            @RequestParam(name = "order_id", value = "order_id") String orderId) {
+        @RequestParam(name = "order_id", value = "order_id") String orderId
+    ) {
         return orderService
-                .getOrderByOrderId(orderId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+            .getOrderByOrderId(orderId)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public ResponseEntity<String> createOrder(@Valid @RequestBody OrderDTO orderDto) {
         return orderService.createOrder(orderDto)
-                .map(ResponseEntity::ok)
-                .orElseThrow(() -> new RuntimeException("could not create order"));
+            .map(ResponseEntity::ok)
+            .orElseThrow(() -> new RuntimeException("could not create order"));
     }
 
     //

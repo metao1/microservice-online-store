@@ -9,7 +9,7 @@ kafka:
     order-checkout: "order-product-topic"
     payment: "payment-topic"
 
-spring:  
+spring:
   application:
     name: checkout-microservice
   kafka:
@@ -74,5 +74,5 @@ logging:
   level:
     org.apache.kafka.streams.kstream: INFO
     org.springframework.data: DEBUG
-    org.springframework.boot.autoconfigure: ERROR  
+    org.springframework.boot.autoconfigure: ERROR
     org.hibernate: DEBUG

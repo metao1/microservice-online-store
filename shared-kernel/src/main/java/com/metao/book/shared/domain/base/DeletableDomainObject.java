@@ -1,8 +1,7 @@
 package com.metao.book.shared.domain.base;
 
 /**
- * Interface for domain objects that can be softly deleted, meaning the domain
- * object is not physically removed from
+ * Interface for domain objects that can be softly deleted, meaning the domain object is not physically removed from
  * anywhere but only marked as deleted.
  */
 public interface DeletableDomainObject extends DomainObject {

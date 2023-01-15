@@ -16,7 +16,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
-import org.springframework.kafka.listener.CommonErrorHandler;
 import org.springframework.validation.annotation.Validated;
 
 @Validated
@@ -44,7 +43,8 @@ public class KafkaConfig {
     @Bean
     public ConcurrentKafkaListenerContainerFactory kafkaListenerContainerFactory(
         ConcurrentKafkaListenerContainerFactoryConfigurer configurer,
-        ConsumerFactory<Object, Object> kafkaConsumerFactory) {
+        ConsumerFactory<Object, Object> kafkaConsumerFactory
+    ) {
         ConcurrentKafkaListenerContainerFactory<Object, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
         configurer.configure(factory, kafkaConsumerFactory);
         factory.setCommonErrorHandler(new KafkaMessageDeserializer()); // <<<<<<

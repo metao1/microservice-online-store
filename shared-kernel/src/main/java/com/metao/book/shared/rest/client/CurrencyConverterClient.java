@@ -4,13 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.metao.book.shared.domain.financial.Currency;
 import com.metao.book.shared.domain.financial.CurrencyConverter;
 import com.metao.book.shared.domain.financial.Money;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDate;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,10 +13,16 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
- * Implementation of {@link CurrencyConverter} that uses
- * https://exchangeratesapi.io/ to fetch the latest rates.
+ * Implementation of {@link CurrencyConverter} that uses https://exchangeratesapi.io/ to fetch the latest rates.
  */
 @Service
 class CurrencyConverterClient implements CurrencyConverter {
@@ -83,11 +82,11 @@ class CurrencyConverterClient implements CurrencyConverter {
         }
         LOGGER.info("Fetching conversion rates from web service");
         var uri = UriComponentsBuilder.fromUriString("https://api.exchangeratesapi.io/latest")
-                .queryParam("symbols", Stream.of(Currency.values())
-                    .filter(c -> c != Currency.EUR)
-                    .map(Enum::name)
-                    .collect(Collectors.joining(",")))
-                .build().toUri();
+            .queryParam("symbols", Stream.of(Currency.values())
+                .filter(c -> c != Currency.EUR)
+                .map(Enum::name)
+                .collect(Collectors.joining(",")))
+            .build().toUri();
         LOGGER.debug("Using URI {}", uri);
         var rates = restTemplate.getForEntity(uri, RatesDTO.class).getBody();
         if (rates != null) {

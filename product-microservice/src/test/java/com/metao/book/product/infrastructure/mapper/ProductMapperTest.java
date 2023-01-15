@@ -1,14 +1,5 @@
 package com.metao.book.product.infrastructure.mapper;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.math.BigDecimal;
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-
 import com.metao.book.product.application.config.ProductMapper;
 import com.metao.book.product.application.dto.CategoryDTO;
 import com.metao.book.product.application.dto.ProductDTO;
@@ -18,6 +9,13 @@ import com.metao.book.product.domain.category.Category;
 import com.metao.book.product.domain.image.Image;
 import com.metao.book.product.util.ProductTestUtils;
 import com.metao.book.shared.domain.financial.Currency;
+import org.junit.jupiter.api.Test;
+import java.math.BigDecimal;
+import java.util.List;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ProductMapperTest {
 
@@ -30,12 +28,12 @@ public class ProductMapperTest {
         assertTrue(productEntity.isPresent());
         var pe = productEntity.get();
         assertThat(pe)
-                .extracting(
-                    ProductEntity::getTitle,
-                    ProductEntity::getDescription,
-                    ProductEntity::getPriceValue,
-                    ProductEntity::getPriceCurrency,
-                    ProductEntity::getImage)
+            .extracting(
+                ProductEntity::getTitle,
+                ProductEntity::getDescription,
+                ProductEntity::getPriceValue,
+                ProductEntity::getPriceCurrency,
+                ProductEntity::getImage)
             .containsExactly(
                 "title",
                 "description",
@@ -44,8 +42,8 @@ public class ProductMapperTest {
                 new Image("https://example.com/image.jpg"));
 
         assertThat(pe.getCategories())
-                .matches(categoryEntities -> categoryEntities
-                        .contains(new ProductCategoryEntity(new Category("book"))));
+            .matches(categoryEntities -> categoryEntities
+                .contains(new ProductCategoryEntity(new Category("book"))));
     }
 
     @Test
@@ -56,21 +54,21 @@ public class ProductMapperTest {
         var categories = pe.getCategories();
 
         productDto.getCategories()
-                .stream()
-                .map(CategoryDTO::getCategory)
-                .forEach(category -> assertTrue(categories.contains(new ProductCategoryEntity(new Category(category)))));
+            .stream()
+            .map(CategoryDTO::getCategory)
+            .forEach(category -> assertTrue(categories.contains(new ProductCategoryEntity(new Category(category)))));
 
         assertThat(productDto)
-                .extracting(
-                        ProductDTO::getTitle,
-                        ProductDTO::getDescription,
-                        ProductDTO::getPrice,
-                        ProductDTO::getImageUrl)
-                .containsExactly(
-                        pe.getTitle(),
-                        pe.getDescription(),
-                        pe.getPriceValue(),
-                        pe.getImage().url());
+            .extracting(
+                ProductDTO::getTitle,
+                ProductDTO::getDescription,
+                ProductDTO::getPrice,
+                ProductDTO::getImageUrl)
+            .containsExactly(
+                pe.getTitle(),
+                pe.getDescription(),
+                pe.getPriceValue(),
+                pe.getImage().url());
     }
 
     @Test
@@ -80,16 +78,16 @@ public class ProductMapperTest {
         var allPrDtos = productMapper.toDtos(allPr);
         assertEquals(allPrDtos.size(), allPr.size());
         allPrDtos.forEach(dto -> assertThat(dto)
-                .extracting(
-                        ProductDTO::getTitle,
-                        ProductDTO::getDescription,
-                        ProductDTO::getPrice,
-                        ProductDTO::getImageUrl)
-                .containsExactly(
-                        pe.getTitle(),
-                        pe.getDescription(),
-                        pe.getPriceValue(),
-                        pe.getImage().url()));
+            .extracting(
+                ProductDTO::getTitle,
+                ProductDTO::getDescription,
+                ProductDTO::getPrice,
+                ProductDTO::getImageUrl)
+            .containsExactly(
+                pe.getTitle(),
+                pe.getDescription(),
+                pe.getPriceValue(),
+                pe.getImage().url()));
     }
 
 }

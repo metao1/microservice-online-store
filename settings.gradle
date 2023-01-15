@@ -1,9 +1,9 @@
 pluginManagement {
-    repositories {
-        mavenLocal()
-        gradlePluginPortal()
-        mavenCentral()
-    }
+  repositories {
+    mavenLocal()
+    gradlePluginPortal()
+    mavenCentral()
+  }
 }
 
 rootProject.name = 'microservice-online-book-store'
@@ -25,8 +25,8 @@ project(":shared-kernel").projectDir = file('shared-kernel')
 project(":shared-kafka").projectDir = file('shared-kafka')
 
 gradle.ext.springBootProjects = [
-        ':order-microservice',
-        ':cart-microservice',
-        ':product-microservice',
-        ':checkout-microservice'        
+    ':order-microservice',
+    ':cart-microservice',
+    ':product-microservice',
+    ':checkout-microservice'
 ]

@@ -16,8 +16,9 @@ public class Category implements ValueObject {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || obj != this)
+        if (obj == null || obj != this) {
             return false;
+        }
         Category cat = (Category) obj;
         return cat.category().equals(value);
     }

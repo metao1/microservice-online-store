@@ -1,7 +1,6 @@
 package com.metao.book.shared.domain.base;
 
 import org.springframework.lang.Nullable;
-
 import java.io.Serializable;
 
 /**
