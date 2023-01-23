@@ -3,11 +3,9 @@ server:
 
 kafka:
   topic:
-    
     product: "product-topic"
     order: "book-order-topic"
-    order-checkout: "order-product-topic"
-    payment: "payment-topic"
+    order-payment: "order-payment-topic"
 
 spring:
   application:
@@ -32,6 +30,7 @@ spring:
       properties:
         auto.offset.reset: earliest
         specific.avro.reader: true
+      fetch-max-wait: 1000
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
@@ -58,7 +57,7 @@ spring:
     show-sql: true
     generate-ddl: true
     hibernate:
-      ddl-auto: validate
+      ddl-auto: create-drop
     database-platform: org.hibernate.dialect.PostgreSQL9Dialect
     properties:
       hibernate:
@@ -66,9 +65,9 @@ spring:
           use_jdbc_metadata_defaults: false
     open-in-view: false
   datasource:
-    url: jdbc:postgresql://localhost:5432/checkout
-    username: checkout
-    password: checkout
+    url: jdbc:postgresql://localhost:5432/product
+    username: product
+    password: product
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%15.15t]){yellow} %clr(:){red} %clr(%m){faint}%n"
   level:

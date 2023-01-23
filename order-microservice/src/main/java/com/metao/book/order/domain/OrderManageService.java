@@ -3,6 +3,7 @@ package com.metao.book.order.domain;
 import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.Status;
 import org.springframework.stereotype.Service;
+import java.time.Instant;
 
 @Service
 public class OrderManageService {
@@ -12,6 +13,7 @@ public class OrderManageService {
             .setOrderId(orderPayment.getOrderId())
             .setCustomerId(orderPayment.getCustomerId())
             .setProductId(orderPayment.getProductId())
+            .setCreatedOn(Instant.now().toEpochMilli())
             .setStatus(Status.ACCEPT)
             .setQuantity(orderPayment.getQuantity())
             .setPrice(orderPayment.getPrice())

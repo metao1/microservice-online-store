@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 public class OrderManagerService {
 
     private final ProductRepository productRepository;
-    private final RemoteOrderService RemoteOrderService;
+    private final RemoteOrderService remoteOrderService;
 
     private static boolean availableInStock(OrderEvent order, ProductEntity productEntity) {
         return productEntity.getVolume()
@@ -31,12 +31,12 @@ public class OrderManagerService {
             if (availableInStock(order, productEntity)) {
                 acceptOrder(order, productEntity);
             } else {
-                rejectOrder(order, productEntity);
+                order.setStatus(Status.REJECT);
             }
         }
         try {
             productRepository.save(productEntity);
-            RemoteOrderService.handle(order);
+            remoteOrderService.handle(order);
         } catch (Exception ex) {
             log.error("Could not save product entity, {}", ex.getMessage());
         }
@@ -46,7 +46,7 @@ public class OrderManagerService {
         var productEntity = productRepository.findByAsin(order.getProductId()).orElseThrow();
         switch (order.getStatus()) {
             case CONFIRM -> confirmOrder(order, productEntity);
-            case ROLLBACK -> rollbackOrder(order, productEntity);
+            case ROLLBACK -> rejectOrder(order, productEntity);
         }
     }
 
@@ -60,7 +60,6 @@ public class OrderManagerService {
 
     void rejectOrder(OrderEvent order, ProductEntity productEntity) {
         rollbackOrder(order, productEntity);
-        order.setStatus(Status.REJECT);
     }
 
     void acceptOrder(OrderEvent order, ProductEntity productEntity) {

@@ -1,5 +1,5 @@
 server:
-  port: ${PORT:8083}
+  port: ${PORT:8086}
 
 kafka:
   topic:
@@ -56,7 +56,7 @@ spring:
     show-sql: true
     generate-ddl: true
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     database-platform: org.hibernate.dialect.PostgreSQL9Dialect
     properties:
       hibernate:
@@ -64,9 +64,9 @@ spring:
           use_jdbc_metadata_defaults: false
     open-in-view: false
   datasource:
-    url: jdbc:postgresql://localhost:5432/cart
-    username: cart
-    password: cart
+    url: jdbc:postgresql://localhost:5432/product
+    username: product
+    password: product
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%15.15t]){yellow} %clr(:){red} %clr(%m){faint}%n"
   level:

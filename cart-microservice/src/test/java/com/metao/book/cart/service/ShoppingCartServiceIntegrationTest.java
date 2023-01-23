@@ -9,13 +9,11 @@ import com.metao.book.cart.util.BasePostgresIntegrationTest;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ImportAutoConfiguration({})
 public class ShoppingCartServiceIntegrationTest extends BasePostgresIntegrationTest {
 
     @Autowired

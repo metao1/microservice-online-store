@@ -10,8 +10,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping(value = "/cart")
 @RequiredArgsConstructor
+@RequestMapping("/products")
 public class ShoppingCartController {
 
     private final ShoppingCartService shoppingCartService;
@@ -25,14 +25,7 @@ public class ShoppingCartController {
         return asin;
     }
 
-    @PostMapping("/submit")
-    public String submitProducts(
-        @RequestParam("user_id") String userId
-    ) {
-        return shoppingCartService.submitProducts(userId);
-    }
-
-    @GetMapping(value = "/products")
+    @GetMapping
     public Map<String, List<ShoppingCartDto>> getProductsInCart(@RequestParam("user_id") String userId) {
         return shoppingCartService.getProductsInCartByUserId(userId)
             .values()
@@ -41,11 +34,11 @@ public class ShoppingCartController {
             .collect(Collectors.groupingBy(ShoppingCartDto::getAsin));
     }
 
-    private ShoppingCartDto mapToShoppingCartDto(ShoppingCart shoppingCart) {
-        return ShoppingCartDto.builder()
-            .asin(shoppingCart.getAsin())
-            .quantity(shoppingCart.getQuantity())
-            .build();
+    @PostMapping("/submit")
+    public String submitProducts(
+        @RequestParam("user_id") String userId
+    ) {
+        return shoppingCartService.submitProducts(userId);
     }
 
     @DeleteMapping(value = "/remove")
@@ -61,6 +54,13 @@ public class ShoppingCartController {
     public String clearCart(@RequestParam("user_id") String userId) {
         shoppingCartService.clearCart(userId);
         return String.format("Clearing Cart, Checkout successful for user %s", userId);
+    }
+
+    private ShoppingCartDto mapToShoppingCartDto(ShoppingCart shoppingCart) {
+        return ShoppingCartDto.builder()
+            .asin(shoppingCart.getAsin())
+            .quantity(shoppingCart.getQuantity())
+            .build();
     }
 
 }

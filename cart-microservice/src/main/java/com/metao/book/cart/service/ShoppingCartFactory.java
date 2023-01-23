@@ -1,3 +1,4 @@
+
 package com.metao.book.cart.service;
 
 import com.metao.book.cart.domain.ShoppingCart;
@@ -22,7 +23,7 @@ import org.springframework.util.CollectionUtils;
 @Service
 @RequiredArgsConstructor
 @ComponentScan(basePackageClasses = RemoteKafkaService.class)
-public class ShoppingCartCartFactory implements ShoppingCartService {
+public class ShoppingCartFactory implements ShoppingCartService {
 
     private final RemoteKafkaService<String, OrderEvent> orderTemplate;
     private final ShoppingCartRepository shoppingCartRepository;
@@ -33,8 +34,10 @@ public class ShoppingCartCartFactory implements ShoppingCartService {
     public void addProductToShoppingCart(String userId, String asin) {
         ShoppingCartKey currentKey = new ShoppingCartKey(userId, asin);
         shoppingCartRepository.findById(currentKey)
-            .ifPresentOrElse(shoppingCart -> updateProduct(asin, shoppingCart),
-                () -> createProduct(asin, currentKey));
+            .ifPresentOrElse(
+                shoppingCart -> updateProduct(asin, shoppingCart),
+                () -> createProduct(asin, currentKey)
+            );
     }
 
     @Transactional

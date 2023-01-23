@@ -1,4 +1,4 @@
-package com.metao.book.product.infrastructure.factory.handler;
+package com.metao.book.checkout.application.service;
 
 import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.kafka.RemoteKafkaService;
@@ -15,10 +15,10 @@ import org.springframework.stereotype.Service;
 public class RemoteOrderService {
 
     private final RemoteKafkaService<String, OrderEvent> kafkaTemplate;
-    private final NewTopic orderStockTopic;
+    private final NewTopic orderPaymentTopic;
 
     public void handle(OrderEvent orderEvent) {
-        kafkaTemplate.sendToTopic(orderStockTopic.name(), orderEvent.getProductId(), orderEvent);
+        kafkaTemplate.sendToTopic(orderPaymentTopic.name(), orderEvent.getProductId(), orderEvent);
     }
 
 }

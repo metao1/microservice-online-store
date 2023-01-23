@@ -1,6 +1,4 @@
-package com.metao.book.order.application.config;
-
-import static com.metao.book.shared.kafka.StreamsUtils.createTopic;
+package com.metao.book.checkout.application.config;
 
 import com.metao.book.shared.kafka.RemoteKafkaService;
 import com.metao.book.shared.kafka.StreamCustomExceptionHandlerConfig;
@@ -14,6 +12,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 
+import static com.metao.book.shared.kafka.StreamsUtils.createTopic;
+
 @Validated
 @Configuration
 @RequiredArgsConstructor
@@ -23,11 +23,6 @@ public class KafkaConfig {
 
     @Bean
     public NewTopic orderTopic(@Value("${kafka.topic.order}") String topic) {
-        return createTopic(topic);
-    }
-
-    @Bean
-    public NewTopic orderStockTopic(@Value("${kafka.topic.order-stock}") String topic) {
         return createTopic(topic);
     }
 

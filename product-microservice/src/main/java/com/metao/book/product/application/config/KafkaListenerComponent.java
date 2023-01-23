@@ -49,7 +49,6 @@ public class KafkaListenerComponent {
         } finally {
             count.countDown();
         }
-
     }
 
     @Transactional("transactionManager")

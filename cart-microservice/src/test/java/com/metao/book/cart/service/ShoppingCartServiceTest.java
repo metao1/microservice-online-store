@@ -31,7 +31,7 @@ class ShoppingCartServiceTest {
     CartMapperService cartMapperService = new CartMapperService();
     NewTopic orderTopic = new NewTopic("order-topic", 1, (short) 1);
 
-    private final ShoppingCartService shoppingCartService = new ShoppingCartCartFactory
+    private final ShoppingCartService shoppingCartService = new ShoppingCartFactory
         (
             remoteKafkaService,
             shoppingCartRepository,
