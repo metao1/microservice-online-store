@@ -1,6 +1,6 @@
 package com.metao.book.product.application.config;
 
-import com.metao.book.product.application.service.OrderManagerService;
+import com.metao.book.product.application.service.ProductManagerService;
 import com.metao.book.product.domain.ProductRepository;
 import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.ProductEvent;
@@ -25,9 +25,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Profile({"!test"})
 @ImportAutoConfiguration(value = {KafkaSerdesConfig.class})
-public class KafkaListenerComponent {
+public class ProductKafkaListenerComponent {
 
-    private final OrderManagerService orderManagerService;
+    private final ProductManagerService productManagerService;
     private final ProductRepository productRepository;
     private final ProductMapper mapper;
     private final CountDownLatch count = new CountDownLatch(1);
@@ -57,9 +57,9 @@ public class KafkaListenerComponent {
         var order = orderRecord.value();
         log.info("Consumed order -> {}", order);
         if (Status.NEW.equals(order.getStatus())) {
-            orderManagerService.reserve(order);
+            productManagerService.reserve(order);
         } else {
-            orderManagerService.confirm(order);
+            productManagerService.confirm(order);
         }
     }
 

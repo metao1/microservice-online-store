@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class OrderManagerService {
+public class ProductManagerService {
 
     private final ProductRepository productRepository;
     private final RemoteOrderService remoteOrderService;

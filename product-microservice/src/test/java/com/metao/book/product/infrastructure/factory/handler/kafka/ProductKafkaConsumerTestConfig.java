@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @EnableKafka
 @TestConfiguration
-public class KafkaProductConsumerTestConfig {
+public class ProductKafkaConsumerTestConfig {
 
     private final CountDownLatch latch = new CountDownLatch(1);
 

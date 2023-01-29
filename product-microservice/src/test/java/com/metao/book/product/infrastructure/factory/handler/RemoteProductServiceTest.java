@@ -5,7 +5,7 @@ import static org.mockito.Mockito.when;
 
 import com.metao.book.product.application.service.ProductService;
 import com.metao.book.product.domain.ProductId;
-import com.metao.book.product.infrastructure.factory.handler.kafka.KafkaProductConsumerTestConfig;
+import com.metao.book.product.infrastructure.factory.handler.kafka.ProductKafkaConsumerTestConfig;
 import com.metao.book.product.util.ProductTestUtils;
 import com.metao.book.shared.Currency;
 import com.metao.book.shared.ProductEvent;
@@ -27,7 +27,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles({"test", "container"})
 @Import({
-    KafkaProductConsumerTestConfig.class
+    ProductKafkaConsumerTestConfig.class
 })
 @AutoConfigureTestDatabase(replace = Replace.NONE)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -42,6 +42,8 @@ public class RemoteProductServiceTest extends SpringBootEmbeddedKafka {
 
     @Autowired
     KafkaProductConsumerTestConfig consumer;
+        @Autowired
+        ProductKafkaConsumerTestConfig consumer;
 
     @MockBean
     ProductService productService;

@@ -5,7 +5,6 @@ kafka:
   topic:
     order: "book-order-topic"
     product: "product-topic"
-    
     order-product: "order-product-topic"
 
 spring:

@@ -51,7 +51,7 @@ spring:
     show-sql: false
     generate-ddl: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     database-platform: org.hibernate.dialect.PostgreSQL9Dialect
     properties:
       open-in-view: false
