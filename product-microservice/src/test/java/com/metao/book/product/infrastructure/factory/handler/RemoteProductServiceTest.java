@@ -41,9 +41,7 @@ public class RemoteProductServiceTest extends SpringBootEmbeddedKafka {
     RemoteProductService remoteProductService;
 
     @Autowired
-    KafkaProductConsumerTestConfig consumer;
-        @Autowired
-        ProductKafkaConsumerTestConfig consumer;
+    ProductKafkaConsumerTestConfig consumer;
 
     @MockBean
     ProductService productService;

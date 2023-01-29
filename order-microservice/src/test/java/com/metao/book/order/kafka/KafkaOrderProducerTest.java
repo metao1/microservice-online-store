@@ -41,7 +41,7 @@ public class KafkaOrderProducerTest extends SpringBootEmbeddedKafka {
     private KafkaOrderConsumerTestConfig consumer;
 
     @Test
-    //@Disabled("until fix error of using EmbeddedKafka that supports transaction")
+    @Disabled("until fix error of using EmbeddedKafka that supports transaction")
     public void givenKafkaOrderTopic_whenSendingToTopic_thenMessageReceivedCorrectly() throws Exception {
         StreamBuilder.of(OrderEvent.class, 0, 10, this::createOrderFromCustomerId)
             .forEach(kafkaProducer::handle);
