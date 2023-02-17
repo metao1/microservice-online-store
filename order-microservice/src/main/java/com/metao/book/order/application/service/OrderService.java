@@ -1,13 +1,16 @@
 package com.metao.book.order.application.service;
 
 import com.metao.book.order.application.dto.OrderDTO;
+import com.metao.book.order.domain.OrderId;
 import com.metao.book.order.domain.OrderServiceInterface;
+import com.metao.book.order.domain.Status;
 import com.metao.book.order.infrastructure.OrderMapperInterface;
 import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
 import com.metao.book.order.infrastructure.repository.KafkaOrderService;
 import com.metao.book.shared.OrderEvent;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -35,13 +38,13 @@ public class OrderService implements OrderServiceInterface {
     }
 
     @Override
-    public Optional<OrderDTO> getOrderByOrderId(String orderId) {
+    public Optional<OrderDTO> getOrderByOrderId(OrderId orderId) {
         return kafkaOrderService.getOrder(orderId);
     }
 
     @Override
-    public Optional<List<OrderEvent>> getAllOrdersPageable(int from, int to) {
-        return Optional.empty();
+    public Optional<List<OrderDTO>> getAllOrdersPageable(OrderId from, OrderId to, Set<Status> statusSet) {
+        return kafkaOrderService.getOrders(from, to, statusSet);
     }
 
 }

@@ -1,14 +1,14 @@
 package com.metao.book.order.application.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.metao.book.order.domain.Currency;
 import com.metao.book.order.domain.Status;
+import com.metao.book.shared.domain.financial.Currency;
+import java.io.Serializable;
+import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.io.Serializable;
-import java.math.BigDecimal;
 
 @Data
 @Builder

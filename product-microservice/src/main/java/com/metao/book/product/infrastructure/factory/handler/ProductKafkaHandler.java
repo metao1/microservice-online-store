@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 @Slf4j
@@ -23,6 +24,7 @@ public class ProductKafkaHandler implements MessageHandler<CreateProductEvent> {
     private final RemoteProductService remoteProductService;
 
     @Override
+    @Transactional("kafkaTransactionManager")
     public void onMessage(@NonNull CreateProductEvent event) {
         try {
             log.info("sending product to kafka on: {}", event.occurredOn());
@@ -57,9 +59,6 @@ public class ProductKafkaHandler implements MessageHandler<CreateProductEvent> {
     }
 
     private Currency mapCurrency(com.metao.book.shared.domain.financial.Currency currency) {
-        return switch (currency) {
-            case DLR -> Currency.dlr;
-            case EUR -> Currency.eur;
-        };
+        return Currency.valueOf(currency.name().toLowerCase());
     }
 }

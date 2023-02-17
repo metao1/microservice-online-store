@@ -3,7 +3,6 @@ server:
 
 kafka:
   topic:
-    product: "product-topic"
     order: "book-order-topic"
     order-payment: "order-payment-topic"
 
@@ -57,7 +56,7 @@ spring:
     show-sql: true
     generate-ddl: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
     database-platform: org.hibernate.dialect.PostgreSQL9Dialect
     properties:
       hibernate:

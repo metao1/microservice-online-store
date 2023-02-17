@@ -1,12 +1,14 @@
 package com.metao.book.order.infrastructure.repository;
 
 import com.metao.book.order.application.dto.OrderDTO;
+import com.metao.book.order.domain.OrderId;
+import com.metao.book.order.domain.Status;
 import com.metao.book.order.infrastructure.OrderMapperInterface;
-import com.metao.book.shared.OrderEvent;
 import jakarta.validation.constraints.NotNull;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,14 +16,17 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class KafkaOrderService {
 
-    private static final String ORDERS = "ORDERS";
-    private final OrderMapperInterface conversionService;
+    private final OrderRepository orderRepository;
 
-    public Optional<OrderDTO> getOrder(@NotNull String orderId) {
-        return Optional.empty();
+    public Optional<OrderDTO> getOrder(@NotNull OrderId orderId) {
+        return orderRepository.findById(orderId)
+            .map(OrderMapperInterface::toOrderDTO);
     }
 
-    public List<OrderEvent> getOrders(@NotNull String from, @NotNull String to) {
-        return Collections.emptyList();
+    public Optional<List<OrderDTO>> getOrders(@NotNull OrderId from, @NotNull OrderId to, Set<Status> statuses) {
+        return Optional.of(orderRepository.findByIdBetweenAndStatusIsIn(from, to, statuses)
+            .stream()
+            .map(OrderMapperInterface::toOrderDTO)
+            .collect(Collectors.toList()));
     }
 }

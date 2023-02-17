@@ -33,7 +33,7 @@ public class CheckoutKafkaListenerConfig {
         var order = record.value();
         log.info("Consumed order -> {}", order);
         var customer = customerRepository.findCustomerEntityByName(order.getCustomerId())
-            .orElseThrow(() -> new CustomerNotFoundException());
+            .orElseThrow(CustomerNotFoundException::new);
         if (Status.NEW.equals(order.getStatus())) {
             orderManagerService.reserve(order, customer);
         } else {

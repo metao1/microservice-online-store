@@ -1,10 +1,10 @@
 package com.metao.book.order.infrastructure;
 
 import com.metao.book.order.application.dto.OrderDTO;
+import com.metao.book.order.domain.OrderEntity;
 import com.metao.book.shared.Currency;
 import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.Status;
-import java.math.BigDecimal;
 import java.time.Instant;
 
 public interface OrderMapperInterface {
@@ -24,23 +24,31 @@ public interface OrderMapperInterface {
             .build();
     }
 
-    default OrderDTO toDto(OrderEvent order) {
+    static com.metao.book.order.domain.Status convertStatus(com.metao.book.shared.Status status) {
+        return switch (status) {
+            case NEW -> com.metao.book.order.domain.Status.NEW;
+            case ACCEPT -> com.metao.book.order.domain.Status.ACCEPT;
+            case CONFIRM -> com.metao.book.order.domain.Status.CONFIRM;
+            case REJECT -> com.metao.book.order.domain.Status.REJECT;
+            case PAYMENT -> com.metao.book.order.domain.Status.PAYMENT;
+            case PRODUCT -> com.metao.book.order.domain.Status.PRODUCT;
+            case ROLLBACK -> com.metao.book.order.domain.Status.ROLLBACK;
+        };
+    }
+
+    static com.metao.book.shared.domain.financial.Currency convertToCurrency(Currency currency) {
+        return com.metao.book.shared.domain.financial.Currency.valueOf(currency.name().toUpperCase());
+    }
+
+    static OrderDTO toOrderDTO(OrderEntity orderEntity) {
         return OrderDTO.builder()
-            .orderId(order.getOrderId())
-            .productId(order.getProductId())
-            .customerId(order.getCustomerId())
-            .status(convertToStatus(order.getStatus()))
-            .currency(convertToCurrency(order.getCurrency()))
-            .quantity(BigDecimal.valueOf(order.getQuantity()))
-            .price(BigDecimal.valueOf(order.getPrice()))
+            .orderId(orderEntity.id().toUUID())
+            .price(orderEntity.getPrice())
+            .currency(orderEntity.getCurrency())
+            .productId(orderEntity.getProductId())
+            .status(orderEntity.getStatus())
+            .customerId(orderEntity.getCustomerId())
+            .quantity(orderEntity.getProductCount())
             .build();
-    }
-
-    default com.metao.book.order.domain.Status convertToStatus(Status status) {
-        return com.metao.book.order.domain.Status.valueOf(status.toString());
-    }
-
-    default com.metao.book.order.domain.Currency convertToCurrency(Currency currency) {
-        return com.metao.book.order.domain.Currency.valueOf(currency.toString());
     }
 }
