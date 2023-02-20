@@ -1,13 +1,18 @@
 package com.metao.book.cart.controller;
 
-import com.metao.book.cart.domain.ShoppingCart;
 import com.metao.book.cart.domain.dto.ShoppingCartDto;
 import com.metao.book.cart.service.ShoppingCartService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,11 +32,7 @@ public class ShoppingCartController {
 
     @GetMapping
     public Map<String, List<ShoppingCartDto>> getProductsInCart(@RequestParam("user_id") String userId) {
-        return shoppingCartService.getProductsInCartByUserId(userId)
-            .values()
-            .stream()
-            .flatMap(entry -> entry.stream().map(this::mapToShoppingCartDto))
-            .collect(Collectors.groupingBy(ShoppingCartDto::getAsin));
+        return shoppingCartService.getProductsInCartByUserId(userId);
     }
 
     @PostMapping("/submit")
@@ -51,16 +52,14 @@ public class ShoppingCartController {
     }
 
     @PutMapping(value = "/clear")
-    public String clearCart(@RequestParam("user_id") String userId) {
-        shoppingCartService.clearCart(userId);
-        return String.format("Clearing Cart, Checkout successful for user %s", userId);
-    }
-
-    private ShoppingCartDto mapToShoppingCartDto(ShoppingCart shoppingCart) {
-        return ShoppingCartDto.builder()
-            .asin(shoppingCart.getAsin())
-            .quantity(shoppingCart.getQuantity())
-            .build();
+    public ResponseEntity<String> clearCart(@RequestParam("user_id") String userId) {
+        var successSignal = shoppingCartService.clearCart(userId);
+        if (successSignal > 0) {
+            return ResponseEntity.ok(String.format("Clearing Cart, Checkout successful for user %s", userId));
+        } else {
+            return ResponseEntity.unprocessableEntity()
+                .body(String.format("Clearing Cart, checkout unsuccessful for user %s", userId));
+        }
     }
 
 }

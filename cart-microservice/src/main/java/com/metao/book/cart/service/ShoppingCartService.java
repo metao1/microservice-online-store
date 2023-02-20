@@ -1,6 +1,6 @@
 package com.metao.book.cart.service;
 
-import com.metao.book.cart.domain.ShoppingCart;
+import com.metao.book.cart.domain.dto.ShoppingCartDto;
 import java.util.List;
 import java.util.Map;
 
@@ -8,7 +8,7 @@ public interface ShoppingCartService {
 
     void addProductToShoppingCart(String userId, String asin);
 
-    Map<String, List<ShoppingCart>> getProductsInCartByUserId(String userId);
+    Map<String, List<ShoppingCartDto>> getProductsInCartByUserId(String userId);
 
     void removeProductFromCart(String userId, String asin);
 

@@ -51,22 +51,4 @@ public class OrderController {
             .map(ResponseEntity::ok)
             .orElseThrow(() -> new RuntimeException("could not create order"));
     }
-
-    //
-    // @GetMapping("/counts")
-    // public Map<Long, Set<String>> count() {
-    // ReadOnlyKeyValueStore<String, Long> queryableStore = interactiveQueryService
-    // .getQueryableStore("order", QueryableStoreTypes.keyValueStore());
-    // KeyValueIterator<String, Long> allKeyValues = queryableStore.all();
-    // Map<String, Long> allKeyValueMaps = new ConcurrentHashMap<>();
-    // while (allKeyValues != null && allKeyValues.hasNext()) {
-    // KeyValue<String, Long> next = allKeyValues.next();
-    // allKeyValueMaps.put(next.key, next.value);
-    // }
-    //
-    // return allKeyValueMaps.entrySet()
-    // .parallelStream()
-    // .collect(Collectors.groupingBy(Map.Entry::getValue, TreeMap::new,
-    // Collectors.mapping(Map.Entry::getKey, Collectors.toSet())));
-    // }
 }

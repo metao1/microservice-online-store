@@ -3,14 +3,15 @@ package com.metao.book.cart.service;
 
 import com.metao.book.cart.domain.ShoppingCart;
 import com.metao.book.cart.domain.ShoppingCartKey;
+import com.metao.book.cart.domain.dto.ShoppingCartDto;
 import com.metao.book.cart.repository.ShoppingCartRepository;
 import com.metao.book.cart.service.mapper.CartMapperService;
 import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.kafka.RemoteKafkaService;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -55,11 +56,11 @@ public class ShoppingCartFactory implements ShoppingCartService {
     }
 
     @Override
-    public Map<String, List<ShoppingCart>> getProductsInCartByUserId(String userId) {
-        var productsInCartAsin = new HashMap<String, List<ShoppingCart>>();
-        var items = shoppingCartRepository.findProductsInCartByUserId(userId);
-        productsInCartAsin.putIfAbsent(userId, items);
-        return productsInCartAsin;
+    public Map<String, List<ShoppingCartDto>> getProductsInCartByUserId(String userId) {
+        return shoppingCartRepository.findProductsInCartByUserId(userId)
+            .stream()
+            .map(cartMapper::mapToShoppingCartDto)
+            .collect(Collectors.groupingBy(ShoppingCartDto::getAsin));
     }
 
     @Override
