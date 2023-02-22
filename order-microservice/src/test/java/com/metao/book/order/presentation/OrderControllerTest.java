@@ -4,7 +4,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.metao.book.order.application.config.KafkaSerdesConfig;
-import com.metao.book.order.application.config.ObjectMapperConfig;
 import com.metao.book.order.application.dto.OrderDTO;
 import com.metao.book.order.application.service.OrderMapper;
 import com.metao.book.order.application.service.OrderService;
@@ -13,6 +12,7 @@ import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
 import com.metao.book.order.infrastructure.repository.KafkaOrderService;
 import com.metao.book.order.kafka.KafkaOrderConsumerTestConfig;
 import com.metao.book.order.utils.TestUtils;
+import com.metao.book.shared.application.ObjectMapperConfig;
 import com.metao.book.shared.domain.financial.Currency;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;

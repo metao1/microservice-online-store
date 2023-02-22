@@ -8,6 +8,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.metao.book.shared.kafka.Constants.KAFKA_TRANSACTION_MANAGER;
+
 @Service
 @RequiredArgsConstructor
 @ComponentScan(basePackageClasses = RemoteKafkaService.class)
@@ -16,7 +18,7 @@ public class KafkaOrderProducer {
     private final RemoteKafkaService<String, OrderEvent> kafkaTemplate;
     private final NewTopic orderTopic;
 
-    @Transactional("kafkaTransactionManager")
+    @Transactional(KAFKA_TRANSACTION_MANAGER)
     public void handle(OrderEvent orderEvent) {
         kafkaTemplate.sendToTopic(orderTopic.name(), orderEvent.getProductId(), orderEvent);
     }

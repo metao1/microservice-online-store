@@ -1,4 +1,4 @@
-package com.metao.book.order.application.config;
+package com.metao.book.checkout.application.config;
 
 import com.metao.book.shared.application.ObjectMapperConfig;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;

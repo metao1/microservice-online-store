@@ -17,10 +17,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import static com.metao.book.shared.kafka.Constants.TRANSACTION_MANAGER;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional("transactionManager")
+@Transactional(TRANSACTION_MANAGER)
 @ComponentScan(basePackageClasses = RemoteKafkaService.class)
 public class ShoppingCartFactory implements ShoppingCartService {
 

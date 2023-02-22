@@ -1,9 +1,12 @@
 package com.metao.book.product.application.config;
 
+import com.metao.book.shared.application.ObjectMapperConfig;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.jpa.JpaTransactionManager;
 
 @Configuration
+@ImportAutoConfiguration(value = ObjectMapperConfig.class)
 public class AppConfig {
 
     /**

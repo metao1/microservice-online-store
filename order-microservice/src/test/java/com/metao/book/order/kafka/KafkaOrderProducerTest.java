@@ -2,11 +2,11 @@ package com.metao.book.order.kafka;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.metao.book.order.application.config.ObjectMapperConfig;
 import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
 import com.metao.book.shared.Currency;
 import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.Status;
+import com.metao.book.shared.application.ObjectMapperConfig;
 import com.metao.book.shared.test.TestUtils.StreamBuilder;
 import java.time.Instant;
 import java.util.Random;

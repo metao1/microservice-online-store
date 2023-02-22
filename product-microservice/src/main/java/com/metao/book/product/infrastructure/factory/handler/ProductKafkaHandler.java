@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import static com.metao.book.shared.kafka.Constants.KAFKA_TRANSACTION_MANAGER;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -24,7 +26,7 @@ public class ProductKafkaHandler implements MessageHandler<CreateProductEvent> {
     private final RemoteProductService remoteProductService;
 
     @Override
-    @Transactional("kafkaTransactionManager")
+    @Transactional(KAFKA_TRANSACTION_MANAGER)
     public void onMessage(@NonNull CreateProductEvent event) {
         try {
             log.info("sending product to kafka on: {}", event.occurredOn());

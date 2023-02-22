@@ -1,5 +1,7 @@
 package com.metao.book.checkout.application.config;
 
+import static com.metao.book.shared.kafka.Constants.KAFKA_TRANSACTION_MANAGER;
+
 import com.metao.book.checkout.application.model.CustomerNotFoundException;
 import com.metao.book.checkout.application.service.OrderManagerService;
 import com.metao.book.checkout.domain.CustomerEntity;
@@ -21,14 +23,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Configuration
 @EnableKafka
 @RequiredArgsConstructor
+@Transactional(KAFKA_TRANSACTION_MANAGER)
 @ImportAutoConfiguration(value = {KafkaSerdesConfig.class})
 public class CheckoutKafkaListenerConfig {
 
     private final OrderManagerService orderManagerService;
     private final CustomerRepository customerRepository;
 
-    @Transactional(value = "kafkaTransactionManager")
-    @KafkaListener(id = "checkout-order-id", topics = "${kafka.topic.order}")
+    @KafkaListener(id = "${kafka.topic.order}",
+        topics = "${kafka.topic.order}",
+        groupId = "${kafka.topic.order}" + "-grp"
+    )
     public void orderKafkaListener(ConsumerRecord<String, OrderEvent> record) {
         var order = record.value();
         log.info("Consumed order -> {}", order);

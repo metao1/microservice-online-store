@@ -1,5 +1,7 @@
 package com.metao.book.cart.service.config;
 
+import static com.metao.book.shared.kafka.Constants.KAFKA_TRANSACTION_MANAGER;
+
 import com.metao.book.cart.service.ShoppingCartService;
 import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.kafka.StreamCustomExceptionHandlerConfig;
@@ -17,17 +19,19 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Component
 @EnableKafka
-@Transactional
-@RequiredArgsConstructor
 @Profile({"!test"})
+@RequiredArgsConstructor
+@Transactional(KAFKA_TRANSACTION_MANAGER)
 @ImportAutoConfiguration(value = {KafkaSerdesConfig.class})
 @ComponentScan(basePackageClasses = StreamCustomExceptionHandlerConfig.class)
 public class KafkaCardListener {
 
     private final ShoppingCartService shoppingCartService;
 
-    @Transactional("kafkaTransactionManager")
-    @KafkaListener(id = "card-listener-id", topics = "${kafka.topic.order}")
+    @KafkaListener(id = "${kafka.topic.order}",
+        topics = "${kafka.topic.order}",
+        groupId = "${kafka.topic.order}" + "-grp"
+    )
     void onOrder(ConsumerRecord<String, OrderEvent> record) {
         var order = record.value();
         var userId = order.getCustomerId();

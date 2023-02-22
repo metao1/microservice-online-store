@@ -18,8 +18,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode
 @Table(name = "order_table")
+@EqualsAndHashCode(callSuper = true)
 public class OrderEntity extends AbstractEntity<OrderId> {
 
     @Column(name = "product_id", nullable = false)

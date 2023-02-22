@@ -1,5 +1,7 @@
 package com.metao.book.product.application.config;
 
+import static com.metao.book.shared.kafka.Constants.KAFKA_TRANSACTION_MANAGER;
+
 import com.metao.book.product.application.service.ProductManagerService;
 import com.metao.book.product.domain.ProductRepository;
 import com.metao.book.shared.OrderEvent;
@@ -11,7 +13,6 @@ import java.util.concurrent.CountDownLatch;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -21,10 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Component
 @EnableKafka
-@Transactional
-@RequiredArgsConstructor
 @Profile({"!test"})
-@ImportAutoConfiguration(value = {KafkaSerdesConfig.class})
+@RequiredArgsConstructor
+@Transactional(KAFKA_TRANSACTION_MANAGER)
 public class ProductKafkaListenerComponent {
 
     private final ProductManagerService productManagerService;
@@ -32,9 +32,10 @@ public class ProductKafkaListenerComponent {
     private final ProductMapper mapper;
     private final CountDownLatch count = new CountDownLatch(1);
 
-    @Transactional("transactionManager")
-    @KafkaListener(id = "products", topics = "${kafka.topic.product}", groupId = "123")
-    public void onProductEvent(ConsumerRecord<String, ProductEvent> productEvent) throws IOException {
+    @KafkaListener(id = "${kafka.topic.product}",
+        topics = "${kafka.topic.product}",
+        groupId = "${kafka.topic.product}" + "-grp")
+    public void onProductEvent(ConsumerRecord<String, ProductEvent> productEvent) {
         try {
             var product = productEvent.value();
             log.info("Consumed product -> {}", product);
@@ -51,8 +52,10 @@ public class ProductKafkaListenerComponent {
         }
     }
 
-    @Transactional("transactionManager")
-    @KafkaListener(id = "orders", topics = "${kafka.topic.order}", groupId = "2230")
+    @KafkaListener(id = "${kafka.topic.order}",
+        topics = "${kafka.topic.order}",
+        groupId = "${kafka.topic.order}" + "-grp"
+    )
     public void onOrderEvent(ConsumerRecord<String, OrderEvent> orderRecord) {
         var order = orderRecord.value();
         log.info("Consumed order -> {}", order);

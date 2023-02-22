@@ -1,4 +1,4 @@
-package com.metao.book.product.application.config;
+package com.metao.book.shared.kafka;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
@@ -23,7 +23,6 @@ public class ExceptionHandlerComponent {
             @Override
             public void configure(StreamsBuilderFactoryBean factoryBean) {
                 factoryBean.setStreamsUncaughtExceptionHandler(getStreamsUncaughtExceptionHandler());
-
             }
         };
     }

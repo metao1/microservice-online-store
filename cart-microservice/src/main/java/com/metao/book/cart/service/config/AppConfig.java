@@ -1,4 +1,4 @@
-package com.metao.book.order.application.config;
+package com.metao.book.cart.service.config;
 
 import com.metao.book.shared.application.ObjectMapperConfig;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;

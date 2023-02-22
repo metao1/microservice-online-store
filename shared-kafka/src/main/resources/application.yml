@@ -6,3 +6,6 @@ spring:
       transaction-id-prefix: product-tx-
       properties:
         enable.idempotence: true
+    streams:
+      cleanup:
+        on-shutdown: false

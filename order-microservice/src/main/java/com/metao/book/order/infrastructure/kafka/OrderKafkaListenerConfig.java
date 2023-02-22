@@ -1,5 +1,7 @@
 package com.metao.book.order.infrastructure.kafka;
 
+import static com.metao.book.shared.kafka.Constants.KAFKA_TRANSACTION_MANAGER;
+
 import com.metao.book.order.application.config.KafkaSerdesConfig;
 import com.metao.book.order.application.service.OrderMapper;
 import com.metao.book.order.application.service.OrderValidator;
@@ -27,8 +29,10 @@ public class OrderKafkaListenerConfig {
     private final OrderMapper orderMapper;
     private final OrderValidator orderValidator;
 
-    @Transactional(value = "kafkaTransactionManager")
-    @KafkaListener(id = "order-listener-id", topics = "${kafka.topic.order}", groupId = "order-listener-group")
+    @Transactional(KAFKA_TRANSACTION_MANAGER)
+    @KafkaListener(id = "${kafka.topic.order}",
+        topics = "${kafka.topic.order}",
+        groupId = "${kafka.topic.order}" + "-grp")
     public void orderKafkaListener(ConsumerRecord<String, OrderEvent> record) {
         var order = record.value();
         orderValidator.validate(order);

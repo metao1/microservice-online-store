@@ -2,9 +2,9 @@ package com.metao.book.order.application.config;
 
 import static com.metao.book.shared.kafka.StreamsUtils.createTopic;
 
+import com.metao.book.shared.kafka.ExceptionHandlerComponent;
 import com.metao.book.shared.kafka.RemoteKafkaService;
 import com.metao.book.shared.kafka.StreamCustomExceptionHandlerConfig;
-import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -16,9 +16,13 @@ import org.springframework.validation.annotation.Validated;
 
 @Validated
 @Configuration
-@RequiredArgsConstructor
 @EnableConfigurationProperties({KafkaProperties.class})
-@ComponentScan(basePackageClasses = {RemoteKafkaService.class, StreamCustomExceptionHandlerConfig.class})
+@ComponentScan(
+    basePackageClasses = {
+        RemoteKafkaService.class,
+        ExceptionHandlerComponent.class,
+        StreamCustomExceptionHandlerConfig.class}
+)
 public class KafkaConfig {
 
     @Bean
