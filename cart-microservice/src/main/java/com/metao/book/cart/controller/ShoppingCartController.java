@@ -1,10 +1,13 @@
 package com.metao.book.cart.controller;
 
+import com.metao.book.cart.domain.ShoppingCart;
 import com.metao.book.cart.domain.dto.ShoppingCartDto;
+import com.metao.book.cart.domain.dto.ShoppingCartItem;
 import com.metao.book.cart.service.ShoppingCartService;
-import java.util.List;
-import java.util.Map;
+import com.metao.book.cart.service.mapper.CartMapperService;
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ShoppingCartController {
 
     private final ShoppingCartService shoppingCartService;
+    private final CartMapperService cartMapper;
 
     @PostMapping
     public String addProductToCart(
@@ -31,15 +35,28 @@ public class ShoppingCartController {
     }
 
     @GetMapping
-    public Map<String, List<ShoppingCartDto>> getProductsInCart(@RequestParam("user_id") String userId) {
-        return shoppingCartService.getProductsInCartByUserId(userId);
+    public ShoppingCartDto getProductsInCart(@RequestParam("user_id") String userId) {
+        final var productsInCartByUserId = shoppingCartService.getProductsInCartByUserId(userId);
+        final var shoppingCartDto = cartMapper.mapToShoppingCartDto(userId, Instant.now().toEpochMilli());
+        for (ShoppingCart shoppingCart : productsInCartByUserId) {
+            shoppingCartDto.addItem(new ShoppingCartItem(shoppingCart.getAsin(), shoppingCart.getQuantity()));
+        }
+        return shoppingCartDto;
     }
 
     @PostMapping("/submit")
-    public String submitProducts(
+    public ResponseEntity<String> submitProducts(
         @RequestParam("user_id") String userId
     ) {
-        return shoppingCartService.submitProducts(userId);
+        final var submitProductsOptional = shoppingCartService.submitProducts(userId);
+        if (submitProductsOptional.isPresent()) {
+            return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(String.format("Successfully submitted for user %s", userId));
+        } else {
+            return ResponseEntity.unprocessableEntity()
+                .body(String.format("Submitting products unsuccessful for user %s", userId));
+        }
     }
 
     @DeleteMapping(value = "/remove")

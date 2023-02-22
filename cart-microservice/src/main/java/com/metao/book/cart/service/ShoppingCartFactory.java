@@ -3,15 +3,12 @@ package com.metao.book.cart.service;
 
 import com.metao.book.cart.domain.ShoppingCart;
 import com.metao.book.cart.domain.ShoppingCartKey;
-import com.metao.book.cart.domain.dto.ShoppingCartDto;
 import com.metao.book.cart.repository.ShoppingCartRepository;
 import com.metao.book.cart.service.mapper.CartMapperService;
 import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.kafka.RemoteKafkaService;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -23,6 +20,7 @@ import org.springframework.util.CollectionUtils;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional("transactionManager")
 @ComponentScan(basePackageClasses = RemoteKafkaService.class)
 public class ShoppingCartFactory implements ShoppingCartService {
 
@@ -41,14 +39,12 @@ public class ShoppingCartFactory implements ShoppingCartService {
             );
     }
 
-    @Transactional
     void createProduct(String asin, ShoppingCartKey currentKey) {
         log.info("Adding product: " + asin);
         ShoppingCart shoppingCart = ShoppingCart.createCart(currentKey);
         shoppingCartRepository.save(shoppingCart);
     }
 
-    @Transactional
     void updateProduct(String asin, ShoppingCart shoppingCart) {
         log.info("Updating product: " + asin);
         shoppingCart.increaseQuantity();
@@ -56,15 +52,11 @@ public class ShoppingCartFactory implements ShoppingCartService {
     }
 
     @Override
-    public Map<String, List<ShoppingCartDto>> getProductsInCartByUserId(String userId) {
-        return shoppingCartRepository.findProductsInCartByUserId(userId)
-            .stream()
-            .map(cartMapper::mapToShoppingCartDto)
-            .collect(Collectors.groupingBy(ShoppingCartDto::getAsin));
+    public Set<ShoppingCart> getProductsInCartByUserId(String userId) {
+        return shoppingCartRepository.findProductsInCartByUserId(userId);
     }
 
     @Override
-    @Transactional
     public void removeProductFromCart(String userId, String asin) {
         ShoppingCartKey currentKey = new ShoppingCartKey(userId, asin);
         Optional<ShoppingCart> shoppingCartOptional = shoppingCartRepository.findById(currentKey);
@@ -93,18 +85,17 @@ public class ShoppingCartFactory implements ShoppingCartService {
     }
 
     @Override
-    @Transactional
-    public String submitProducts(String userId) {
+    public Optional<Boolean> submitProducts(String userId) {
         var products = shoppingCartRepository.findProductsInCartByUserId(userId);
         if (CollectionUtils.isEmpty(products)) {
-            return "cart is empty";
+            return Optional.empty();
         } else {
             products.stream()
                 .map(cartMapper::mapToOrderEvent)
                 .sorted((p1, p2) -> (int) (p1.getCreatedOn() - p2.getCreatedOn()))
                 .forEachOrdered(product ->
                     orderTemplate.sendToTopic(orderTopic.name(), product.getProductId(), product));
-            return userId;
+            return Optional.of(true);
         }
     }
 }

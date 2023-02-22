@@ -1,14 +1,24 @@
 package com.metao.book.cart.domain.dto;
 
-import lombok.Builder;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 
 @Setter
 @Getter
-@Builder
 public class ShoppingCartDto {
 
-    private String asin;
-    private int quantity;
+    String userId;
+    Long createdOn;
+    Set<ShoppingCartItem> shoppingCartItems = new LinkedHashSet<>();
+
+    public ShoppingCartDto(String userId, Long createdOn) {
+        this.userId = userId;
+        this.createdOn = createdOn;
+    }
+
+    public void addItem(ShoppingCartItem shoppingCartItem) {
+        this.shoppingCartItems.add(shoppingCartItem);
+    }
 }

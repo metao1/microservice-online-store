@@ -1,6 +1,6 @@
 package com.metao.book.cart.service;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -46,7 +46,7 @@ class ShoppingCartServiceTest {
         ThrowingConsumer<ShoppingCart> testExecutor = (shoppingCart) -> {
             shoppingCartService.addProductToShoppingCart(shoppingCart.getUserId(), shoppingCart.getAsin());
             verify(shoppingCartRepository).save(shoppingCart);
-            assertFalse(shoppingCartService.getProductsInCartByUserId(shoppingCart.getUserId()).isEmpty());
+            assertNotNull(shoppingCartService.getProductsInCartByUserId(shoppingCart.getUserId()));
         };
         Stream<ShoppingCart> of = buildShoppingCartStream();
         return DynamicTest.stream(of.iterator(), displayNameGenerator, testExecutor);

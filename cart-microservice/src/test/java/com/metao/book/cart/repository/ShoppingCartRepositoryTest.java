@@ -4,6 +4,9 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import com.metao.book.cart.domain.ShoppingCart;
 import com.metao.book.cart.domain.ShoppingCartKey;
+import com.metao.book.cart.service.ConstantsTest;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -24,83 +27,92 @@ class ShoppingCartRepositoryTest {
 
     @Test
     void saveShoppingCart() {
-        var shoppingCart = ShoppingCart.createCart(new ShoppingCartKey("userId", "asin"));
+        var shoppingCart = ShoppingCart.createCart(new ShoppingCartKey(ConstantsTest.USER_ID, ConstantsTest.ASIN));
         shoppingCartRepository.save(shoppingCart);
-        assertThat(shoppingCartRepository.findById(new ShoppingCartKey("userId", "asin"))).isPresent();
+        assertThat(shoppingCartRepository.findById(
+            new ShoppingCartKey(ConstantsTest.USER_ID, ConstantsTest.ASIN))).isPresent();
     }
 
     @Test
     void updateQuantityForShoppingCart() {
-        var key = new ShoppingCartKey("userId", "asin");
+        var key = new ShoppingCartKey(ConstantsTest.USER_ID, ConstantsTest.ASIN);
         ShoppingCart currentShoppingCart = ShoppingCart.createCart(key);
         shoppingCartRepository.save(currentShoppingCart);
         currentShoppingCart.setQuantity(2);
         shoppingCartRepository.save(currentShoppingCart);
-        assertThat(shoppingCartRepository.findByUserIdAndAsin(key).get().getQuantity()).isEqualTo(2);
+        final var shoppingCart = shoppingCartRepository.findByUserIdAndAsin(key).orElseThrow();
+        assertThat(shoppingCart.getQuantity()).isEqualTo(2);
     }
 
     @Test
     void findProductsInCartByUserId() {
-        ShoppingCart currentShoppingCart = ShoppingCart.createCart(new ShoppingCartKey("userId", "asin"));
+        ShoppingCart currentShoppingCart = ShoppingCart.createCart(
+            new ShoppingCartKey(ConstantsTest.USER_ID, ConstantsTest.ASIN));
         shoppingCartRepository.save(currentShoppingCart);
-        var shoppingCartKey = new ShoppingCartKey("userId", "asin");
+        var shoppingCartKey = new ShoppingCartKey(ConstantsTest.USER_ID, ConstantsTest.ASIN);
         var id = shoppingCartRepository.findByUserIdAndAsin(shoppingCartKey);
         assertThat(id).isPresent();
-        assertThat(shoppingCartRepository.findProductsInCartByUserId("userId")).isNotNull()
-            .matches(shoppingCart -> shoppingCart.size() == 1)
-            .matches(shoppingCart -> shoppingCart.get(0).getAsin().equals("asin"))
-            .matches(shoppingCart -> shoppingCart.get(0).getUserId().equals("userId"))
-            .matches(shoppingCart -> shoppingCart.get(0).getQuantity() == 1);
+        var expectedShoppingCart = Set.of(
+            ShoppingCart.createCart(new ShoppingCartKey(ConstantsTest.USER_ID, ConstantsTest.ASIN)));
+        assertThat(shoppingCartRepository.findProductsInCartByUserId(ConstantsTest.USER_ID))
+            .isNotNull()
+            .isEqualTo(expectedShoppingCart);
     }
 
     @Test
     void decrementQuantityForShoppingCart() {
-        var key = new ShoppingCartKey("userId", "asin");
+        var key = new ShoppingCartKey(ConstantsTest.USER_ID, ConstantsTest.ASIN);
         ShoppingCart currentShoppingCart = ShoppingCart.createCart(key);
         shoppingCartRepository.save(currentShoppingCart);
         currentShoppingCart.setQuantity(0);
         shoppingCartRepository.save(currentShoppingCart);
-        assertThat(shoppingCartRepository.findById(key).get().getQuantity()).isEqualTo(0);
+        final var shoppingCart = shoppingCartRepository.findById(key).orElseThrow();
+        assertThat(shoppingCart.getQuantity()).isEqualTo(0);
     }
 
     @Test
     void deleteProductsInCartByUserId() {
-        ShoppingCart currentShoppingCart = ShoppingCart.createCart(new ShoppingCartKey("userId", "asin"));
+        ShoppingCart currentShoppingCart = ShoppingCart.createCart(
+            new ShoppingCartKey(ConstantsTest.USER_ID, ConstantsTest.ASIN));
         shoppingCartRepository.save(currentShoppingCart);
-        assertThat(shoppingCartRepository.findById(new ShoppingCartKey("userId", "asin"))).isPresent();
+        assertThat(shoppingCartRepository.findById(
+            new ShoppingCartKey(ConstantsTest.USER_ID, ConstantsTest.ASIN))).isPresent();
         shoppingCartRepository.delete(currentShoppingCart);
-        assertThat(shoppingCartRepository.findById(new ShoppingCartKey("userId", "asin"))).isEmpty();
+        assertThat(
+            shoppingCartRepository.findById(new ShoppingCartKey(ConstantsTest.USER_ID, ConstantsTest.ASIN))).isEmpty();
     }
 
     @Test
     void productsInCartByUserId_NotFound() {
-        assertThat(shoppingCartRepository.findById(new ShoppingCartKey("userId", "asin"))).isEmpty();
+        assertThat(
+            shoppingCartRepository.findById(new ShoppingCartKey(ConstantsTest.USER_ID, ConstantsTest.ASIN))).isEmpty();
     }
 
     @Test
     void saveProductsInCartByUserId_FoundTwoProducts() {
-        ShoppingCart currentShoppingCart = ShoppingCart.createCart(new ShoppingCartKey("userId", "asin1"));
+        ShoppingCart currentShoppingCart = ShoppingCart.createCart(
+            new ShoppingCartKey(ConstantsTest.USER_ID, "asin1"));
         shoppingCartRepository.save(currentShoppingCart);
-        ShoppingCart currentShoppingCart2 = ShoppingCart.createCart(new ShoppingCartKey("userId", "asin2"));
+        ShoppingCart currentShoppingCart2 = ShoppingCart.createCart(
+            new ShoppingCartKey(ConstantsTest.USER_ID, "asin2"));
         shoppingCartRepository.save(currentShoppingCart2);
-        assertThat(shoppingCartRepository.findProductsInCartByUserId("userId")).satisfies(sc -> {
-            assertThat(sc).isNotNull()
-                .matches(shoppingCart -> shoppingCart.size() == 2)
-                .matches(shoppingCart -> shoppingCart.get(0).getAsin().equals("asin1"))
-                .matches(shoppingCart -> shoppingCart.get(0).getUserId().equals("userId"))
-                .matches(shoppingCart -> shoppingCart.get(0).getQuantity() == 1)
-                .matches(shoppingCart -> shoppingCart.get(1).getAsin().equals("asin2"))
-                .matches(shoppingCart -> shoppingCart.get(1).getUserId().equals("userId"))
-                .matches(shoppingCart -> shoppingCart.get(1).getQuantity() == 1);
-        });
+        var expectedShoppingCart = Set.of(
+            ShoppingCart.createCart(new ShoppingCartKey(ConstantsTest.USER_ID, "asin1")),
+            ShoppingCart.createCart(new ShoppingCartKey(ConstantsTest.USER_ID, "asin2"))
+        );
+        assertThat(shoppingCartRepository.findProductsInCartByUserId(ConstantsTest.USER_ID))
+            .satisfies(sc -> assertThat(sc).isNotNull())
+            .isEqualTo(expectedShoppingCart);
     }
 
     @Test
     void saveProductsInCartByUserId_FoundOneProduct() {
-        ShoppingCart currentShoppingCart = ShoppingCart.createCart(new ShoppingCartKey("userId", "asin1"));
+        ShoppingCart currentShoppingCart = ShoppingCart.createCart(
+            new ShoppingCartKey(ConstantsTest.USER_ID, ConstantsTest.ASIN));
         shoppingCartRepository.save(currentShoppingCart);
-        assertThat(shoppingCartRepository.findById(new ShoppingCartKey("userId", "asin1"))
-            .get().getQuantity())
+        final var shoppingCart = shoppingCartRepository.findById(
+            new ShoppingCartKey(ConstantsTest.USER_ID, ConstantsTest.ASIN)).orElseThrow();
+        assertThat(shoppingCart.getQuantity())
             .isEqualTo(1);
     }
 

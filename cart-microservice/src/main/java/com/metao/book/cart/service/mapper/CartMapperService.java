@@ -27,10 +27,8 @@ public class CartMapperService extends CartMapper<ShoppingCart, OrderEvent> {
             .build();
     }
 
-    public ShoppingCartDto mapToShoppingCartDto(ShoppingCart shoppingCart) {
-        return ShoppingCartDto.builder()
-            .asin(shoppingCart.getAsin())
-            .quantity(shoppingCart.getQuantity())
-            .build();
+    public ShoppingCartDto mapToShoppingCartDto(String userId, Long createdOn) {
+        return new ShoppingCartDto(userId, createdOn);
     }
+
 }

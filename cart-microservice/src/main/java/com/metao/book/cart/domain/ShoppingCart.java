@@ -17,10 +17,10 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.Hibernate;
 
-@Getter
-@Setter
 @Builder
 @ToString
+@Setter
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity(name = "shopping_cart")
@@ -39,14 +39,14 @@ public class ShoppingCart extends BaseDTO {
     @Column(name = "asin")
     private String asin;
 
-    @Column(name = "time_created")
-    private Long createdOn;
-
-    @Column(name = "time_updated")
-    private Long updateOn;
-
     @Column(name = "quantity")
     private int quantity;
+
+    @Column(name = "updated_time")
+    private Long updatedOn;
+
+    @Column(name = "created_time")
+    private Long createdOn;
 
     public static ShoppingCart createCart(ShoppingCartKey currentKey) {
         return ShoppingCart.builder()
@@ -61,7 +61,7 @@ public class ShoppingCart extends BaseDTO {
         if (quantity == Integer.MAX_VALUE) {
             throw new IllegalStateException("Quantity is already at max value");
         }
-        setUpdateOn(Instant.now().toEpochMilli());
+        setUpdatedOn(Instant.now().toEpochMilli());
         return ++quantity;
     }
 
@@ -69,7 +69,7 @@ public class ShoppingCart extends BaseDTO {
         if (this.quantity > 1) {
             this.quantity--;
         }
-        setUpdateOn(Instant.now().toEpochMilli());
+        setUpdatedOn(Instant.now().toEpochMilli());
         return this.quantity;
     }
 
@@ -90,4 +90,5 @@ public class ShoppingCart extends BaseDTO {
     public int hashCode() {
         return Objects.hash(userId, asin);
     }
+
 }

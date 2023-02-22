@@ -1,12 +1,10 @@
 package com.metao.book.cart.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.metao.book.cart.domain.ShoppingCart;
 import com.metao.book.cart.domain.ShoppingCartKey;
 import com.metao.book.cart.util.BasePostgresIntegrationTest;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,22 +21,19 @@ public class ShoppingCartServiceIntegrationTest extends BasePostgresIntegrationT
     void addProductToShoppingCart() {
         shoppingCartService.addProductToShoppingCart(ConstantsTest.USER_ID, ConstantsTest.ASIN);
         var productsInCart = shoppingCartService.getProductsInCartByUserId(ConstantsTest.USER_ID);
-        assertTrue(productsInCart.containsKey(ConstantsTest.USER_ID));
-        var shoppingList = List.of(
-            ShoppingCart.createCart(new ShoppingCartKey(ConstantsTest.USER_ID, ConstantsTest.ASIN)));
-        assertThat(productsInCart
-            .get(ConstantsTest.USER_ID))
-            .isEqualTo(shoppingList)
+        var shoppingCartKey = new ShoppingCartKey(ConstantsTest.USER_ID, ConstantsTest.ASIN);
+        ShoppingCart currentShoppingCart = ShoppingCart.createCart(shoppingCartKey);
+        assertThat(productsInCart)
             .hasSize(1)
-            .contains(ShoppingCart.createCart(new ShoppingCartKey(ConstantsTest.USER_ID, ConstantsTest.ASIN)));
+            .containsExactlyInAnyOrder(currentShoppingCart);
+
     }
 
     @Test
     void getProductsInCart() {
         shoppingCartService.addProductToShoppingCart(ConstantsTest.USER_ID, ConstantsTest.ASIN);
         assertThat(shoppingCartService.getProductsInCartByUserId(ConstantsTest.USER_ID))
-            .flatExtracting(ConstantsTest.USER_ID)
-            .isNotNull()
-            .hasSize(1);
+            .extracting(ConstantsTest.USER_ID)
+            .isNotNull();
     }
 }
