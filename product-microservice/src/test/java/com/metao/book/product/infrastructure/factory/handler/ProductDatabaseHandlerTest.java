@@ -33,21 +33,15 @@ public class ProductDatabaseHandlerTest {
         verify(productRepo).save(argThat(new EventMatcher(entity.orElseThrow())));
     }
 
-    private static class EventMatcher implements ArgumentMatcher<ProductEntity> {
-
-        private final ProductEntity entity;
-
-        public EventMatcher(ProductEntity entity) {
-            this.entity = entity;
-        }
+    private record EventMatcher(ProductEntity entity) implements ArgumentMatcher<ProductEntity> {
 
         @Override
-        public boolean matches(ProductEntity argument) {
-            return entity.getTitle().equals(argument.getTitle()) &&
-                entity.getDescription().equals(argument.getDescription()) &&
-                entity.getPriceCurrency().equals(argument.getPriceCurrency()) &&
-                entity.getImage().equals(argument.getImage());
-        }
+            public boolean matches(ProductEntity argument) {
+                return entity.getTitle().equals(argument.getTitle()) &&
+                    entity.getDescription().equals(argument.getDescription()) &&
+                    entity.getPriceCurrency().equals(argument.getPriceCurrency()) &&
+                    entity.getImage().equals(argument.getImage());
+            }
 
-    }
+        }
 }

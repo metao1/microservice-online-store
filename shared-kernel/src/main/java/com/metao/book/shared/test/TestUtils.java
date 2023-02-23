@@ -1,9 +1,13 @@
 package com.metao.book.shared.test;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.experimental.UtilityClass;
+import java.io.IOException;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+@UtilityClass
 public class TestUtils {
 
     public static class StreamBuilder {
@@ -19,5 +23,15 @@ public class TestUtils {
                 .map(mapper)
                 .map(clazz::cast);
         }
+    }
+
+    /**
+     * Convert an object to JSON byte array.
+     *
+     * @param object the object to convert.
+     * @return the JSON byte array.
+     */
+    public static byte[] convertObjectToJsonBytes(ObjectMapper mapper, Object object) throws IOException {
+        return mapper.writeValueAsBytes(object);
     }
 }

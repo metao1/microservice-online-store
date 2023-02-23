@@ -30,6 +30,9 @@ spring:
       value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
       group-id: test-order-grp
       auto-offset-reset: earliest
+      properties:
+        auto.offset.reset: earliest
+        specific.avro.reader: true
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer

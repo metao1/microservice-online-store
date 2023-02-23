@@ -11,7 +11,6 @@ import com.metao.book.shared.test.TestUtils.StreamBuilder;
 import java.time.Instant;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -41,10 +40,9 @@ public class KafkaOrderProducerTest extends SpringBootEmbeddedKafka {
     private KafkaOrderConsumerTestConfig consumer;
 
     @Test
-    @Disabled("until fix error of using EmbeddedKafka that supports transaction")
     public void givenKafkaOrderTopic_whenSendingToTopic_thenMessageReceivedCorrectly() throws Exception {
         StreamBuilder.of(OrderEvent.class, 0, 10, this::createOrderFromCustomerId)
-            .forEach(kafkaProducer::handle);
+            .forEach(event-> kafkaProducer.sendToKafka("order-topic-test", event));
 
         consumer.getLatch().await(6, TimeUnit.SECONDS);
 

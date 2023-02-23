@@ -13,10 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-
-import static com.metao.book.shared.kafka.Constants.KAFKA_TRANSACTION_MANAGER;
 
 @Slf4j
 @Service
@@ -26,14 +23,13 @@ public class ProductKafkaHandler implements MessageHandler<CreateProductEvent> {
     private final RemoteProductService remoteProductService;
 
     @Override
-    @Transactional(KAFKA_TRANSACTION_MANAGER)
     public void onMessage(@NonNull CreateProductEvent event) {
         try {
-            log.info("sending product to kafka on: {}", event.occurredOn());
+            log.info("sending product to kafka on timestamp: {}", event.occurredOn());
             var productDto = event.productDTO();
             Optional.of(productDto)
                 .map(this::mapToProductEvent)
-                .ifPresent(remoteProductService::handle);
+                .ifPresent(remoteProductService::sendToKafka);
         } catch (Exception ex) {
             log.warn(ex.getMessage());
         }

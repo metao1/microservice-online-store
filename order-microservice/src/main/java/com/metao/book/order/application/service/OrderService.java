@@ -32,7 +32,7 @@ public class OrderService implements OrderServiceInterface {
                     consumer.accept(order);
                 }
             })
-            .peek(kafkaOrderProducer::handle)
+            .peek(kafkaOrderProducer::sendToKafka)
             .map(OrderEvent::getOrderId)
             .findAny();
     }

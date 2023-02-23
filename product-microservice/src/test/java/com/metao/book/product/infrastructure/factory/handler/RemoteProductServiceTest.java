@@ -5,13 +5,15 @@ import static org.mockito.Mockito.when;
 
 import com.metao.book.product.application.service.ProductService;
 import com.metao.book.product.domain.ProductId;
-import com.metao.book.product.infrastructure.factory.handler.kafka.ProductKafkaConsumerTestConfig;
+import com.metao.book.product.infrastructure.factory.handler.kafka.KafkaProductConsumerTestConfig;
 import com.metao.book.product.util.ProductTestUtils;
 import com.metao.book.shared.Currency;
 import com.metao.book.shared.ProductEvent;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -27,7 +29,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles({"test", "container"})
 @Import({
-    ProductKafkaConsumerTestConfig.class
+    KafkaProductConsumerTestConfig.class
 })
 @AutoConfigureTestDatabase(replace = Replace.NONE)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -40,16 +42,18 @@ public class RemoteProductServiceTest extends SpringBootEmbeddedKafka {
     @Autowired
     RemoteProductService remoteProductService;
 
-    @Autowired
-    ProductKafkaConsumerTestConfig consumer;
-
     @MockBean
     ProductService productService;
+
+    @Autowired
+    private KafkaProductConsumerTestConfig consumer;
 
     @Test
     @SneakyThrows
     void handleGetProductEvent() {
         var productEvent = ProductEvent.newBuilder()
+            .setCreatedOn(Instant.now().toEpochMilli())
+            .setVolume(100d)
             .setCurrency(Currency.eur)
             .setPrice(120)
             .setTitle("TITLE")
@@ -61,9 +65,28 @@ public class RemoteProductServiceTest extends SpringBootEmbeddedKafka {
         when(productService.getProductById(new ProductId(PRODUCT_ID)))
             .thenReturn(Optional.of(pe));
 
-        remoteProductService.handle(productEvent);
+        remoteProductService.sendToKafka("product-topic-test", productEvent);
 
         consumer.getLatch().await(5, TimeUnit.SECONDS);
         assertEquals(0, consumer.getLatch().getCount());
+    }
+
+    @Test
+    @SneakyThrows
+    void handleGetProductEvent_RollbackWhenRequiredFieldIsNull() {
+        var productEvent = ProductEvent.newBuilder()
+            .setCurrency(Currency.eur)
+            .setPrice(120)
+            .setTitle("TITLE")
+            .setProductId(PRODUCT_ID)
+            .setDescription("DESCRIPTION")
+            .build();
+        var pe = ProductTestUtils.createProductEntity();
+        when(productService.getProductById(new ProductId(PRODUCT_ID)))
+            .thenReturn(Optional.of(pe));
+
+        Assertions.assertThrows(RuntimeException.class, () ->
+            remoteProductService.sendToKafka(productEvent)
+        );
     }
 }

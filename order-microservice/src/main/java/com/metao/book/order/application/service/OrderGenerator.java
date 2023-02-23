@@ -27,7 +27,7 @@ public class OrderGenerator {
     private final AtomicInteger atomicInteger = new AtomicInteger(1);
     @Value("${kafka.topic.order}")
     String orderTopic;
-    private List<String> productAsinList = new ArrayList<>();
+    private final List<String> productAsinList = new ArrayList<>();
 
     //@Scheduled(fixedDelay = 30000, initialDelay = 10000)
     public void commandLineRunner() {
@@ -42,7 +42,7 @@ public class OrderGenerator {
             .setCurrency(Currency.dlr)
             .setSource("PAYMENT")
             .build();
-        kafkaProducer.handle(order);
+        kafkaProducer.sendToKafka(order);
     }
 
         /*public void loadProducts() {
