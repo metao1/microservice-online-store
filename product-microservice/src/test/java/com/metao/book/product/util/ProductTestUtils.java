@@ -51,6 +51,7 @@ public class ProductTestUtils {
             .title("title")
             .asin("1234567899")
             .currency(Currency.DLR)
+            .volume(BigDecimal.ONE)
             .description("description")
             .imageUrl("https://example.com/image.jpg")
             .categories(Set.of(CategoryDTO.of("book")))
