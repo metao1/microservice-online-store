@@ -1,6 +1,7 @@
 package com.metao.book.order.domain;
 
 import com.metao.book.shared.domain.base.AbstractEntity;
+import com.metao.book.shared.domain.base.DomainObjectId;
 import com.metao.book.shared.domain.financial.Currency;
 import com.metao.book.shared.domain.financial.Money;
 import jakarta.persistence.Column;
@@ -13,10 +14,12 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Getter
 @Setter
+@ToString
 @NoArgsConstructor
 @Table(name = "order_table")
 @EqualsAndHashCode(callSuper = true)
@@ -59,4 +62,19 @@ public class OrderEntity extends AbstractEntity<OrderId> {
         this.price = money.doubleAmount();
     }
 
+    public OrderEntity(
+        String customerId,
+        String productId,
+        BigDecimal productCount,
+        Money money,
+        Status status
+    ) {
+        super(DomainObjectId.randomId(OrderId.class));
+        this.customerId = customerId;
+        this.productId = productId;
+        this.productCount = productCount;
+        this.currency = money.currency();
+        this.status = status;
+        this.price = money.doubleAmount();
+    }
 }

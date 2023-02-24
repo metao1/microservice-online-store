@@ -5,7 +5,11 @@
   "fields": [
     {
       "name": "orderId",
-      "type": "string"
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
     },
     {
       "name": "productId",

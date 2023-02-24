@@ -5,9 +5,6 @@ server:
   port: ${PORT:8085}
 
 kafka:
-  properties:
-    num-partitions: 1
-    replication-factor: 1
   topic:
     order: "book-order-topic"
     order-payment: "order-payment-topic"
@@ -17,6 +14,9 @@ spring:
   application:
     name: order-ms
   kafka:
+    admin:
+      properties:
+        min-in-sync-replicas: 1
     # Required connection configs for Kafka producer, consumer, and admin
     bootstrap-servers: ${BOOTSTRAP_SERVERS}
     # Required connection configs for Confluent Cloud Schema Registry
@@ -49,7 +49,7 @@ spring:
         schema.registry.url: ${SCHEMA_HOST}
         default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
         default.value.serde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
-        num.standby.replicas: 1
+        num.standby.replicas: 3
         num.stream.threads: 2
         max.request.size: 8388608        # 84 MiB
         topic.max.message.bytes: 8388608 # 84 MiB

@@ -4,9 +4,11 @@ import com.metao.book.order.application.dto.OrderDTO;
 import com.metao.book.order.domain.OrderId;
 import com.metao.book.order.domain.OrderServiceInterface;
 import com.metao.book.order.domain.Status;
+import com.metao.book.order.infrastructure.OrderMapperInterface;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,6 +31,19 @@ public class OrderController {
     ) {
         return orderService
             .getOrderByOrderId(orderId)
+            .map(OrderMapperInterface::toOrderDTO)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<OrderDTO>> getOrderByOrderId(
+        @RequestParam("product_id") Set<String> productId,
+        @RequestParam("status") Set<Status> status
+    ) {
+        return orderService
+            .getOrderByProductIdsAndOrderStatus(productId, status)
+            .map(sd -> sd.stream().map(OrderMapperInterface::toOrderDTO).collect(Collectors.toList()))
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }
@@ -49,6 +64,6 @@ public class OrderController {
     public ResponseEntity<String> createOrder(@Valid @RequestBody OrderDTO orderDto) {
         return orderService.createOrder(orderDto)
             .map(ResponseEntity::ok)
-            .orElseThrow(() -> new RuntimeException("could not create order"));
+            .orElseThrow();
     }
 }

@@ -1,0 +1,21 @@
+kafka:
+  properties:
+    num-partitions: 3
+    replication-factor: 3
+  topic:
+    order: "book-order-topic-test"
+    order-payment: "order-payment-topic"
+    order-stock: "order-stock-topic"
+
+spring:
+  kafka:
+    admin:
+      properties:
+        min-in-sync-replicas: 1
+logging:
+  pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%15.15t]){yellow} %clr(:){red} %clr(%m){faint}%n"
+  level:
+    org.apache.kafka.streams.kstream: INFO
+    org.springframework.data: DEBUG
+    org.springframework.boot.autoconfigure: ERROR
+    org.hibernate: DEBUG

@@ -18,12 +18,21 @@ public class OrderMapper implements OrderMapperInterface {
         final Currency currency = OrderMapperInterface.convertToCurrency(order.getCurrency());
         final Status status = OrderMapperInterface.convertStatus(order.getStatus());
         var money = new Money(currency, BigDecimal.valueOf(order.getPrice()));
-        return new OrderEntity(order.getOrderId(),
-            order.getCustomerId(),
-            order.getProductId(),
-            BigDecimal.valueOf(order.getQuantity()),
-            money,
-            status);
+        if (order.getOrderId() != null) {
+            return new OrderEntity(order.getOrderId(),
+                order.getCustomerId(),
+                order.getProductId(),
+                BigDecimal.valueOf(order.getQuantity()),
+                money,
+                status);
+        } else {
+            return new OrderEntity(
+                order.getCustomerId(),
+                order.getProductId(),
+                BigDecimal.valueOf(order.getQuantity()),
+                money,
+                status);
+        }
     }
 
 }

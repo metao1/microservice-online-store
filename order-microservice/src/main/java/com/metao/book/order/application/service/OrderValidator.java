@@ -20,7 +20,6 @@ public class OrderValidator implements Validator<OrderEvent> {
             .findAny()
             .orElseThrow(() -> new RuntimeException("provided status can't be found"));
         Objects.requireNonNull(order.getCurrency(), "currency can't be null");
-        Objects.requireNonNull(order.getOrderId(), "order id can't be null");
         Currency.valueOf(order.getCurrency().name().toUpperCase());
     }
 }

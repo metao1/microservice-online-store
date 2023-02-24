@@ -5,10 +5,8 @@ import static com.metao.book.shared.kafka.Constants.KAFKA_TRANSACTION_MANAGER;
 import com.metao.book.order.application.config.KafkaSerdesConfig;
 import com.metao.book.order.application.service.OrderMapper;
 import com.metao.book.order.application.service.OrderValidator;
-import com.metao.book.order.domain.OrderId;
 import com.metao.book.order.infrastructure.repository.OrderRepository;
 import com.metao.book.shared.OrderEvent;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -29,28 +27,25 @@ public class OrderKafkaListenerConfig {
     private final OrderMapper orderMapper;
     private final OrderValidator orderValidator;
 
-    @Transactional(KAFKA_TRANSACTION_MANAGER)
     @KafkaListener(id = "${kafka.topic.order}",
         topics = "${kafka.topic.order}",
-        groupId = "${kafka.topic.order}" + "-grp")
+        groupId = "${kafka.topic.order}" + "-grp2")
+    @Transactional(KAFKA_TRANSACTION_MANAGER)
     public void orderKafkaListener(ConsumerRecord<String, OrderEvent> record) {
         var order = record.value();
         orderValidator.validate(order);
         log.info("Consumed order -> {}", order);
-        final var orderId = new OrderId(order.getOrderId());
-        final var orderEntity = orderMapper.toEntity(order);
-        new OptionalHelper<>(orderRepository.getReferenceById(orderId))
-            .ifPresentRun(() -> orderEntity
-                , (exception) -> {
-                    if (exception instanceof EntityNotFoundException) {
-                        log.debug("entity {} not found.", orderEntity);
-                        orderRepository.save(orderEntity);
-                    }
-                }
-                , (updatedOrder) -> {
+        new OrderProcessorHelper<>(order)
+            .ifPresentRun((orderEvent) -> {
+                    final var orderEntity = orderMapper.toEntity(orderEvent);
+                    return orderRepository.getReferenceById(orderEntity.id());
+                },
+                (orderEvent, obj) -> {
+                    final var orderEntity = orderMapper.toEntity(orderEvent);
                     orderRepository.save(orderEntity);
-                    log.debug("old order {} has been updated.", orderEntity);
-                });
+                    log.info("saved order -> {}", orderEntity);
+                },
+                (exception) -> log.debug("Could not processed event.", exception));
     }
 
 }

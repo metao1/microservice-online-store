@@ -1,13 +1,14 @@
 package com.metao.book.order.application.service;
 
 import com.metao.book.order.application.dto.OrderDTO;
+import com.metao.book.order.application.dto.exception.CouldNotCreateOrderException;
+import com.metao.book.order.domain.OrderEntity;
 import com.metao.book.order.domain.OrderId;
 import com.metao.book.order.domain.OrderServiceInterface;
 import com.metao.book.order.domain.Status;
 import com.metao.book.order.infrastructure.OrderMapperInterface;
 import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
 import com.metao.book.order.infrastructure.repository.KafkaOrderService;
-import com.metao.book.shared.OrderEvent;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -24,22 +25,28 @@ public class OrderService implements OrderServiceInterface {
 
     @Override
     public Optional<String> createOrder(OrderDTO orderDto) {
-        return Optional.of(orderDto)
+        final var orderEvent = Optional.of(orderDto)
             .map(mapper::toAvro)
-            .stream()
-            .<OrderEvent>mapMulti((order, consumer) -> {
-                if (order != null) {
-                    consumer.accept(order);
-                }
-            })
-            .peek(kafkaOrderProducer::sendToKafka)
-            .map(OrderEvent::getOrderId)
-            .findAny();
+            .orElseThrow(CouldNotCreateOrderException::new);
+        try {
+            kafkaOrderProducer.sendToKafka(orderEvent);
+            return Optional.of("ok");
+        } catch (Exception e) {
+            throw new CouldNotCreateOrderException(e);
+        }
     }
 
     @Override
-    public Optional<OrderDTO> getOrderByOrderId(OrderId orderId) {
+    public Optional<OrderEntity> getOrderByOrderId(OrderId orderId) {
         return kafkaOrderService.getOrder(orderId);
+    }
+
+    @Override
+    public Optional<List<OrderEntity>> getOrderByProductIdsAndOrderStatus(
+        Set<String> productIds,
+        Set<Status> orderStatus
+    ) {
+        return kafkaOrderService.searchOrdersWithProductId(productIds, orderStatus);
     }
 
     @Override

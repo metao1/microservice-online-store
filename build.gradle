@@ -14,6 +14,9 @@ allprojects {
   version = System.getenv('CI_COMMIT_REF_NAME') ? System.getenv('CI_COMMIT_REF_NAME') : "${getCurrentGitBranch()}-${getHostName()}"
 }
 
+ext {
+  set('testcontainersVersion', "1.17.6")
+}
 
 subprojects {
   apply plugin: 'java'
@@ -53,12 +56,17 @@ subprojects {
       annotationProcessor 'org.projectlombok:lombok'
 
       testAnnotationProcessor 'org.projectlombok:lombok'
+      implementation platform('org.testcontainers:testcontainers-bom:1.17.6') //import bom
 
+      testImplementation 'org.testcontainers:redpanda'
+      testImplementation 'org.testcontainers:junit-jupiter'
+      testImplementation 'org.testcontainers:postgresql'
+      testImplementation 'org.testcontainers:testcontainers'
       testImplementation 'org.projectlombok:lombok'
     }
   }
 
-  configurations.all {
+  configurations.configureEach {
     test {
       useJUnitPlatform()
 
@@ -66,9 +74,9 @@ subprojects {
         systemProperty 'spring.profiles.active', 'test'
       }
 
-      // testLogging {
-      //     events "PASSED", "SKIPPED", "FAILED"
-      // }
+       testLogging {
+           events "PASSED", "SKIPPED", "FAILED"
+       }
     }
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     exclude group: 'org.slf4j', module: 'slf4j-simple'
@@ -77,6 +85,7 @@ subprojects {
     dependencyManagement {
       imports {
         mavenBom SpringBootPlugin.BOM_COORDINATES
+        mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
       }
     }
 

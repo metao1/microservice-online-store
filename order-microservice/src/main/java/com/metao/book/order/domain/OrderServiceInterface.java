@@ -9,7 +9,9 @@ public interface OrderServiceInterface {
 
     Optional<String> createOrder(OrderDTO orderDTO);
 
-    Optional<OrderDTO> getOrderByOrderId(OrderId orderId);
+    Optional<OrderEntity> getOrderByOrderId(OrderId orderId);
+
+    Optional<List<OrderEntity>> getOrderByProductIdsAndOrderStatus(Set<String> productIds, Set<Status> orderStatus);
 
     Optional<List<OrderDTO>> getAllOrdersPageable(OrderId from, OrderId to, Set<Status> statusSet);
 
