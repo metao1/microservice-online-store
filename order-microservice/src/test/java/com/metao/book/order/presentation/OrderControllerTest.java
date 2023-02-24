@@ -66,7 +66,8 @@ public class OrderControllerTest extends BaseRedpandaIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(TestUtils.convertObjectToJsonBytes(objectMapper, order)))
             .andExpect(status().isOk());
-
+        Thread.sleep(6000);
+        Mockito.verify(orderRepository).save(any(OrderEntity.class));
     }
 
 }
