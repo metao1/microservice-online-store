@@ -27,7 +27,7 @@ public class KafkaCardListener {
     @Transactional(KAFKA_TRANSACTION_MANAGER)
     @KafkaListener(id = "${kafka.topic.order}",
         topics = "${kafka.topic.order}",
-        groupId = "${kafka.topic.order}" + "-grp"
+        groupId = "cart-order-processor-group"
     )
     void onOrder(ConsumerRecord<String, OrderEvent> record) {
         var order = record.value();

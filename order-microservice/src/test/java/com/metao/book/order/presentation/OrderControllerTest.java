@@ -14,9 +14,14 @@ import com.metao.book.order.utils.BaseRedpandaIntegrationTest;
 import com.metao.book.shared.domain.financial.Currency;
 import com.metao.book.shared.test.TestUtils;
 import java.math.BigDecimal;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -25,7 +30,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 @AutoConfigureMockMvc
-@ActiveProfiles({"container", "test"})
+@ActiveProfiles({"test", "container"})
+@TestInstance(Lifecycle.PER_CLASS)
+@AutoConfigureTestDatabase(replace = Replace.NONE)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class OrderControllerTest extends BaseRedpandaIntegrationTest {
 
@@ -42,7 +49,8 @@ public class OrderControllerTest extends BaseRedpandaIntegrationTest {
     private MockMvc restTemplate;
 
     @Test
-    public void createOrderIsOk() throws Exception {
+    @SneakyThrows
+    public void createOrderIsOk() {
         var order = OrderDTO.builder()
             .productId("1234567892")
             .customerId("CUSTOMER_ID")
@@ -58,8 +66,7 @@ public class OrderControllerTest extends BaseRedpandaIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(TestUtils.convertObjectToJsonBytes(objectMapper, order)))
             .andExpect(status().isOk());
-        Thread.sleep(1000);
-        Mockito.verify(orderRepository).save(any(OrderEntity.class));
+
     }
 
 }

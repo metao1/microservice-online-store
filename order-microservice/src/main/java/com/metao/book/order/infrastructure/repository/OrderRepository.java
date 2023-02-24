@@ -15,5 +15,5 @@ public interface OrderRepository extends JpaRepository<OrderEntity, OrderId> {
         Set<Status> statusSet
     );
 
-    List<OrderEntity> findByProductIdInAndStatusIsIn(Set<String> productId, Set<Status> statusSet);
+    List<OrderEntity> findByProductIdIsInAndStatusIsIn(Set<String> productId, Set<Status> statusSet);
 }

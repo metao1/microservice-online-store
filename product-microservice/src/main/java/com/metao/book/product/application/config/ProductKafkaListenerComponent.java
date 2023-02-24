@@ -54,7 +54,7 @@ public class ProductKafkaListenerComponent {
 
     @KafkaListener(id = "${kafka.topic.order}",
         topics = "${kafka.topic.order}",
-        groupId = "${kafka.topic.order}" + "-grp"
+        groupId = "product-order-processor-group"
     )
     public void onOrderEvent(ConsumerRecord<String, OrderEvent> orderRecord) {
         var order = orderRecord.value();

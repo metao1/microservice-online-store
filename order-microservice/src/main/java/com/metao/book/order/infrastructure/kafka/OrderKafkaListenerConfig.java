@@ -27,9 +27,12 @@ public class OrderKafkaListenerConfig {
     private final OrderMapper orderMapper;
     private final OrderValidator orderValidator;
 
-    @KafkaListener(id = "${kafka.topic.order}",
+    @KafkaListener(
+        id = "${kafka.topic.order}",
         topics = "${kafka.topic.order}",
-        groupId = "${kafka.topic.order}" + "-grp2")
+        groupId = "order-processor-group",
+        properties = {"auto.offset.reset = earliest"}
+    )
     @Transactional(KAFKA_TRANSACTION_MANAGER)
     public void orderKafkaListener(ConsumerRecord<String, OrderEvent> record) {
         var order = record.value();

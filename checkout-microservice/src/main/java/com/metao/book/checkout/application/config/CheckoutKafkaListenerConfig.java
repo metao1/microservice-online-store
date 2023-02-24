@@ -32,7 +32,7 @@ public class CheckoutKafkaListenerConfig {
 
     @KafkaListener(id = "${kafka.topic.order}",
         topics = "${kafka.topic.order}",
-        groupId = "${kafka.topic.order}" + "-grp"
+        groupId = "checkout-order-processor-group"
     )
     public void orderKafkaListener(ConsumerRecord<String, OrderEvent> record) {
         var order = record.value();

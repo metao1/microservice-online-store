@@ -16,8 +16,11 @@ public class BaseRedpandaIntegrationTest {
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
-        registry.add("spring.kafka.bootstrap-servers",  container::getBootstrapServers);
-        container.start();
+        registry.add("spring.kafka.bootstrap-servers", container::getBootstrapServers);
+        registry.add("spring.kafka.properties.schema.registry.url", container::getSchemaRegistryAddress);
+        if (!container.isRunning()) {
+            container.start();
+        }
     }
 
 }

@@ -3,6 +3,7 @@ package com.metao.book.order.kafka;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
+import com.metao.book.order.utils.BaseRedpandaIntegrationTest;
 import com.metao.book.shared.Currency;
 import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.Status;
@@ -29,7 +30,7 @@ import org.springframework.test.context.ActiveProfiles;
 })
 @AutoConfigureTestDatabase(replace = Replace.NONE)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class KafkaOrderProducerTest extends SpringBootEmbeddedKafka {
+public class KafkaOrderProducerTest extends BaseRedpandaIntegrationTest {
 
     private static final Random RAND = new Random();
 

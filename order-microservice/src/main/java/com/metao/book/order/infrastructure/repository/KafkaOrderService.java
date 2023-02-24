@@ -29,7 +29,7 @@ public class KafkaOrderService {
 
     @Transactional(transactionManager = TRANSACTION_MANAGER, propagation = Propagation.REQUIRED)
     public Optional<List<OrderEntity>> searchOrdersWithProductId(@NotNull Set<String> productId, Set<Status> statuses) {
-        return Optional.of(orderRepository.findByProductIdInAndStatusIsIn(productId, statuses));
+        return Optional.of(orderRepository.findByProductIdIsInAndStatusIsIn(productId, statuses));
     }
 
     public Optional<List<OrderDTO>> getOrders(@NotNull OrderId from, @NotNull OrderId to, Set<Status> statuses) {

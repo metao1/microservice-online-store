@@ -12,7 +12,7 @@ kafka:
 
 spring:
   application:
-    name: order-ms
+    name: order-microservice
   kafka:
     admin:
       properties:
@@ -36,6 +36,8 @@ spring:
       properties:
         auto.offset.reset: earliest
         specific.avro.reader: true
+      auto-offset-reset: none
+      enable-auto-commit: false
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
