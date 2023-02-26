@@ -1,11 +1,12 @@
 package com.metao.book.cart.controller;
 
-import com.metao.book.cart.domain.ShoppingCart;
 import com.metao.book.cart.domain.dto.ShoppingCartDto;
-import com.metao.book.cart.domain.dto.ShoppingCartItem;
 import com.metao.book.cart.service.ShoppingCartService;
 import com.metao.book.cart.service.mapper.CartMapperService;
+import com.metao.book.cart.service.mapper.ShoppingCartMapper;
 import java.time.Instant;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,29 +20,31 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/products")
+@RequestMapping("/cart")
 public class ShoppingCartController {
 
     private final ShoppingCartService shoppingCartService;
-    private final CartMapperService cartMapper;
+    private final CartMapperService.ToEventMapper cartMapper;
+    private final ShoppingCartMapper shoppingCartMapper;
 
     @PostMapping
     public String addProductToCart(
         @RequestParam("user_id") String userId,
         @RequestParam("asin") String asin
     ) {
-        shoppingCartService.addProductToShoppingCart(userId, asin);
+        shoppingCartService.addOrderToShoppingCart(userId, asin);
         return asin;
     }
 
     @GetMapping
     public ShoppingCartDto getProductsInCart(@RequestParam("user_id") String userId) {
         final var productsInCartByUserId = shoppingCartService.getProductsInCartByUserId(userId);
-        final var shoppingCartDto = cartMapper.mapToShoppingCartDto(userId, Instant.now().toEpochMilli());
-        for (ShoppingCart shoppingCart : productsInCartByUserId) {
-            shoppingCartDto.addItem(new ShoppingCartItem(shoppingCart.getAsin(), shoppingCart.getQuantity()));
-        }
-        return shoppingCartDto;
+        final var shoppingCartItems = productsInCartByUserId
+            .stream()
+            .map(cartMapper::mapToOrderEvent)
+            .map(item -> shoppingCartMapper.mapToEvent(() -> item, Objects::nonNull)
+            ).collect(Collectors.toSet());
+        return new ShoppingCartDto(Instant.now().toEpochMilli(), shoppingCartItems);
     }
 
     @PostMapping("/submit")

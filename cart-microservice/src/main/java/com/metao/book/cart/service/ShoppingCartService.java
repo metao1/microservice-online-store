@@ -6,7 +6,7 @@ import java.util.Set;
 
 public interface ShoppingCartService {
 
-    void addProductToShoppingCart(String userId, String asin);
+    void addOrderToShoppingCart(ShoppingCart shoppingCart);
 
     Set<ShoppingCart> getProductsInCartByUserId(String userId);
 

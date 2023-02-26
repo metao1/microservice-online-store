@@ -5,6 +5,7 @@ import com.metao.book.order.domain.OrderEntity;
 import com.metao.book.shared.Currency;
 import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.Status;
+import java.io.Serializable;
 import java.time.Instant;
 
 public interface OrderMapperInterface {
@@ -13,14 +14,14 @@ public interface OrderMapperInterface {
         return OrderEvent.newBuilder()
             .setStatus(Status.NEW)
             .setCurrency(Currency.dlr)
-            .setPrice(dto.getPrice().doubleValue())
+            .setPrice(dto.price().doubleValue())
             .setSource("STOCK")
             .setCreatedOn(Instant.now().toEpochMilli())
-            .setStatus(Status.valueOf(dto.getStatus().toString()))
-            .setQuantity(dto.getQuantity().doubleValue())
-            .setProductId(dto.getProductId())
-            .setCustomerId(dto.getCustomerId())
-            .setOrderId(dto.getOrderId())
+            .setStatus(Status.valueOf(dto.status().toString()))
+            .setQuantity(dto.quantity().doubleValue())
+            .setProductId(dto.productId())
+            .setCustomerId(dto.customerId())
+            .setOrderId(dto.orderId())
             .build();
     }
 

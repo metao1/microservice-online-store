@@ -1,22 +1,13 @@
 package com.metao.book.cart.domain.dto;
 
-import java.util.LinkedHashSet;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Set;
-import lombok.Getter;
-import lombok.Setter;
 
-@Setter
-@Getter
-public class ShoppingCartDto {
-
-    String userId;
-    Long createdOn;
-    Set<ShoppingCartItem> shoppingCartItems = new LinkedHashSet<>();
-
-    public ShoppingCartDto(String userId, Long createdOn) {
-        this.userId = userId;
-        this.createdOn = createdOn;
-    }
+public record ShoppingCartDto
+    (
+        Long createdOn,
+        @JsonProperty("shopping_cart_items")
+        Set<ShoppingCartItem> shoppingCartItems) {
 
     public void addItem(ShoppingCartItem shoppingCartItem) {
         this.shoppingCartItems.add(shoppingCartItem);

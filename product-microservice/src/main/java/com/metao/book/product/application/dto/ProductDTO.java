@@ -8,43 +8,37 @@ import jakarta.validation.constraints.Pattern;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Set;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
 
-@Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class ProductDTO implements Serializable {
+public record ProductDTO
+    (
+        @Pattern(regexp = "^\\d{10}", message = "asin format is wrong")
+        String asin,
 
-    @Pattern(regexp = "^\\d{10}", message = "asin format is wrong")
-    private String asin;
+        @Length(min = 1, max = 1250)
+        String description,
 
-    @Length(min = 1, max = 1250)
-    private String description;
+        @Length(min = 1, max = 255)
+        String title,
 
-    @Length(min = 1, max = 255)
-    private String title;
+        @Length(min = 1, max = 255)
+        @Pattern(regexp = "(http(s?):)([/|.|\\w|])*\\.(?:jpg|gif|png)", message = "url format is wrong")
+        String imageUrl,
 
-    @Length(min = 1, max = 255)
-    @Pattern(regexp = "(http(s?):)([/|.|\\w|])*\\.(?:jpg|gif|png)", message = "url format is wrong")
-    private String imageUrl;
+        @NotNull
+        @Min(1)
+        @Max(20000)
+        BigDecimal price,
 
-    @NotNull
-    @Min(1)
-    @Max(20000)
-    private BigDecimal price;
+        @NotNull
+        Currency currency,
 
-    @NotNull
-    private Currency currency;
+        @NotNull
+        @Min(1)
+        BigDecimal volume,
 
-    @NotNull
-    @Min(1)
-    private BigDecimal volume;
-
-    private Set<CategoryDTO> categories;
+        Set<CategoryDTO> categories) implements Serializable {
 
 }

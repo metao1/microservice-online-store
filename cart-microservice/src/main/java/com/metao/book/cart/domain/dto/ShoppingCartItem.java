@@ -1,4 +1,13 @@
 package com.metao.book.cart.domain.dto;
 
-public record ShoppingCartItem(String asin, int quantity) {
+import lombok.Builder;
+import java.math.BigDecimal;
+
+@Builder
+public record ShoppingCartItem(
+    String userId,
+    String asin,
+    BigDecimal quantity,
+    BigDecimal price
+    ) {
 }

@@ -2,12 +2,13 @@ package com.metao.book.order.infrastructure.repository;
 
 import static com.metao.book.shared.kafka.Constants.TRANSACTION_MANAGER;
 
-import com.metao.book.order.application.dto.OrderDTO;
 import com.metao.book.order.domain.OrderEntity;
 import com.metao.book.order.domain.OrderId;
 import com.metao.book.order.domain.Status;
 import com.metao.book.order.infrastructure.OrderMapperInterface;
 import jakarta.validation.constraints.NotNull;
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -32,10 +33,7 @@ public class KafkaOrderService {
         return Optional.of(orderRepository.findByProductIdIsInAndStatusIsIn(productId, statuses));
     }
 
-    public Optional<List<OrderDTO>> getOrders(@NotNull OrderId from, @NotNull OrderId to, Set<Status> statuses) {
-        return Optional.of(orderRepository.findByIdBetweenAndStatusIsIn(from, to, statuses)
-            .stream()
-            .map(OrderMapperInterface::toOrderDTO)
-            .collect(Collectors.toList()));
+    public Optional<List<OrderEntity>> getOrders(@NotNull OrderId from, @NotNull OrderId to, Set<Status> statuses) {
+        return Optional.of(new ArrayList<>(orderRepository.findByIdBetweenAndStatusIsIn(from, to, statuses)));
     }
 }

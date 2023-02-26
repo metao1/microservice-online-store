@@ -1,12 +1,13 @@
-package com.metao.book.order.application.service;
+package com.metao.book.shared.application.service.order;
 
 import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.Status;
 import com.metao.book.shared.application.service.Validator;
 import com.metao.book.shared.domain.financial.Currency;
+import org.springframework.stereotype.Component;
+
 import java.util.Arrays;
 import java.util.Objects;
-import org.springframework.stereotype.Component;
 
 @Component
 public class OrderValidator implements Validator<OrderEvent> {

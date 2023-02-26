@@ -30,6 +30,7 @@ spring:
         auto.offset.reset: earliest
         specific.avro.reader: true
       fetch-max-wait: 1000
+      enable-auto-commit: false
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer

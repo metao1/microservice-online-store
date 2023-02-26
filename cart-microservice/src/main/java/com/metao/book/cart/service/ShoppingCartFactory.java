@@ -1,12 +1,15 @@
 
 package com.metao.book.cart.service;
 
+import static com.metao.book.shared.kafka.Constants.TRANSACTION_MANAGER;
+
 import com.metao.book.cart.domain.ShoppingCart;
 import com.metao.book.cart.domain.ShoppingCartKey;
 import com.metao.book.cart.repository.ShoppingCartRepository;
 import com.metao.book.cart.service.mapper.CartMapperService;
 import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.kafka.RemoteKafkaService;
+import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import static com.metao.book.shared.kafka.Constants.TRANSACTION_MANAGER;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -28,28 +29,17 @@ public class ShoppingCartFactory implements ShoppingCartService {
 
     private final RemoteKafkaService<String, OrderEvent> orderTemplate;
     private final ShoppingCartRepository shoppingCartRepository;
-    private final CartMapperService cartMapper;
+    private final CartMapperService.ToEventMapper cartMapper;
     private final NewTopic orderTopic;
 
     @Override
-    public void addProductToShoppingCart(String userId, String asin) {
-        ShoppingCartKey currentKey = new ShoppingCartKey(userId, asin);
-        shoppingCartRepository.findById(currentKey)
-            .ifPresentOrElse(
-                shoppingCart -> updateProduct(asin, shoppingCart),
-                () -> createProduct(asin, currentKey)
-            );
-    }
-
-    void createProduct(String asin, ShoppingCartKey currentKey) {
-        log.info("Adding product: " + asin);
-        ShoppingCart shoppingCart = ShoppingCart.createCart(currentKey);
-        shoppingCartRepository.save(shoppingCart);
-    }
-
-    void updateProduct(String asin, ShoppingCart shoppingCart) {
-        log.info("Updating product: " + asin);
-        shoppingCart.increaseQuantity();
+    public void addOrderToShoppingCart(ShoppingCart shoppingCart) {
+        log.info("Adding product: " + shoppingCart.getAsin());
+        ShoppingCartKey currentKey = new ShoppingCartKey(shoppingCart.getUserId(), shoppingCart.getAsin());
+        Optional<ShoppingCart> shoppingCartOptional = shoppingCartRepository.findById(currentKey);
+        shoppingCartOptional.ifPresent(
+            sc -> shoppingCart.increaseQuantity()
+        );
         shoppingCartRepository.save(shoppingCart);
     }
 
@@ -63,7 +53,7 @@ public class ShoppingCartFactory implements ShoppingCartService {
         ShoppingCartKey currentKey = new ShoppingCartKey(userId, asin);
         Optional<ShoppingCart> shoppingCartOptional = shoppingCartRepository.findById(currentKey);
         shoppingCartOptional.ifPresent(shoppingCart -> {
-            if (shoppingCart.getQuantity() > 1) {
+            if (shoppingCart.getQuantity().compareTo(BigDecimal.ONE) > 0) {
                 shoppingCart.decreaseQuantity();
                 shoppingCartRepository.save(shoppingCart);
                 log.info("Decremented product: " + asin);

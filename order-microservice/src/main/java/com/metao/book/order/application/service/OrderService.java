@@ -9,6 +9,8 @@ import com.metao.book.order.domain.Status;
 import com.metao.book.order.infrastructure.OrderMapperInterface;
 import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
 import com.metao.book.order.infrastructure.repository.KafkaOrderService;
+
+import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -50,7 +52,7 @@ public class OrderService implements OrderServiceInterface {
     }
 
     @Override
-    public Optional<List<OrderDTO>> getAllOrdersPageable(OrderId from, OrderId to, Set<Status> statusSet) {
+    public Optional<List<OrderEntity>> getAllOrdersPageable(OrderId from, OrderId to, Set<Status> statusSet) {
         return kafkaOrderService.getOrders(from, to, statusSet);
     }
 

@@ -3,8 +3,8 @@ package com.metao.book.cart.service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.metao.book.cart.domain.ShoppingCart;
-import com.metao.book.cart.domain.ShoppingCartKey;
 import com.metao.book.cart.util.BasePostgresIntegrationTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,22 +16,33 @@ public class ShoppingCartServiceIntegrationTest extends BasePostgresIntegrationT
 
     @Autowired
     private ShoppingCartService shoppingCartService;
+    private ShoppingCart shoppingCart;
+
+    @BeforeEach
+    void setUp() {
+        this.shoppingCart = ShoppingCart.createCart(ConstantsTest.TITLE,
+            ConstantsTest.DESCRIPTION,
+            ConstantsTest.IMAGE_URL,
+            ConstantsTest.USER_ID,
+            ConstantsTest.ASIN,
+            ConstantsTest.PRICE,
+            ConstantsTest.PRICE,
+            ConstantsTest.QUANTITY);
+    }
 
     @Test
     void addProductToShoppingCart() {
-        shoppingCartService.addProductToShoppingCart(ConstantsTest.USER_ID, ConstantsTest.ASIN);
+        shoppingCartService.addOrderToShoppingCart(shoppingCart);
         var productsInCart = shoppingCartService.getProductsInCartByUserId(ConstantsTest.USER_ID);
-        var shoppingCartKey = new ShoppingCartKey(ConstantsTest.USER_ID, ConstantsTest.ASIN);
-        ShoppingCart currentShoppingCart = ShoppingCart.createCart(shoppingCartKey);
         assertThat(productsInCart)
             .hasSize(1)
-            .containsExactlyInAnyOrder(currentShoppingCart);
+            .containsExactlyInAnyOrder(shoppingCart);
 
     }
 
     @Test
     void getProductsInCart() {
-        shoppingCartService.addProductToShoppingCart(ConstantsTest.USER_ID, ConstantsTest.ASIN);
+        shoppingCartService.addOrderToShoppingCart(shoppingCart);
         assertThat(shoppingCartService.getProductsInCartByUserId(ConstantsTest.USER_ID))
             .extracting(ConstantsTest.USER_ID)
             .isNotNull();

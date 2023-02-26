@@ -4,9 +4,9 @@ import static com.metao.book.shared.kafka.Constants.KAFKA_TRANSACTION_MANAGER;
 
 import com.metao.book.order.application.config.KafkaSerdesConfig;
 import com.metao.book.order.application.service.OrderMapper;
-import com.metao.book.order.application.service.OrderValidator;
 import com.metao.book.order.infrastructure.repository.OrderRepository;
 import com.metao.book.shared.OrderEvent;
+import com.metao.book.shared.application.service.order.OrderValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;

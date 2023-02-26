@@ -32,6 +32,7 @@ public class OrderManagerService {
         switch (order.getStatus()) {
             case CONFIRM -> confirmOrder(order, customer);
             case ROLLBACK -> rollbackOrder(order, customer);
+            default -> throw new RuntimeException(String.format("status: %s, is not allowed.", order));
         }
     }
 
@@ -41,10 +42,6 @@ public class OrderManagerService {
         var price = BigDecimal.valueOf(order.getPrice());
         customer.setAmountAvailable(available.add(price));
         customer.setAmountReserved(reserved.subtract(price));
-    }
-
-    void rejectOrder(OrderEvent order, CustomerEntity customer) {
-        rollbackOrder(order, customer);
     }
 
     void acceptOrder(OrderEvent order, CustomerEntity customer) {

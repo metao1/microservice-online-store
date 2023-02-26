@@ -5,7 +5,6 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 import com.metao.book.cart.domain.ShoppingCart;
-import com.metao.book.cart.domain.ShoppingCartKey;
 import com.metao.book.cart.repository.ShoppingCartRepository;
 import com.metao.book.cart.service.mapper.CartMapperService;
 import com.metao.book.shared.OrderEvent;
@@ -44,7 +43,7 @@ class ShoppingCartServiceTest {
         // Generates display names like: input:5, input:37, input:85, etc.
         Function<ShoppingCart, String> displayNameGenerator = (input) -> "input:" + input;
         ThrowingConsumer<ShoppingCart> testExecutor = (shoppingCart) -> {
-            shoppingCartService.addProductToShoppingCart(shoppingCart.getUserId(), shoppingCart.getAsin());
+            shoppingCartService.addOrderToShoppingCart(shoppingCart);
             verify(shoppingCartRepository).save(shoppingCart);
             assertNotNull(shoppingCartService.getProductsInCartByUserId(shoppingCart.getUserId()));
         };
@@ -54,6 +53,13 @@ class ShoppingCartServiceTest {
 
     private Stream<ShoppingCart> buildShoppingCartStream() {
         return StreamBuilder.of(ShoppingCart.class, 1, 20,
-            i -> ShoppingCart.createCart(new ShoppingCartKey("user_id", "item_" + i.toString())));
+            i -> ShoppingCart.createCart(ConstantsTest.TITLE,
+                ConstantsTest.DESCRIPTION,
+                ConstantsTest.IMAGE_URL,
+                ConstantsTest.USER_ID,
+                ConstantsTest.ASIN + "_" + i,
+                ConstantsTest.PRICE,
+                ConstantsTest.PRICE,
+                ConstantsTest.QUANTITY));
     }
 }
