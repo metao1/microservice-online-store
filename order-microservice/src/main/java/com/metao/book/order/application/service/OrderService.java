@@ -9,7 +9,6 @@ import com.metao.book.order.domain.Status;
 import com.metao.book.order.infrastructure.OrderMapperInterface;
 import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
 import com.metao.book.order.infrastructure.repository.KafkaOrderService;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -29,12 +28,8 @@ public class OrderService implements OrderServiceInterface {
         final var orderEvent = Optional.of(orderDto)
                 .map(mapper::toAvro)
                 .orElseThrow(CouldNotCreateOrderException::new);
-        try {
-            kafkaOrderProducer.sendToKafka(orderEvent);
-            return Optional.of("ok");
-        } catch (Exception e) {
-            throw new CouldNotCreateOrderException(e);
-        }
+        kafkaOrderProducer.sendToKafka(orderEvent);
+        return Optional.of("ok");
     }
 
     @Override

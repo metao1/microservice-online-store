@@ -7,11 +7,13 @@ import com.metao.book.shared.Currency;
 import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.Status;
 import java.time.Instant;
+import java.util.UUID;
 
 public interface OrderMapperInterface {
 
     default OrderEvent toAvro(CreateOrderDTO dto) {
         return OrderEvent.newBuilder()
+            .setOrderId(UUID.randomUUID().toString().replace("-", ""))
             .setStatus(Status.NEW)
             .setCurrency(Currency.dlr)
             .setPrice(dto.price().doubleValue())
