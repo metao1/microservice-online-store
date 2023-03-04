@@ -64,7 +64,7 @@ public class ProductControllerTests extends BasePostgresIntegrationTest {
             .andExpect(jsonPath("$.title").value(pe.getTitle()))
             .andExpect(jsonPath("$.description").value(pe.getDescription()))
             .andExpect(jsonPath("$.categories[0].category").value("book"))
-            .andExpect(jsonPath("$.imageUrl").value(pe.getImage().url()))
+            .andExpect(jsonPath("$.image_url").value(pe.getImage().url()))
             .andExpect(jsonPath("$.currency").value("dlr"))
             .andExpect(jsonPath("$.price").value(BigDecimal.valueOf(12)));
     }

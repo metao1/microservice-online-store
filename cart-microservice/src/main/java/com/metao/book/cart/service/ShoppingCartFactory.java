@@ -8,6 +8,7 @@ import com.metao.book.cart.domain.ShoppingCartKey;
 import com.metao.book.cart.repository.ShoppingCartRepository;
 import com.metao.book.cart.service.mapper.CartMapperService;
 import com.metao.book.shared.OrderEvent;
+import com.metao.book.shared.application.service.order.OrderEventValidator;
 import com.metao.book.shared.kafka.RemoteKafkaService;
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -28,15 +29,16 @@ import org.springframework.util.CollectionUtils;
 public class ShoppingCartFactory implements ShoppingCartService {
 
     private final RemoteKafkaService<String, OrderEvent> orderTemplate;
-    private final ShoppingCartRepository shoppingCartRepository;
     private final CartMapperService.ToEventMapper cartMapper;
+    private final ShoppingCartRepository shoppingCartRepository;
+    private final OrderEventValidator orderEventValidator;
     private final NewTopic orderTopic;
 
     @Override
     public void addOrderToShoppingCart(ShoppingCart shoppingCart) {
         log.info("Adding product: " + shoppingCart.getAsin());
         ShoppingCartKey currentKey = new ShoppingCartKey(shoppingCart.getUserId(), shoppingCart.getAsin());
-        Optional<ShoppingCart> shoppingCartOptional = shoppingCartRepository.findById(currentKey);
+        var shoppingCartOptional = shoppingCartRepository.findById(currentKey);
         shoppingCartOptional.ifPresent(sc -> shoppingCart.increaseQuantity());
         shoppingCartRepository.save(shoppingCart);
     }
@@ -88,8 +90,9 @@ public class ShoppingCartFactory implements ShoppingCartService {
             products.stream()
                 .map(cartMapper::mapToOrderEvent)
                 .sorted((p1, p2) -> (int) (p1.getCreatedOn() - p2.getCreatedOn()))
-                .forEachOrdered(product ->
-                    orderTemplate.sendToTopic(orderTopic.name(), product.getProductId(), product));
+                .peek(orderEventValidator::validate)
+                .forEachOrdered(orderEvent ->
+                    orderTemplate.sendToTopic(orderTopic.name(), orderEvent.getProductId(), orderEvent));
             return Optional.of(true);
         }
     }

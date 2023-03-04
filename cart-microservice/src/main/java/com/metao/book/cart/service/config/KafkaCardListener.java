@@ -5,8 +5,7 @@ import static com.metao.book.shared.kafka.Constants.KAFKA_TRANSACTION_MANAGER;
 import com.metao.book.cart.service.ShoppingCartService;
 import com.metao.book.cart.service.mapper.CartMapperService;
 import com.metao.book.shared.OrderEvent;
-import com.metao.book.shared.application.service.order.OrderValidator;
-
+import com.metao.book.shared.application.service.order.OrderEventValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -22,21 +21,22 @@ import org.springframework.transaction.annotation.Transactional;
 @EnableKafka
 @Profile({"!test"})
 @RequiredArgsConstructor
-@ImportAutoConfiguration(value = {KafkaSerdesConfig.class, OrderValidator.class})
+@ImportAutoConfiguration(value = {KafkaSerdesConfig.class, OrderEventValidator.class})
 public class KafkaCardListener {
 
     private final ShoppingCartService shoppingCartService;
-    private final CartMapperService.ToEventMapper shoppingCartMapper;
-    private final OrderValidator orderValidator;
+    private final CartMapperService.ToShoppingCartEntity shoppingCartMapper;
+    private final OrderEventValidator orderEventValidator;
 
     @Transactional(KAFKA_TRANSACTION_MANAGER)
     @KafkaListener(id = "${kafka.topic.order}",
         topics = "${kafka.topic.order}",
-        groupId = "cart-order-group"
+        groupId = "cart-order-grp"
     )
     void onOrderListener(ConsumerRecord<String, OrderEvent> record) {
-        orderValidator.validate(record.value());
+        orderEventValidator.validate(record.value());
         log.info("Received order event: {}", record.value());
-        //shoppingCartService.updateOrdersInCart();
+        final var shoppingCart = shoppingCartMapper.mapToShoppingCart(record.value());
+        shoppingCartService.addOrderToShoppingCart(shoppingCart);
     }
 }
