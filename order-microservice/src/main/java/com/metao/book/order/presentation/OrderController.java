@@ -1,17 +1,18 @@
 package com.metao.book.order.presentation;
 
+import com.metao.book.order.application.dto.CreateOrderDTO;
 import com.metao.book.order.application.dto.OrderDTO;
 import com.metao.book.order.domain.OrderId;
 import com.metao.book.order.domain.OrderServiceInterface;
 import com.metao.book.order.domain.Status;
 import com.metao.book.order.infrastructure.OrderMapperInterface;
-import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -63,7 +64,7 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<String> createOrder(@Valid @RequestBody OrderDTO orderDto) {
+    public ResponseEntity<String> createOrder(@RequestBody @Validated CreateOrderDTO orderDto) {
         return orderService.createOrder(orderDto)
             .map(ResponseEntity::ok)
             .orElseThrow();

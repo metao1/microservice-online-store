@@ -1,16 +1,16 @@
 package com.metao.book.order.infrastructure;
 
+import com.metao.book.order.application.dto.CreateOrderDTO;
 import com.metao.book.order.application.dto.OrderDTO;
 import com.metao.book.order.domain.OrderEntity;
 import com.metao.book.shared.Currency;
 import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.Status;
-import java.io.Serializable;
 import java.time.Instant;
 
 public interface OrderMapperInterface {
 
-    default OrderEvent toAvro(OrderDTO dto) {
+    default OrderEvent toAvro(CreateOrderDTO dto) {
         return OrderEvent.newBuilder()
             .setStatus(Status.NEW)
             .setCurrency(Currency.dlr)
@@ -21,7 +21,6 @@ public interface OrderMapperInterface {
             .setQuantity(dto.quantity().doubleValue())
             .setProductId(dto.productId())
             .setCustomerId(dto.customerId())
-            .setOrderId(dto.orderId())
             .build();
     }
 
@@ -34,6 +33,7 @@ public interface OrderMapperInterface {
             case PAYMENT -> com.metao.book.order.domain.Status.PAYMENT;
             case PRODUCT -> com.metao.book.order.domain.Status.PRODUCT;
             case ROLLBACK -> com.metao.book.order.domain.Status.ROLLBACK;
+            default -> throw new RuntimeException("status not defined");
         };
     }
 
