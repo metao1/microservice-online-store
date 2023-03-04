@@ -34,12 +34,8 @@ public class ProductManagerService {
                 order.setStatus(Status.REJECT);
             }
         }
-        try {
-            productRepository.save(productEntity);
-            remoteOrderService.handle(order);
-        } catch (Exception ex) {
-            log.error("Could not save product entity, {}", ex.getMessage());
-        }
+        productRepository.save(productEntity);
+        remoteOrderService.handle(order);
     }
 
     public void confirm(OrderEvent order) {
