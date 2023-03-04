@@ -1,5 +1,6 @@
 package com.metao.book.product.application.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.metao.book.shared.domain.financial.Currency;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -23,6 +24,7 @@ public record ProductDTO
         @Length(min = 1, max = 255)
         String title,
 
+        @JsonProperty("image_url")
         @Length(min = 1, max = 255)
         @Pattern(regexp = "(http(s?):)([/|.|\\w|])*\\.(?:jpg|gif|png)", message = "url format is wrong")
         String imageUrl,

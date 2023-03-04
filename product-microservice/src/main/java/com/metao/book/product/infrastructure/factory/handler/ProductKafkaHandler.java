@@ -1,11 +1,9 @@
 package com.metao.book.product.infrastructure.factory.handler;
 
 import com.metao.book.product.application.dto.CategoryDTO;
-import com.metao.book.product.application.dto.ProductDTO;
 import com.metao.book.product.domain.event.CreateProductEvent;
 import com.metao.book.shared.Currency;
 import com.metao.book.shared.ProductEvent;
-import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -24,28 +22,24 @@ public class ProductKafkaHandler implements MessageHandler<CreateProductEvent> {
 
     @Override
     public void onMessage(@NonNull CreateProductEvent event) {
-        try {
-            log.info("sending product to kafka on timestamp: {}", event.occurredOn());
-            var productDto = event.productDTO();
-            Optional.of(productDto)
-                .map(this::mapToProductEvent)
-                .ifPresent(remoteProductService::sendToKafka);
-        } catch (Exception ex) {
-            log.warn(ex.getMessage());
-        }
+        log.info("sending product to kafka on timestamp: {}", event.occurredOn());
+        Optional.of(event)
+            .map(this::mapToProductEvent)
+            .ifPresent(remoteProductService::sendToKafka);
     }
 
-    ProductEvent mapToProductEvent(ProductDTO productDTO) {
+    ProductEvent mapToProductEvent(CreateProductEvent createProductEvent) {
+        var productDto = createProductEvent.productDto();
         return ProductEvent.newBuilder()
-            .setProductId(productDTO.asin())
-            .setTitle(productDTO.title())
-            .setImageUrl(productDTO.imageUrl())
-            .setDescription(productDTO.description())
-            .setCurrency(mapCurrency(productDTO.currency()))
-            .setPrice(productDTO.price().doubleValue())
-            .setVolume(productDTO.volume().doubleValue())
-            .setCreatedOn(Instant.now().toEpochMilli())
-            .setCategories(mapToCategories(productDTO.categories()))
+            .setProductId(createProductEvent.id())
+            .setTitle(productDto.title())
+            .setImageUrl(productDto.imageUrl())
+            .setDescription(productDto.description())
+            .setCurrency(mapCurrency(productDto.currency()))
+            .setPrice(productDto.price().doubleValue())
+            .setVolume(productDto.volume().doubleValue())
+            .setCreatedOn(createProductEvent.occurredOn().toEpochMilli())
+            .setCategories(mapToCategories(productDto.categories()))
             .build();
     }
 

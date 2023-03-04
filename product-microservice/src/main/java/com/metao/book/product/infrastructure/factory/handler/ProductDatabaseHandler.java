@@ -21,7 +21,7 @@ public class ProductDatabaseHandler implements MessageHandler<CreateProductEvent
     public void onMessage(@NonNull CreateProductEvent event) {
         try {
             log.info("event occurred on: {}", event.occurredOn());
-            var productDto = event.productDTO();
+            var productDto = event.productDto();
             Optional.of(productDto)
                 .flatMap(productMapper::toEntity)
                 .ifPresent(productService::saveProduct);

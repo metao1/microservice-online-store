@@ -11,7 +11,7 @@ public class LogMessageHandler implements MessageHandler<CreateProductEvent> {
 
     @Override
     public void onMessage(@NonNull CreateProductEvent createProductEvent) {
-        log.info("event {} created.", createProductEvent.productDTO().asin());
+        log.info("event {} created.", createProductEvent.productDto().asin());
     }
 
 }

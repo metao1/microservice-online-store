@@ -22,7 +22,9 @@ public class ProductCreationController {
 
     @PostMapping
     public ResponseEntity<Void> saveProduct(@Valid @RequestBody ProductDTO productDTO) {
-        Optional.of(productDTO).map(EventUtil::createProductEvent).ifPresent(productKafkaHandler::onMessage);
+        Optional.of(productDTO)
+            .map(EventUtil::createProductEvent)
+            .ifPresent(productKafkaHandler::onMessage);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
