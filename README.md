@@ -1,9 +1,6 @@
-![LINE](https://img.shields.io/badge/line--coverage-87%25-brightgreen.svg)
-![BRANCH](https://img.shields.io/badge/branch--coverage-78%25-yellow.svg)
-![COMPLEXITY](https://img.shields.io/badge/complexity-1.90-brightgreen.svg)
-![CodeQL](https://github.com/metao1/microservice-online-book-store/workflows/CodeQL/badge.svg)
-
-# product
+[![Java CI with Gradle](https://github.com/metao1/microservice-online-book-store/actions/workflows/gradle.yml/badge.svg)](https://github.com/metao1/microservice-online-book-store/actions/workflows/gradle.yml)
+# Microservices Architecture Pattern using Kafka and Kafka Stream 
+### Online Book Store Using example
 
 Products is an E-commerce and management tool for products
 running on Spring boot , React using Microservice architecture
