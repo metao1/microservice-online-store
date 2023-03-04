@@ -61,6 +61,8 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQL9Dialect
     properties:
       hibernate:
+        connection:
+          provider_disables_autocommit: true
         temp:
           use_jdbc_metadata_defaults: false
     open-in-view: false
@@ -68,8 +70,10 @@ spring:
     url: jdbc:postgresql://localhost:5432/product
     username: product
     password: product
+    hikari:
+      auto-commit: false
 logging:
-  pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%15.15t]){yellow} %clr(:){red} %clr(%m){faint}%n"
+  pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr([%15.15t]){yellow} %clr(:){red} %clr(%m){faint}%n"
   level:
     org.apache.kafka.streams.kstream: INFO
     org.springframework.data: DEBUG

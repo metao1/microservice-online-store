@@ -45,7 +45,8 @@ spring:
     url: jdbc:postgresql://localhost:5432/product
     username: product
     password: product
-
+    hikari:
+      auto-commit: false
   jpa:
     database: POSTGRESQL
     show-sql: false
@@ -56,12 +57,11 @@ spring:
     properties:
       open-in-view: false
       hibernate:
+        connection:
+          provider_disables_autocommit: true
         temp:
           use_jdbc_metadata_defaults: false
-      datasource:
-        url: jdbc:postgresql://localhost:5432/product
-        username: postgres
-        password: postgres
+
 
 product-sample-data-path: data/products.txt
 
