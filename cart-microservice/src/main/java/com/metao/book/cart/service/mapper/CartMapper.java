@@ -6,7 +6,7 @@ import java.util.function.Supplier;
 
 public abstract class CartMapper<E, T> {
 
-    public T mapToEvent(
+    public T doMap(
         Supplier<E> supplier,
         Predicate<E> validator
     ) {

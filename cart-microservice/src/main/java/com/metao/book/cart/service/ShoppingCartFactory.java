@@ -37,10 +37,13 @@ public class ShoppingCartFactory implements ShoppingCartService {
         log.info("Adding product: " + shoppingCart.getAsin());
         ShoppingCartKey currentKey = new ShoppingCartKey(shoppingCart.getUserId(), shoppingCart.getAsin());
         Optional<ShoppingCart> shoppingCartOptional = shoppingCartRepository.findById(currentKey);
-        shoppingCartOptional.ifPresent(
-            sc -> shoppingCart.increaseQuantity()
-        );
+        shoppingCartOptional.ifPresent(sc -> shoppingCart.increaseQuantity());
         shoppingCartRepository.save(shoppingCart);
+    }
+
+    @Override
+    public void updateOrdersInCart(ShoppingCart shopping) {
+
     }
 
     @Override

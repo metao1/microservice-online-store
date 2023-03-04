@@ -1,20 +1,23 @@
 package com.metao.book.cart.service.mapper;
 
 import com.metao.book.cart.domain.ShoppingCart;
+import com.metao.book.cart.domain.dto.ShoppingCartDto;
+import com.metao.book.cart.domain.dto.ShoppingCartItem;
 import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.Status;
-import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
 
-@Component
 public class CartMapperService {
 
+    @Component
     public static final class ToEventMapper extends CartMapper<ShoppingCart, OrderEvent> {
 
         public OrderEvent mapToOrderEvent(ShoppingCart shoppingCart) {
-            return mapToEvent(() -> shoppingCart, s -> shoppingCart != null);
+            return doMap(() -> shoppingCart, s -> shoppingCart != null);
         }
 
         protected OrderEvent apply(ShoppingCart item) {
@@ -29,21 +32,44 @@ public class CartMapperService {
         }
     }
 
-    public final class ToEntityMapper extends CartMapper<OrderEvent, ShoppingCart> {
+    @Component
+    public static final class ToCartDto extends CartMapper<Set<ShoppingCart>, ShoppingCartDto> {
 
-        public ShoppingCart mapToEntity(OrderEvent orderEvent) {
-            return mapToEvent(() -> orderEvent, s -> orderEvent != null);
+        public ShoppingCartDto mapToDto(Set<ShoppingCart> item) {
+            return doMap(() -> item, s -> item != null && !item.isEmpty());
         }
 
-        protected ShoppingCart apply(OrderEvent event) {
-            return ShoppingCart.builder()
-                .imageUrl(event.getProductId())
-                .buyPrice(BigDecimal.valueOf(event.getPrice()))
-                .sellPrice(BigDecimal.valueOf(event.getPrice()))
-                .quantity(BigDecimal.valueOf(event.getQuantity()))
-                .userId(event.getCustomerId())
-                .asin(event.getProductId())
-                .build();
+        @Override
+        protected ShoppingCartDto apply(Set<ShoppingCart> item) {
+            final var shoppingCartDto = new ShoppingCartDto(Instant.now().toEpochMilli(), null, null);
+            item.forEach(shoppingCart -> {
+                shoppingCartDto.addItem(new ShoppingCartItem(shoppingCart.getAsin(), shoppingCart.getQuantity(),
+                    shoppingCart.getBuyPrice()));
+            });
+            return shoppingCartDto;
+        }
+    }
+
+    @Component
+    public static final class ToEntityMapper extends CartMapper<ShoppingCartDto, List<ShoppingCart>> {
+
+        public List<ShoppingCart> mapToEntity(ShoppingCartDto orderDto) {
+            return doMap(() -> orderDto, s -> orderDto != null);
+        }
+
+        @Override
+        protected List<ShoppingCart> apply(ShoppingCartDto item) {
+            return item.shoppingCartItems()
+                .stream()
+                .map(shoppingCartItem -> ShoppingCart.createCart(
+                        item.userId(),
+                        shoppingCartItem.asin(),
+                        shoppingCartItem.price(),
+                        shoppingCartItem.price(),
+                        shoppingCartItem.quantity()
+                    )
+                )
+                .toList();
         }
     }
 

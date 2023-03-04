@@ -7,7 +7,6 @@ import com.metao.book.product.domain.ProductRepository;
 import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.ProductEvent;
 import com.metao.book.shared.Status;
-import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import lombok.RequiredArgsConstructor;

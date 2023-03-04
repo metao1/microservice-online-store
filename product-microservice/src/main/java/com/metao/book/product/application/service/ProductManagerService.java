@@ -21,8 +21,8 @@ public class ProductManagerService {
 
     private static boolean availableInStock(OrderEvent order, ProductEntity productEntity) {
         return productEntity.getVolume()
-            .subtract(productEntity.getReservedItems())
-            .subtract(BigDecimal.valueOf(order.getQuantity())).doubleValue() >= 0;
+                .subtract(productEntity.getReservedItems())
+                .subtract(BigDecimal.valueOf(order.getQuantity())).doubleValue() >= 0;
     }
 
     public void reserve(OrderEvent order) {
@@ -47,6 +47,7 @@ public class ProductManagerService {
         switch (order.getStatus()) {
             case CONFIRM -> confirmOrder(order, productEntity);
             case ROLLBACK -> rejectOrder(order, productEntity);
+            default -> throw new RuntimeException("status is not defined");
         }
     }
 

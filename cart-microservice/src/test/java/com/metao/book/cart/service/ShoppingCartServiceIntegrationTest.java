@@ -20,14 +20,11 @@ public class ShoppingCartServiceIntegrationTest extends BasePostgresIntegrationT
 
     @BeforeEach
     void setUp() {
-        this.shoppingCart = ShoppingCart.createCart(ConstantsTest.TITLE,
-            ConstantsTest.DESCRIPTION,
-            ConstantsTest.IMAGE_URL,
-            ConstantsTest.USER_ID,
-            ConstantsTest.ASIN,
-            ConstantsTest.PRICE,
-            ConstantsTest.PRICE,
-            ConstantsTest.QUANTITY);
+        this.shoppingCart = ShoppingCart.createCart(ConstantsTest.USER_ID,
+                ConstantsTest.ASIN,
+                ConstantsTest.PRICE,
+                ConstantsTest.PRICE,
+                ConstantsTest.QUANTITY);
     }
 
     @Test
@@ -35,8 +32,8 @@ public class ShoppingCartServiceIntegrationTest extends BasePostgresIntegrationT
         shoppingCartService.addOrderToShoppingCart(shoppingCart);
         var productsInCart = shoppingCartService.getProductsInCartByUserId(ConstantsTest.USER_ID);
         assertThat(productsInCart)
-            .hasSize(1)
-            .containsExactlyInAnyOrder(shoppingCart);
+                .hasSize(1)
+                .containsExactlyInAnyOrder(shoppingCart);
 
     }
 
@@ -44,7 +41,7 @@ public class ShoppingCartServiceIntegrationTest extends BasePostgresIntegrationT
     void getProductsInCart() {
         shoppingCartService.addOrderToShoppingCart(shoppingCart);
         assertThat(shoppingCartService.getProductsInCartByUserId(ConstantsTest.USER_ID))
-            .extracting(ConstantsTest.USER_ID)
-            .isNotNull();
+                .extracting(ConstantsTest.USER_ID)
+                .isNotNull();
     }
 }

@@ -1,7 +1,6 @@
 package com.metao.book.cart.domain;
 
 import com.metao.book.cart.service.mapper.BaseEntity;
-import com.metao.book.shared.Status;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -11,15 +10,16 @@ import jakarta.persistence.Transient;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Objects;
-import lombok.Builder;
+
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.Hibernate;
 
-@Builder
 @ToString
 @Entity(name = "shopping_cart")
 @IdClass(ShoppingCartKey.class)
 @Table(name = "shopping_cart")
+@NoArgsConstructor
 public class ShoppingCart implements BaseEntity {
 
     @Transient
@@ -42,18 +42,6 @@ public class ShoppingCart implements BaseEntity {
     @Column(name = "created_time")
     private Long createdOn;
 
-    @Column(name = "status")
-    private Status status;
-
-    @Column(name = "title")
-    private String title;
-
-    @Column(name = "description")
-    private String description;
-
-    @Column(name = "image_url")
-    private String imageUrl;
-
     @Column(name = "buy_price")
     private BigDecimal buyPrice;
 
@@ -61,38 +49,27 @@ public class ShoppingCart implements BaseEntity {
     private BigDecimal sellPrice;
 
     public static ShoppingCart createCart(
-        String title,
-        String description,
-        String imageUrl,
-        String userId,
-        String asin,
-        BigDecimal buyPrice,
-        BigDecimal sellPrice,
-        BigDecimal quantity
-    ) {
-        return new ShoppingCart(title, description, imageUrl, userId, asin, buyPrice, sellPrice, quantity);
+            String userId,
+            String asin,
+            BigDecimal buyPrice,
+            BigDecimal sellPrice,
+            BigDecimal quantity) {
+        return new ShoppingCart(userId, asin, buyPrice, sellPrice, quantity);
     }
 
     public ShoppingCart(
-        String title,
-        String description,
-        String imageUrl,
-        String userId,
-        String asin,
-        BigDecimal buyPrice,
-        BigDecimal sellPrice,
-        BigDecimal quantity
-    ) {
-        this.userId = userId;
+            String userId,
+            String asin,
+            BigDecimal buyPrice,
+            BigDecimal sellPrice,
+            BigDecimal quantity) {
         this.asin = asin;
-        this.status = Status.NEW;
+        this.userId = userId;
+        this.createdOn = Instant.now().toEpochMilli();
         this.createdOn = Instant.now().toEpochMilli();
         this.quantity = quantity;
-        this.title = title;
-        this.description = description;
         this.sellPrice = sellPrice;
         this.buyPrice = buyPrice;
-        this.imageUrl = imageUrl;
     }
 
     public int increaseQuantity() {
@@ -119,30 +96,9 @@ public class ShoppingCart implements BaseEntity {
         this.createdOn = createdOn;
     }
 
-    public void setStatus(Status status) {
-        this.status = status;
-        setUpdatedOn(Instant.now().toEpochMilli());
-    }
-
     public void setUserId(String userId) {
         this.userId = userId;
         setUpdatedOn(Instant.now().toEpochMilli());
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
     }
 
     public BigDecimal getBuyPrice() {
@@ -151,14 +107,6 @@ public class ShoppingCart implements BaseEntity {
 
     public BigDecimal getSellPrice() {
         return sellPrice;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
     }
 
     public void setBuyPrice(BigDecimal buyPrice) {
@@ -188,10 +136,6 @@ public class ShoppingCart implements BaseEntity {
         return createdOn;
     }
 
-    public Status getStatus() {
-        return status;
-    }
-
     public String getAsin() {
         return asin;
     }
@@ -210,7 +154,7 @@ public class ShoppingCart implements BaseEntity {
         }
         ShoppingCart that = (ShoppingCart) o;
         return userId != null && Objects.equals(userId, that.userId)
-            && asin != null && Objects.equals(asin, that.asin);
+                && asin != null && Objects.equals(asin, that.asin);
     }
 
     @Override

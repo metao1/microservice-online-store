@@ -1,13 +1,18 @@
 package com.metao.book.cart.domain;
 
-import lombok.*;
 import java.io.Serializable;
+
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(of = {"userId", "asin"})
+@NoArgsConstructor
+@EqualsAndHashCode(of = { "userId", "asin" })
 public class ShoppingCartKey implements Serializable {
 
     private String userId;

@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Configuration
 @EnableKafka
 @RequiredArgsConstructor
-@ImportAutoConfiguration(value = {KafkaSerdesConfig.class})
+@ImportAutoConfiguration(value = {KafkaSerdesConfig.class, OrderValidator.class})
 public class OrderKafkaListenerConfig {
 
     private final OrderRepository orderRepository;

@@ -8,7 +8,6 @@ import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Service;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 @ComponentScan(basePackageClasses = RemoteKafkaService.class)

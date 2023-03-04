@@ -8,6 +8,8 @@ public interface ShoppingCartService {
 
     void addOrderToShoppingCart(ShoppingCart shoppingCart);
 
+    void updateOrdersInCart(ShoppingCart shopping);
+
     Set<ShoppingCart> getProductsInCartByUserId(String userId);
 
     void removeProductFromCart(String userId, String asin);

@@ -3,8 +3,10 @@ package com.metao.book.cart.service.config;
 import static com.metao.book.shared.kafka.Constants.KAFKA_TRANSACTION_MANAGER;
 
 import com.metao.book.cart.service.ShoppingCartService;
+import com.metao.book.cart.service.mapper.CartMapperService;
 import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.application.service.order.OrderValidator;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -20,11 +22,11 @@ import org.springframework.transaction.annotation.Transactional;
 @EnableKafka
 @Profile({"!test"})
 @RequiredArgsConstructor
-@ImportAutoConfiguration(value = {KafkaSerdesConfig.class})
+@ImportAutoConfiguration(value = {KafkaSerdesConfig.class, OrderValidator.class})
 public class KafkaCardListener {
 
     private final ShoppingCartService shoppingCartService;
-    private final ShoppingCartMapper shoppingCartMapper;
+    private final CartMapperService.ToEventMapper shoppingCartMapper;
     private final OrderValidator orderValidator;
 
     @Transactional(KAFKA_TRANSACTION_MANAGER)
@@ -35,7 +37,6 @@ public class KafkaCardListener {
     void onOrderListener(ConsumerRecord<String, OrderEvent> record) {
         orderValidator.validate(record.value());
         log.info("Received order event: {}", record.value());
-
-        shoppingCartService.addOrderToShoppingCart(record.value());
+        //shoppingCartService.updateOrdersInCart();
     }
 }

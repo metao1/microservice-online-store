@@ -37,15 +37,15 @@ public class ProductKafkaHandler implements MessageHandler<CreateProductEvent> {
 
     ProductEvent mapToProductEvent(ProductDTO productDTO) {
         return ProductEvent.newBuilder()
-            .setProductId(productDTO.getAsin())
-            .setTitle(productDTO.getTitle())
-            .setImageUrl(productDTO.getImageUrl())
-            .setDescription(productDTO.getDescription())
-            .setCurrency(mapCurrency(productDTO.getCurrency()))
-            .setPrice(productDTO.getPrice().doubleValue())
-            .setVolume(productDTO.getVolume().doubleValue())
+            .setProductId(productDTO.asin())
+            .setTitle(productDTO.title())
+            .setImageUrl(productDTO.imageUrl())
+            .setDescription(productDTO.description())
+            .setCurrency(mapCurrency(productDTO.currency()))
+            .setPrice(productDTO.price().doubleValue())
+            .setVolume(productDTO.volume().doubleValue())
             .setCreatedOn(Instant.now().toEpochMilli())
-            .setCategories(mapToCategories(productDTO.getCategories()))
+            .setCategories(mapToCategories(productDTO.categories()))
             .build();
     }
 

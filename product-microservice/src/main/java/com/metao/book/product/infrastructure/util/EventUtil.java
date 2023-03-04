@@ -9,6 +9,6 @@ import lombok.experimental.UtilityClass;
 public class EventUtil {
 
     public static CreateProductEvent createProductEvent(ProductDTO productDTO) {
-        return new CreateProductEvent(productDTO.getAsin(), productDTO, Instant.now());
+        return new CreateProductEvent(productDTO.asin(), productDTO, Instant.now());
     }
 }

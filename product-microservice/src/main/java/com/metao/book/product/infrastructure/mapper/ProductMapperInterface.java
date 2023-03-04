@@ -34,13 +34,13 @@ public interface ProductMapperInterface {
 
     private static ProductEntity buildProductEntity(ProductDTO item) {
         var productEntity = new ProductEntity(
-            item.getAsin(),
-            item.getTitle(),
-            item.getDescription(),
-            item.getVolume(),
-            new Money(item.getCurrency(), item.getPrice()),
-            new Image(Optional.ofNullable(item.getImageUrl()).orElse("")));
-        var categories = mapCategoryDTOsToEntities(item.getCategories());
+            item.asin(),
+            item.title(),
+            item.description(),
+            item.volume(),
+            new Money(item.currency(), item.price()),
+            new Image(Optional.ofNullable(item.imageUrl()).orElse("")));
+        var categories = mapCategoryDTOsToEntities(item.categories());
         Stream.of(categories)
             .flatMap(Collection::stream)
             .forEach(productEntity::addCategory);
@@ -101,6 +101,7 @@ public interface ProductMapperInterface {
         return switch (currency) {
             case dlr -> com.metao.book.shared.domain.financial.Currency.DLR;
             case eur -> com.metao.book.shared.domain.financial.Currency.EUR;
+            default -> throw new RuntimeException("This currency is not defined");
         };
     }
 }

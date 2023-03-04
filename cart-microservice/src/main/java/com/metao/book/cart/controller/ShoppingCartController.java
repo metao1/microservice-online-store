@@ -3,10 +3,7 @@ package com.metao.book.cart.controller;
 import com.metao.book.cart.domain.dto.ShoppingCartDto;
 import com.metao.book.cart.service.ShoppingCartService;
 import com.metao.book.cart.service.mapper.CartMapperService;
-import com.metao.book.cart.service.mapper.ShoppingCartMapper;
-import java.time.Instant;
-import java.util.Objects;
-import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,49 +21,40 @@ import org.springframework.web.bind.annotation.RestController;
 public class ShoppingCartController {
 
     private final ShoppingCartService shoppingCartService;
-    private final CartMapperService.ToEventMapper cartMapper;
-    private final ShoppingCartMapper shoppingCartMapper;
+    private final CartMapperService.ToEntityMapper toEntityMapper;
+    private final CartMapperService.ToCartDto toCartDtoMapper;
 
     @PostMapping
-    public String addProductToCart(
-        @RequestParam("user_id") String userId,
-        @RequestParam("asin") String asin
-    ) {
-        shoppingCartService.addOrderToShoppingCart(userId, asin);
-        return asin;
+    public int addProductToCart(@RequestParam("shopping_cart") ShoppingCartDto shoppingCartDto) {
+        final var shoppingCarts = toEntityMapper.mapToEntity(shoppingCartDto);
+        shoppingCarts.forEach(shoppingCartService::addOrderToShoppingCart);
+        return shoppingCarts.size();
     }
 
     @GetMapping
     public ShoppingCartDto getProductsInCart(@RequestParam("user_id") String userId) {
         final var productsInCartByUserId = shoppingCartService.getProductsInCartByUserId(userId);
-        final var shoppingCartItems = productsInCartByUserId
-            .stream()
-            .map(cartMapper::mapToOrderEvent)
-            .map(item -> shoppingCartMapper.mapToEvent(() -> item, Objects::nonNull)
-            ).collect(Collectors.toSet());
-        return new ShoppingCartDto(Instant.now().toEpochMilli(), shoppingCartItems);
+        return toCartDtoMapper.mapToDto(productsInCartByUserId);
     }
 
     @PostMapping("/submit")
     public ResponseEntity<String> submitProducts(
-        @RequestParam("user_id") String userId
-    ) {
+            @RequestParam("user_id") String userId) {
         final var submitProductsOptional = shoppingCartService.submitProducts(userId);
         if (submitProductsOptional.isPresent()) {
             return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(String.format("Successfully submitted for user %s", userId));
+                    .status(HttpStatus.CREATED)
+                    .body(String.format("Successfully submitted for user %s", userId));
         } else {
             return ResponseEntity.unprocessableEntity()
-                .body(String.format("Submitting products unsuccessful for user %s", userId));
+                    .body(String.format("Submitting products unsuccessful for user %s", userId));
         }
     }
 
     @DeleteMapping(value = "/remove")
     public String removeProductFromCart(
-        @RequestParam("user_id") String userId,
-        @RequestParam("asin") String asin
-    ) {
+            @RequestParam("user_id") String userId,
+            @RequestParam("asin") String asin) {
         shoppingCartService.removeProductFromCart(userId, asin);
         return asin;
     }
@@ -78,7 +66,7 @@ public class ShoppingCartController {
             return ResponseEntity.ok(String.format("Clearing Cart, Checkout successful for user %s", userId));
         } else {
             return ResponseEntity.unprocessableEntity()
-                .body(String.format("Clearing Cart, checkout unsuccessful for user %s", userId));
+                    .body(String.format("Clearing Cart, checkout unsuccessful for user %s", userId));
         }
     }
 

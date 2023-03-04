@@ -27,16 +27,14 @@ class ShoppingCartServiceTest {
 
     @Mock
     RemoteKafkaService<String, OrderEvent> remoteKafkaService;
-    CartMapperService cartMapperService = new CartMapperService();
+    CartMapperService.ToEventMapper cartMapperService = new CartMapperService.ToEventMapper();
     NewTopic orderTopic = new NewTopic("order-topic", 1, (short) 1);
 
-    private final ShoppingCartService shoppingCartService = new ShoppingCartFactory
-        (
+    ShoppingCartFactory shoppingCartService = new ShoppingCartFactory(
             remoteKafkaService,
             shoppingCartRepository,
             cartMapperService,
-            orderTopic
-        );
+            orderTopic);
 
     @TestFactory
     Stream<DynamicTest> addAndGetShoppingCartScenario() {
@@ -52,14 +50,11 @@ class ShoppingCartServiceTest {
     }
 
     private Stream<ShoppingCart> buildShoppingCartStream() {
-        return StreamBuilder.of(ShoppingCart.class, 1, 20,
-            i -> ShoppingCart.createCart(ConstantsTest.TITLE,
-                ConstantsTest.DESCRIPTION,
-                ConstantsTest.IMAGE_URL,
-                ConstantsTest.USER_ID,
-                ConstantsTest.ASIN + "_" + i,
-                ConstantsTest.PRICE,
-                ConstantsTest.PRICE,
-                ConstantsTest.QUANTITY));
+        return StreamBuilder.of(ShoppingCart.class, 1, 2,
+                i -> ShoppingCart.createCart(ConstantsTest.USER_ID,
+                        ConstantsTest.ASIN,
+                        ConstantsTest.PRICE,
+                        ConstantsTest.PRICE,
+                        ConstantsTest.QUANTITY));
     }
 }

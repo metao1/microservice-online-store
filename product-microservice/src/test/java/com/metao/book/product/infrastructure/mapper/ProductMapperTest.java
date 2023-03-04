@@ -53,17 +53,17 @@ public class ProductMapperTest {
         var productDto = productMapper.toDto(pe);
         var categories = pe.getCategories();
 
-        productDto.getCategories()
+        productDto.categories()
             .stream()
             .map(CategoryDTO::getCategory)
             .forEach(category -> assertTrue(categories.contains(new ProductCategoryEntity(new Category(category)))));
 
         assertThat(productDto)
             .extracting(
-                ProductDTO::getTitle,
-                ProductDTO::getDescription,
-                ProductDTO::getPrice,
-                ProductDTO::getImageUrl)
+                ProductDTO::title,
+                ProductDTO::description,
+                ProductDTO::price,
+                ProductDTO::imageUrl)
             .containsExactly(
                 pe.getTitle(),
                 pe.getDescription(),
@@ -79,10 +79,10 @@ public class ProductMapperTest {
         assertEquals(allPrDtos.size(), allPr.size());
         allPrDtos.forEach(dto -> assertThat(dto)
             .extracting(
-                ProductDTO::getTitle,
-                ProductDTO::getDescription,
-                ProductDTO::getPrice,
-                ProductDTO::getImageUrl)
+                ProductDTO::title,
+                ProductDTO::description,
+                ProductDTO::price,
+                ProductDTO::imageUrl)
             .containsExactly(
                 pe.getTitle(),
                 pe.getDescription(),
