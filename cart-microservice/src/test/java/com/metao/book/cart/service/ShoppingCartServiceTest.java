@@ -8,6 +8,8 @@ import com.metao.book.cart.domain.ShoppingCart;
 import com.metao.book.cart.repository.ShoppingCartRepository;
 import com.metao.book.cart.service.mapper.CartMapperService;
 import com.metao.book.shared.OrderEvent;
+import com.metao.book.shared.application.service.order.OrderEventValidator;
+import com.metao.book.shared.domain.financial.Currency;
 import com.metao.book.shared.kafka.RemoteKafkaService;
 import com.metao.book.shared.test.TestUtils.StreamBuilder;
 import java.util.function.Function;
@@ -27,14 +29,19 @@ class ShoppingCartServiceTest {
 
     @Mock
     RemoteKafkaService<String, OrderEvent> remoteKafkaService;
+
+    @Mock
+    OrderEventValidator orderEventValidator;
+
     CartMapperService.ToEventMapper cartMapperService = new CartMapperService.ToEventMapper();
     NewTopic orderTopic = new NewTopic("order-topic", 1, (short) 1);
 
     ShoppingCartFactory shoppingCartService = new ShoppingCartFactory(
-            remoteKafkaService,
-            shoppingCartRepository,
-            cartMapperService,
-            orderTopic);
+        remoteKafkaService,
+        cartMapperService,
+        shoppingCartRepository,
+        orderEventValidator,
+        orderTopic);
 
     @TestFactory
     Stream<DynamicTest> addAndGetShoppingCartScenario() {
@@ -51,10 +58,11 @@ class ShoppingCartServiceTest {
 
     private Stream<ShoppingCart> buildShoppingCartStream() {
         return StreamBuilder.of(ShoppingCart.class, 1, 2,
-                i -> ShoppingCart.createCart(ConstantsTest.USER_ID,
-                        ConstantsTest.ASIN,
-                        ConstantsTest.PRICE,
-                        ConstantsTest.PRICE,
-                        ConstantsTest.QUANTITY));
+            i -> ShoppingCart.createCart(ConstantsTest.USER_ID,
+                ConstantsTest.ASIN,
+                ConstantsTest.DEFAULT_PRICE,
+                ConstantsTest.DEFAULT_PRICE,
+                ConstantsTest.DEFAULT_QUANTITY,
+                Currency.EUR));
     }
 }

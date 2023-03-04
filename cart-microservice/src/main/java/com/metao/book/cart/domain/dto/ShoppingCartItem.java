@@ -1,5 +1,6 @@
 package com.metao.book.cart.domain.dto;
 
+import com.metao.book.shared.domain.financial.Currency;
 import java.math.BigDecimal;
 import lombok.Builder;
 
@@ -7,6 +8,7 @@ import lombok.Builder;
 public record ShoppingCartItem(
     String asin,
     BigDecimal quantity,
-    BigDecimal price
-    ) {
+    BigDecimal price,
+    Currency currency
+) {
 }

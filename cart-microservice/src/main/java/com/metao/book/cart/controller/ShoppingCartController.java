@@ -3,7 +3,6 @@ package com.metao.book.cart.controller;
 import com.metao.book.cart.domain.dto.ShoppingCartDto;
 import com.metao.book.cart.service.ShoppingCartService;
 import com.metao.book.cart.service.mapper.CartMapperService;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,16 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/cart")
 public class ShoppingCartController {
 
-    private final ShoppingCartService shoppingCartService;
-    private final CartMapperService.ToEntityMapper toEntityMapper;
     private final CartMapperService.ToCartDto toCartDtoMapper;
-
-    @PostMapping
-    public int addProductToCart(@RequestParam("shopping_cart") ShoppingCartDto shoppingCartDto) {
-        final var shoppingCarts = toEntityMapper.mapToEntity(shoppingCartDto);
-        shoppingCarts.forEach(shoppingCartService::addOrderToShoppingCart);
-        return shoppingCarts.size();
-    }
+    private final ShoppingCartService shoppingCartService;
 
     @GetMapping
     public ShoppingCartDto getProductsInCart(@RequestParam("user_id") String userId) {
@@ -46,8 +37,8 @@ public class ShoppingCartController {
                     .status(HttpStatus.CREATED)
                     .body(String.format("Successfully submitted for user %s", userId));
         } else {
-            return ResponseEntity.unprocessableEntity()
-                    .body(String.format("Submitting products unsuccessful for user %s", userId));
+            return ResponseEntity.badRequest()
+                .body(String.format("Submitting products unsuccessful for user %s", userId));
         }
     }
 

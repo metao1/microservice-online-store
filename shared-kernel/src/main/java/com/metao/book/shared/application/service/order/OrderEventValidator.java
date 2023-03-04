@@ -9,7 +9,7 @@ import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 @Component
-public class OrderValidator implements Validator<OrderEvent> {
+public class OrderEventValidator implements Validator<OrderEvent> {
 
     @Override
     public void validate(OrderEvent order) throws RuntimeException {
@@ -20,6 +20,7 @@ public class OrderValidator implements Validator<OrderEvent> {
             .findAny()
             .orElseThrow(() -> new RuntimeException("provided status can't be found"));
         Objects.requireNonNull(order.getCurrency(), "currency can't be null");
+        Objects.requireNonNull(order.getSource(), "source can't be null");
         Currency.valueOf(order.getCurrency().name().toUpperCase());
     }
 }

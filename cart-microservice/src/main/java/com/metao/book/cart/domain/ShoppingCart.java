@@ -1,6 +1,7 @@
 package com.metao.book.cart.domain;
 
 import com.metao.book.cart.service.mapper.BaseEntity;
+import com.metao.book.shared.domain.financial.Currency;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -10,7 +11,6 @@ import jakarta.persistence.Transient;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Objects;
-
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.Hibernate;
@@ -48,28 +48,35 @@ public class ShoppingCart implements BaseEntity {
     @Column(name = "sell_price")
     private BigDecimal sellPrice;
 
+    @Column(name = "currency")
+    private Currency currency;
+
     public static ShoppingCart createCart(
-            String userId,
-            String asin,
-            BigDecimal buyPrice,
-            BigDecimal sellPrice,
-            BigDecimal quantity) {
-        return new ShoppingCart(userId, asin, buyPrice, sellPrice, quantity);
+        String userId,
+        String asin,
+        BigDecimal buyPrice,
+        BigDecimal sellPrice,
+        BigDecimal quantity,
+        Currency currency
+    ) {
+        return new ShoppingCart(userId, asin, buyPrice, sellPrice, quantity, currency);
     }
 
     public ShoppingCart(
-            String userId,
-            String asin,
-            BigDecimal buyPrice,
-            BigDecimal sellPrice,
-            BigDecimal quantity) {
+        String userId,
+        String asin,
+        BigDecimal buyPrice,
+        BigDecimal sellPrice,
+        BigDecimal quantity,
+        Currency currency
+    ) {
+        this.createdOn = Instant.now().toEpochMilli();
         this.asin = asin;
         this.userId = userId;
-        this.createdOn = Instant.now().toEpochMilli();
-        this.createdOn = Instant.now().toEpochMilli();
         this.quantity = quantity;
         this.sellPrice = sellPrice;
         this.buyPrice = buyPrice;
+        this.currency = currency;
     }
 
     public int increaseQuantity() {
@@ -94,6 +101,18 @@ public class ShoppingCart implements BaseEntity {
     @Override
     public void setCreatedOn(Long createdOn) {
         this.createdOn = createdOn;
+    }
+
+    public void setQuantity(BigDecimal quantity) {
+        this.quantity = quantity;
+    }
+
+    public Currency getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(Currency currency) {
+        this.currency = currency;
     }
 
     public void setUserId(String userId) {

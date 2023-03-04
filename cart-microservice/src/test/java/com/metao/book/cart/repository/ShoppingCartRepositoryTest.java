@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import com.metao.book.cart.domain.ShoppingCart;
 import com.metao.book.cart.domain.ShoppingCartKey;
 import com.metao.book.cart.service.ConstantsTest;
-
+import com.metao.book.shared.domain.financial.Currency;
 import java.math.BigDecimal;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,49 +33,57 @@ class ShoppingCartRepositoryTest {
     @BeforeEach
     void setUp() {
         this.shoppingCart = ShoppingCart.createCart(ConstantsTest.USER_ID,
-                ConstantsTest.ASIN,
-                ConstantsTest.PRICE,
-                ConstantsTest.PRICE,
-                ConstantsTest.QUANTITY);
+            ConstantsTest.ASIN,
+            ConstantsTest.DEFAULT_PRICE,
+            ConstantsTest.DEFAULT_PRICE,
+            ConstantsTest.DEFAULT_QUANTITY,
+            Currency.EUR
+        );
     }
 
     @Test
     void checkCartItemsAreEquals() {
         var shoppingCart1 = ShoppingCart.createCart("USER1",
-                ConstantsTest.ASIN,
-                ConstantsTest.PRICE,
-                ConstantsTest.PRICE,
-                ConstantsTest.QUANTITY);
+            ConstantsTest.ASIN,
+            ConstantsTest.DEFAULT_PRICE,
+            ConstantsTest.DEFAULT_PRICE,
+            ConstantsTest.DEFAULT_QUANTITY,
+            Currency.EUR);
         var shoppingCart2 = ShoppingCart.createCart("USER2",
-                ConstantsTest.ASIN,
-                ConstantsTest.PRICE,
-                ConstantsTest.PRICE,
-                ConstantsTest.QUANTITY);
+            ConstantsTest.ASIN,
+            ConstantsTest.DEFAULT_PRICE,
+            ConstantsTest.DEFAULT_PRICE,
+            ConstantsTest.DEFAULT_QUANTITY,
+            Currency.EUR);
 
         assertNotEquals(shoppingCart1, shoppingCart2);
 
         var shoppingCart3 = ShoppingCart.createCart("USER1",
-                ConstantsTest.ASIN,
-                ConstantsTest.PRICE,
-                ConstantsTest.PRICE,
-                ConstantsTest.QUANTITY);
+            ConstantsTest.ASIN,
+            ConstantsTest.DEFAULT_PRICE,
+            ConstantsTest.DEFAULT_PRICE,
+            ConstantsTest.DEFAULT_QUANTITY,
+            Currency.EUR);
         var shoppingCart4 = ShoppingCart.createCart("USER1",
-                ConstantsTest.ASIN,
-                ConstantsTest.PRICE,
-                ConstantsTest.PRICE,
-                ConstantsTest.QUANTITY);
+            ConstantsTest.ASIN,
+            ConstantsTest.DEFAULT_PRICE,
+            ConstantsTest.DEFAULT_PRICE,
+            ConstantsTest.DEFAULT_QUANTITY,
+            Currency.EUR);
         assertEquals(shoppingCart3, shoppingCart4);
 
         var shoppingCart5 = ShoppingCart.createCart(ConstantsTest.USER_ID,
-                "asin1",
-                ConstantsTest.PRICE,
-                ConstantsTest.PRICE,
-                ConstantsTest.QUANTITY);
+            "asin1",
+            ConstantsTest.DEFAULT_PRICE,
+            ConstantsTest.DEFAULT_PRICE,
+            ConstantsTest.DEFAULT_QUANTITY,
+            Currency.EUR);
         var shoppingCart6 = ShoppingCart.createCart(ConstantsTest.USER_ID,
-                "asin2",
-                ConstantsTest.PRICE,
-                ConstantsTest.PRICE,
-                ConstantsTest.QUANTITY);
+            "asin2",
+            ConstantsTest.DEFAULT_PRICE,
+            ConstantsTest.DEFAULT_PRICE,
+            ConstantsTest.DEFAULT_QUANTITY,
+            Currency.EUR);
 
         assertNotEquals(shoppingCart5, shoppingCart6);
     }
@@ -141,15 +149,17 @@ class ShoppingCartRepositoryTest {
     @Test
     void saveProductsInCartByUserId_FoundTwoProducts() {
         var shoppingCart1 = ShoppingCart.createCart(ConstantsTest.USER_ID,
-                ConstantsTest.ASIN,
-                ConstantsTest.PRICE,
-                ConstantsTest.PRICE,
-                ConstantsTest.QUANTITY);
+            ConstantsTest.ASIN,
+            ConstantsTest.DEFAULT_PRICE,
+            ConstantsTest.DEFAULT_PRICE,
+            ConstantsTest.DEFAULT_QUANTITY,
+            Currency.EUR);
         var shoppingCart2 = ShoppingCart.createCart(ConstantsTest.USER_ID,
-                "asin2",
-                ConstantsTest.PRICE,
-                ConstantsTest.PRICE,
-                ConstantsTest.QUANTITY);
+            "asin2",
+            ConstantsTest.DEFAULT_PRICE,
+            ConstantsTest.DEFAULT_PRICE,
+            ConstantsTest.DEFAULT_QUANTITY,
+            Currency.EUR);
         var cards = Set.of(shoppingCart1, shoppingCart2);
         shoppingCartRepository.saveAll(cards);
         assertThat(shoppingCartRepository.findProductsInCartByUserId(ConstantsTest.USER_ID))
@@ -163,7 +173,7 @@ class ShoppingCartRepositoryTest {
         final var shoppingCart = shoppingCartRepository.findById(
                 new ShoppingCartKey(ConstantsTest.USER_ID, ConstantsTest.ASIN)).orElseThrow();
         assertThat(shoppingCart.getQuantity())
-                .isEqualTo(ConstantsTest.QUANTITY);
+            .isEqualTo(ConstantsTest.DEFAULT_QUANTITY);
     }
 
 }

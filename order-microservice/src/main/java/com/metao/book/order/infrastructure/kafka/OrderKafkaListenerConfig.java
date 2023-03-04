@@ -6,7 +6,7 @@ import com.metao.book.order.application.config.KafkaSerdesConfig;
 import com.metao.book.order.application.service.OrderMapper;
 import com.metao.book.order.infrastructure.repository.OrderRepository;
 import com.metao.book.shared.OrderEvent;
-import com.metao.book.shared.application.service.order.OrderValidator;
+import com.metao.book.shared.application.service.order.OrderEventValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -20,12 +20,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Configuration
 @EnableKafka
 @RequiredArgsConstructor
-@ImportAutoConfiguration(value = {KafkaSerdesConfig.class, OrderValidator.class})
+@ImportAutoConfiguration(value = {KafkaSerdesConfig.class, OrderEventValidator.class})
 public class OrderKafkaListenerConfig {
 
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
-    private final OrderValidator orderValidator;
+    private final OrderEventValidator orderEventValidator;
 
     @KafkaListener(
         id = "${kafka.topic.order}",
@@ -36,7 +36,7 @@ public class OrderKafkaListenerConfig {
     @Transactional(KAFKA_TRANSACTION_MANAGER)
     public void orderKafkaListener(ConsumerRecord<String, OrderEvent> record) {
         var order = record.value();
-        orderValidator.validate(order);
+        orderEventValidator.validate(order);
         log.info("Consumed order -> {}", order);
         new OrderProcessorHelper<>(order)
             .ifPresentRun((orderEvent) -> {
