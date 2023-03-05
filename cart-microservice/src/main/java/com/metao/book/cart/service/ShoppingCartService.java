@@ -1,7 +1,6 @@
 package com.metao.book.cart.service;
 
 import com.metao.book.cart.domain.ShoppingCart;
-import java.util.Optional;
 import java.util.Set;
 
 public interface ShoppingCartService {
@@ -16,5 +15,5 @@ public interface ShoppingCartService {
 
     int clearCart(String userId);
 
-    Optional<Boolean> submitProducts(String userId);
+    boolean submitProducts(String userId);
 }

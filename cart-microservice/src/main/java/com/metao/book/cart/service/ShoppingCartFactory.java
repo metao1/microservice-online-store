@@ -1,6 +1,7 @@
 
 package com.metao.book.cart.service;
 
+import static com.metao.book.shared.kafka.Constants.KAFKA_TRANSACTION_MANAGER;
 import static com.metao.book.shared.kafka.Constants.TRANSACTION_MANAGER;
 
 import com.metao.book.cart.domain.ShoppingCart;
@@ -8,6 +9,7 @@ import com.metao.book.cart.domain.ShoppingCartKey;
 import com.metao.book.cart.repository.ShoppingCartRepository;
 import com.metao.book.cart.service.mapper.CartMapperService;
 import com.metao.book.shared.OrderEvent;
+import com.metao.book.shared.Status;
 import com.metao.book.shared.application.service.order.OrderEventValidator;
 import com.metao.book.shared.kafka.RemoteKafkaService;
 import java.math.BigDecimal;
@@ -18,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
@@ -82,18 +85,21 @@ public class ShoppingCartFactory implements ShoppingCartService {
     }
 
     @Override
-    public Optional<Boolean> submitProducts(String userId) {
+    @Transactional(value = KAFKA_TRANSACTION_MANAGER, propagation = Propagation.REQUIRED)
+    public boolean submitProducts(String userId) {
         var products = shoppingCartRepository.findProductsInCartByUserId(userId);
         if (CollectionUtils.isEmpty(products)) {
-            return Optional.empty();
-        } else {
-            products.stream()
-                .map(cartMapper::mapToOrderEvent)
-                .sorted((p1, p2) -> (int) (p1.getCreatedOn() - p2.getCreatedOn()))
-                .peek(orderEventValidator::validate)
-                .forEachOrdered(orderEvent ->
-                    orderTemplate.sendToTopic(orderTopic.name(), orderEvent.getProductId(), orderEvent));
-            return Optional.of(true);
+            return false;
         }
+        return products.stream()
+            .map(cartMapper::mapToOrderEvent)
+            .filter(order -> Status.NEW.equals(order.getStatus()))
+            .sorted((p1, p2) -> Math.toIntExact(p1.getCreatedOn() - p2.getCreatedOn()))
+            .peek(orderEventValidator::validate)
+            .filter(orderEvent -> Status.NEW.equals(orderEvent.getStatus()))
+            .peek(orderEvent -> orderTemplate.sendToTopic(orderTopic.name(), orderEvent.getProductId(), orderEvent))
+            .peek(orderEvent -> orderEvent.setStatus(Status.SUBMITTED))
+            .reduce((o1, o2) -> o2)
+            .isPresent();
     }
 }

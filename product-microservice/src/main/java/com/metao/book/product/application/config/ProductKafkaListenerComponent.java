@@ -8,7 +8,6 @@ import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.ProductEvent;
 import com.metao.book.shared.Status;
 import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -29,25 +28,18 @@ public class ProductKafkaListenerComponent {
     private final ProductManagerService productManagerService;
     private final ProductRepository productRepository;
     private final ProductMapper mapper;
-    private final CountDownLatch count = new CountDownLatch(1);
 
     @KafkaListener(id = "${kafka.topic.product}",
         topics = "${kafka.topic.product}",
         groupId = "${kafka.topic.product}" + "-grp")
     public void onProductEvent(ConsumerRecord<String, ProductEvent> productEvent) {
-        try {
-            var product = productEvent.value();
-            log.info("Consumed product -> {}", product);
-            var foundProduct = productRepository.findByAsin(product.getProductId());
-            if (foundProduct.isEmpty()) {
-                Optional.of(product)
-                    .flatMap(mapper::toEntity)
-                    .ifPresent(productRepository::save);
-            }
-        } catch (Exception ex) {
-            log.error(ex.getMessage());
-        } finally {
-            count.countDown();
+        var product = productEvent.value();
+        log.info("Consumed product -> {}", product);
+        var foundProduct = productRepository.findByAsin(product.getProductId());
+        if (foundProduct.isEmpty()) {
+            Optional.of(product)
+                .flatMap(mapper::toEntity)
+                .ifPresent(productRepository::save);
         }
     }
 
