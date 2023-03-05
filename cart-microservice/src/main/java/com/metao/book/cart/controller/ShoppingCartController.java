@@ -29,13 +29,13 @@ public class ShoppingCartController {
     }
 
     @PostMapping("/submit")
-    public ResponseEntity<String> submitProducts(
-            @RequestParam("user_id") String userId) {
-        final var submitProductsOptional = shoppingCartService.submitProducts(userId);
-        if (submitProductsOptional.isPresent()) {
+    public ResponseEntity<String> submitProducts(@RequestParam("user_id") String userId) {
+        final var submitProducts = shoppingCartService.submitProducts(userId);
+        if (submitProducts) {
+            shoppingCartService.clearCart(userId);
             return ResponseEntity
-                    .status(HttpStatus.CREATED)
-                    .body(String.format("Successfully submitted for user %s", userId));
+                .status(HttpStatus.CREATED)
+                .body(String.format("Successfully submitted for user %s", userId));
         } else {
             return ResponseEntity.badRequest()
                 .body(String.format("Submitting products unsuccessful for user %s", userId));

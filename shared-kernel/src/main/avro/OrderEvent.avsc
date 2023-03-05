@@ -27,6 +27,7 @@
         "symbols": [
           "NEW",
           "ACCEPT",
+          "SUBMITTED",
           "CONFIRM",
           "REJECT",
           "PAYMENT",

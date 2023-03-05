@@ -12,11 +12,11 @@ import org.springframework.stereotype.Service;
 @ComponentScan(basePackageClasses = RemoteKafkaService.class)
 public class RemoteOrderService {
 
-    private final RemoteKafkaService<String, OrderEvent> kafkaTemplate;
+    private final RemoteKafkaService<String, OrderEvent> orderTemplate;
     private final NewTopic orderPaymentTopic;
 
     public void handle(OrderEvent orderEvent) {
-        kafkaTemplate.sendToTopic(orderPaymentTopic.name(), orderEvent.getProductId(), orderEvent);
+        orderTemplate.sendToTopic(orderPaymentTopic.name(), orderEvent.getProductId(), orderEvent);
     }
 
 }
