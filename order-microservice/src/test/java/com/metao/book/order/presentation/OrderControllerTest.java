@@ -51,7 +51,7 @@ class OrderControllerTest extends BaseKafkaIntegrationTest {
     @Test
     @SneakyThrows
     void createOrderIsOk() {
-        var order = CreateOrderDTO.builder()
+        var createOrderDTO = CreateOrderDTO.builder()
             .accountId("ACCOUNT_ID")
                 .productId("1234567892")
                 .currency(Currency.EUR)
@@ -62,7 +62,6 @@ class OrderControllerTest extends BaseKafkaIntegrationTest {
         var expectedOrder = OrderDTO.builder()
             .customerId("ACCOUNT_ID")
             .productId("1234567892")
-            .orderId("")
             .currency(Currency.EUR)
             .status(Status.NEW)
             .price(BigDecimal.valueOf(123d))
@@ -71,20 +70,20 @@ class OrderControllerTest extends BaseKafkaIntegrationTest {
 
         restTemplate.perform(post("/order")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(StreamBuilderTestUtils.convertObjectToJsonBytes(objectMapper, order)))
+                .content(StreamBuilderTestUtils.convertObjectToJsonBytes(objectMapper, createOrderDTO)))
                 .andExpect(status().isOk());
 
         OrderDTO orderDTO = arrayBlockingQueue.poll(10, TimeUnit.SECONDS);
 
         assertThat(orderDTO)
             .isNotNull()
-            .satisfies(o -> {
-                assertEquals(expectedOrder.price(), o.price());
-                assertEquals(expectedOrder.productId(), o.productId());
-                assertEquals(expectedOrder.quantity(), o.quantity());
-                assertEquals(expectedOrder.status(), o.status());
-                assertEquals(expectedOrder.currency(), o.currency());
-                assertEquals(expectedOrder.customerId(), o.customerId());
+            .satisfies(order -> {
+                assertEquals(expectedOrder.price(), order.price());
+                assertEquals(expectedOrder.productId(), order.productId());
+                assertEquals(expectedOrder.quantity(), order.quantity());
+                assertEquals(expectedOrder.status(), order.status());
+                assertEquals(expectedOrder.currency(), order.currency());
+                assertEquals(expectedOrder.customerId(), order.customerId());
             });
 
     }

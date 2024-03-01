@@ -1,5 +1,6 @@
 package com.metao.book.order.infrastructure.kafka;
 
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -39,6 +40,11 @@ public class StageProcessor<T> implements Stage<T> {
             this.cause = e;
         }
         return new MinimalStage<>(null);
+    }
+
+    @Override
+    public void acceptException(BiConsumer<? super T, Throwable> biConsumer) {
+        biConsumer.accept(event, cause);
     }
 
     private static final class MinimalStage<T> extends StageProcessor<T> {

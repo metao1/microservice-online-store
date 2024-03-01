@@ -32,9 +32,6 @@ public class OrderKafkaListenerConfig {
             .thenApply(orderMapper::toDto)
             .thenApply(orderMapper::toEntity)
             .thenApply(orderRepository::save)
-            .handleException((orderEntity, ex) -> {
-                log.error(ex.getMessage());
-                return null;
-            });
+            .acceptException((entity, ex) -> log.error("saving order {}, reason: {}", entity, ex.getMessage()));
     }
 }
