@@ -9,10 +9,10 @@ kafka:
     num-partitions: 1
     replication-factor: 1
   topic:
-    product: "product-topic"
-    order: "book-order-topic"
-    order-product: "order-product-topic"
-    payment: "payment-topic"
+    product: "product"
+    order: "book-order"
+    order-product: "order-product"
+    payment: "payment"
 
 spring:
   kafka:
@@ -20,9 +20,9 @@ spring:
     bootstrap-servers: ${BOOTSTRAP_SERVERS}
     # Required connection configs for Confluent Cloud Schema Registry
     properties:
-      stream-properties:
-        schema.registry.url: ${SCHEMA_HOST}
-        bootstrap.servers: ${BOOTSTRAP_SERVERS}
+#      stream-properties:
+#        schema.registry.url: ${SCHEMA_HOST}
+#        bootstrap.servers: ${BOOTSTRAP_SERVERS}
       bootstrap-servers: ${BOOTSTRAP_SERVERS}
       security.protocol: SASL_SSL
       sasl.mechanism: PLAIN

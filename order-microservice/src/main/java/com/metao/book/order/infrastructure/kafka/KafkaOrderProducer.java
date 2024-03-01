@@ -1,27 +1,22 @@
 package com.metao.book.order.infrastructure.kafka;
 
-import com.metao.book.shared.OrderEvent;
-import com.metao.book.shared.kafka.RemoteKafkaService;
+import com.metao.book.order.application.dto.OrderDTO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.NewTopic;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@ComponentScan(basePackageClasses = RemoteKafkaService.class)
 public class KafkaOrderProducer {
 
-    private final RemoteKafkaService<String, OrderEvent> kafkaTemplate;
+    private final KafkaTemplate<String, OrderDTO> kafkaTemplate;
     private final NewTopic orderTopic;
 
-    public void sendToKafka(OrderEvent orderEvent) {
-        sendToKafka(orderTopic.name(), orderEvent);
+    public void sendToKafka(OrderDTO orderEvent) {
+        kafkaTemplate.send(orderTopic.name(), orderEvent.customerId(), orderEvent)
+            .thenRun(() -> log.debug("Order {} sent", orderEvent));
     }
-
-    public void sendToKafka(String topic, OrderEvent orderEvent) {
-        kafkaTemplate.sendToTopic(topic, orderEvent.getProductId(), orderEvent);
-    }
-
 }

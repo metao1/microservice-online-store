@@ -3,7 +3,6 @@ package com.metao.book.product.application.stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.metao.book.product.application.config.ProductStreamConfig;
 import com.metao.book.product.application.service.OrderAggregator;
 import com.metao.book.product.application.service.OrderProductJoiner;
 import com.metao.book.shared.Currency;

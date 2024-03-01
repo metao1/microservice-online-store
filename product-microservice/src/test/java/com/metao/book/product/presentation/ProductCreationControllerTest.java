@@ -7,7 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.metao.book.product.infrastructure.factory.handler.ProductKafkaHandler;
 import com.metao.book.product.util.ProductTestUtils;
-import com.metao.book.shared.test.TestUtils;
+import com.metao.book.shared.test.StreamBuilderTestUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -39,7 +39,7 @@ class ProductCreationControllerTest {
         webTestClient
             .perform(post(PRODUCT_URL)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(TestUtils.convertObjectToJsonBytes(objectMapper, productDto))
+                .content(StreamBuilderTestUtils.convertObjectToJsonBytes(objectMapper, productDto))
             )
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$").doesNotExist());

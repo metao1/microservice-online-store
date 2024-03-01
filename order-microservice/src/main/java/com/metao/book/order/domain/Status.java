@@ -5,12 +5,10 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum Status {
     NEW("NEW"),
-    ACCEPT("ACCEPT"),
-    CONFIRM("CONFIRM"),
-    REJECT("REJECT"),
-    PAYMENT("PAYMENT"),
-    PRODUCT("PRODUCT"),
-    ROLLBACK("ROLLABACK");
+    SUBMITTED("SUBMITTED"),
+    REJECTED("REJECTED"),
+    CONFIRMED("CONFIRMED"),
+    ROLLED_BACK("ROLLED_BACK");
 
     private final String value;
 

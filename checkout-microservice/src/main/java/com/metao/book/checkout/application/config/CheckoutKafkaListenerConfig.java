@@ -1,13 +1,9 @@
 package com.metao.book.checkout.application.config;
 
-import static com.metao.book.shared.kafka.Constants.KAFKA_TRANSACTION_MANAGER;
-
 import com.metao.book.checkout.application.model.CustomerNotFoundException;
 import com.metao.book.checkout.application.service.OrderManagerService;
 import com.metao.book.checkout.domain.CustomerEntity;
 import com.metao.book.checkout.domain.CustomerRepository;
-import com.metao.book.shared.OrderEvent;
-import com.metao.book.shared.Status;
 import jakarta.annotation.PostConstruct;
 import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;

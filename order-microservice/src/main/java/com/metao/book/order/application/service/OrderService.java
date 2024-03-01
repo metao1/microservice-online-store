@@ -7,6 +7,7 @@ import com.metao.book.order.domain.OrderId;
 import com.metao.book.order.domain.OrderServiceInterface;
 import com.metao.book.order.domain.Status;
 import com.metao.book.order.infrastructure.OrderMapperInterface;
+import com.metao.book.order.infrastructure.kafka.KafkaConstants;
 import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
 import com.metao.book.order.infrastructure.repository.KafkaOrderService;
 import java.util.List;
@@ -14,9 +15,12 @@ import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(transactionManager = KafkaConstants.TRANSACTION_MANAGER, propagation = Propagation.REQUIRED)
 public class OrderService implements OrderServiceInterface {
 
     private final KafkaOrderService kafkaOrderService;
@@ -26,10 +30,10 @@ public class OrderService implements OrderServiceInterface {
     @Override
     public Optional<String> createOrder(CreateOrderDTO orderDto) {
         final var orderEvent = Optional.of(orderDto)
-                .map(mapper::toAvro)
-                .orElseThrow(CouldNotCreateOrderException::new);
+            .map(mapper::toEvent)
+            .orElseThrow(CouldNotCreateOrderException::new);
         kafkaOrderProducer.sendToKafka(orderEvent);
-        return Optional.of("ok");
+        return Optional.of(orderEvent.orderId());
     }
 
     @Override

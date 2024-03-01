@@ -1,10 +1,9 @@
 package com.metao.book.order.infrastructure.repository;
 
-import static com.metao.book.shared.kafka.Constants.TRANSACTION_MANAGER;
-
 import com.metao.book.order.domain.OrderEntity;
 import com.metao.book.order.domain.OrderId;
 import com.metao.book.order.domain.Status;
+import com.metao.book.order.infrastructure.kafka.KafkaConstants;
 import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +24,7 @@ public class KafkaOrderService {
         return orderRepository.findById(orderId);
     }
 
-    @Transactional(transactionManager = TRANSACTION_MANAGER, propagation = Propagation.REQUIRED)
+    @Transactional(transactionManager = KafkaConstants.TRANSACTION_MANAGER, propagation = Propagation.REQUIRED)
     public Optional<List<OrderEntity>> searchOrdersWithProductId(@NotNull Set<String> productId, Set<Status> statuses) {
         return Optional.of(orderRepository.findByProductIdIsInAndStatusIsIn(productId, statuses));
     }

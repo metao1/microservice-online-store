@@ -3,15 +3,20 @@ kafka:
     num-partitions: 3
     replication-factor: 3
   topic:
-    order: "book-order-topic-test"
-    order-payment: "order-payment-topic"
-    order-stock: "order-stock-topic"
+    order: "book-order-"
+    order-payment: "order-payment"
+    order-stock: "order-stock"
 
 spring:
   kafka:
+    bootstrap-servers: "localhost:9092"
+    properties:
+      bootstrap-servers: "localhost:9092"
+      schema.registry.url: "mock://testUrl"
     admin:
       properties:
         min-in-sync-replicas: 1
+
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%15.15t]){yellow} %clr(:){red} %clr(%m){faint}%n"
   level:

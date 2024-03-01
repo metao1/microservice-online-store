@@ -6,7 +6,6 @@ import com.metao.book.order.domain.OrderId;
 import com.metao.book.order.domain.OrderServiceInterface;
 import com.metao.book.order.domain.Status;
 import com.metao.book.order.infrastructure.OrderMapperInterface;
-
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -58,7 +57,7 @@ public class OrderController {
     ) {
         return orderService
             .getAllOrdersPageable(from, to, status)
-            .map(sd -> sd.stream().map(OrderMapperInterface::toOrderDTO).collect(Collectors.toList()))
+            .map(sd -> sd.stream().map(OrderMapperInterface::toOrderDTO).toList())
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }

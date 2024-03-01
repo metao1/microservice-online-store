@@ -1,7 +1,6 @@
 package com.metao.book.order.domain;
 
 import com.metao.book.shared.domain.base.AbstractEntity;
-import com.metao.book.shared.domain.base.DomainObjectId;
 import com.metao.book.shared.domain.financial.Currency;
 import com.metao.book.shared.domain.financial.Money;
 import jakarta.persistence.Column;
@@ -59,22 +58,6 @@ public class OrderEntity extends AbstractEntity<OrderId> {
         this.customerId = customerId;
         this.productCount = productCount;
         this.currency = money.currency();
-        this.price = money.doubleAmount();
-    }
-
-    public OrderEntity(
-        String customerId,
-        String productId,
-        BigDecimal productCount,
-        Money money,
-        Status status
-    ) {
-        super(DomainObjectId.randomId(OrderId.class));
-        this.customerId = customerId;
-        this.productId = productId;
-        this.productCount = productCount;
-        this.currency = money.currency();
-        this.status = status;
         this.price = money.doubleAmount();
     }
 }

@@ -13,14 +13,12 @@ include(':product-microservice')
 include(':checkout-microservice')
 include(':order-microservice')
 include(':shared-kernel')
-include(':shared-kafka')
 
 project(":cart-microservice").projectDir = file('cart-microservice')
 project(":product-microservice").projectDir = file('product-microservice')
 project(":checkout-microservice").projectDir = file('checkout-microservice')
 project(":order-microservice").projectDir = file('order-microservice')
 project(":shared-kernel").projectDir = file('shared-kernel')
-project(":shared-kafka").projectDir = file('shared-kafka')
 
 gradle.ext.springBootProjects = [
     ':order-microservice',

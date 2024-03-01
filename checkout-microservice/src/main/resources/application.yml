@@ -3,8 +3,8 @@ server:
 
 kafka:
   topic:
-    order: "book-order-topic"
-    order-payment: "order-payment-topic"
+    order: "book-order"
+    order-payment: "order-payment"
 
 spring:
   application:

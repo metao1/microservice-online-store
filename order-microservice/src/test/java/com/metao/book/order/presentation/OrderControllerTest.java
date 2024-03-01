@@ -1,46 +1,41 @@
 package com.metao.book.order.presentation;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.metao.book.OrderEventOuterClass.OrderEvent;
 import com.metao.book.order.application.dto.CreateOrderDTO;
-import com.metao.book.order.domain.OrderEntity;
+import com.metao.book.order.application.dto.OrderDTO;
 import com.metao.book.order.domain.Status;
-import com.metao.book.order.infrastructure.repository.KafkaOrderService;
-import com.metao.book.order.infrastructure.repository.OrderRepository;
-import com.metao.book.order.utils.BaseRedpandaIntegrationTest;
 import com.metao.book.shared.domain.financial.Currency;
-import com.metao.book.shared.test.TestUtils;
+import com.metao.book.shared.test.StreamBuilderTestUtils;
 import java.math.BigDecimal;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestInstance.Lifecycle;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @AutoConfigureMockMvc
-@ActiveProfiles({ "test", "container" })
-@TestInstance(Lifecycle.PER_CLASS)
-@AutoConfigureTestDatabase(replace = Replace.NONE)
+@ActiveProfiles({"test", "container"})
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class OrderControllerTest extends BaseRedpandaIntegrationTest {
-
-    @Autowired
-    KafkaOrderService orderService;
-
-    @SpyBean
-    private OrderRepository orderRepository;
+class OrderControllerTest /*extends BaseKafkaIntegrationTest*/ {
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -48,26 +43,68 @@ public class OrderControllerTest extends BaseRedpandaIntegrationTest {
     @Autowired
     private MockMvc restTemplate;
 
+    @Value("${kafka.topic.order}")
+    String orderTopic;
+
+    ArrayBlockingQueue<OrderDTO> arrayBlockingQueue = new ArrayBlockingQueue<>(1);
+    @Autowired
+    KafkaTemplate<String, OrderEvent> kafkaTemplate;
+
     @Test
     @SneakyThrows
-    public void createOrderIsOk() {
+    void createOrderIsOk() {
         var order = CreateOrderDTO.builder()
+            .accountId("ACCOUNT_ID")
                 .productId("1234567892")
-                .customerId("CUSTOMER_ID")
-                .status(Status.NEW)
                 .currency(Currency.EUR)
-                .quantity(BigDecimal.valueOf(100))
+                .quantity(BigDecimal.valueOf(100d))
                 .price(BigDecimal.valueOf(123d))
                 .build();
 
-        // post request for '/order'
+        var expectedOrder = OrderDTO.builder()
+            .customerId("ACCOUNT_ID")
+            .productId("1234567892")
+            .orderId("")
+            .currency(Currency.EUR)
+            .status(Status.NEW)
+            .price(BigDecimal.valueOf(123d))
+            .quantity(BigDecimal.valueOf(100d))
+            .build();
 
-        this.restTemplate.perform(post("/order")
+        restTemplate.perform(post("/order")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(TestUtils.convertObjectToJsonBytes(objectMapper, order)))
+                .content(StreamBuilderTestUtils.convertObjectToJsonBytes(objectMapper, order)))
                 .andExpect(status().isOk());
-        Thread.sleep(6000);
-        Mockito.verify(orderRepository).save(any(OrderEntity.class));
+
+        OrderDTO orderDTO = arrayBlockingQueue.poll(10, TimeUnit.SECONDS);
+
+        assertThat(orderDTO)
+            .isNotNull()
+            .satisfies(o -> {
+                assertEquals(expectedOrder.price(), o.price());
+                assertEquals(expectedOrder.productId(), o.productId());
+                assertEquals(expectedOrder.quantity(), o.quantity());
+                assertEquals(expectedOrder.status(), o.status());
+                assertEquals(expectedOrder.currency(), o.currency());
+                assertEquals(expectedOrder.customerId(), o.customerId());
+            });
+
+    }
+
+    @SneakyThrows
+    @KafkaListener(id = "order-listener-test", topics = "${kafka.topic.order}", groupId = "order-grp")
+    @Transactional
+    public void onOrderListenerTest(
+        ConsumerRecord<String, String> record
+    ) {
+        final OrderDTO orderDTO;
+        try {
+            orderDTO = objectMapper.readValue(record.value(), OrderDTO.class);
+        } catch (JsonProcessingException e) {
+            log.error(e.getMessage());
+            throw new RuntimeException(e);
+        }
+        arrayBlockingQueue.put(orderDTO);
     }
 
 }

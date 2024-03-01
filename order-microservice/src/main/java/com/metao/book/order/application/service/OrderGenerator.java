@@ -1,13 +1,9 @@
 package com.metao.book.order.application.service;
 
 import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
-import com.metao.book.shared.Currency;
-import com.metao.book.shared.OrderEvent;
-import com.metao.book.shared.Status;
-import jakarta.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Queue;
 import java.util.Random;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,40 +23,20 @@ public class OrderGenerator {
     private final AtomicInteger atomicInteger = new AtomicInteger(1);
     @Value("${kafka.topic.order}")
     String orderTopic;
-    private final List<String> productAsinList = new ArrayList<>();
+    private final Queue<String> products = new LinkedBlockingQueue<>();
 
     //@Scheduled(fixedDelay = 30000, initialDelay = 10000)
-    public void commandLineRunner() {
-        var randomNumber = atomicInteger.getAndIncrement();
-        var order = OrderEvent.newBuilder()
-            .setOrderId(randomNumber + "")
-            .setProductId(productAsinList.get(random.nextInt(productAsinList.size())))
-            .setCustomerId(CUSTOMER_ID)
-            .setStatus(Status.NEW)
-            .setQuantity(1)
-            .setPrice(100)
-            .setCurrency(Currency.dlr)
-            .setSource("PAYMENT")
-            .build();
-        kafkaProducer.sendToKafka(order);
-    }
-
-        /*public void loadProducts() {
-                log.info("importing products data from resources");
-            try (var source = FileHandler.readFromFile(getClass(), "data/products.txt")) {
-                this.productAsinList = source
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .map(ProductDTO::getAsin)
-                    .toList();
-            } catch (IOException e) {
-                log.error(e.getMessage(), e);
-            }
-                log.info("finished writing to database.");
-        }*/
-
-    @PostConstruct
-    public void afterPropertiesSet() {
-        //loadProducts();
-    }
+//    public void commandLineRunner() {
+//        var randomNumber = atomicInteger.getAndIncrement();
+//        var order = OrderEvent.Body.newBuilder()
+//            .setId(OrderEvent.UUID.getDefaultInstance())
+//            .setProductId(products.get(random.nextInt(products.size())))
+//            .setAccountId(CUSTOMER_ID)
+//            .setStatus(status.NEW)
+//            .setQuantity(1)
+//            .setPrice(100)
+//            .setCurrency("dlr")
+//            .build();
+//        kafkaProducer.sendToKafka(order);
+//    }
 }

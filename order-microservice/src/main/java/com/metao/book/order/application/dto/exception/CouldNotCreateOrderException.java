@@ -9,8 +9,4 @@ public class CouldNotCreateOrderException extends RuntimeException {
     public CouldNotCreateOrderException() {
         super("Could not create order");
     }
-
-    public CouldNotCreateOrderException(Exception e) {
-        super(e);
-    }
 }
