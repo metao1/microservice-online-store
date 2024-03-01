@@ -13,6 +13,7 @@ import org.testcontainers.utility.DockerImageName;
 
 @Testcontainers
 @TestInstance(Lifecycle.PER_CLASS)
+@ActiveProfiles({"test", "container"})
 public class BaseKafkaIntegrationTest {
 
     private static final KafkaContainer kafkaContainer = new KafkaContainer(

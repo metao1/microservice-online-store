@@ -27,15 +27,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @AutoConfigureMockMvc
-@ActiveProfiles({"test", "container"})
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class OrderControllerTest /*extends BaseKafkaIntegrationTest*/ {
+class OrderControllerTest extends BaseKafkaIntegrationTest {
 
     @Autowired
     private ObjectMapper objectMapper;
