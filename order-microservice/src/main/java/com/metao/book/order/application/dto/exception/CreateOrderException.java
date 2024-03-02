@@ -4,9 +4,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
-public class CouldNotCreateOrderException extends RuntimeException {
+public class CreateOrderException extends RuntimeException {
 
-    public CouldNotCreateOrderException() {
+    public CreateOrderException() {
         super("Could not create order");
     }
 }

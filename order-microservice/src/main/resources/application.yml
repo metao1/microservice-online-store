@@ -5,10 +5,11 @@ server:
   port: ${PORT:8085}
 
 kafka:
+  #topics:
   topic:
-    order: "book-order"
-    order-payment: "order-payment"
-    order-stock: "order-stock"
+    id: "book-order-id"
+    name: "book-order"
+    group-id: "order-processor-group"
 
 spring:
   application:
@@ -38,17 +39,10 @@ spring:
         specific.protobuf.value.type: io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer
         spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
         spring.deserializer.value.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
-        #spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
-        #spring.deserializer.value.delegate.class: io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer
-        #spring.deserializer.value.delegate.class: org.apache.kafka.common.serialization.ByteArrayDeserializer
-        #spring.deserializer.value.delegate.class: com.metao.book.order.application.config.CustomProtobufDeserializer
         allow.auto.create.topics: 'false'
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      #value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
-      #value-serializer: io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer
-      #value-serializer: org.apache.kafka.common.serialization.StringSerializer
       transaction-id-prefix: order-tx
       properties:
         enable.idempotence: true

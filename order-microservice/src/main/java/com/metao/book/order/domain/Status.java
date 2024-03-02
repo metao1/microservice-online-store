@@ -19,7 +19,7 @@ public enum Status {
     @JsonCreator
     public Status toStatus(String value) {
         for (Status status : Status.values()) {
-            if (value.equals(this.value)) {
+            if (value.equals(this.value.toUpperCase())) {
                 return status;
             }
         }

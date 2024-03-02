@@ -44,7 +44,9 @@ public class StageProcessor<T> implements Stage<T> {
 
     @Override
     public void acceptException(BiConsumer<? super T, Throwable> biConsumer) {
-        biConsumer.accept(event, cause);
+        if (cause != null) {
+            biConsumer.accept(event, cause);
+        }
     }
 
     private static final class MinimalStage<T> extends StageProcessor<T> {

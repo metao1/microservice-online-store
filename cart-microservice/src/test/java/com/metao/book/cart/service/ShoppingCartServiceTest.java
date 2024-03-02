@@ -33,7 +33,7 @@ class ShoppingCartServiceTest {
     @Mock
     OrderEventValidator orderEventValidator;
 
-    CartMapperService.ToEventMapper cartMapperService = new CartMapperService.ToEventMapper();
+    CartMapperService.toDtoMapper cartMapperService = new CartMapperService.toDtoMapper();
     NewTopic orderTopic = new NewTopic("order", 1, (short) 1);
 
     ShoppingCartFactory shoppingCartService = new ShoppingCartFactory(

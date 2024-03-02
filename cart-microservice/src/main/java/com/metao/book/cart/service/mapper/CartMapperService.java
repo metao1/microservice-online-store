@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 public class CartMapperService {
 
     @Component
-    public static final class ToEventMapper extends CartMapper<ShoppingCart, OrderEvent> {
+    public static final class toDtoMapper extends CartMapper<ShoppingCart, OrderEvent> {
         public OrderEvent mapToOrderEvent(ShoppingCart shoppingCart) {
             return doMap(() -> shoppingCart, s -> shoppingCart != null);
         }

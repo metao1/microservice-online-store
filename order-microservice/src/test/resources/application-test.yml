@@ -1,13 +1,22 @@
 kafka:
-  properties:
-    num-partitions: 3
-    replication-factor: 3
+  #topics:
   topic:
-    order: "book-order-"
-    order-payment: "order-payment"
-    order-stock: "order-stock"
+    id: "book-order-id"
+    name: "book-order"
+    group-id: "order-processor-group"
 
 spring:
+  datasource:
+    url: jdbc:tc:postgresql:11.1:///integration-tests-db
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: on
+    open-in-view: false
+    hibernate:
+      ddl-auto: create-drop
   kafka:
     bootstrap-servers: "localhost:9092"
     properties:

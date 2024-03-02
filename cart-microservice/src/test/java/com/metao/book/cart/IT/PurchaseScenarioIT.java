@@ -38,7 +38,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @ActiveProfiles({"test", "container"})
 @WebMvcTest(ShoppingCartController.class)
 @Import({ShoppingCartFactory.class, CartMapperService.ToCartDto.class, OrderEventValidator.class,
-    CartMapperService.ToEventMapper.class})
+    CartMapperService.toDtoMapper.class})
 public class PurchaseScenarioIT extends BasePostgresIntegrationTest {
 
     @Autowired

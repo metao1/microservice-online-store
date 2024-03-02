@@ -34,7 +34,7 @@ import org.springframework.util.CollectionUtils;
 public class ShoppingCartFactory implements ShoppingCartService {
 
     private final RemoteKafkaService<String, OrderEvent> orderTemplate;
-    private final CartMapperService.ToEventMapper cartMapper;
+    private final CartMapperService.toDtoMapper cartMapper;
     private final ShoppingCartRepository shoppingCartRepository;
     private final OrderEventValidator orderEventValidator;
     private final NewTopic orderTopic;

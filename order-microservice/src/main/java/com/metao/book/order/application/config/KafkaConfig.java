@@ -16,26 +16,37 @@ import org.springframework.validation.annotation.Validated;
 public class KafkaConfig {
 
     @Bean
-    public NewTopic orderTopic(@Value("${kafka.topic.order}") String topic) {
-        return createTopic(topic);
+    public NewTopic orderTopic(@Value("${kafka.topic.name}") String kafkaTopic) {
+        return createTopic(kafkaTopic);
     }
 
-    @Bean
-    public NewTopic orderStockTopic(@Value("${kafka.topic.order-stock}") String topic) {
-        return createTopic(topic);
-    }
+//    @Bean
+//    public Map<String, NewTopic> orderTopic(KafkaTopic kafkaTopic) {
+//        return kafkaTopic.getTopics().stream()
+//            .collect(Collectors.toMap(
+//                KafkaTopic.Topic::id,
+//                KafkaConfig::createTopic)
+//            );
+//    }
 
-    @Bean
-    public NewTopic orderPaymentTopic(@Value("${kafka.topic.order-payment}") String topic) {
-        return createTopic(topic);
-    }
-
-    private static NewTopic createTopic(String topicName) {
+    private static NewTopic createTopic(String topic) {
         return TopicBuilder
-            .name(topicName)
+            .name(topic)
             .partitions(1)
             .config(TopicConfig.COMPRESSION_TYPE_CONFIG, "zstd")
             //.compact()
             .build();
     }
+//
+//    @Getter
+//    @ConfigurationProperties(prefix = "kafka")
+//    public static class KafkaTopic {
+//
+//        public record Topic(String id, String name, String groupId) {
+//
+//        }
+//
+//        Topic topic;
+//
+//    }
 }

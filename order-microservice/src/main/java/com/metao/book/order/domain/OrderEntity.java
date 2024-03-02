@@ -9,6 +9,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -44,6 +45,9 @@ public class OrderEntity extends AbstractEntity<OrderId> {
     @Enumerated(EnumType.STRING)
     private Status status;
 
+    @Column(name = "created_time", nullable = false)
+    private LocalDateTime createdTime;
+
     public OrderEntity(
         String orderId,
         String customerId,
@@ -59,5 +63,6 @@ public class OrderEntity extends AbstractEntity<OrderId> {
         this.productCount = productCount;
         this.currency = money.currency();
         this.price = money.doubleAmount();
+        this.createdTime = LocalDateTime.now();
     }
 }
