@@ -5,10 +5,11 @@ server:
   port: ${PORT:8085}
 
 kafka:
+  #topics:
   topic:
-    order: "book-order-topic"
-    order-payment: "order-payment-topic"
-    order-stock: "order-stock-topic"
+    id: "book-order-id"
+    name: "book-order"
+    group-id: "order-processor-group"
 
 spring:
   application:
@@ -21,42 +22,30 @@ spring:
     bootstrap-servers: ${BOOTSTRAP_SERVERS}
     # Required connection configs for Confluent Cloud Schema Registry
     properties:
-      stream-properties:
-        schema.registry.url: ${SCHEMA_HOST}
-        bootstrap.servers: ${BOOTSTRAP_SERVERS}
       bootstrap-servers: ${BOOTSTRAP_SERVERS}
       security.protocol: PLAINTEXT
       schema.registry.url: ${SCHEMA_HOST}
       sasl.mechanism: PLAIN
       credentials.source: USER_INFO
     consumer:
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       isolation-level: read_committed
-      properties:
-        auto.offset.reset: earliest
-        specific.avro.reader: true
       auto-offset-reset: none
       enable-auto-commit: false
+      properties:
+        auto.offset.reset: earliest
+        specific.protobuf.key.type: java.lang.String
+        specific.protobuf.value.type: io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer
+        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+        spring.deserializer.value.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+        allow.auto.create.topics: 'false'
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
-      transaction-id-prefix: order-tx-
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      transaction-id-prefix: order-tx
       properties:
         enable.idempotence: true
-    streams:
-      properties:
-        application.id: order-ms
-        bootstrap.servers: ${BOOTSTRAP_SERVERS}
-        schema.registry.url: ${SCHEMA_HOST}
-        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
-        default.value.serde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
-        num.standby.replicas: 3
-        num.stream.threads: 2
-        max.request.size: 8388608        # 84 MiB
-        topic.max.message.bytes: 8388608 # 84 MiB
-        topology.optimization: all
-        state.dir: /tmp/kafka-streams-order
   output.ansi.enabled: ALWAYS
   datasource:
     url: jdbc:postgresql://localhost:5432/product
@@ -70,7 +59,6 @@ spring:
     generate-ddl: false
     hibernate:
       ddl-auto: update
-    database-platform: org.hibernate.dialect.PostgreSQL9Dialect
     properties:
       open-in-view: false
       hibernate:
@@ -87,7 +75,6 @@ spring:
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%15.15t]){yellow} %clr(:){red} %clr(%m){faint}%n"
   level:
-    org.apache.kafka.streams.kstream: INFO
-    org.springframework.data: DEBUG
+    org.springframework.data: INFO
     org.springframework.boot.autoconfigure: ERROR
-    org.hibernate: DEBUG
+    org.hibernate: INFO

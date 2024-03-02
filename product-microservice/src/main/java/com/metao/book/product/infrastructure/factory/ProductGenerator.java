@@ -46,7 +46,7 @@ public class ProductGenerator {
 
     public void loadProducts() {
         log.info("importing products data from resources");
-        try (var source = FileHandler.readFromFile(getClass(), productsDataPath)) {
+        try (var source = FileHandler.readResourceInPath(getClass(), productsDataPath)) {
             source
                 .map(mapper::convertToDto)
                 .filter(Optional::isPresent)

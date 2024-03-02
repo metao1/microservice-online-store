@@ -3,9 +3,9 @@ server:
 
 kafka:
   topic:
-    order: "book-order-topic"
-    product: "product-topic"
-    order-product: "order-product-topic"
+    order: "book-order"
+    product: "product"
+    order-product: "order-product"
 
 spring:
   application:

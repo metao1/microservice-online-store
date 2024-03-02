@@ -1,7 +1,6 @@
 package com.metao.book.product.application.service;
 
 import com.metao.book.shared.OrderEvent;
-import org.apache.kafka.streams.kstream.Aggregator;
 import org.springframework.stereotype.Component;
 
 @Component

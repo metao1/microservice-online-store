@@ -8,7 +8,7 @@ import com.metao.book.product.domain.category.Category;
 import com.metao.book.product.domain.image.Image;
 import com.metao.book.shared.domain.financial.Currency;
 import com.metao.book.shared.domain.financial.Money;
-import com.metao.book.shared.test.TestUtils.StreamBuilder;
+import com.metao.book.shared.test.StreamBuilderTestUtils.StreamBuilder;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;

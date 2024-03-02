@@ -1,6 +1,6 @@
 package com.metao.book.cart.repository;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
@@ -20,7 +20,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 
-@ActiveProfiles("container")
+@ActiveProfiles({"container", "test"})
 @DataJpaTest
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 @AutoConfigureTestDatabase(replace = Replace.NONE)
@@ -102,7 +102,7 @@ class ShoppingCartRepositoryTest {
         shoppingCart.increaseQuantity();
         shoppingCart.increaseQuantity();
         shoppingCartRepository.save(shoppingCart);
-        final var shoppingCart = shoppingCartRepository.findByUserIdAndAsin(key).orElseThrow();
+        final var shoppingCart = shoppingCartRepository.findOrdersInCartByUserIdAndAsin(key).orElseThrow();
         assertThat(shoppingCart.getQuantity()).isEqualTo(BigDecimal.valueOf(3));
     }
 
@@ -110,10 +110,10 @@ class ShoppingCartRepositoryTest {
     void findProductsInCartByUserId() {
         shoppingCartRepository.save(shoppingCart);
         var shoppingCartKey = new ShoppingCartKey(ConstantsTest.USER_ID, ConstantsTest.ASIN);
-        var id = shoppingCartRepository.findByUserIdAndAsin(shoppingCartKey);
+        var id = shoppingCartRepository.findOrdersInCartByUserIdAndAsin(shoppingCartKey);
         assertThat(id).isPresent();
         var expectedShoppingCart = Set.of(shoppingCart);
-        assertThat(shoppingCartRepository.findProductsInCartByUserId(ConstantsTest.USER_ID))
+        assertThat(shoppingCartRepository.findOrdersInCartByUserId(ConstantsTest.USER_ID))
                 .isNotNull()
                 .isEqualTo(expectedShoppingCart);
     }
@@ -162,7 +162,7 @@ class ShoppingCartRepositoryTest {
             Currency.EUR);
         var cards = Set.of(shoppingCart1, shoppingCart2);
         shoppingCartRepository.saveAll(cards);
-        assertThat(shoppingCartRepository.findProductsInCartByUserId(ConstantsTest.USER_ID))
+        assertThat(shoppingCartRepository.findOrdersInCartByUserId(ConstantsTest.USER_ID))
                 .satisfies(sc -> assertThat(sc).isNotNull())
                 .isEqualTo(cards);
     }

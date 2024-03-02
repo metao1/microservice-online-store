@@ -103,16 +103,8 @@ public class ShoppingCart implements BaseEntity {
         this.createdOn = createdOn;
     }
 
-    public void setQuantity(BigDecimal quantity) {
-        this.quantity = quantity;
-    }
-
     public Currency getCurrency() {
         return currency;
-    }
-
-    public void setCurrency(Currency currency) {
-        this.currency = currency;
     }
 
     public void setUserId(String userId) {

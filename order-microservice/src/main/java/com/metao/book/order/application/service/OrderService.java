@@ -1,52 +1,51 @@
 package com.metao.book.order.application.service;
 
 import com.metao.book.order.application.dto.CreateOrderDTO;
-import com.metao.book.order.application.dto.exception.CouldNotCreateOrderException;
-import com.metao.book.order.domain.OrderEntity;
+import com.metao.book.order.application.dto.OrderDTO;
+import com.metao.book.order.application.dto.exception.CreateOrderException;
 import com.metao.book.order.domain.OrderId;
-import com.metao.book.order.domain.OrderServiceInterface;
 import com.metao.book.order.domain.Status;
-import com.metao.book.order.infrastructure.OrderMapperInterface;
+import com.metao.book.order.infrastructure.kafka.KafkaConstants;
 import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
-import com.metao.book.order.infrastructure.repository.KafkaOrderService;
-import java.util.List;
+import com.metao.book.order.infrastructure.repository.OrderRepository;
+import com.metao.book.order.infrastructure.repository.OrderSpecifications;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class OrderService implements OrderServiceInterface {
+@Transactional(transactionManager = KafkaConstants.TRANSACTION_MANAGER, propagation = Propagation.REQUIRED)
+public class OrderService {
 
-    private final KafkaOrderService kafkaOrderService;
     private final KafkaOrderProducer kafkaOrderProducer;
-    private final OrderMapperInterface mapper;
+    private final OrderMapper mapper;
+    private final OrderRepository orderRepository;
 
-    @Override
     public Optional<String> createOrder(CreateOrderDTO orderDto) {
         final var orderEvent = Optional.of(orderDto)
-                .map(mapper::toAvro)
-                .orElseThrow(CouldNotCreateOrderException::new);
+            .map(mapper::toDto)
+            .orElseThrow(CreateOrderException::new);
         kafkaOrderProducer.sendToKafka(orderEvent);
-        return Optional.of("ok");
+        return Optional.of(orderEvent.orderId());
     }
 
-    @Override
-    public Optional<OrderEntity> getOrderByOrderId(OrderId orderId) {
-        return kafkaOrderService.getOrder(orderId);
+    public Optional<OrderDTO> getOrderByOrderId(OrderId orderId) {
+        return orderRepository.findById(orderId).map(mapper::toDto);
     }
 
-    @Override
-    public Optional<List<OrderEntity>> getOrderByProductIdsAndOrderStatus(
-            Set<String> productIds,
-            Set<Status> orderStatus) {
-        return kafkaOrderService.searchOrdersWithProductId(productIds, orderStatus);
-    }
-
-    @Override
-    public Optional<List<OrderEntity>> getAllOrdersPageable(OrderId from, OrderId to, Set<Status> statusSet) {
-        return kafkaOrderService.getOrders(from, to, statusSet);
+    public Page<OrderDTO> getOrderByProductIdsAndOrderStatus(
+        Set<String> productIds, Set<Status> orderStatus, int offset, int pageSize, String sortByFieldName
+    ) {
+        var pageable = PageRequest.of(offset, pageSize, Sort.by(Sort.Direction.ASC, sortByFieldName));
+        var spec = OrderSpecifications.findByOrdersByCriteria(productIds, orderStatus);
+        return orderRepository.findAll(spec, pageable).map(mapper::toDto);
     }
 
 }

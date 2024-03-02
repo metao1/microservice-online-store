@@ -11,7 +11,7 @@ import com.metao.book.shared.OrderEvent;
 import com.metao.book.shared.application.service.order.OrderEventValidator;
 import com.metao.book.shared.domain.financial.Currency;
 import com.metao.book.shared.kafka.RemoteKafkaService;
-import com.metao.book.shared.test.TestUtils.StreamBuilder;
+import com.metao.book.shared.test.StreamBuilderTestUtils.StreamBuilder;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -33,8 +33,8 @@ class ShoppingCartServiceTest {
     @Mock
     OrderEventValidator orderEventValidator;
 
-    CartMapperService.ToEventMapper cartMapperService = new CartMapperService.ToEventMapper();
-    NewTopic orderTopic = new NewTopic("order-topic", 1, (short) 1);
+    CartMapperService.toDtoMapper cartMapperService = new CartMapperService.toDtoMapper();
+    NewTopic orderTopic = new NewTopic("order", 1, (short) 1);
 
     ShoppingCartFactory shoppingCartService = new ShoppingCartFactory(
         remoteKafkaService,

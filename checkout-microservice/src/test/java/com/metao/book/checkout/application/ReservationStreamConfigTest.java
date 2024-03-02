@@ -1,6 +1,6 @@
 package com.metao.book.checkout.application;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.metao.book.shared.Currency;
 import com.metao.book.shared.OrderEvent;

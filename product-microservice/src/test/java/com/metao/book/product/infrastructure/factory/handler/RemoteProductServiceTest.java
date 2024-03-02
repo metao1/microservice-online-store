@@ -65,7 +65,7 @@ public class RemoteProductServiceTest extends SpringBootEmbeddedKafka {
         when(productService.getProductById(new ProductId(PRODUCT_ID)))
             .thenReturn(Optional.of(pe));
 
-        remoteProductService.sendToKafka("product-topic-test", productEvent);
+        remoteProductService.sendToKafka("product-test", productEvent);
 
         consumer.getLatch().await(5, TimeUnit.SECONDS);
         assertEquals(0, consumer.getLatch().getCount());

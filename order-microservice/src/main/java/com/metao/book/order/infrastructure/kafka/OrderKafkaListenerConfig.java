@@ -1,54 +1,40 @@
 package com.metao.book.order.infrastructure.kafka;
 
-import static com.metao.book.shared.kafka.Constants.KAFKA_TRANSACTION_MANAGER;
-
-import com.metao.book.order.application.config.KafkaSerdesConfig;
 import com.metao.book.order.application.service.OrderMapper;
 import com.metao.book.order.infrastructure.repository.OrderRepository;
-import com.metao.book.shared.OrderEvent;
-import com.metao.book.shared.application.service.order.OrderEventValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.annotation.RetryableTopic;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
-@Configuration
+@Service
 @EnableKafka
 @RequiredArgsConstructor
-@ImportAutoConfiguration(value = {KafkaSerdesConfig.class, OrderEventValidator.class})
+@Transactional(KafkaConstants.KAFKA_TRANSACTION_MANAGER)
 public class OrderKafkaListenerConfig {
 
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
-    private final OrderEventValidator orderEventValidator;
 
     @KafkaListener(
-        id = "${kafka.topic.order}",
-        topics = "${kafka.topic.order}",
-        groupId = "order-processor-group",
-        properties = {"auto.offset.reset = earliest"}
+        id = "${kafka.topic.id}",
+        topics = "${kafka.topic.name}",
+        groupId = "${kafka.topic.group-id}"
     )
-    @Transactional(KAFKA_TRANSACTION_MANAGER)
-    public void orderKafkaListener(ConsumerRecord<String, OrderEvent> record) {
-        var order = record.value();
-        orderEventValidator.validate(order);
-        log.info("Consumed order -> {}", order);
-        new OrderProcessorHelper<>(order)
-            .ifPresentRun((orderEvent) -> {
-                    final var orderEntity = orderMapper.toEntity(orderEvent);
-                    return orderRepository.getReferenceById(orderEntity.id());
-                },
-                (orderEvent, obj) -> {
-                    final var orderEntity = orderMapper.toEntity(orderEvent);
-                    orderRepository.save(orderEntity);
-                    log.info("saved order -> {}", orderEntity);
-                },
-                (exception) -> log.debug("Could not processed event.", exception));
+    @RetryableTopic(attempts = "1")
+    public void orderKafkaListener(ConsumerRecord<String, String> orderRecord) {
+        StageProcessor
+            .process(orderRecord.value())
+            .thenApply(orderMapper::toDto)
+            .thenApply(orderMapper::toEntity)
+            .thenApply(orderRepository::save)
+            .acceptException(
+                (entity, ex) -> log.error("saving order {}, reason: {}", entity,
+                    ex != null ? ex.getMessage() : "can't process order"));
     }
-
 }

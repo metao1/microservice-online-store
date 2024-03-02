@@ -8,7 +8,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 @UtilityClass
-public class TestUtils {
+public class StreamBuilderTestUtils {
 
     public static class StreamBuilder {
 

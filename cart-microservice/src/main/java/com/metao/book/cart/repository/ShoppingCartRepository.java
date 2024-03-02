@@ -13,9 +13,9 @@ public interface ShoppingCartRepository extends JpaRepository<ShoppingCart, Shop
 
     @Transactional(readOnly = true, noRollbackFor = Exception.class)
     @Query("SELECT distinct sc FROM #{#entityName} sc WHERE sc.userId=:userId")
-    Set<ShoppingCart> findProductsInCartByUserId(@Param("userId") String userId);
+    Set<ShoppingCart> findOrdersInCartByUserId(@Param("userId") String userId);
 
     @Transactional(readOnly = true, noRollbackFor = Exception.class)
     @Query("SELECT sc FROM #{#entityName} sc WHERE sc.userId=:#{#key.userId} AND sc.asin=:#{#key.asin}")
-    Optional<ShoppingCart> findByUserIdAndAsin(@Param("key") ShoppingCartKey shoppingCartKey);
+    Optional<ShoppingCart> findOrdersInCartByUserIdAndAsin(@Param("key") ShoppingCartKey shoppingCartKey);
 }

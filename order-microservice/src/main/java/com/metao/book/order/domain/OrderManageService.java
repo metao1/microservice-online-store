@@ -1,38 +1,36 @@
 package com.metao.book.order.domain;
 
-import com.metao.book.shared.OrderEvent;
-import com.metao.book.shared.Status;
+import com.google.protobuf.Timestamp;
+import com.metao.book.OrderEventOuterClass.OrderEvent;
 import org.springframework.stereotype.Service;
-import java.time.Instant;
 
 @Service
 public class OrderManageService {
 
-    public OrderEvent confirm(OrderEvent orderPayment, OrderEvent orderStock) {
-        var o = OrderEvent.newBuilder()
-            .setOrderId(orderPayment.getOrderId())
-            .setCustomerId(orderPayment.getCustomerId())
+    public OrderEvent confirm(
+        OrderEvent orderPayment,
+        OrderEvent orderStock
+    ) {
+        var newOrder = OrderEvent.newBuilder()
+            .setId(orderPayment.getId())
+            .setAccountId(orderPayment.getAccountId())
             .setProductId(orderPayment.getProductId())
-            .setCreatedOn(Instant.now().toEpochMilli())
-            .setStatus(Status.ACCEPT)
+            .setCreateTime(Timestamp.getDefaultInstance())
+            .setStatus(OrderEvent.Status.SUBMITTED)
             .setQuantity(orderPayment.getQuantity())
             .setPrice(orderPayment.getPrice())
-            .setSource(orderPayment.getSource())
-            .setCurrency(orderPayment.getCurrency())
-            .build();
-        if (orderPayment.getStatus().equals(Status.ACCEPT) &&
-            orderStock.getStatus().equals(Status.ACCEPT)) {
-            o.setStatus(Status.CONFIRM);
-        } else if (orderPayment.getStatus().equals(Status.REJECT) &&
-            orderStock.getStatus().equals(Status.REJECT)) {
-            o.setStatus(Status.REJECT);
-        } else if (orderPayment.getStatus().equals(Status.REJECT) ||
-            orderStock.getStatus().equals(Status.REJECT)) {
-            String source = orderPayment.getStatus().equals(Status.REJECT) ? "PAYMENT" : "PRODUCT";
-            o.setStatus(Status.ROLLBACK);
-            o.setSource(source);
+            .setCurrency(orderPayment.getCurrency());
+        if (orderPayment.getStatus().equals(OrderEvent.Status.SUBMITTED) &&
+            orderStock.getStatus().equals(OrderEvent.Status.SUBMITTED)) {
+            newOrder.setStatus(OrderEvent.Status.CONFIRMED);
+        } else if (orderPayment.getStatus().equals(OrderEvent.Status.REJECTED) &&
+            orderStock.getStatus().equals(OrderEvent.Status.REJECTED)) {
+            newOrder.setStatus(OrderEvent.Status.REJECTED);
+        } else if (orderPayment.getStatus().equals(OrderEvent.Status.REJECTED) ||
+            orderStock.getStatus().equals(OrderEvent.Status.REJECTED)) {
+            newOrder.setStatus(OrderEvent.Status.ROLLED_BACK);
         }
-        return o;
+        return newOrder.build();
     }
 
 }
