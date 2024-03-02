@@ -1,7 +1,7 @@
 package com.metao.book.order.presentation;
 
 import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,7 +32,11 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -45,6 +49,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 @Slf4j
 @AutoConfigureMockMvc
+@TestInstance(Lifecycle.PER_CLASS)
 @ActiveProfiles({"test", "container"})
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class OrderScenarioIT extends BaseKafkaIT {
@@ -70,6 +75,21 @@ class OrderScenarioIT extends BaseKafkaIT {
     @SpyBean
     OrderRepository orderRepository;
 
+    @BeforeAll
+    public void setup() {
+        super.setup();
+        // Create a list of dummy orders for the mocked page
+        List<OrderEntity> orders = generateDummyOrders(10);
+
+        orderRepository.saveAllAndFlush(orders);
+        assertEquals(10, orderRepository.findAll().size());
+    }
+
+    @AfterAll
+    public void tearDown() {
+        orderRepository.deleteAll();
+    }
+
     @Test
     @SneakyThrows
     void createOrderIsOk() {
@@ -87,9 +107,7 @@ class OrderScenarioIT extends BaseKafkaIT {
             .andExpect(status().isOk());
 
         // Wait for the asynchronous operation to finish
-        await().atMost(3, TimeUnit.SECONDS).untilAsserted(() -> {
-            verify(orderRepository).save(any(OrderEntity.class));
-        });
+        await().atMost(3, TimeUnit.SECONDS).untilAsserted(() -> verify(orderRepository).save(any(OrderEntity.class)));
     }
 
     @Test
@@ -125,12 +143,6 @@ class OrderScenarioIT extends BaseKafkaIT {
 
     @Test
     void getOrderByProductIdsAndStatusesPageable() throws Exception {
-        // Create a list of dummy orders for the mocked page
-        List<OrderEntity> orders = generateDummyOrders(10);
-
-        orderRepository.saveAllAndFlush(orders);
-        assertFalse(orderRepository.findAll().isEmpty());
-
         // Perform GET request for the first page
         for (int i = 0; i < 2; i++) {
             mockMvc
@@ -157,12 +169,6 @@ class OrderScenarioIT extends BaseKafkaIT {
 
         Set<String> statuses = new HashSet<>();
         statuses.add(Status.NEW.toString());
-        // Create a list of dummy orders for the mocked page
-        List<OrderEntity> orders = generateDummyOrders(5);
-
-        orderRepository.saveAllAndFlush(orders);
-
-        assertFalse(orderRepository.findAll().isEmpty());
 
         mockMvc
             .perform(
@@ -182,7 +188,7 @@ class OrderScenarioIT extends BaseKafkaIT {
             .andExpect(status().isOk())
             .andExpect(
                 jsonPath("$.content").exists()) // Verify the presence of "content" field in the JSON response
-            .andExpect(jsonPath("$.numberOfElements").value(3)); // Verify that the number of returned items is 3
+            .andExpect(jsonPath("$.numberOfElements").value(5)); // Verify that the number of returned items is 3
 
         mockMvc
             .perform(
