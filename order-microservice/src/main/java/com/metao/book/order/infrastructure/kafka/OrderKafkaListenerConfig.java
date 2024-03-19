@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @EnableKafka
 @RequiredArgsConstructor
-@Transactional(KafkaConstants.KAFKA_TRANSACTION_MANAGER)
 public class OrderKafkaListenerConfig {
 
     private final OrderRepository orderRepository;

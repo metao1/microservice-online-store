@@ -21,12 +21,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(transactionManager = KafkaConstants.TRANSACTION_MANAGER, propagation = Propagation.REQUIRED)
 public class OrderService {
 
     private final KafkaOrderProducer kafkaOrderProducer;
-    private final OrderMapper mapper;
     private final OrderRepository orderRepository;
+    private final OrderMapper mapper;
 
     public Optional<String> createOrder(CreateOrderDTO orderDto) {
         final var orderEvent = Optional.of(orderDto)
