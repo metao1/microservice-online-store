@@ -5,8 +5,6 @@ kafka:
   topic:
     order: "book-order"
     product: "product"
-    
-    order-product: "order-product"
 
 spring:
   cloud:

@@ -63,11 +63,9 @@ public class ProductGenerator {
      * Waits for the {@link ReadinessState#ACCEPTING_TRAFFIC} and starts task execution
      *
      * @param event The {@link AvailabilityChangeEvent}
-     * @throws ExecutionException   If task execution failed
-     * @throws InterruptedException If task execution has been interrupted
      */
     @EventListener
-    public void run(AvailabilityChangeEvent<ReadinessState> event) throws ExecutionException, InterruptedException {
+    public void run(AvailabilityChangeEvent<ReadinessState> event) {
         log.info("Application ReadinessState changed to: {}", event.getState());
         if (event.getState().equals(ReadinessState.ACCEPTING_TRAFFIC)) {
             /*
