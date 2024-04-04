@@ -20,7 +20,7 @@
       "type": "string"
     },
     {
-      "name": "status",
+      "name": "orderStatus",
       "type": {
         "type": "enum",
         "name": "Status",
@@ -56,7 +56,7 @@
         "name": "Currency",
         "symbols": [
           "eur",
-          "dlr"
+          "USD"
         ]
       },
       "namespace": "com.metao.book.shared"

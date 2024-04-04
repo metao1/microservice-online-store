@@ -1,8 +1,8 @@
 package com.metao.book.order.domain;
 
 import com.metao.book.shared.domain.base.AbstractEntity;
-import com.metao.book.shared.domain.financial.Currency;
 import com.metao.book.shared.domain.financial.Money;
+import com.metao.book.shared.domain.order.OrderStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -10,6 +10,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Currency;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,7 +23,7 @@ import lombok.ToString;
 @ToString
 @NoArgsConstructor
 @Table(name = "order_table")
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = true, of = {"productId", "customerId"})
 public class OrderEntity extends AbstractEntity<OrderId> {
 
     @Column(name = "product_id", nullable = false)
@@ -35,7 +36,6 @@ public class OrderEntity extends AbstractEntity<OrderId> {
     private BigDecimal productCount;
 
     @Column(name = "currency", nullable = false)
-    @Enumerated(EnumType.STRING)
     private Currency currency;
 
     @Column(name = "price", nullable = false)
@@ -43,7 +43,7 @@ public class OrderEntity extends AbstractEntity<OrderId> {
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private OrderStatus status;
 
     @Column(name = "created_time", nullable = false)
     private LocalDateTime createdTime;
@@ -54,7 +54,7 @@ public class OrderEntity extends AbstractEntity<OrderId> {
         String productId,
         BigDecimal productCount,
         Money money,
-        Status status
+        OrderStatus status
     ) {
         super(new OrderId(orderId));
         this.status = status;

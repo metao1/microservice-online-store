@@ -35,7 +35,7 @@ public class OrderGenerator {
 //            .setStatus(status.NEW)
 //            .setQuantity(1)
 //            .setPrice(100)
-//            .setCurrency("dlr")
+//            .setCurrency("USD")
 //            .build();
 //        kafkaProducer.sendToKafka(order);
 //    }

@@ -8,9 +8,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.TopicBuilder;
-import org.springframework.validation.annotation.Validated;
 
-@Validated
 @Configuration
 @EnableConfigurationProperties({KafkaProperties.class})
 public class KafkaConfig {
@@ -20,33 +18,11 @@ public class KafkaConfig {
         return createTopic(kafkaTopic);
     }
 
-//    @Bean
-//    public Map<String, NewTopic> orderTopic(KafkaTopic kafkaTopic) {
-//        return kafkaTopic.getTopics().stream()
-//            .collect(Collectors.toMap(
-//                KafkaTopic.Topic::id,
-//                KafkaConfig::createTopic)
-//            );
-//    }
-
     private static NewTopic createTopic(String topic) {
         return TopicBuilder
             .name(topic)
             .partitions(1)
             .config(TopicConfig.COMPRESSION_TYPE_CONFIG, "zstd")
-            //.compact()
             .build();
     }
-//
-//    @Getter
-//    @ConfigurationProperties(prefix = "kafka")
-//    public static class KafkaTopic {
-//
-//        public record Topic(String id, String name, String groupId) {
-//
-//        }
-//
-//        Topic topic;
-//
-//    }
 }

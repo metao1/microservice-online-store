@@ -43,7 +43,6 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      transaction-id-prefix: order-tx
       properties:
         enable.idempotence: true
   output.ansi.enabled: ALWAYS

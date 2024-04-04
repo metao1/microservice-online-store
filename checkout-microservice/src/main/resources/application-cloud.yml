@@ -4,8 +4,6 @@ server:
 kafka:
   topic:
     order: "book-order"
-    product: "product"
-    order-product: "order-product"
 
 spring:
   application:
@@ -39,13 +37,13 @@ spring:
     consumer:
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         auto.offset.reset: earliest
         specific.avro.reader: true
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     streams:
       replication-factor: 1
       properties:

@@ -1,17 +1,18 @@
 package com.metao.book.order.application.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.metao.book.shared.domain.financial.Currency;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Currency;
 import lombok.Builder;
 
 @Builder
 public record CreateOrderDTO(
-                @JsonProperty("product_id") String productId,
-                @JsonProperty("account_id") String accountId,
-                @Size BigDecimal quantity,
-                Currency currency,
-                @Size BigDecimal price) implements Serializable {
+    @NotNull @JsonProperty("product_id") String productId,
+    @NotNull @JsonProperty("account_id") String accountId,
+    @DecimalMin("0") BigDecimal quantity,
+    Currency currency,
+    @DecimalMin("0") BigDecimal price) implements Serializable {
 }

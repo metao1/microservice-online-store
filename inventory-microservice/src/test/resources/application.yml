@@ -1,0 +1,39 @@
+kafka:
+  topic:
+    order: "book-order"
+    product: "product"
+    order-stock: "order-stock"
+
+spring:
+  kafka:
+    bootstrap-servers: PLAINTEXT://localhost:9092
+    properties:
+      bootstrap-servers: PLAINTEXT://localhost:9092
+      schema.registry.url: mock://not-used
+      auto.register.schemas: true
+      use.latest.version: true
+      json:
+        fail.invalid.schema: true
+        oneof.for.nullables: false
+        write.dates.iso8601: true
+    streams:
+      properties:
+        state.dir: /tmp/kafka-streams-test
+    consumer:
+      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      isolation-level: read_committed
+      auto-offset-reset: none
+      enable-auto-commit: false
+      properties:
+        auto.offset.reset: earliest
+        specific.protobuf.key.type: java.lang.String
+        specific.protobuf.value.type: io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer
+        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+        spring.deserializer.value.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+        allow.auto.create.topics: 'false'
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        enable.idempotence: true
