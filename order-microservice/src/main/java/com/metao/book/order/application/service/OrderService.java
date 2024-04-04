@@ -1,50 +1,51 @@
 package com.metao.book.order.application.service;
 
 import com.metao.book.order.application.dto.CreateOrderDTO;
-import com.metao.book.order.application.dto.OrderDTO;
-import com.metao.book.order.application.dto.exception.CreateOrderException;
+import com.metao.book.order.application.dto.OrderCreatedEvent;
 import com.metao.book.order.domain.OrderId;
-import com.metao.book.order.domain.Status;
-import com.metao.book.order.infrastructure.kafka.KafkaConstants;
 import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
 import com.metao.book.order.infrastructure.repository.OrderRepository;
 import com.metao.book.order.infrastructure.repository.OrderSpecifications;
+import com.metao.book.shared.application.service.StageProcessor;
+import com.metao.book.shared.domain.order.OrderStatus;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class OrderService {
 
+    private static final Logger log = LoggerFactory.getLogger(OrderService.class);
     private final KafkaOrderProducer kafkaOrderProducer;
     private final OrderRepository orderRepository;
     private final OrderMapper mapper;
 
-    public Optional<String> createOrder(CreateOrderDTO orderDto) {
-        final var orderEvent = Optional.of(orderDto)
-            .map(mapper::toDto)
-            .orElseThrow(CreateOrderException::new);
-        kafkaOrderProducer.sendToKafka(orderEvent);
-        return Optional.of(orderEvent.orderId());
+    public String createOrder(CreateOrderDTO orderDto) {
+        return StageProcessor.accept(orderDto)
+                .thenApply(mapper::toOrderCreatedEvent)
+                .handleExceptionally((orderCreatedEvent, exp) -> {
+                    kafkaOrderProducer.sendToKafka(orderCreatedEvent);
+                    return orderCreatedEvent.orderId();
+                });
     }
 
-    public Optional<OrderDTO> getOrderByOrderId(OrderId orderId) {
-        return orderRepository.findById(orderId).map(mapper::toDto);
+    public Optional<OrderCreatedEvent> getOrderByOrderId(OrderId orderId) {
+        return orderRepository.findById(orderId).map(mapper::toOrderCreatedEvent);
     }
 
-    public Page<OrderDTO> getOrderByProductIdsAndOrderStatus(
-        Set<String> productIds, Set<Status> orderStatus, int offset, int pageSize, String sortByFieldName
+    public Page<OrderCreatedEvent> getOrderByProductIdsAndOrderStatus(
+            Set<String> productIds, Set<OrderStatus> statuses, int offset, int pageSize, String sortByFieldName
     ) {
         var pageable = PageRequest.of(offset, pageSize, Sort.by(Sort.Direction.ASC, sortByFieldName));
-        var spec = OrderSpecifications.findByOrdersByCriteria(productIds, orderStatus);
-        return orderRepository.findAll(spec, pageable).map(mapper::toDto);
+        var spec = OrderSpecifications.findByOrdersByCriteria(productIds, statuses);
+        return orderRepository.findAll(spec, pageable).map(mapper::toOrderCreatedEvent);
     }
 
 }

@@ -1,7 +1,7 @@
 package com.metao.book.order.infrastructure.repository;
 
 import com.metao.book.order.domain.OrderEntity;
-import com.metao.book.order.domain.Status;
+import com.metao.book.shared.domain.order.OrderStatus;
 import jakarta.persistence.criteria.Predicate;
 import java.util.Set;
 import lombok.experimental.UtilityClass;
@@ -12,7 +12,7 @@ import org.springframework.util.CollectionUtils;
 public class OrderSpecifications {
 
     public static Specification<OrderEntity> findByOrdersByCriteria(
-        Set<String> productIds, Set<Status> statuses
+        Set<String> productIds, Set<OrderStatus> statuses
     ) {
         return (root, query, criteriaBuilder) -> {
             Predicate predicate = criteriaBuilder.conjunction();

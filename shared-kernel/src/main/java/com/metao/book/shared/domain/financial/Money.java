@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.metao.book.shared.domain.base.ValueObject;
 import java.math.BigDecimal;
+import java.util.Currency;
 import java.util.Objects;
 import org.springframework.lang.NonNull;
 

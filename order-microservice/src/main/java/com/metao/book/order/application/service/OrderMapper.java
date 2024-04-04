@@ -3,10 +3,10 @@ package com.metao.book.order.application.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.metao.book.order.application.dto.CreateOrderDTO;
-import com.metao.book.order.application.dto.OrderDTO;
+import com.metao.book.order.application.dto.OrderCreatedEvent;
 import com.metao.book.order.domain.OrderEntity;
-import com.metao.book.order.domain.Status;
 import com.metao.book.shared.domain.financial.Money;
+import com.metao.book.shared.domain.order.OrderStatus;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,42 +19,42 @@ public class OrderMapper {
 
     private final ObjectMapper objectMapper;
 
-    public OrderDTO toDto(String orderVal) {
-        final OrderDTO orderDTO;
+    public OrderCreatedEvent toOrderCreatedEvent(String orderVal) {
+        final OrderCreatedEvent orderCreatedEvent;
         try {
-            orderDTO = objectMapper.readValue(orderVal, OrderDTO.class);
+            orderCreatedEvent = objectMapper.readValue(orderVal, OrderCreatedEvent.class);
         } catch (JsonProcessingException e) {
             log.error(e.getMessage());
             throw new RuntimeException(e);
         }
-        return orderDTO;
+        return orderCreatedEvent;
     }
 
-    public OrderDTO toDto(CreateOrderDTO dto) {
-        return OrderDTO.builder()
+    public OrderCreatedEvent toOrderCreatedEvent(CreateOrderDTO dto) {
+        return OrderCreatedEvent.builder()
             .orderId(UUID.randomUUID().toString())
+            .status(OrderStatus.NEW)
             .customerId(dto.accountId())
             .productId(dto.productId())
             .currency(dto.currency())
             .quantity(dto.quantity())
-            .status(Status.NEW)
             .price(dto.price())
             .build();
     }
 
-    public OrderDTO toDto(OrderEntity orderEntity) {
-        return OrderDTO.builder()
+    public OrderCreatedEvent toOrderCreatedEvent(OrderEntity orderEntity) {
+        return OrderCreatedEvent.builder()
             .orderId(orderEntity.id().toUUID())
             .price(orderEntity.getPrice())
             .currency(orderEntity.getCurrency())
             .productId(orderEntity.getProductId())
-            .status(orderEntity.getStatus())
             .customerId(orderEntity.getCustomerId())
             .quantity(orderEntity.getProductCount())
+            .status(orderEntity.getStatus())
             .build();
     }
 
-    public OrderEntity toEntity(OrderDTO order) {
+    public OrderEntity toEntity(OrderCreatedEvent order) {
         var money = new Money(order.currency(), order.price());
         return new OrderEntity(order.orderId(), order.customerId(), order.productId(), order.quantity(), money,
             order.status());

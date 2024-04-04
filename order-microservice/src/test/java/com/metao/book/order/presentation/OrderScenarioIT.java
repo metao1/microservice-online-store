@@ -3,6 +3,7 @@ package com.metao.book.order.presentation;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -11,19 +12,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.metao.book.OrderEventOuterClass;
 import com.metao.book.order.application.dto.CreateOrderDTO;
-import com.metao.book.order.application.dto.OrderDTO;
+import com.metao.book.order.application.dto.OrderCreatedEvent;
 import com.metao.book.order.application.service.OrderMapper;
 import com.metao.book.order.domain.OrderEntity;
 import com.metao.book.order.domain.OrderId;
-import com.metao.book.order.domain.Status;
 import com.metao.book.order.infrastructure.repository.OrderRepository;
-import com.metao.book.shared.domain.financial.Currency;
 import com.metao.book.shared.domain.financial.Money;
+import com.metao.book.shared.domain.order.OrderStatus;
 import com.metao.book.shared.test.StreamBuilderTestUtils;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Currency;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -54,11 +54,12 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class OrderScenarioIT extends BaseKafkaIT {
 
-    public static final String ACCOUNT_ID = "ACCOUNT_ID";
-    public static final String PRODUCT_ID = "1234567892";
+    private static final Currency EUR = Currency.getInstance("EUR");
+    private static final String ACCOUNT_ID = "ACCOUNT_ID";
+    private static final String PRODUCT_ID = "1234567892";
     private static final BigDecimal QUANTITY = BigDecimal.valueOf(100d);
     private static final BigDecimal PRICE = BigDecimal.valueOf(123d);
-    public static final String ORDER_ID = "ORDER_ID";
+    private static final String ORDER_ID = "ORDER_ID";
 
     @Autowired
     ObjectMapper objectMapper;
@@ -70,7 +71,7 @@ class OrderScenarioIT extends BaseKafkaIT {
     OrderMapper mapper;
 
     @Autowired
-    KafkaTemplate<String, OrderEventOuterClass.OrderEvent> kafkaTemplate;
+    KafkaTemplate<String, OrderCreatedEvent> kafkaTemplate;
 
     @SpyBean
     OrderRepository orderRepository;
@@ -96,7 +97,7 @@ class OrderScenarioIT extends BaseKafkaIT {
         var createOrderDTO = CreateOrderDTO.builder()
             .accountId(ACCOUNT_ID)
             .productId(PRODUCT_ID)
-            .currency(Currency.EUR)
+            .currency(EUR)
             .quantity(QUANTITY)
             .price(PRICE)
             .build();
@@ -113,12 +114,12 @@ class OrderScenarioIT extends BaseKafkaIT {
     @Test
     @SneakyThrows
     void getOrderIsOK() {
-        var expectedOrder = OrderDTO.builder()
+        var expectedOrder = OrderCreatedEvent.builder()
             .orderId(ORDER_ID)
             .customerId(ACCOUNT_ID)
             .productId(PRODUCT_ID)
-            .currency(Currency.EUR)
-            .status(Status.NEW)
+            .currency(EUR)
+            .status(OrderStatus.NEW)
             .price(PRICE)
             .quantity(QUANTITY)
             .build();
@@ -139,6 +140,26 @@ class OrderScenarioIT extends BaseKafkaIT {
 
         mockMvc.perform(get("/order").param("order_id", unknownOrderId))
             .andExpect(status().isNotFound());
+    }
+
+
+    @Test
+    @SneakyThrows
+    void createInvalidOrderRequestIsBadRequest() {
+        var createOrderDTO = CreateOrderDTO.builder()
+            .productId(PRODUCT_ID)
+            .currency(EUR)
+            .quantity(QUANTITY)
+            .price(PRICE)
+            .build();
+
+        mockMvc.perform(post("/order")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(StreamBuilderTestUtils.convertObjectToJsonBytes(objectMapper, createOrderDTO)))
+            .andExpect(status().isBadRequest());
+
+        // Wait for the asynchronous operation to finish
+        await().atMost(3, TimeUnit.SECONDS).untilAsserted(() -> verify(orderRepository, never()).save(any(OrderEntity.class)));
     }
 
     @Test
@@ -168,7 +189,7 @@ class OrderScenarioIT extends BaseKafkaIT {
         productIds.add("product_2");
 
         Set<String> statuses = new HashSet<>();
-        statuses.add(Status.NEW.toString());
+        statuses.add(OrderStatus.NEW.toString());
 
         mockMvc
             .perform(
@@ -209,28 +230,12 @@ class OrderScenarioIT extends BaseKafkaIT {
             String customerId = "customer_" + i; // Generate a dummy customer ID
             String productId = "product_" + i; // Generate a dummy product ID
             BigDecimal productCount = BigDecimal.valueOf(i + 1); // Incremental product count
-            Money money = new Money(Currency.EUR, BigDecimal.valueOf((i + 1) * 10L)); // Dummy money
-            Status status = i % 2 == 0 ? Status.NEW : Status.SUBMITTED; // Set status to NEW for all orders
-            OrderEntity order = new OrderEntity(orderId, customerId, productId, productCount, money, status);
+            Money money = new Money(EUR, BigDecimal.valueOf((i + 1) * 10L)); // Dummy money
+            OrderStatus orderStatus =
+                i % 2 == 0 ? OrderStatus.NEW : OrderStatus.SUBMITTED; // Set status to NEW for all orders
+            OrderEntity order = new OrderEntity(orderId, customerId, productId, productCount, money, orderStatus);
             orders.add(order);
         }
         return orders;
     }
-
-//    @SneakyThrows
-//    @KafkaListener(id = "order-listener-test", topics = "${kafka.topic.name}", groupId = "order-grp")
-//    @Transactional
-//    public void onOrderListenerTest(
-//        ConsumerRecord<String, String> record
-//    ) {
-//        final OrderDTO orderDTO;
-//        try {
-//            orderDTO = objectMapper.readValue(record.value(), OrderDTO.class);
-//        } catch (JsonProcessingException e) {
-//            log.error(e.getMessage());
-//            throw new RuntimeException(e);
-//        }
-//        arrayBlockingQueue.put(orderDTO);
-//    }
-
 }

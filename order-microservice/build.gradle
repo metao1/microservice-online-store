@@ -1,15 +1,14 @@
 dependencies {
   implementation project(':shared-kernel')
 
-  implementation 'org.postgresql:postgresql:42.5.1'
+  implementation 'org.springframework.boot:spring-boot-starter-validation'
+  implementation 'org.postgresql:postgresql:42.7.3'
   implementation 'io.grpc:grpc-protobuf:1.61.0'
   implementation 'io.grpc:grpc-stub:1.61.0'
   implementation 'org.springframework.kafka:spring-kafka'
   implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-  implementation 'io.confluent:kafka-protobuf-serializer:7.5.1'
   implementation 'org.apache.kafka:kafka-clients:3.7.0'
 
-  compileOnly 'org.springframework.boot:spring-boot-starter-validation'
   compileOnly 'org.apache.tomcat:annotations-api:6.0.53' // necessary for Java 9+
 
   runtimeOnly 'io.grpc:grpc-netty-shaded:1.61.0'

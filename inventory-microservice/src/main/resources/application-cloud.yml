@@ -1,0 +1,85 @@
+server:
+  port: ${PORT:8083}
+
+kafka:
+  topic:
+    order: "book-order"
+    product: "product"
+    
+    order-product: "order-product"
+
+spring:
+  cloud:
+    discovery:
+      enabled: false
+  application:
+    name: product-master
+  kafka:
+    # Required connection configs for Kafka producer, consumer, and admin
+    bootstrap-servers: ${BOOTSTRAP_SERVERS}
+    # Required connection configs for Confluent Cloud Schema Registry
+    properties:
+      stream-properties:
+        schema.registry.url: ${SCHEMA_HOST}
+        bootstrap.servers: ${BOOTSTRAP_SERVERS}
+      bootstrap-servers: ${BOOTSTRAP_SERVERS}
+      security.protocol: PLAINTEXT
+      sasl.mechanism: PLAIN
+      credentials.source: USER_INFO
+    consumer:
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        auto.offset.reset: earliest
+        specific.avro.reader: true
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    streams:
+      replication-factor: 1
+      properties:
+        application.id: product-mister
+        bootstrap.servers: ${BOOTSTRAP_SERVERS}
+        schema.registry.url: ${SCHEMA_HOST}
+        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        default.value.serde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
+        num.standby.replicas: 1
+        num.stream.threads: 2
+        max.request.size: 8388608        # 84 MiB
+        topic.max.message.bytes: 8388608 # 84 MiB
+        topology.optimization: all
+        state.dir: /tmp/kafka-streams
+  output.ansi.enabled: ALWAYS
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgres
+
+  jpa:
+    database: POSTGRESQL
+    show-sql: false
+    generate-ddl: false
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.PostgreSQL9Dialect
+    properties:
+      open-in-view: false
+      hibernate:
+        temp:
+          use_jdbc_metadata_defaults: false
+      datasource:
+        url: jdbc:postgresql://localhost:5432/product
+        username: postgres
+        password: secset
+
+product-sample-data-path: data/products.txt
+
+logging:
+  pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%15.15t]){yellow} %clr(:){red} %clr(%m){faint}%n"
+  level:
+    org.apache.kafka.streams.kstream: INFO
+    org.springframework.data: DEBUG
+    org.springframework.boot.autoconfigure: ERROR
+    org.hibernate: DEBUG
