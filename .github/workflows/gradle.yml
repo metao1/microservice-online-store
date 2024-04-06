@@ -21,4 +21,4 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
       - name: Build microservices and run tests with Gradle
-        run: ./gradlew clean build
+        run: gradle build
