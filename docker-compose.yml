@@ -15,26 +15,20 @@ services:
   kafka1:
     image: confluentinc/cp-kafka:7.6.0
     hostname: kafka1
-    restart: on-failure
     container_name: kafka1
     ports:
       - "9092:9092"
       - "9999:9999"
     environment:
-      KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka1:19092,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka1:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181"
-      KAFKA_BROKER_ID: 1
-      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_JMX_PORT: 9999
-      KAFKA_JMX_HOSTNAME: ${DOCKER_HOST_IP:-127.0.0.1}
+      KAFKA_BROKER_ID: 1
     depends_on:
       - zoo1
-  
+
   kafka-schema-registry:
     image: confluentinc/cp-schema-registry:7.6.0
     hostname: kafka-schema-registry
@@ -99,10 +93,32 @@ services:
     volumes:
       - postgres:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=product
-      - POSTGRES_USER=product
-      - POSTGRES_PASSWORD=product
+      POSTGRES_DB: bookstore
+      POSTGRES_USER: bookstore
+      POSTGRES_PASSWORD: bookstore
+
+  order-microservice:
+    image: online-book-store/order-microservice:0.0.1
+    container_name: order-microservice
+    hostname: order-microservice
+    #restart: on-failure
+    environment:
+      POSTGRES_URL: "jdbc:postgresql://postgres:5432/bookstore"
+      BOOTSTRAP_SERVERS: kafka1:9092
+      POSTGRES_USERNAME: bookstore
+      POSTGRES_PASSWORD: bookstore
+    build:
+      context: order-microservice
+      dockerfile: src/main/docker/Dockerfile
+    ports:
+      - "1080:8080"
+
 volumes:
   postgres:
     driver:
       local
+
+networks:
+  default:
+    driver: bridge
+    name: bookstore-network

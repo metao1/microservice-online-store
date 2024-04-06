@@ -11,8 +11,6 @@ import com.metao.book.shared.domain.order.OrderStatus;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -22,15 +20,14 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class OrderService {
 
-    private static final Logger log = LoggerFactory.getLogger(OrderService.class);
     private final KafkaOrderProducer kafkaOrderProducer;
     private final OrderRepository orderRepository;
     private final OrderMapper mapper;
 
     public String createOrder(CreateOrderDTO orderDto) {
         return StageProcessor.accept(orderDto)
-                .thenApply(mapper::toOrderCreatedEvent)
-                .handleExceptionally((orderCreatedEvent, exp) -> {
+            .map(mapper::toOrderCreatedEvent)
+            .applyExceptionally((orderCreatedEvent, exp) -> {
                     kafkaOrderProducer.sendToKafka(orderCreatedEvent);
                     return orderCreatedEvent.orderId();
                 });

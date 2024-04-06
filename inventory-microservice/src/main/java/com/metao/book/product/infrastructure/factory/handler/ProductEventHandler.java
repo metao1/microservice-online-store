@@ -14,7 +14,7 @@ public class ProductEventHandler {
         this.messageHandlers.add(messageHandler);
     }
 
-    public void sendEvent(ProductCreatedEvent event) {
+    public void publish(ProductCreatedEvent event) {
         messageHandlers.forEach(me -> me.onMessage(event));
     }
 }

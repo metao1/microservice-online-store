@@ -11,11 +11,10 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ProductDtoMapper implements DTOMapper<String, Optional<ProductEvent>> {
+public class ProductDtoMapper {
 
     private final ObjectMapper mapper;
 
-    @Override
     public Optional<ProductEvent> convertToDto(String productString) {
         final ProductEvent productEvent;
         try {

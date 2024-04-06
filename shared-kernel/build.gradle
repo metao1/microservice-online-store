@@ -1,5 +1,6 @@
 plugins {
   id 'java-library'
+  id 'maven-publish'
 }
 
 dependencies {
@@ -12,4 +13,38 @@ dependencies {
 
   compileOnly 'io.micrometer:micrometer-registry-prometheus'
   compileOnly 'io.micrometer:micrometer-core'
+}
+
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+      from components.java
+    }
+  }
+  repositories {
+    maven {
+      url = uri('file://$HOME/.m2/repository')
+    }
+  }
+}
+
+artifacts {
+  group 'com.metao.book'
+  version = System.getenv('CI_COMMIT_REF_NAME') ? System.getenv('CI_COMMIT_REF_NAME') : "1.0"
+}
+
+def getCurrentGitBranch() {
+  def gitBranch = 'unknown-branch'
+  try {
+    def workingDir = new File("${project.projectDir}")
+    def result = 'git rev-parse --abbrev-ref HEAD'.execute(null, workingDir)
+    result.waitFor()
+    if (result.exitValue() == 0) {
+      gitBranch = result.text.trim()
+    }
+  } catch (e) {
+    logger.error('Unable to fetch current GIT branch', e)
+  }
+  logger.info("Your current GIT branch is {}", gitBranch)
+  return gitBranch
 }

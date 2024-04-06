@@ -11,7 +11,6 @@ import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,7 +51,7 @@ public class ProductGenerator {
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .map(EventUtil::createProductEvent)
-                .forEach(eventHandler::sendEvent);
+                .forEach(eventHandler::publish);
         } catch (IOException e) {
             log.error(e.getMessage(), e);
         }

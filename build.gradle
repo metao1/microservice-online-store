@@ -5,7 +5,7 @@ plugins {
   id 'com.google.cloud.tools.jib' version '3.1.4' apply false
   id 'org.springframework.boot' version '3.2.2' apply false
   id "com.google.protobuf" version "0.9.4" apply false
-  id 'io.spring.dependency-management' version '1.1.0'
+  id 'io.spring.dependency-management' version '1.1.0' apply false
 }
 
 ext {
@@ -25,7 +25,6 @@ subprojects {
   }
   boolean isSpringProject = gradle.springBootProjects.contains(it.path)
   if (isSpringProject) {
-    System.out.println(isSpringProject)
     apply plugin: 'org.springframework.boot'
     apply plugin: 'com.google.protobuf'
     dependencies {
@@ -71,6 +70,12 @@ subprojects {
         mavenBom "io.micrometer:micrometer-bom:$micrometerVersion"
         mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
       }
+    }
+  }
+
+  java {
+    toolchain {
+      languageVersion = JavaLanguageVersion.of(21)
     }
   }
 }

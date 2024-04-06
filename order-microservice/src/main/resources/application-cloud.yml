@@ -5,14 +5,8 @@ server:
   port: ${PORT:8083}
 
 kafka:
-  properties:
-    num-partitions: 1
-    replication-factor: 1
   topic:
-    product: "product"
     order: "book-order"
-    order-product: "order-product"
-    payment: "payment"
 
 spring:
   kafka:
@@ -20,9 +14,6 @@ spring:
     bootstrap-servers: ${BOOTSTRAP_SERVERS}
     # Required connection configs for Confluent Cloud Schema Registry
     properties:
-#      stream-properties:
-#        schema.registry.url: ${SCHEMA_HOST}
-#        bootstrap.servers: ${BOOTSTRAP_SERVERS}
       bootstrap-servers: ${BOOTSTRAP_SERVERS}
       security.protocol: SASL_SSL
       sasl.mechanism: PLAIN
@@ -60,9 +51,6 @@ spring:
         topology.optimization: all
         state.dir: /tmp/kafka-streams-order
   output.ansi.enabled: ALWAYS
-  cloud:
-    discovery:
-      enabled: false
   datasource:
     url: jdbc:postgresql://localhost:5432/order
     username: postgres
@@ -71,7 +59,7 @@ spring:
     database: POSTGRESQL
     show-sql: false
     generate-ddl: false
-    database-platform: org.hibernate.dialect.PostgreSQL9Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
       open-in-view: false
       hibernate:
