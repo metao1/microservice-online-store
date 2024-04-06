@@ -11,11 +11,12 @@ import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Currency;
-import lombok.EqualsAndHashCode;
+import java.util.Objects;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.proxy.HibernateProxy;
 
 @Entity
 @Getter
@@ -23,7 +24,6 @@ import lombok.ToString;
 @ToString
 @NoArgsConstructor
 @Table(name = "order_table")
-@EqualsAndHashCode(callSuper = true, of = {"productId", "customerId"})
 public class OrderEntity extends AbstractEntity<OrderId> {
 
     @Column(name = "product_id", nullable = false)
@@ -64,5 +64,31 @@ public class OrderEntity extends AbstractEntity<OrderId> {
         this.currency = money.currency();
         this.price = money.doubleAmount();
         this.createdTime = LocalDateTime.now();
+    }
+
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null) {
+            return false;
+        }
+        Class<?> oEffectiveClass =
+            (o instanceof HibernateProxy s) ? (s.getHibernateLazyInitializer().getPersistentClass()) : o.getClass();
+        Class<?> thisEffectiveClass =
+            (o instanceof HibernateProxy proxy) ? (proxy).getHibernateLazyInitializer().getPersistentClass()
+                : this.getClass();
+        if (thisEffectiveClass != oEffectiveClass) {
+            return false;
+        }
+        OrderEntity that = (OrderEntity) o;
+        return productId != null && Objects.equals(productId, that.productId);
+    }
+
+    @Override
+    public final int hashCode() {
+        return (this instanceof HibernateProxy proxy) ? (proxy).getHibernateLazyInitializer()
+            .getPersistentClass().hashCode() : getClass().hashCode();
     }
 }

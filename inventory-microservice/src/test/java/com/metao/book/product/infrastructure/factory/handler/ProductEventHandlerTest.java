@@ -26,7 +26,7 @@ class ProductEventHandlerTest {
 
         var event = EventUtil.createProductEvent(productDto);
 
-        eventHandler.sendEvent(event);
+        eventHandler.publish(event);
         verify(messageHandler).onMessage(event);
     }
 }

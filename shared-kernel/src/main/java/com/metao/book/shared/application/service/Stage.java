@@ -6,9 +6,9 @@ import java.util.function.Function;
 
 public interface Stage<T> {
 
-    <U> Stage<U> thenApply(Function<? super T, ? extends U> function);
+    <U> Stage<U> map(Function<? super T, ? extends U> function);
 
-    <U> U handleExceptionally(BiFunction<? super T, Throwable, ? extends U> function);
+    <U> U applyExceptionally(BiFunction<? super T, Throwable, ? extends U> function);
 
-    void acceptExceptionally(BiConsumer<? super T, Throwable> consumer);
+    void acceptExceptionally(BiConsumer<? super T, Throwable> biConsumer);
 }

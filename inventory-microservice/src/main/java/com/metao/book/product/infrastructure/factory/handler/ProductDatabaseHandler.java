@@ -21,12 +21,15 @@ public class ProductDatabaseHandler implements MessageHandler<ProductCreatedEven
     public void onMessage(@NonNull ProductCreatedEvent event) {
         log.info("event occurred on: {}", event.occurredOn());
         StageProcessor.accept(event.productEvent())
-            .thenApply(productMapper::toEntity)
-            .acceptExceptionally((entity, exp) -> {
+            .map(productMapper::toEntity)
+            .map(productEntity -> {
+                productService.saveProduct(productEntity);
+                return productEntity;
+            }).acceptExceptionally((productEntity, exp) -> {
                 if (exp != null) {
-                    log.warn(exp.getMessage());
+                    log.warn("saving product:{} , failed: {}", productEntity, exp.getMessage());
                 } else {
-                    productService.saveProduct(entity);
+                    log.info("saved product id:{}", productEntity.getAsin());
                 }
             });
     }

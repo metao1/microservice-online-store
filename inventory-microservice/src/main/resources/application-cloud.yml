@@ -7,9 +7,6 @@ kafka:
     product: "product"
 
 spring:
-  cloud:
-    discovery:
-      enabled: false
   application:
     name: product-master
   kafka:
@@ -61,7 +58,7 @@ spring:
     generate-ddl: false
     hibernate:
       ddl-auto: update
-    database-platform: org.hibernate.dialect.PostgreSQL9Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
       open-in-view: false
       hibernate:

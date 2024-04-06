@@ -6,9 +6,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.lang.NonNull;
 
-public class ProductCategoryMapper implements DTOMapper<ProductCategoryEntity, CategoryDTO> {
+public class ProductCategoryMapper {
 
-    @Override
     public CategoryDTO convertToDto(@NonNull ProductCategoryEntity val) {
         return CategoryDTO.of(val.getCategory().category());
     }

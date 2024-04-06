@@ -1,0 +1,19 @@
+FROM eclipse-temurin:21.0.2_13-jre-alpine AS jdk
+
+COPY --chown=user:user build/libs/order-microservice.jar app.jar
+
+FROM jdk AS order-microservice
+
+# Set environment variables
+ENV JAVA_OPTS="-Xms256m -Xmx2048m" \
+    SLEEP=1
+
+# Run as non-root user
+USER 1001
+
+# Start the application
+CMD echo "Order microservice will start in ${SLEEP}s..." && \
+    sleep ${SLEEP} && \
+    java \
+        ${JAVA_OPTS} -Djava.security.egd=file:/dev/./urandom \
+        -jar app.jar

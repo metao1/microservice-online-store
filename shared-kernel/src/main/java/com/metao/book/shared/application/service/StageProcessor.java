@@ -23,7 +23,7 @@ public class StageProcessor<T> implements Stage<T> {
     }
 
     @Override
-    public <U> StageProcessor<U> thenApply(Function<? super T, ? extends U> function) {
+    public <U> Stage<U> map(Function<? super T, ? extends U> function) {
         try {
             U res = function.apply(event);
             return new MinimalStage<>(res, null);
@@ -32,7 +32,7 @@ public class StageProcessor<T> implements Stage<T> {
         }
     }
 
-    public <U> U handleExceptionally(BiFunction<? super T, Throwable, ? extends U> function) {
+    public <U> U applyExceptionally(BiFunction<? super T, Throwable, ? extends U> function) {
         try {
             return function.apply(event, cause);
         } catch (Exception e) {
@@ -41,7 +41,9 @@ public class StageProcessor<T> implements Stage<T> {
     }
 
     @Override
-    public void acceptExceptionally(BiConsumer<? super T, Throwable> biConsumer) {
+    public void acceptExceptionally(
+        BiConsumer<? super T, Throwable> biConsumer
+    ) {
         biConsumer.accept(event, cause);
     }
 

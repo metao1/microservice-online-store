@@ -29,9 +29,9 @@ public class OrderKafkaListenerConfig {
     public void orderKafkaListener(ConsumerRecord<String, String> orderRecord) {
         StageProcessor
             .accept(orderRecord.value())
-            .thenApply(orderMapper::toOrderCreatedEvent)
-            .thenApply(orderMapper::toEntity)
-            .thenApply(orderRepository::save)
+            .map(orderMapper::toOrderCreatedEvent)
+            .map(orderMapper::toEntity)
+            .map(orderRepository::save)
             .acceptExceptionally(
                 (entity, ex) -> log.error("saving order {}, reason: {}", entity,
                     ex != null ? ex.getMessage() : "can't process order"));

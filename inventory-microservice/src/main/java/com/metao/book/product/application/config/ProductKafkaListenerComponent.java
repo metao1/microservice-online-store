@@ -9,7 +9,6 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -30,13 +29,14 @@ public class ProductKafkaListenerComponent {
         log.info("Consumed productCreatedEvent -> {}", productCreatedEvent);
         var productEvent = productCreatedEvent.productEvent();
         StageProcessor.accept(productEvent)
-            .thenApply(productMapService::toEntity)
-            .acceptExceptionally((productEntity, exp) -> {
+            .map(productMapService::toEntity)
+            .applyExceptionally((productEntity, exp) -> {
                 if (exp != null) {
                     log.error("while saving entity {}, error:{}", productEntity, exp.getMessage());
                 } else {
                     productRepository.save(productEntity);
                 }
+                return productEntity;
             });
     }
 

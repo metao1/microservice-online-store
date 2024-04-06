@@ -2,31 +2,23 @@ server:
   error:
     include-message: always
     include-binding-errors: always
-  port: ${PORT:8085}
+  port: ${PORT:8080}
 
 kafka:
-  #topics:
   topic:
     id: "book-order-id"
     name: "book-order"
-    group-id: "order-processor-group"
+    group-id: "book-order-group"
 
 spring:
   application:
     name: order-microservice
   kafka:
-    admin:
-      properties:
-        min-in-sync-replicas: 1
-    # Required connection configs for Kafka producer, consumer, and admin
     bootstrap-servers: ${BOOTSTRAP_SERVERS}
     # Required connection configs for Confluent Cloud Schema Registry
     properties:
-      bootstrap-servers: ${BOOTSTRAP_SERVERS}
       security.protocol: PLAINTEXT
-      schema.registry.url: ${SCHEMA_HOST}
       sasl.mechanism: PLAIN
-      credentials.source: USER_INFO
     consumer:
       key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
@@ -47,17 +39,24 @@ spring:
         enable.idempotence: true
   output.ansi.enabled: ALWAYS
   datasource:
-    url: jdbc:postgresql://localhost:5432/product
-    username: product
-    password: product
+    url: ${POSTGRES_URL}
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
     hikari:
       auto-commit: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 0
+    outOfOrder: true
+    locations: classpath:db/migration
+    clean-disabled: true
   jpa:
     database: POSTGRESQL
-    show-sql: false
+    show-sql: true
     generate-ddl: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     properties:
       open-in-view: false
       hibernate:
@@ -65,11 +64,6 @@ spring:
           provider_disables_autocommit: true
         temp:
           use_jdbc_metadata_defaults: false
-      datasource:
-        url: jdbc:postgresql://localhost:5432/product
-        username: postgres
-        password: postgres
-
 
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%15.15t]){yellow} %clr(:){red} %clr(%m){faint}%n"

@@ -55,7 +55,7 @@ spring:
     generate-ddl: false
     hibernate:
       ddl-auto: validate
-    database-platform: org.hibernate.dialect.PostgreSQL9Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
       open-in-view: false
       hibernate:
