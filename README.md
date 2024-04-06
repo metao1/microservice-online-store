@@ -46,7 +46,7 @@ You can now start browsing products and purchasing some of them. If you like you
 from 1500 categories. Then in checkout you can finish your orders and get a confirmation number to track your purchases.
 
 
-### Some Screenshots
+### Bookstore after frontend runs, screenshot
 
 ![product](img/Screenshot-2020-03-31.png)
 
