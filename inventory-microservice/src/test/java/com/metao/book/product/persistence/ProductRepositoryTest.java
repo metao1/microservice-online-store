@@ -91,7 +91,7 @@ public class ProductRepositoryTest extends BasePostgresIT {
         var pe = ProductTestUtils.createProductEntity();
         productRepository.save(pe);
 
-        var optionalProductCategories = productRepository.findProductCategoriesByProductId(pe.id());
+        var optionalProductCategories = productRepository.findByProductId(pe.id());
         assertTrue(optionalProductCategories.isPresent());
         assertThat(optionalProductCategories.get())
             .hasSize(1)

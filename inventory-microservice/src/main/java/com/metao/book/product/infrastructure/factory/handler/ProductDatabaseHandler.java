@@ -19,7 +19,6 @@ public class ProductDatabaseHandler implements MessageHandler<ProductCreatedEven
 
     @Override
     public void onMessage(@NonNull ProductCreatedEvent event) {
-        log.info("event occurred on: {}", event.occurredOn());
         StageProcessor.accept(event.productEvent())
             .map(productMapper::toEntity)
             .map(productEntity -> {

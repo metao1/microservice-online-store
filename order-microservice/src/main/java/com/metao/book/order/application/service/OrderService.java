@@ -1,7 +1,7 @@
 package com.metao.book.order.application.service;
 
+import com.metao.book.OrderCreatedEventOuterClass.OrderCreatedEvent;
 import com.metao.book.order.application.dto.CreateOrderDTO;
-import com.metao.book.order.application.dto.OrderCreatedEvent;
 import com.metao.book.order.domain.OrderId;
 import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
 import com.metao.book.order.infrastructure.repository.OrderRepository;
@@ -22,14 +22,14 @@ public class OrderService {
 
     private final KafkaOrderProducer kafkaOrderProducer;
     private final OrderRepository orderRepository;
-    private final OrderMapper mapper;
+    private final OrderMapperFactory mapper;
 
     public String createOrder(CreateOrderDTO orderDto) {
         return StageProcessor.accept(orderDto)
             .map(mapper::toOrderCreatedEvent)
             .applyExceptionally((orderCreatedEvent, exp) -> {
                     kafkaOrderProducer.sendToKafka(orderCreatedEvent);
-                    return orderCreatedEvent.orderId();
+                return orderCreatedEvent.getId();
                 });
     }
 

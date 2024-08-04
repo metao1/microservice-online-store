@@ -1,7 +1,7 @@
 package com.metao.book.order.presentation;
 
+import com.metao.book.OrderCreatedEventOuterClass.OrderCreatedEvent;
 import com.metao.book.order.application.dto.CreateOrderDTO;
-import com.metao.book.order.application.dto.OrderCreatedEvent;
 import com.metao.book.order.application.dto.exception.FindOrderException;
 import com.metao.book.order.application.service.OrderService;
 import com.metao.book.order.domain.OrderId;

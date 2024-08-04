@@ -3,7 +3,11 @@ syntax = "proto3";
 package com.metao.book;
 import "google/protobuf/timestamp.proto";
 
-message OrderEvent {
+option java_multiple_files = true;
+option java_package = "com.metao.book.order";
+option java_outer_classname = "KafkaProto";
+
+message OrderPaymentEvent {
   string id = 1;
   // Created updated date.
   google.protobuf.Timestamp create_time = 8;

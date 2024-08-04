@@ -37,7 +37,7 @@ class ProductCategoriesServiceTest {
         var returnedProductCategories = Optional.of(Set.of(ProductTestUtils.createProductEntity()));
         doReturn(returnedProductCategories)
             .when(productRepository)
-            .findProductCategoriesByProductId(new ProductId(PRODUCT_ID));
+            .findByProductId(new ProductId(PRODUCT_ID));
         var categories = productCategoriesService
             .getProductCategories(new ProductId(PRODUCT_ID))
             .map(productCategoriesMapper::convertToDtoSet);

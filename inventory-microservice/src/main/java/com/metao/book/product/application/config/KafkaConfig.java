@@ -17,7 +17,7 @@ import org.springframework.validation.annotation.Validated;
 public class KafkaConfig {
 
     @Bean
-    public NewTopic orderTopic(@Value("${kafka.topic.order}") String topic) {
+    public NewTopic orderTopic(@Value("${kafka.topic.order-created.topic}") String topic) {
         return createTopic(topic);
     }
 

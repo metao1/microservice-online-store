@@ -1,6 +1,6 @@
 package com.metao.book.order.infrastructure.kafka;
 
-import com.metao.book.order.application.dto.OrderCreatedEvent;
+import com.metao.book.OrderCreatedEventOuterClass.OrderCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -16,7 +16,7 @@ public class KafkaOrderProducer {
     private final NewTopic orderTopic;
 
     public void sendToKafka(OrderCreatedEvent orderCreatedEvent) {
-        kafkaTemplate.send(orderTopic.name(), orderCreatedEvent.customerId(), orderCreatedEvent)
+        kafkaTemplate.send(orderTopic.name(), orderCreatedEvent.getCustomerId(), orderCreatedEvent)
             .thenRun(() -> log.debug("Order {} sent", orderCreatedEvent));
     }
 }

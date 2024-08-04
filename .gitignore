@@ -29,7 +29,7 @@ target/
 /.nb-gradle/
 build/
 **/.gradle
-
+q
 ### VS Code ###
 .vscode/
 
@@ -38,3 +38,4 @@ build/
 # Ignore Gradle build output directory
 build
 bin
+/*.hprof

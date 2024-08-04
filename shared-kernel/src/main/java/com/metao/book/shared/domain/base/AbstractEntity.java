@@ -23,7 +23,6 @@ public abstract class AbstractEntity<T extends DomainObjectId> implements Identi
     /**
      * Default constructor
      */
-    @SuppressWarnings("unused")
     protected AbstractEntity() {
     }
 

@@ -3,14 +3,12 @@ syntax = "proto3";
 package com.metao.book;
 import "google/protobuf/timestamp.proto";
 
-message OrderEvent {
-  string id = 1;
+message OrderPaymentEvent {
+  int32 id = 1;
   // Created updated date.
   google.protobuf.Timestamp create_time = 8;
   // Last updated date.
   optional google.protobuf.Timestamp update_time = 9;
-  string customerId = 10;
-
   string productId = 2;
   string accountId = 3;
   Status status = 4;

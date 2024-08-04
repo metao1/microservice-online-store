@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package com.metao.book;
+import "google/protobuf/timestamp.proto";
+
+message NewProductEvent {
+  int32 id = 1;
+  // Created updated date.
+  google.protobuf.Timestamp create_time = 2;
+  double quantity = 3;
+  double price = 4;
+  string currency = 5;
+  string name = 6;
+
+  message UUID {
+    // typedef string
+  }
+}
+

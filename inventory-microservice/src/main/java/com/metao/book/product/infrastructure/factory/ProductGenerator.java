@@ -55,7 +55,7 @@ public class ProductGenerator {
         } catch (IOException e) {
             log.error(e.getMessage(), e);
         }
-        log.info("finished writing to database.");
+        log.info("finished publishing products.");
     }
 
     /**

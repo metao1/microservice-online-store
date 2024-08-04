@@ -1,6 +1,7 @@
 package com.metao.book.order.infrastructure.kafka;
 
-import com.metao.book.order.application.service.OrderMapper;
+import com.metao.book.OrderEventOuterClass.OrderEvent;
+import com.metao.book.order.application.service.OrderPaymentFactory;
 import com.metao.book.order.infrastructure.repository.OrderRepository;
 import com.metao.book.shared.application.service.StageProcessor;
 import lombok.RequiredArgsConstructor;
@@ -18,18 +19,15 @@ import org.springframework.stereotype.Service;
 public class OrderKafkaListenerConfig {
 
     private final OrderRepository orderRepository;
-    private final OrderMapper orderMapper;
+    private final OrderPaymentFactory orderMapper;
 
-    @KafkaListener(
-        id = "${kafka.topic.id}",
-        topics = "${kafka.topic.name}",
-        groupId = "${kafka.topic.group-id}"
-    )
+    @KafkaListener(id = "${kafka.topic.order-created.id}",
+        topics = "${kafka.topic.order-created.name}",
+        groupId = "${kafka.topic.order-created.group-id}")
     @RetryableTopic(attempts = "1")
-    public void orderKafkaListener(ConsumerRecord<String, String> orderRecord) {
+    public void onOrderEvent(ConsumerRecord<String, OrderEvent> orderRecord) {
         StageProcessor
             .accept(orderRecord.value())
-            .map(orderMapper::toOrderCreatedEvent)
             .map(orderMapper::toEntity)
             .map(orderRepository::save)
             .acceptExceptionally(

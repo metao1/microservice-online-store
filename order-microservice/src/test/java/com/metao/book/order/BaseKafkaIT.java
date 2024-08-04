@@ -1,4 +1,4 @@
-package com.metao.book.order.presentation;
+package com.metao.book.order;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;

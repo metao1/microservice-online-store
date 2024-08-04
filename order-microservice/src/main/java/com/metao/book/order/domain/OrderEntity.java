@@ -1,6 +1,7 @@
 package com.metao.book.order.domain;
 
 import com.metao.book.shared.domain.base.AbstractEntity;
+import com.metao.book.shared.domain.base.DomainObjectId;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.order.OrderStatus;
 import jakarta.persistence.Column;
@@ -32,8 +33,8 @@ public class OrderEntity extends AbstractEntity<OrderId> {
     @Column(name = "customer_id", nullable = false)
     private String customerId;
 
-    @Column(name = "product_count", nullable = false)
-    private BigDecimal productCount;
+    @Column(name = "quantity", nullable = false)
+    private BigDecimal quantity;
 
     @Column(name = "currency", nullable = false)
     private Currency currency;
@@ -49,18 +50,17 @@ public class OrderEntity extends AbstractEntity<OrderId> {
     private LocalDateTime createdTime;
 
     public OrderEntity(
-        String orderId,
         String customerId,
         String productId,
-        BigDecimal productCount,
+        BigDecimal quantity,
         Money money,
         OrderStatus status
     ) {
-        super(new OrderId(orderId));
+        super(DomainObjectId.randomId(OrderId.class));
         this.status = status;
         this.productId = productId;
         this.customerId = customerId;
-        this.productCount = productCount;
+        this.quantity = quantity;
         this.currency = money.currency();
         this.price = money.doubleAmount();
         this.createdTime = LocalDateTime.now();

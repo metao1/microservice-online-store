@@ -18,7 +18,7 @@ public class ProductCategoriesService implements ProductCategoriesInterface {
 
     @Override
     public Optional<Set<ProductCategoryEntity>> getProductCategories(ProductId productId) {
-        return Optional.of(productRepository.findProductCategoriesByProductId(productId)
+        return Optional.of(productRepository.findByProductId(productId)
             .stream()
             .flatMap(s -> s.stream().flatMap(se -> se.getCategories().stream()))
             .collect(Collectors.toSet()));

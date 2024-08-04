@@ -12,31 +12,27 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.metao.book.OrderCreatedEventOuterClass.OrderCreatedEvent;
+import com.metao.book.order.BaseKafkaIT;
+import com.metao.book.order.OrderTestConstant;
+import com.metao.book.order.OrderTestUtil;
 import com.metao.book.order.application.dto.CreateOrderDTO;
-import com.metao.book.order.application.dto.OrderCreatedEvent;
 import com.metao.book.order.application.service.OrderMapper;
 import com.metao.book.order.domain.OrderEntity;
 import com.metao.book.order.domain.OrderId;
 import com.metao.book.order.infrastructure.repository.OrderRepository;
-import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.order.OrderStatus;
 import com.metao.book.shared.test.StreamBuilderTestUtils;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Currency;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -49,17 +45,9 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 @Slf4j
 @AutoConfigureMockMvc
-@TestInstance(Lifecycle.PER_CLASS)
 @ActiveProfiles({"test", "container"})
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class OrderScenarioIT extends BaseKafkaIT {
-
-    private static final Currency EUR = Currency.getInstance("EUR");
-    private static final String ACCOUNT_ID = "ACCOUNT_ID";
-    private static final String PRODUCT_ID = "1234567892";
-    private static final BigDecimal QUANTITY = BigDecimal.valueOf(100d);
-    private static final BigDecimal PRICE = BigDecimal.valueOf(123d);
-    private static final String ORDER_ID = "ORDER_ID";
 
     @Autowired
     ObjectMapper objectMapper;
@@ -80,7 +68,7 @@ class OrderScenarioIT extends BaseKafkaIT {
     public void setup() {
         super.setup();
         // Create a list of dummy orders for the mocked page
-        List<OrderEntity> orders = generateDummyOrders(10);
+        List<OrderEntity> orders = OrderTestUtil.buildDummyOrders(10);
 
         orderRepository.saveAllAndFlush(orders);
         assertEquals(10, orderRepository.findAll().size());
@@ -95,11 +83,11 @@ class OrderScenarioIT extends BaseKafkaIT {
     @SneakyThrows
     void createOrderIsOk() {
         var createOrderDTO = CreateOrderDTO.builder()
-            .accountId(ACCOUNT_ID)
-            .productId(PRODUCT_ID)
-            .currency(EUR)
-            .quantity(QUANTITY)
-            .price(PRICE)
+            .accountId(OrderTestConstant.ACCOUNT_ID)
+            .productId(OrderTestConstant.PRODUCT_ID)
+            .currency(OrderTestConstant.EUR)
+            .quantity(OrderTestConstant.QUANTITY)
+            .price(OrderTestConstant.PRICE)
             .build();
 
         mockMvc.perform(post("/order")
@@ -114,22 +102,22 @@ class OrderScenarioIT extends BaseKafkaIT {
     @Test
     @SneakyThrows
     void getOrderIsOK() {
-        var expectedOrder = OrderCreatedEvent.builder()
-            .orderId(ORDER_ID)
-            .customerId(ACCOUNT_ID)
-            .productId(PRODUCT_ID)
-            .currency(EUR)
-            .status(OrderStatus.NEW)
-            .price(PRICE)
-            .quantity(QUANTITY)
+        var expectedOrder = OrderCreatedEvent.newBuilder()
+            .setId(OrderTestConstant.ORDER_ID)
+            .setCustomerId(OrderTestConstant.ACCOUNT_ID)
+            .setProductId(OrderTestConstant.PRODUCT_ID)
+            .setCurrency(OrderTestConstant.EUR.toString())
+            .setStatus(OrderCreatedEvent.Status.NEW)
+            .setPrice(OrderTestConstant.PRICE.doubleValue())
+            .setQuantity(OrderTestConstant.QUANTITY.doubleValue())
             .build();
 
         var expectedOrderEntity = mapper.toEntity(expectedOrder);
 
-        when(orderRepository.findById(new OrderId(ORDER_ID)))
+        when(orderRepository.findById(new OrderId(OrderTestConstant.ORDER_ID)))
             .thenReturn(Optional.of(expectedOrderEntity));
 
-        mockMvc.perform(get("/order").param("order_id", ORDER_ID))
+        mockMvc.perform(get("/order").param("order_id", OrderTestConstant.ORDER_ID))
             .andExpect(status().isOk());
     }
 
@@ -147,10 +135,10 @@ class OrderScenarioIT extends BaseKafkaIT {
     @SneakyThrows
     void createInvalidOrderRequestIsBadRequest() {
         var createOrderDTO = CreateOrderDTO.builder()
-            .productId(PRODUCT_ID)
-            .currency(EUR)
-            .quantity(QUANTITY)
-            .price(PRICE)
+            .productId(OrderTestConstant.PRODUCT_ID)
+            .currency(OrderTestConstant.EUR)
+            .quantity(OrderTestConstant.QUANTITY)
+            .price(OrderTestConstant.PRICE)
             .build();
 
         mockMvc.perform(post("/order")
@@ -221,21 +209,5 @@ class OrderScenarioIT extends BaseKafkaIT {
             .andExpect(
                 jsonPath("$.content").exists()) // Verify the presence of "content" field in the JSON response
             .andExpect(jsonPath("$.numberOfElements").value(1)); // Verify that the number of returned items is 3
-    }
-
-    public static List<OrderEntity> generateDummyOrders(int count) {
-        List<OrderEntity> orders = new ArrayList<>();
-        for (int i = 0; i < count; i++) {
-            String orderId = UUID.randomUUID().toString(); // Generate a random UUID as order ID
-            String customerId = "customer_" + i; // Generate a dummy customer ID
-            String productId = "product_" + i; // Generate a dummy product ID
-            BigDecimal productCount = BigDecimal.valueOf(i + 1); // Incremental product count
-            Money money = new Money(EUR, BigDecimal.valueOf((i + 1) * 10L)); // Dummy money
-            OrderStatus orderStatus =
-                i % 2 == 0 ? OrderStatus.NEW : OrderStatus.SUBMITTED; // Set status to NEW for all orders
-            OrderEntity order = new OrderEntity(orderId, customerId, productId, productCount, money, orderStatus);
-            orders.add(order);
-        }
-        return orders;
     }
 }
