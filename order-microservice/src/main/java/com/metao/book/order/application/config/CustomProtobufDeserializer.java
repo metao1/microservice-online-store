@@ -1,15 +1,15 @@
 package com.metao.book.order.application.config;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.metao.book.OrderEventOuterClass.OrderEvent;
+import com.metao.book.order.OrderCreatedEvent;
 import org.apache.kafka.common.serialization.Deserializer;
 
-public class CustomProtobufDeserializer implements Deserializer<OrderEvent> {
+public class CustomProtobufDeserializer implements Deserializer<OrderCreatedEvent> {
 
     @Override
-    public OrderEvent deserialize(String topic, byte[] data) {
+    public OrderCreatedEvent deserialize(String topic, byte[] data) {
         try {
-            return OrderEvent.parseFrom(data);
+            return OrderCreatedEvent.parseFrom(data);
         } catch (InvalidProtocolBufferException e) {
             throw new RuntimeException(e);
         }

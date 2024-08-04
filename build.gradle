@@ -1,52 +1,53 @@
 import org.springframework.boot.gradle.plugin.SpringBootPlugin
 plugins {
-  id 'base'
-  id 'idea'
-  id 'com.google.cloud.tools.jib' version '3.1.4' apply false
-  id 'org.springframework.boot' version '3.2.4' apply false
-  id 'io.spring.dependency-management' version '1.1.0' apply false
+  id "base"
+  id "idea"
+  id "com.github.spotbugs" version "6.0.19"
+  id "com.google.cloud.tools.jib" version "3.1.4" apply false
+  id "org.springframework.boot" version "3.2.4" apply false
+  id "io.spring.dependency-management" version "1.1.0" apply false
   id "com.google.protobuf" version "0.9.4" apply false
 }
 
 ext {
-  testcontainersVersion = '1.17.6'
-  micrometerVersion = '1.12.3'
+  testcontainersVersion = "1.17.6"
+  micrometerVersion = "1.12.3"
 }
 
 subprojects {
-  group 'com.metao.book'
-  apply plugin: 'java'
-  apply plugin: 'io.spring.dependency-management'
+  group "com.metao.book"
+  apply plugin: "java"
+  apply plugin: "io.spring.dependency-management"
 
   repositories {
     mavenLocal()
     mavenCentral()
-    maven { url 'https://packages.confluent.io/maven/' }
+    maven { url "https://packages.confluent.io/maven/" }
   }
   boolean isSpringProject = gradle.springBootProjects.contains(it.path)
   if (isSpringProject) {
+    print(gradle.springBootProjects.contains(it.path))
+    apply plugin: "org.springframework.boot"
+    apply plugin: "com.google.protobuf"
     print(gradle.springBootProjects.contains(it.path))
     apply plugin: 'org.springframework.boot'
     apply plugin: 'com.google.protobuf'
     dependencies {
       implementation("org.springframework.boot:spring-boot-starter-web") {
-        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+        exclude group: "org.springframework.boot", module: "spring-boot-starter-logging"
       }
-      implementation platform('org.testcontainers:testcontainers-bom:1.19.6') //import bom
+      implementation platform("org.testcontainers:testcontainers-bom:1.19.6") //import bom
 
-      testImplementation 'org.springframework.boot:spring-boot-starter-test'
-      testImplementation 'org.testcontainers:junit-jupiter'
-      testImplementation 'org.testcontainers:postgresql'
-      testImplementation 'org.testcontainers:testcontainers'
+      testImplementation "org.springframework.boot:spring-boot-starter-test"
+      testImplementation "org.testcontainers:junit-jupiter"
+      testImplementation "org.testcontainers:postgresql"
+      testImplementation "org.testcontainers:testcontainers"
     }
   }
   dependencies {
-    implementation 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-    testAnnotationProcessor 'org.projectlombok:lombok'
-
-    // https://stackoverflow.com/questions/53326271/spring-nullable-annotation-generates-unknown-enum-constant-warning
-    implementation 'com.google.code.findbugs:jsr305:3.0.2'
+    implementation "org.projectlombok:lombok"
+    annotationProcessor "org.projectlombok:lombok"
+    testAnnotationProcessor "org.projectlombok:lombok"
   }
 
   configurations.configureEach {
@@ -54,17 +55,20 @@ subprojects {
       useJUnitPlatform()
 
       doFirst {
-        systemProperty 'spring.profiles.active', 'test'
+        systemProperty "spring.profiles.active", "test"
       }
 
       testLogging {
         events "PASSED", "SKIPPED", "FAILED"
       }
     }
-    exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
-    exclude group: 'org.slf4j', module: 'slf4j-simple'
-    exclude group: 'org.slf4j', module: 'slf4j-log4j12'
-    exclude group: 'org.junit.vintage:junit-vintage-engine'
+    spotbugs {
+      toolVersion = "4.8.6"
+    }
+    exclude group: "org.junit.vintage", module: "junit-vintage-engine"
+    exclude group: "org.slf4j", module: "slf4j-simple"
+    exclude group: "org.slf4j", module: "slf4j-log4j12"
+    exclude group: "org.junit.vintage:junit-vintage-engine"
     dependencyManagement {
       imports {
         mavenBom SpringBootPlugin.BOM_COORDINATES
@@ -73,10 +77,9 @@ subprojects {
       }
     }
   }
-
-  java {
-    toolchain {
-      languageVersion = JavaLanguageVersion.of(21)
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
     }
-  }
 }

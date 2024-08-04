@@ -1,13 +1,11 @@
 package com.metao.book.order.presentation;
 
-import com.metao.book.OrderCreatedEventOuterClass.OrderCreatedEvent;
-import com.metao.book.order.application.dto.CreateOrderDTO;
+import com.metao.book.order.application.dto.OrderDTO;
 import com.metao.book.order.application.dto.exception.FindOrderException;
 import com.metao.book.order.application.service.OrderService;
 import com.metao.book.order.domain.OrderId;
-import com.metao.book.shared.domain.order.OrderStatus;
+import com.metao.book.order.domain.OrderStatus;
 import jakarta.validation.Valid;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
@@ -19,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Set;
+
 @Validated
 @RestController
 @RequiredArgsConstructor
@@ -28,12 +28,12 @@ public class OrderController {
     private final OrderService orderService;
 
     @GetMapping
-    public OrderCreatedEvent getOrderByOrderId(@RequestParam("order_id") OrderId orderId) {
+    public OrderDTO getOrderByOrderId(@RequestParam("order_id") OrderId orderId) {
         return orderService.getOrderByOrderId(orderId).orElseThrow(FindOrderException::new);
     }
 
     @GetMapping("/{pageSize}/{offset}/{sortByFieldName}")
-    public Page<OrderCreatedEvent> getOrderByProductIdsAndStatusesPageable(
+    public Page<OrderDTO> getOrderByProductIdsAndStatusesPageable(
         @RequestParam(value = "productIds", required = false) Set<String> productIds,
             @RequestParam(value = "statuses", required = false) Set<OrderStatus> statuses,
         @PathVariable int offset,
@@ -44,7 +44,7 @@ public class OrderController {
     }
 
     @PostMapping
-    public String createOrder(@RequestBody @Valid CreateOrderDTO orderDto) {
+    public String createOrder(@RequestBody @Valid OrderDTO orderDto) {
         return orderService.createOrder(orderDto);
     }
 }

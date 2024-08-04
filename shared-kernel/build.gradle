@@ -3,47 +3,47 @@ plugins {
   id 'maven-publish'
 }
 
+def commitRefName = System.getenv("CI_COMMIT_REF_NAME") ?: "1.0"
+
+version = commitRefName
+group = "com.metao.book.shared"
+
 dependencies {
-
-  compileOnly 'org.springframework.boot:spring-boot-starter-validation'
-  compileOnly 'com.fasterxml.jackson.core:jackson-databind:2.14.0'
-
-  compileOnly 'org.springframework.boot:spring-boot-starter-data-jpa'
-  compileOnly 'org.springframework.boot:spring-boot-autoconfigure'
-
-  compileOnly 'io.micrometer:micrometer-registry-prometheus'
-  compileOnly 'io.micrometer:micrometer-core'
+    implementation "org.springframework.boot:spring-boot-starter-validation"
+    implementation "com.fasterxml.jackson.core:jackson-databind:2.14.0"
+    implementation "org.springframework.boot:spring-boot-starter-data-jpa"
+    implementation "org.springframework.boot:spring-boot-autoconfigure"
+    implementation "io.micrometer:micrometer-registry-prometheus:1.10.5"
+    implementation "io.micrometer:micrometer-core:1.10.5"
 }
 
 publishing {
   publications {
     mavenJava(MavenPublication) {
       from components.java
+        groupId = 'com.metao.book.shared'
+        artifactId = 'shared-kernel'
+        version = commitRefName
     }
   }
   repositories {
     maven {
-      url = uri('file://$HOME/.m2/repository')
+        url = uri("file://${System.getProperty('user.home')}/.m2/repository")
     }
   }
 }
 
-artifacts {
-  group 'com.metao.book'
-  version = System.getenv('CI_COMMIT_REF_NAME') ? System.getenv('CI_COMMIT_REF_NAME') : "1.0"
-}
-
 def getCurrentGitBranch() {
-  def gitBranch = 'unknown-branch'
+    def gitBranch = "unknown-branch"
   try {
     def workingDir = new File("${project.projectDir}")
-    def result = 'git rev-parse --abbrev-ref HEAD'.execute(null, workingDir)
+      def result = "git rev-parse --abbrev-ref HEAD".execute(null, workingDir)
     result.waitFor()
     if (result.exitValue() == 0) {
       gitBranch = result.text.trim()
     }
   } catch (e) {
-    logger.error('Unable to fetch current GIT branch', e)
+      logger.error("Unable to fetch current GIT branch", e)
   }
   logger.info("Your current GIT branch is {}", gitBranch)
   return gitBranch

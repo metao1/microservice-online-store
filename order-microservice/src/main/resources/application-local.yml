@@ -3,9 +3,6 @@ spring:
     url: jdbc:postgresql://localhost:5432/bookstore
     username: bookstore
     password: bookstore
-    hikari:
-      auto-commit: false
   jpa:
-    database: POSTGRESQL
     show-sql: true
     generate-ddl: true

@@ -1,8 +1,9 @@
 package com.metao.book.order;
 
 import com.metao.book.order.domain.OrderEntity;
+import com.metao.book.order.domain.OrderStatus;
 import com.metao.book.shared.domain.financial.Money;
-import com.metao.book.shared.domain.order.OrderStatus;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;

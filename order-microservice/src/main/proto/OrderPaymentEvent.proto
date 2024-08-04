@@ -5,22 +5,14 @@ import "google/protobuf/timestamp.proto";
 
 option java_multiple_files = true;
 option java_package = "com.metao.book.order";
-option java_outer_classname = "KafkaProto";
 
 message OrderPaymentEvent {
   string id = 1;
   // Created updated date.
-  google.protobuf.Timestamp create_time = 8;
-  // Last updated date.
-  optional google.protobuf.Timestamp update_time = 9;
-  string customerId = 10;
-
-  string productId = 2;
-  string accountId = 3;
-  Status status = 4;
-  double quantity = 5;
-  double price = 6;
-  string currency = 7;
+  google.protobuf.Timestamp create_time = 2;
+  string customerId = 3;
+  string productId = 4;
+  Status status = 5;
   enum Status {
     NEW = 0;
     SUBMITTED = 1;

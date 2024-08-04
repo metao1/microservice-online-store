@@ -3,20 +3,21 @@ syntax = "proto3";
 package com.metao.book;
 import "google/protobuf/timestamp.proto";
 
+option java_multiple_files = true;
+option java_package = "com.metao.book.order";
+
 message OrderCreatedEvent {
   string id = 1;
   // Created updated date.
-  google.protobuf.Timestamp create_time = 8;
+  google.protobuf.Timestamp create_time = 7;
   // Last updated date.
-  optional google.protobuf.Timestamp update_time = 9;
+  optional google.protobuf.Timestamp update_time = 8;
   string customerId = 10;
-
   string productId = 2;
-  string accountId = 3;
-  Status status = 4;
-  double quantity = 5;
-  double price = 6;
-  string currency = 7;
+  Status status = 3;
+  double quantity = 4;
+  double price = 5;
+  string currency = 6;
   enum Status {
     NEW = 0;
     SUBMITTED = 1;

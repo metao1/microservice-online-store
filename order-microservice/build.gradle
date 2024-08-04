@@ -15,9 +15,7 @@ dependencies {
   implementation 'org.flywaydb:flyway-core:10.11.0'
   implementation 'org.flywaydb:flyway-database-postgresql:10.11.0'
 
-  implementation 'com.metao.book:shared-kernel:1.0'
-
-  compileOnly 'org.apache.tomcat:annotations-api:6.0.53' // necessary for Java 9+
+  implementation 'com.metao.book.shared:shared-kernel:1.0'
 
   runtimeOnly 'io.grpc:grpc-netty-shaded:1.61.0'
 

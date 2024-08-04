@@ -9,6 +9,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.annotation.RetryableTopic;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -21,6 +22,7 @@ public class ProductKafkaListenerComponent {
     private final ProductRepository productRepository;
     private final ProductMapService productMapService;
 
+    @RetryableTopic(attempts = "1")
     @KafkaListener(id = "${kafka.topic.product}",
         topics = "${kafka.topic.product}",
         groupId = "${kafka.topic.product}")

@@ -1,12 +1,13 @@
 package com.metao.book.order.infrastructure.repository;
 
 import com.metao.book.order.domain.OrderEntity;
-import com.metao.book.shared.domain.order.OrderStatus;
+import com.metao.book.order.domain.OrderStatus;
 import jakarta.persistence.criteria.Predicate;
-import java.util.Set;
 import lombok.experimental.UtilityClass;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.CollectionUtils;
+
+import java.util.Set;
 
 @UtilityClass
 public class OrderSpecifications {
