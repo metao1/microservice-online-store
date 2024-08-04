@@ -19,8 +19,8 @@ public class BaseKafkaIT {
         registry.add("spring.kafka.bootstrap-servers", kafkaContainer::getBootstrapServers);
         if (!kafkaContainer.isRunning()) {
             kafkaContainer.start();
+            kafkaContainer.waitingFor(Wait.forLogMessage(".*Kafka server started.*", 1));
         }
-        kafkaContainer.waitingFor(Wait.forLogMessage(".*Kafka server started.*", 1));
     }
 
 }

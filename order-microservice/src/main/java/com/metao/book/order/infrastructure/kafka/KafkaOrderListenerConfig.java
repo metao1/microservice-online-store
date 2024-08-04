@@ -2,7 +2,10 @@ package com.metao.book.order.infrastructure.kafka;
 
 import com.metao.book.order.OrderCreatedEvent;
 import com.metao.book.order.OrderPaymentEvent;
+import com.metao.book.order.application.dto.exception.OrderNotFoundException;
 import com.metao.book.order.application.service.OrderMapper;
+import com.metao.book.order.domain.OrderId;
+import com.metao.book.order.domain.OrderStatus;
 import com.metao.book.order.infrastructure.repository.OrderRepository;
 import com.metao.book.shared.application.service.StageProcessor;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +49,7 @@ public class KafkaOrderListenerConfig {
             groupId = "${kafka.topic.order-payment.group-id}",
             containerFactory = "orderPaymentEventKafkaListenerContainerFactory")
     public void listenToOrderPayment(ConsumerRecord<String, OrderPaymentEvent> orderRecord) {
-        /*StageProcessor
+        StageProcessor
                 .accept(orderRecord.value())
                 .acceptExceptionally((orderEntity, ex) -> {
                     if (ex != null) {
@@ -58,7 +61,7 @@ public class KafkaOrderListenerConfig {
                     OrderStatus orderStatus = OrderStatus.valueOf(String.valueOf(orderEntity.getStatus()));
                     foundOrder.setStatus(orderStatus);
                     orderRepository.save(foundOrder);
-                });*/
+                });
     }
 
 }
