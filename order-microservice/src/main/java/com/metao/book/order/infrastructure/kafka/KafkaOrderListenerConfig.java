@@ -56,8 +56,8 @@ public class KafkaOrderListenerConfig {
                         log.error("can't make order from event :{}", ex.getMessage());
                         return;
                     }
-                    var foundOrder = orderRepository.findByOrderId(new OrderId(orderEntity.getId()))
-                            .orElseThrow(OrderNotFoundException::new);
+                    var foundOrder = orderRepository.findById(new OrderId(orderEntity.getId()))
+                            .orElseThrow(() -> new OrderNotFoundException(orderEntity.getId()));
                     OrderStatus orderStatus = OrderStatus.valueOf(String.valueOf(orderEntity.getStatus()));
                     foundOrder.setStatus(orderStatus);
                     orderRepository.save(foundOrder);

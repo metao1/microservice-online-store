@@ -1,9 +1,8 @@
 package com.metao.book.order.presentation;
 
 import com.metao.book.order.application.dto.OrderDTO;
-import com.metao.book.order.application.dto.exception.FindOrderException;
+import com.metao.book.order.application.dto.exception.OrderNotFoundException;
 import com.metao.book.order.application.service.OrderService;
-import com.metao.book.order.domain.OrderId;
 import com.metao.book.order.domain.OrderStatus;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,8 +27,8 @@ public class OrderController {
     private final OrderService orderService;
 
     @GetMapping
-    public OrderDTO getOrderByOrderId(@RequestParam("order_id") OrderId orderId) {
-        return orderService.getOrderByOrderId(orderId).orElseThrow(FindOrderException::new);
+    public OrderDTO getOrderByOrderId(@RequestParam("order_id") String orderId) {
+        return orderService.getOrderByOrderId(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
     }
 
     @GetMapping("/{pageSize}/{offset}/{sortByFieldName}")

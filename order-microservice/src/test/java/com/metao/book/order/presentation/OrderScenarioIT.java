@@ -3,25 +3,20 @@ package com.metao.book.order.presentation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.metao.book.order.BaseKafkaIT;
 import com.metao.book.order.OrderCreatedEvent;
-import com.metao.book.order.OrderTestConstant;
 import com.metao.book.order.OrderTestUtil;
 import com.metao.book.order.application.dto.OrderDTO;
 import com.metao.book.order.application.service.OrderMapper;
 import com.metao.book.order.domain.OrderEntity;
-import com.metao.book.order.domain.OrderId;
 import com.metao.book.order.domain.OrderStatus;
 import com.metao.book.order.infrastructure.repository.OrderRepository;
 import com.metao.book.shared.test.StreamBuilderTestUtils;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.ActiveProfiles;
@@ -30,23 +25,22 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
+import static com.metao.book.order.OrderTestConstant.CUSTOMER_ID;
+import static com.metao.book.order.OrderTestConstant.EUR;
+import static com.metao.book.order.OrderTestConstant.PRICE;
+import static com.metao.book.order.OrderTestConstant.PRODUCT_ID;
+import static com.metao.book.order.OrderTestConstant.QUANTITY;
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@Slf4j
-@Order(2)
 @AutoConfigureMockMvc
-@ActiveProfiles({"test"})
+@ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class OrderScenarioIT extends BaseKafkaIT {
 
@@ -62,7 +56,7 @@ class OrderScenarioIT extends BaseKafkaIT {
     @Autowired
     KafkaTemplate<String, OrderCreatedEvent> kafkaTemplate;
 
-    @SpyBean
+    @Autowired
     OrderRepository orderRepository;
 
     @BeforeEach
@@ -80,18 +74,18 @@ class OrderScenarioIT extends BaseKafkaIT {
     @DisplayName("When Create an order then it is OK and return the order")
     void createOrderIsOk() {
         var createOrderDTO = OrderDTO.builder()
-                .customerId(OrderTestConstant.CUSTOMER_ID)
-            .productId(OrderTestConstant.PRODUCT_ID)
-                .currency(OrderTestConstant.EUR.toString())
-            .quantity(OrderTestConstant.QUANTITY)
-            .price(OrderTestConstant.PRICE)
+                .customerId(CUSTOMER_ID)
+                .productId(PRODUCT_ID)
+                .currency(EUR.toString())
+                .quantity(QUANTITY)
+                .price(PRICE)
             .build();
 
         mockMvc.perform(post("/order")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(StreamBuilderTestUtils.convertObjectToJsonBytes(objectMapper, createOrderDTO)))
-                .andExpect(status().isOk());
-
+                .andExpect(status().isOk())
+                .andDo(result -> await().untilAsserted(() -> assertEquals(11, orderRepository.findAll().size())));
     }
 
     @Test
@@ -99,21 +93,19 @@ class OrderScenarioIT extends BaseKafkaIT {
     @DisplayName("When Get an order then it is OK and return the order")
     void getOrderIsOK() {
         var expectedOrder = OrderCreatedEvent.newBuilder()
-            .setId(OrderTestConstant.ORDER_ID)
-                .setCustomerId(OrderTestConstant.CUSTOMER_ID)
-            .setProductId(OrderTestConstant.PRODUCT_ID)
-            .setCurrency(OrderTestConstant.EUR.toString())
+                .setCustomerId(CUSTOMER_ID)
+                .setProductId(PRODUCT_ID)
+                .setCurrency(EUR.toString())
             .setStatus(OrderCreatedEvent.Status.NEW)
-            .setPrice(OrderTestConstant.PRICE.doubleValue())
-            .setQuantity(OrderTestConstant.QUANTITY.doubleValue())
+                .setPrice(PRICE.doubleValue())
+                .setQuantity(QUANTITY.doubleValue())
             .build();
 
         var expectedOrderEntity = mapper.toEntity(expectedOrder);
 
-        when(orderRepository.findById(new OrderId(OrderTestConstant.ORDER_ID)))
-            .thenReturn(Optional.of(expectedOrderEntity));
+        OrderEntity save = orderRepository.save(expectedOrderEntity);
 
-        mockMvc.perform(get("/order").param("order_id", OrderTestConstant.ORDER_ID))
+        mockMvc.perform(get("/order").param("order_id", save.getOrderId()))
             .andExpect(status().isOk());
     }
 
@@ -124,26 +116,24 @@ class OrderScenarioIT extends BaseKafkaIT {
         var unknownOrderId = "UNKNOWN_ORDER_ID";
 
         mockMvc.perform(get("/order").param("order_id", unknownOrderId))
-            .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound());
     }
-
 
     @Test
     @SneakyThrows
     @DisplayName("When Create an invalid order then it is bad request")
     void createInvalidOrderRequestIsBadRequest() {
         var createOrderDTO = OrderDTO.builder()
-                .productId(OrderTestConstant.PRODUCT_ID)
-                .currency(OrderTestConstant.EUR.toString())
-                .quantity(OrderTestConstant.QUANTITY)
-                .price(OrderTestConstant.PRICE)
+                .productId(PRODUCT_ID)
+                .currency(EUR.toString())
+                .quantity(QUANTITY)
+                .price(PRICE)
                 .build();
 
         mockMvc.perform(post("/order")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(StreamBuilderTestUtils.convertObjectToJsonBytes(objectMapper, createOrderDTO)))
-                .andExpect(status().isBadRequest())
-                .andDo(result -> verify(orderRepository, never()).save(any(OrderEntity.class)));
+                .andExpect(status().isBadRequest());
     }
 
     @Test

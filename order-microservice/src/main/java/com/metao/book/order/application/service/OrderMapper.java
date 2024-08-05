@@ -77,6 +77,7 @@ public class OrderMapper {
 
     public OrderDTO toOrderDTO(OrderEntity orderEntity) {
         return OrderDTO.builder()
+                .orderId(orderEntity.getOrderId())
                 .customerId(orderEntity.getCustomerId())
                 .productId(orderEntity.getProductId())
                 .currency(orderEntity.getCurrency().toString())

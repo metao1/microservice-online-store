@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.proxy.HibernateProxy;
+import org.springframework.stereotype.Indexed;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -22,10 +23,14 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
+@Indexed
 @NoArgsConstructor
 @Entity(name = "order")
 @Table(name = "order_table")
 public class OrderEntity extends AbstractEntity<OrderId> {
+
+    @Column(name = "order_id", nullable = false)
+    private String orderId;
 
     @Column(name = "product_id", nullable = false)
     private String productId;
@@ -57,6 +62,7 @@ public class OrderEntity extends AbstractEntity<OrderId> {
         OrderStatus status
     ) {
         super(DomainObjectId.randomId(OrderId.class));
+        this.orderId = buildOrderId(customerId, productId);
         this.status = status;
         this.productId = productId;
         this.customerId = customerId;
@@ -64,6 +70,14 @@ public class OrderEntity extends AbstractEntity<OrderId> {
         this.currency = money.currency();
         this.price = money.doubleAmount();
         this.createdTime = LocalDateTime.now();
+    }
+
+    private static String buildOrderId(String customerId, String productId) {
+        return customerId +
+                "::" +
+                productId +
+                "::" +
+                System.currentTimeMillis();
     }
 
     @Override

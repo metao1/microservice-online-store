@@ -11,6 +11,7 @@ import java.time.OffsetDateTime;
 
 @Builder
 public record OrderDTO(
+        @JsonProperty("order_id") String orderId,
     @NotNull @JsonProperty("product_id") String productId,
     @NotNull @JsonProperty("customer_id") String customerId,
     @JsonProperty("created_time") OffsetDateTime createdTime,

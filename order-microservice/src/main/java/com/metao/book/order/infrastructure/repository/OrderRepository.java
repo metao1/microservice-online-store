@@ -15,9 +15,9 @@ public interface OrderRepository extends JpaRepository<OrderEntity, OrderId> {
     @Query("""
         select distinct o
             from order o
-            where o.id = :orderId
+                where o.orderId = :orderId
         """)
-    Optional<OrderEntity> findByOrderId(OrderId orderId);
+    Optional<OrderEntity> findByOrderId(String orderId);
 
     Page<OrderEntity> findAll(
         Specification<OrderEntity> spec,

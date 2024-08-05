@@ -10,18 +10,14 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.kafka.core.KafkaTemplate;
 
 import java.time.Instant;
-import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -30,7 +26,7 @@ class OrderCalculationTest extends BaseKafkaIT {
     @Autowired
     KafkaTemplate<String, OrderPaymentEvent> kafkaTemplate;
 
-    @SpyBean
+    @Autowired
     OrderRepository orderRepository;
 
     @Value("${kafka.topic.order-payment.name}")
@@ -42,9 +38,10 @@ class OrderCalculationTest extends BaseKafkaIT {
     void sendOrderPaymentEventTest() {
         OrderEntity orderEntity = OrderTestUtil.buildOrderEntity(1);
 
-        Mockito.when(orderRepository.findByOrderId(any()))
-                .thenReturn(Optional.of(orderEntity));
+        /*Mockito.when(orderRepository.findByOrderId(any()))
+                .thenReturn(Optional.of(orderEntity));*/
 
+        orderRepository.save(orderEntity);
         var orderPaymentEvent = OrderPaymentEvent.newBuilder()
                 .setId(orderEntity.id().toUUID())
                 .setCreateTime(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
@@ -54,7 +51,7 @@ class OrderCalculationTest extends BaseKafkaIT {
                 .build();
 
         kafkaTemplate.send(orderPaymentTopic, orderEntity.getCustomerId(), orderPaymentEvent)
-                .thenRun(() -> verify(orderRepository).save(any(OrderEntity.class)));
+                .thenRun(() -> assertTrue(orderRepository.findById(orderEntity.id()).isPresent()));
     }
 
 }

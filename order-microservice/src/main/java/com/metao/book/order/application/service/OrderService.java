@@ -1,7 +1,6 @@
 package com.metao.book.order.application.service;
 
 import com.metao.book.order.application.dto.OrderDTO;
-import com.metao.book.order.domain.OrderId;
 import com.metao.book.order.domain.OrderStatus;
 import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
 import com.metao.book.order.infrastructure.repository.OrderRepository;
@@ -33,8 +32,8 @@ public class OrderService {
                 });
     }
 
-    public Optional<OrderDTO> getOrderByOrderId(OrderId orderId) {
-        return orderRepository.findById(orderId).map(mapper::toOrderDTO);
+    public Optional<OrderDTO> getOrderByOrderId(String orderId) {
+        return orderRepository.findByOrderId(orderId).map(mapper::toOrderDTO);
     }
 
     public Page<OrderDTO> getOrderByProductIdsAndOrderStatus(
