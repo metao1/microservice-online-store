@@ -20,5 +20,7 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+      - name: Publish the shared-kernel to maven
+        run: ./gradlew publishToMavenLocal
       - name: Build microservices and run tests with Gradle
         run: gradle build
