@@ -26,17 +26,19 @@ class ProductServiceTest {
     ProductService productService;
 
     @Test
-    void getProductById_notFound() {
+    void getProductByIdNotFound() {
         assertThrows(ProductNotFoundException.class,
             () -> productService.getProductById(new ProductId("1")));
     }
 
     @Test
-    void getProductById_isFound() {
+    void getProductByIdIsFound() {
         var pe = ProductTestUtils.createProductEntity();
         var id = "1";
+
         when(productRepo.findById(new ProductId(id)))
             .thenReturn(Optional.of(pe));
+
         var product = productService.getProductById(new ProductId(id));
         Assertions.assertNotNull(product);
     }

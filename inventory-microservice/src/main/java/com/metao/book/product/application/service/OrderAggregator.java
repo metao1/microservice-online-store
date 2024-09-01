@@ -1,15 +1,16 @@
 package com.metao.book.product.application.service;
 
-import com.metao.book.shared.domain.order.OrderEvent;
 import java.math.BigDecimal;
+import com.metao.book.product.event.ProductCreatedEvent;
+
 import org.springframework.stereotype.Component;
 
 @Component
-public class OrderAggregator implements Aggregator<OrderEvent, BigDecimal> {
+public class OrderAggregator implements Aggregator<ProductCreatedEvent, BigDecimal> {
 
     @Override
-    public BigDecimal apply(OrderEvent order, BigDecimal total) {
-        return total.add(order.quantity());
+    public BigDecimal apply(ProductCreatedEvent order, BigDecimal total) {
+        return total.add(BigDecimal.valueOf(order.getPrice()));
     }
 
 }

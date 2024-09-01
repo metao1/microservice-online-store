@@ -12,7 +12,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
@@ -20,25 +19,27 @@ import java.util.Currency;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import lombok.EqualsAndHashCode.Include;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.ToString.Exclude;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.NaturalId;
 import org.hibernate.annotations.NaturalIdCache;
+import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.NonNull;
 
-@Entity
 @Getter
 @Setter
 @ToString
-@NoArgsConstructor
-@Table(name = "product")
 @NaturalIdCache // fetch the entity without hitting the database
+@NoArgsConstructor
+@Entity(name = "product")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class ProductEntity extends AbstractEntity<ProductId> implements ConcurrencySafeDomainObject {
 
@@ -47,6 +48,7 @@ public class ProductEntity extends AbstractEntity<ProductId> implements Concurre
 
     @NaturalId
     @Column(nullable = false, unique = true)
+    @Include
     private String asin;
 
     @Column
@@ -70,9 +72,7 @@ public class ProductEntity extends AbstractEntity<ProductId> implements Concurre
     @Column(name = "price_currency", nullable = false)
     private Currency priceCurrency;
 
-    @Column(name = "reserved_items")
-    private BigDecimal reservedItems;
-
+    @Exclude
     @BatchSize(size = 20)
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinTable(name = "product_category_map", joinColumns = {@JoinColumn(name = "product_id")}, inverseJoinColumns = {
@@ -89,11 +89,11 @@ public class ProductEntity extends AbstractEntity<ProductId> implements Concurre
         @NonNull Image image
     ) {
         super(DomainObjectId.randomId(ProductId.class));
+        this.version = 1L;
         this.asin = asin;
         this.title = title;
         this.description = description;
         this.volume = volume;
-        this.reservedItems = BigDecimal.ZERO;
         this.priceValue = money.doubleAmount();
         this.priceCurrency = money.currency();
         this.image = image;
@@ -111,23 +111,27 @@ public class ProductEntity extends AbstractEntity<ProductId> implements Concurre
     }
 
     @Override
-    public boolean equals(Object o) {
+    public final boolean equals(Object o) {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (o == null) {
             return false;
         }
-        if (!super.equals(o)) {
+        Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer()
+            .getPersistentClass() : o.getClass();
+        Class<?> thisEffectiveClass =
+            this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer()
+                .getPersistentClass() : this.getClass();
+        if (thisEffectiveClass != oEffectiveClass) {
             return false;
         }
         ProductEntity that = (ProductEntity) o;
-        return Objects.equals(getAsin(), that.getAsin());
+        return getAsin() != null && Objects.equals(getAsin(), that.getAsin());
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), getAsin());
+    public final int hashCode() {
+        return Objects.hash(asin);
     }
-
 }

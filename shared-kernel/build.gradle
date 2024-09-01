@@ -28,6 +28,7 @@ publishing {
   }
   repositories {
     maven {
+        name = "local"
         url = uri("file://${System.getProperty('user.home')}/.m2/repository")
     }
   }

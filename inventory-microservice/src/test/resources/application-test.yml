@@ -7,8 +7,12 @@ spring:
       security.protocol: PLAINTEXT
       sasl.mechanism: PLAIN
       schema.registry.url: mock://not-used
-
-
+  jpa:
+    properties:
+      hibernate:
+        show_sql: true
+    show-sql: true
+    generate-ddl: true
 logging:
   level:
     org.springframework.data: DEBUG

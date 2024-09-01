@@ -1,7 +1,8 @@
 package com.metao.book.product.application.config;
 
 import com.metao.book.product.domain.ProductRepository;
-import com.metao.book.product.domain.event.ProductCreatedEvent;
+import com.metao.book.product.event.ProductCreatedEvent;
+import com.metao.book.product.infrastructure.mapper.ProductEventMapper;
 import com.metao.book.shared.application.service.StageProcessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,21 +21,18 @@ import org.springframework.stereotype.Component;
 public class ProductKafkaListenerComponent {
 
     private final ProductRepository productRepository;
-    private final ProductMapService productMapService;
+    private final ProductEventMapper productMapper;
 
     @RetryableTopic(attempts = "1")
-    @KafkaListener(id = "${kafka.topic.product}",
-        topics = "${kafka.topic.product}",
-        groupId = "${kafka.topic.product}")
+    @KafkaListener(id = "${kafka.topic.product.id}", topics = "${kafka.topic.product.name}", groupId = "${kafka.topic.product.group-id}")
     public void onProductEvent(ConsumerRecord<String, ProductCreatedEvent> event) {
         var productCreatedEvent = event.value();
-        log.info("Consumed productCreatedEvent -> {}", productCreatedEvent);
-        var productEvent = productCreatedEvent.productEvent();
-        StageProcessor.accept(productEvent)
-            .map(productMapService::toEntity)
+        log.debug("Consumed {}", productCreatedEvent);
+        StageProcessor.accept(productCreatedEvent)
+            .map(productMapper::toEntity)
             .applyExceptionally((productEntity, exp) -> {
                 if (exp != null) {
-                    log.error("while saving entity {}, error:{}", productEntity, exp.getMessage());
+                    log.error("saving entity {}, error:{}", productEntity, exp.getMessage());
                 } else {
                     productRepository.save(productEntity);
                 }

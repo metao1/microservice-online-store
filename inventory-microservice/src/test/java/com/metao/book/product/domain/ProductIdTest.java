@@ -12,7 +12,6 @@ class ProductIdTest {
         var prd1 = new ProductId("123123123");
         var prd2 = new ProductId("123123123");
         Assertions.assertEquals(prd1, prd2);
-        log.info("test");
     }
 
 }

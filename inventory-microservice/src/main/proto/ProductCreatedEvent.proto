@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package com.metao.book;
+import "google/protobuf/timestamp.proto";
+
+option java_multiple_files = true;
+option java_package = "com.metao.book.product.event";
+
+message ProductCreatedEvent {
+  string asin = 1;
+  // Created updated date.
+  google.protobuf.Timestamp create_time = 2;
+  string title = 3;
+  string description = 4;
+  double price = 5;
+  double volume = 6;
+  string currency = 7;
+  string image_url = 8;
+
+  // Category of the product
+  repeated Category categories = 9;
+}
+
+message Category {
+  string name = 1;
+}
+

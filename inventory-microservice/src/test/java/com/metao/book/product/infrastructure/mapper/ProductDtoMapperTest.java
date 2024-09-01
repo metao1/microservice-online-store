@@ -15,7 +15,7 @@ class ProductDtoMapperTest {
     ProductDtoMapper dtoMapper = new ProductDtoMapper(new ObjectMapper());
 
     @Test
-    void givenString_convertToDto_thenIsOk() throws IOException {
+    void givenString_toDto_thenIsOk() throws IOException {
         var sb = new StringBuilder();
         try (var source = FileHandler.readResourceInPath(getClass(), "data/one_product.json")) {
             source.forEach(sb::append);
@@ -23,7 +23,7 @@ class ProductDtoMapperTest {
             log.error(e.getMessage(), e);
         }
         assertTrue(Optional.of(sb.toString())
-            .map(dtoMapper::convertToDto)
+            .map(dtoMapper::toDto)
             .map(Optional::isPresent)
             .isPresent());
     }

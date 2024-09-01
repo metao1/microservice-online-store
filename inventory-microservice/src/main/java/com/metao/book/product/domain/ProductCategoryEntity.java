@@ -15,10 +15,11 @@ import lombok.Setter;
 
 @Setter
 @Getter
-@Entity
+@Entity(name = "product_category")
 @Table(name = "product_category")
 public class ProductCategoryEntity extends AbstractEntity<ProductCategoryId> {
 
+    @Getter
     @Column(name = "category", nullable = false)
     private Category category;
 
@@ -35,25 +36,19 @@ public class ProductCategoryEntity extends AbstractEntity<ProductCategoryId> {
         this.productEntities = new HashSet<>();
     }
 
-    public Category getCategory() {
-        return category;
-    }
-
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
+        if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
-        ProductCategoryEntity cat = (ProductCategoryEntity) obj;
-        return (this.category != null ? !this.category.equals(cat.getCategory()) : cat.getCategory() != null);
+        ProductCategoryEntity other = (ProductCategoryEntity) obj;
+        return other.category.equals(category);
     }
 
     @Override
     public int hashCode() {
-        int result = category != null ? category.category().hashCode() : 0;
+        int result = category.hashCode();
         return 31 * result;
     }
+
 }

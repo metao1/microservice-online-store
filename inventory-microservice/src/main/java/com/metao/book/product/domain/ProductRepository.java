@@ -10,11 +10,11 @@ public interface ProductRepository extends JpaRepository<ProductEntity, ProductI
 
     @Query("""
             select distinct p, pc
-                from ProductEntity p
+                from product p
                 join fetch p.categories pc
-                     where p.id = :productId
+                     where p.asin = :productId
         """)
-    Optional<Set<ProductEntity>> findByProductId(@Param("productId") ProductId productId);
+    Set<ProductEntity> findByProductId(@Param("productId") String productId);
 
     Optional<ProductEntity> findByAsin(String asin);
 

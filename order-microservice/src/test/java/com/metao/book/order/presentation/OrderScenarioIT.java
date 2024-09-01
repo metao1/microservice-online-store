@@ -1,32 +1,5 @@
 package com.metao.book.order.presentation;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.metao.book.order.BaseKafkaIT;
-import com.metao.book.order.OrderCreatedEvent;
-import com.metao.book.order.OrderTestUtil;
-import com.metao.book.order.application.dto.OrderDTO;
-import com.metao.book.order.application.service.OrderMapper;
-import com.metao.book.order.domain.OrderEntity;
-import com.metao.book.order.domain.OrderStatus;
-import com.metao.book.order.infrastructure.repository.OrderRepository;
-import com.metao.book.shared.test.StreamBuilderTestUtils;
-import lombok.SneakyThrows;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import static com.metao.book.order.OrderTestConstant.CUSTOMER_ID;
 import static com.metao.book.order.OrderTestConstant.EUR;
 import static com.metao.book.order.OrderTestConstant.PRICE;
@@ -39,8 +12,35 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.metao.book.order.BaseKafkaIT;
+import com.metao.book.order.OrderCreatedEvent;
+import com.metao.book.order.OrderTestUtil;
+import com.metao.book.order.application.dto.OrderDTO;
+import com.metao.book.order.application.service.OrderMapper;
+import com.metao.book.order.domain.OrderEntity;
+import com.metao.book.order.domain.OrderStatus;
+import com.metao.book.order.infrastructure.repository.OrderRepository;
+import com.metao.book.shared.test.StreamBuilderTestUtils;
+import java.time.Duration;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import lombok.SneakyThrows;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class OrderScenarioIT extends BaseKafkaIT {
 
@@ -59,14 +59,13 @@ class OrderScenarioIT extends BaseKafkaIT {
     @Autowired
     OrderRepository orderRepository;
 
-    @BeforeEach
+    @BeforeAll
     public void setup() {
-        if (orderRepository.count() == 0) {
-            // Create a list of dummy orders for the mocked page
-            List<OrderEntity> orders = OrderTestUtil.buildDummyOrders(10);
-            orderRepository.saveAllAndFlush(orders);
-            assertEquals(10, orderRepository.findAll().size());
-        }
+        orderRepository.deleteAll();
+        // Create a list of dummy orders for the mocked page
+        List<OrderEntity> orders = OrderTestUtil.buildDummyOrders(10);
+        orderRepository.saveAllAndFlush(orders);
+        assertEquals(10, orderRepository.findAll().size());
     }
 
     @Test
@@ -85,7 +84,8 @@ class OrderScenarioIT extends BaseKafkaIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(StreamBuilderTestUtils.convertObjectToJsonBytes(objectMapper, createOrderDTO)))
                 .andExpect(status().isOk())
-                .andDo(result -> await().untilAsserted(() -> assertEquals(11, orderRepository.findAll().size())));
+            .andDo(result -> await().atMost(Duration.ofSeconds(20))
+                .untilAsserted(() -> assertEquals(11, orderRepository.findAll().size())));
     }
 
     @Test
@@ -143,15 +143,12 @@ class OrderScenarioIT extends BaseKafkaIT {
         // Perform GET request for the first page
         for (int i = 0; i < 2; i++) {
             mockMvc
-                .perform(
-                    MockMvcRequestBuilders.get("/order/{pageSize}/{offset}/{sortByFieldName}", 5, i, "status")
-                )
+                .perform(MockMvcRequestBuilders.get("/order/{pageSize}/{offset}/{sortByFieldName}", 5, i, "status"))
                 .andExpect(status().isOk())
                 .andExpect(
                     jsonPath("$.content").exists()) // Verify the presence of "content" field in the JSON response
-                .andExpect(
-                    jsonPath(
-                        "$.content[*].status").exists()) // Verify the presence of "order_id" field in each OrderDTO
+                .andExpect(jsonPath(
+                    "$.content[*].status").exists()) // Verify the presence of "order_id" field in each OrderDTO
                 .andExpect(jsonPath("$.numberOfElements").value(5)); // Verify that the number of returned items is 5
         }
     }

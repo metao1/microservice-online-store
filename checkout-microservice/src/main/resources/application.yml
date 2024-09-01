@@ -74,7 +74,7 @@ spring:
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr([%15.15t]){yellow} %clr(:){red} %clr(%m){faint}%n"
   level:
-    org.apache.kafka.streams.kstream: INFO
+    
     org.springframework.data: DEBUG
     org.springframework.boot.autoconfigure: ERROR
     org.hibernate: DEBUG

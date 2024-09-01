@@ -3,15 +3,15 @@ package com.metao.book.product.infrastructure.factory.handler;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 
-import com.metao.book.product.application.config.ProductMapService;
 import com.metao.book.product.application.service.ProductService;
 import com.metao.book.product.domain.ProductEntity;
 import com.metao.book.product.domain.ProductRepository;
-import com.metao.book.product.infrastructure.util.EventUtil;
+import com.metao.book.product.infrastructure.mapper.ProductEventMapper;
 import com.metao.book.product.util.ProductTestUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatcher;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -20,17 +20,18 @@ class ProductDatabaseHandlerTest {
 
     @Mock
     ProductRepository productRepo;
+    
+    @InjectMocks
+    ProductEventMapper productMapper;
 
     @Test
     void testOnProductCreatedEventThenSavesInDatabase() {
-        var productMapper = new ProductMapService();
         var productService = new ProductService(productRepo);
         var productMsgHandler = new ProductDatabaseHandler(productService, productMapper);
-        var product = ProductTestUtils.createProductDTO();
-        var entity = productMapper.toEntity(product);
+        var event = ProductTestUtils.productCreatedEvent();
+        var entity = productMapper.toEntity(event);
 
-        var event = EventUtil.createProductEvent(product);
-        productMsgHandler.onMessage(event);
+        productMsgHandler.accept(event);
 
         verify(productRepo).save(argThat(new EventMatcher(entity)));
     }

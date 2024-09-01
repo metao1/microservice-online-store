@@ -1,5 +1,5 @@
 dependencies {
-  implementation 'com.metao.book:shared-kernel:1.0'
+  implementation 'com.metao.book.shared:shared-kernel:1.0'
 
   implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
   implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -7,6 +7,37 @@ dependencies {
   implementation 'org.springframework.kafka:spring-kafka'
   implementation 'org.postgresql:postgresql:42.7.3'
 
+  implementation 'io.confluent:kafka-protobuf-serializer:7.6.1'
+  implementation "io.confluent:kafka-streams-protobuf-serde:7.6.1"
+
+  implementation 'org.flywaydb:flyway-database-postgresql:10.11.0'
+
   testImplementation 'org.testcontainers:kafka'
 
+  implementation 'org.flywaydb:flyway-core:10.11.0'
+
+  implementation 'io.grpc:grpc-protobuf:1.61.0'
+  implementation 'io.grpc:grpc-stub:1.61.0'
+}
+
+
+protobuf {
+  protoc {
+    if (osdetector.os == "osx") {
+      artifact = 'com.google.protobuf:protoc:3.18.0:osx-x86_64'
+    } else {
+      artifact = 'com.google.protobuf:protoc:3.18.0'
+    }
+  }
+
+  plugins {
+    grpc {
+      artifact = 'io.grpc:protoc-gen-grpc-java:1.61.0'
+    }
+  }
+  generateProtoTasks {
+    all()*.plugins {
+      grpc {}
+    }
+  }
 }

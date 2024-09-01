@@ -4,6 +4,10 @@ server:
     include-binding-errors: always
   port: ${PORT:8080}
 
+book:
+  kafka:
+    isEnabled: ${KAFKA_ENABLED:true}
+
 spring:
   application:
     name: order-microservice
@@ -50,8 +54,6 @@ spring:
   jpa:
     database: POSTGRESQL
     generate-ddl: false
-    hibernate:
-      ddl-auto: validate
     properties:
       open-in-view: false
       hibernate:

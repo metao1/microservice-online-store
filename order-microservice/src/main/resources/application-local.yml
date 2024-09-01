@@ -4,5 +4,26 @@ spring:
     username: bookstore
     password: bookstore
   jpa:
-    show-sql: true
-    generate-ddl: true
+    database: POSTGRESQL
+    generate-ddl: false
+    properties:
+      open-in-view: false
+      hibernate:
+        connection:
+          provider_disables_autocommit: true
+        temp:
+          use_jdbc_metadata_defaults: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 0
+    outOfOrder: false
+    locations: classpath:db/migration
+    clean-disabled: true
+  kafka:
+    bootstrap-servers: PLAINTEXT://localhost:9092
+    # Required connection configs for Confluent Cloud Schema Registry
+    properties:
+      schema.registry.url: "http://localhost:8081"
+      security.protocol: "SASL_PLAINTEXT"
+      sasl.mechanism: "PLAIN"

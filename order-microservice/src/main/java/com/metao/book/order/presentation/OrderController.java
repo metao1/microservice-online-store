@@ -5,6 +5,7 @@ import com.metao.book.order.application.dto.exception.OrderNotFoundException;
 import com.metao.book.order.application.service.OrderService;
 import com.metao.book.order.domain.OrderStatus;
 import jakarta.validation.Valid;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
@@ -16,12 +17,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Set;
-
 @Validated
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/order")
+@RequestMapping(path = "/order")
 public class OrderController {
 
     private final OrderService orderService;
@@ -34,7 +33,7 @@ public class OrderController {
     @GetMapping("/{pageSize}/{offset}/{sortByFieldName}")
     public Page<OrderDTO> getOrderByProductIdsAndStatusesPageable(
         @RequestParam(value = "productIds", required = false) Set<String> productIds,
-            @RequestParam(value = "statuses", required = false) Set<OrderStatus> statuses,
+        @RequestParam(value = "statuses", required = false) Set<OrderStatus> statuses,
         @PathVariable int offset,
         @PathVariable int pageSize,
         @PathVariable String sortByFieldName

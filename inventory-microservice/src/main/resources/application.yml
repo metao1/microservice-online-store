@@ -1,28 +1,24 @@
 server:
+  error:
+    include-message: always
+    include-binding-errors: always
   port: ${PORT:8083}
 
-kafka:
-  topic:
-    order: "book-order"
-    product: "product"
-    order-stock: "order-stock"
+book:
+  kafka:
+    isEnabled: ${KAFKA_ENABLED:true}
 
 spring:
   application:
-    name: product-master
+    name: product-microservice
   kafka:
     # Required connection configs for Kafka producer, consumer, and admin
     bootstrap-servers: ${BOOTSTRAP_SERVERS}
     # Required connection configs for Confluent Cloud Schema Registry
     properties:
-      stream-properties:
-        schema.registry.url: ${SCHEMA_HOST}
-        bootstrap.servers: ${BOOTSTRAP_SERVERS}
-      bootstrap-servers: ${BOOTSTRAP_SERVERS}
-      schema.registry.url: ${SCHEMA_HOST}
-      security.protocol: PLAINTEXT
-      sasl.mechanism: PLAIN
-      credentials.source: USER_INFO
+      schema.registry.url: ${SCHEMA_REGISTRY_URL}
+      security.protocol: ${SECURITY_PROTOCOL}
+      sasl.mechanism: ${SASL_MECHANISM}
     consumer:
       key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
@@ -30,32 +26,41 @@ spring:
       auto-offset-reset: none
       enable-auto-commit: false
       properties:
+        session.timeout.ms: 30000
+        max.poll.interval.ms: 300
+        heartbeat.interval.ms: 1000
         auto.offset.reset: earliest
-        specific.protobuf.key.type: java.lang.String
-        specific.protobuf.value.type: io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer
-        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
-        spring.deserializer.value.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
         allow.auto.create.topics: 'false'
+        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+        spring.deserializer.value.delegate.class: io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer
       properties:
         enable.idempotence: true
   output.ansi.enabled: ALWAYS
-
   datasource:
-    url: jdbc:postgresql://localhost:5432/product
-    username: product
-    password: product
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USER}
+    password: ${DATABASE_PASSWORD}
     hikari:
       auto-commit: false
+      schema: "bookstore"
+  flyway:
+    enabled: true
+    baseline-version: 0
+    outOfOrder: false
+    locations: classpath:db/migration
+    clean-disabled: true
+    default-schema: "bookstore"
+    validate-on-migrate: true
+    baseline-on-migrate: false
   jpa:
     database: POSTGRESQL
     show-sql: false
-    generate-ddl: false
-    hibernate:
-      ddl-auto: validate
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
     properties:
       open-in-view: false
       hibernate:
@@ -64,13 +69,18 @@ spring:
         temp:
           use_jdbc_metadata_defaults: false
 
-
 product-sample-data-path: data/products.txt
 
+kafka:
+  topic:
+    product:
+      id: "product-id"
+      name: "product-created"
+      group-id: "product-created-group"
+
 logging:
-  pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%15.15t]){yellow} %clr(:){red} %clr(%m){faint}%n"
+  pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%20.1t]){yellow} %clr(:){red} %clr(%m){faint}%n"
   level:
-    org.apache.kafka.streams.kstream: INFO
-    org.springframework.data: DEBUG
+    org.springframework.data: INFO
     org.springframework.boot.autoconfigure: ERROR
-    org.hibernate: DEBUG
+    org.hibernate: INFO

@@ -3,9 +3,18 @@ spring:
     url: jdbc:postgresql://localhost:5432/bookstore
     username: bookstore
     password: bookstore
-    hikari:
-      auto-commit: false
   jpa:
-    database: POSTGRESQL
     show-sql: true
     generate-ddl: true
+  kafka:
+    # Required connection configs for Kafka producer, consumer, and admin
+    bootstrap-servers: "PLAINTEXT://localhost:9092"
+    # Required connection configs for Confluent Cloud Schema Registry
+    properties:
+      schema.registry.url: "http://localhost:8081"
+      security.protocol: "PLAINTEXT"
+      sasl.mechanism: "PLAIN"
+
+logging:
+  level:
+    org.springframework.data: DEBUG

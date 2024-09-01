@@ -5,7 +5,7 @@ import java.util.Objects;
 
 public class Image implements ValueObject {
 
-    private String url;
+    private final String url;
 
     public Image(String url) {
         this.url = Objects.requireNonNull(url, "uuid must not be null");
@@ -26,7 +26,7 @@ public class Image implements ValueObject {
 
     @Override
     public int hashCode() {
-        int result = url != null ? url.hashCode() : 0;
+        int result = url.hashCode();
         return 31 * result;
     }
 }

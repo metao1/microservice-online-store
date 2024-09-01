@@ -7,12 +7,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.metao.book.product.application.config.ProductMapService;
 import com.metao.book.product.application.service.ProductService;
 import com.metao.book.product.domain.ProductCategoryEntity;
+import com.metao.book.product.domain.ProductMapper;
 import com.metao.book.product.domain.ProductRepository;
 import com.metao.book.product.domain.category.Category;
-import com.metao.book.product.infrastructure.BasePostgresIT;
 import com.metao.book.product.util.ProductTestUtils;
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -24,14 +23,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 @AutoConfigureMockMvc
-@ActiveProfiles({"test", "container"})
 @WebMvcTest(controllers = ProductController.class)
-@Import({ProductMapService.class, ProductService.class})
-class ProductControllerTests extends BasePostgresIT {
+@Import({ProductMapper.class, ProductService.class})
+class ProductControllerTests {
 
     private static final String PRODUCT_URL = "/products/";
     private final String productId = UUID.randomUUID().toString();
@@ -43,14 +40,14 @@ class ProductControllerTests extends BasePostgresIT {
     MockMvc webTestClient;
 
     @Test
-    void loadOneProduct_isNotFound() throws Exception {
+    void loadOneProductIsNotFound() throws Exception {
         webTestClient
             .perform(get(PRODUCT_URL + productId))
             .andExpect(status().isNotFound());
     }
 
     @Test
-    void loadOneProduct_isOk() throws Exception {
+    void loadOneProductIsOk() throws Exception {
         var category = new ProductCategoryEntity(new Category("book"));
         var pe = ProductTestUtils.createProductEntity();
         pe.addCategory(category);
@@ -65,7 +62,7 @@ class ProductControllerTests extends BasePostgresIT {
             .andExpect(jsonPath("$.description").value(pe.getDescription()))
             .andExpect(jsonPath("$.categories[0].category").value("book"))
             .andExpect(jsonPath("$.image_url").value(pe.getImage().url()))
-            .andExpect(jsonPath("$.currency").value("USD"))
+            .andExpect(jsonPath("$.currency").value("EUR"))
             .andExpect(jsonPath("$.price").value(BigDecimal.valueOf(12)));
     }
 
