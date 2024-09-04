@@ -4,10 +4,6 @@ server:
     include-binding-errors: always
   port: ${PORT:8080}
 
-book:
-  kafka:
-    isEnabled: ${KAFKA_ENABLED:true}
-
 spring:
   application:
     name: order-microservice
@@ -63,6 +59,7 @@ spring:
           use_jdbc_metadata_defaults: false
 
 kafka:
+  isEnabled: ${KAFKA_ENABLED:true}
   topic:
     order-created:
       id: "order-created-id"

@@ -28,7 +28,7 @@ import org.springframework.test.context.TestPropertySource;
 @Transactional
 @TestPropertySource(
     properties = {
-        "book.kafka.isEnabled=false"
+        "kafka.isEnabled=false"
     }
 )
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)

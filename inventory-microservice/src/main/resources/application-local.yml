@@ -8,7 +8,7 @@ spring:
     generate-ddl: true
   kafka:
     # Required connection configs for Kafka producer, consumer, and admin
-    bootstrap-servers: "PLAINTEXT://localhost:9092"
+    bootstrap-servers: "PLAINTEXT://localhost:9094"
     # Required connection configs for Confluent Cloud Schema Registry
     properties:
       schema.registry.url: "http://localhost:8081"

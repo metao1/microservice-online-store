@@ -6,6 +6,7 @@ import com.metao.book.product.infrastructure.mapper.ProductEventMapper;
 import com.metao.book.shared.application.service.StageProcessor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,13 +22,15 @@ public class ProductCreationController {
     private final ProductEventMapper productMapper;
 
     @PostMapping
-    public ResponseEntity<Void> saveProduct(@RequestBody ProductDTO productDTO) {
+    public ResponseEntity<String> saveProduct(@RequestBody ProductDTO productDTO) {
         return StageProcessor.accept(productDTO)
             .map(productMapper::toEvent)
             .applyExceptionally((event, exp) -> {
                 if (event != null && exp == null) {
                     productKafkaHandler.accept(event);
-                    return ResponseEntity.status(HttpStatus.CREATED).build();
+                    return ResponseEntity.status(HttpStatus.CREATED)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(event.getAsin());
                 }
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             });

@@ -20,7 +20,7 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 @EnableKafka
 @Configuration
 @RequiredArgsConstructor
-@ConditionalOnProperty(value = "book.kafka.isEnabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = "kafka.isEnabled", havingValue = "true", matchIfMissing = true)
 public class KafkaConsumerConfig {
 
     @Value("${spring.kafka.bootstrap-servers}")
@@ -45,7 +45,7 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, ProductCreatedEvent> productPaymentEventKafkaListenerContainerFactory() {
+    public ConcurrentKafkaListenerContainerFactory<String, ProductCreatedEvent> productCreatedEventKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, ProductCreatedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(productPaymentEventConsumerFactory());
         factory.setConcurrency(3);
@@ -68,16 +68,4 @@ public class KafkaConsumerConfig {
 
         return new DefaultKafkaConsumerFactory<>(props);
     }
-
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, ProductCreatedEvent> productCreatedEventKafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, ProductCreatedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(productCreatedEventConsumerFactory());
-
-        factory.setConcurrency(3);
-        factory.getContainerProperties().setPollTimeout(3000);
-
-        return factory;
-    }
-
 }

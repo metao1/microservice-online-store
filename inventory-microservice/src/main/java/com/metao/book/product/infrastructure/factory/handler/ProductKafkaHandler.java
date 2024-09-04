@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@ConditionalOnProperty(value = "book.kafka.isEnabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = "kafka.isEnabled", havingValue = "true", matchIfMissing = true)
 public class ProductKafkaHandler implements Consumer<ProductCreatedEvent> {
 
     private final KafkaProductProducer kafkaProductProducer;

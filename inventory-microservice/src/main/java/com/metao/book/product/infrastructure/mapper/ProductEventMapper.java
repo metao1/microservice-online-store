@@ -1,5 +1,6 @@
 package com.metao.book.product.infrastructure.mapper;
 
+import com.google.protobuf.Timestamp;
 import com.metao.book.product.application.dto.ProductDTO;
 import com.metao.book.product.domain.ProductCategoryEntity;
 import com.metao.book.product.domain.ProductEntity;
@@ -7,9 +8,8 @@ import com.metao.book.product.domain.image.Image;
 import com.metao.book.product.event.Category;
 import com.metao.book.product.event.ProductCreatedEvent;
 import com.metao.book.shared.domain.financial.Money;
-import lombok.NonNull;
-import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Currency;
 import java.util.List;
@@ -17,21 +17,31 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.NonNull;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ProductEventMapper {
 
     public ProductCreatedEvent toEvent(ProductDTO pr) {
-        return ProductCreatedEvent.newBuilder()
-            .setAsin(pr.asin())
-            .setTitle(pr.title())
-            .setDescription(pr.description())
-            .setPrice(pr.price().doubleValue())
-            .setCurrency(pr.currency().getDisplayName())
-            .setImageUrl(pr.imageUrl())
-            .addAllCategories(
-                pr.categories().stream().map(dto -> Category.newBuilder().setName(dto.getCategory()).build()).toList()
-            ).build();
+        try {
+            return ProductCreatedEvent.newBuilder()
+                .setAsin(pr.asin())
+                .setTitle(pr.title())
+                .setDescription(pr.description() == null ? "" : pr.description())
+                .setPrice(pr.price() == null ? 0 : pr.price().doubleValue())
+                .setCurrency(pr.currency() == null ? Currency.getInstance("EUR").toString()
+                    : pr.currency().toString())
+                .setImageUrl(pr.imageUrl() == null ? "" : pr.imageUrl())
+                .setVolume(pr.volume() == null ? 0 : pr.volume().doubleValue())
+                .setCreateTime(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
+                .addAllCategories(
+                    pr.categories().stream().map(dto -> Category.newBuilder().setName(dto.getCategory()).build())
+                        .toList()
+                ).build();
+        } catch (NullPointerException e) {
+            return null;
+        }
     }
 
     public ProductEntity toEntity(@NonNull ProductCreatedEvent event) {

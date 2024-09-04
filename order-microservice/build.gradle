@@ -51,3 +51,7 @@ protobuf {
     }
   }
 }
+
+bootJar {
+  mainClass = 'com.metao.book.order.OrderApplication'
+}

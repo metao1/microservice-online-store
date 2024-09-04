@@ -1,6 +1,8 @@
 package com.metao.book.product.application.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.metao.book.product.application.config.CurrencyDeserializer;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import java.math.BigDecimal;
@@ -32,6 +34,7 @@ public record ProductDTO(
         BigDecimal price,
 
         @NotNull
+        @JsonDeserialize(using = CurrencyDeserializer.class)
         Currency currency,
 
         @NotNull

@@ -1,14 +1,13 @@
 package com.metao.book.product.infrastructure.factory;
+
 import com.metao.book.product.event.ProductCreatedEvent;
-import com.metao.book.product.domain.ProductMapper;
 import com.metao.book.product.infrastructure.factory.handler.EventHandler;
-import com.metao.book.product.infrastructure.factory.handler.ProductDatabaseHandler;
 import com.metao.book.product.infrastructure.factory.handler.ProductKafkaHandler;
 import com.metao.book.product.infrastructure.mapper.ProductDtoMapper;
 import com.metao.book.product.infrastructure.mapper.ProductEventMapper;
 import com.metao.book.shared.application.service.FileHandler;
 import jakarta.annotation.PostConstruct;
-import java.io.IOException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
@@ -18,16 +17,17 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.availability.AvailabilityChangeEvent;
 import org.springframework.boot.availability.ReadinessState;
 import org.springframework.context.event.EventListener;
+import org.springframework.kafka.annotation.KafkaListenerConfigurer;
+import org.springframework.kafka.config.KafkaListenerEndpointRegistrar;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "spring.profiles.active", havingValue = "dev")
-public class ProductGenerator {
+@ConditionalOnProperty(name = "spring.profiles.active", havingValue = "local")
+public class ProductGenerator implements KafkaListenerConfigurer {
 
     private final EventHandler<ProductCreatedEvent> eventHandler;
-    private final ProductDatabaseHandler productDatabaseHandler;
     private final ProductKafkaHandler productKafkaHandler;
     private final ProductDtoMapper dtoMapper;
     private final ProductEventMapper productMapper;
@@ -37,7 +37,6 @@ public class ProductGenerator {
 
     @PostConstruct
     public void produceProducts() {
-        eventHandler.subscribe(productDatabaseHandler);
         eventHandler.subscribe(productKafkaHandler);
     }
 
@@ -49,8 +48,9 @@ public class ProductGenerator {
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .map(productMapper::toEvent)
+                .filter(Objects::nonNull)
                 .forEach(eventHandler::publish);
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
         log.info("finished publishing products.");
@@ -77,4 +77,8 @@ public class ProductGenerator {
         }
     }
 
+    @Override
+    public void configureKafkaListeners(KafkaListenerEndpointRegistrar registrar) {
+
+    }
 }

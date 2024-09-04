@@ -11,9 +11,4 @@ ENV JAVA_OPTS="-Xms256m -Xmx2048m" \
 # Run as non-root user
 USER 1001
 
-# Start the application
-CMD echo "Inventory microservice will start in ${SLEEP}s..." && \
-    sleep ${SLEEP} && \
-    java \
-        ${JAVA_OPTS} -Djava.security.egd=file:/dev/./urandom \
-        -jar app.jar
+ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar /app.jar" ]

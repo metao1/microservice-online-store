@@ -15,7 +15,7 @@ import org.springframework.validation.annotation.Validated;
 @Configuration
 @RequiredArgsConstructor
 @EnableConfigurationProperties(KafkaProperties.class)
-@ConditionalOnProperty(value = "book.kafka.isEnabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = "kafka.isEnabled", havingValue = "true", matchIfMissing = true)
 public class KafkaConfig {
 
     @Bean

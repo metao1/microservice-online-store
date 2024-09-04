@@ -24,7 +24,7 @@ Manages customer space, such as customer's info  credits and addresses.
 Backend applications contains kafka, postgres, and all other applications running on different containers(microservices)  
 
 ```shell
-docker-compose -f docker-compose.yml -f docker-compose.microservices.yml up --build 
+docker compose up --build order-microservice
 ```
 
 ### Building and running frontend

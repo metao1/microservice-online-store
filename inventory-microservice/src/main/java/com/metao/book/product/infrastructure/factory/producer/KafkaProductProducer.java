@@ -14,7 +14,7 @@ import org.springframework.validation.annotation.Validated;
 @Service
 @Validated
 @RequiredArgsConstructor
-@ConditionalOnProperty(value = "book.kafka.isEnabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = "kafka.isEnabled", havingValue = "true", matchIfMissing = true)
 public class KafkaProductProducer {
 
     private final KafkaTemplate<String, ProductCreatedEvent> kafkaTemplate;
