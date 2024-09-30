@@ -5,7 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 import com.metao.book.product.domain.ProductId;
-import com.metao.book.product.domain.ProductRepository;
+import com.metao.book.product.infrastructure.repository.ProductRepository;
+import com.metao.book.product.domain.service.ProductCategoriesService;
 import com.metao.book.product.util.ProductTestUtils;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.DisplayName;

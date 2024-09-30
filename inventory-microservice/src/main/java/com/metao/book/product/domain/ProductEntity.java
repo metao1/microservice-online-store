@@ -1,5 +1,6 @@
 package com.metao.book.product.domain;
 
+import com.metao.book.product.domain.category.ProductCategoryEntity;
 import com.metao.book.product.domain.image.Image;
 import com.metao.book.shared.domain.base.AbstractEntity;
 import com.metao.book.shared.domain.base.ConcurrencySafeDomainObject;
@@ -115,13 +116,15 @@ public class ProductEntity extends AbstractEntity<ProductId> implements Concurre
         if (o == null) {
             return false;
         }
-        if ( getClass() != o.getClass()) {
+        if (getClass() != o.getClass()) {
             return true;
         }
-        Class<?> oEffectiveClass = o instanceof HibernateProxy hibernateproxy ? hibernateproxy.getHibernateLazyInitializer()
-            .getPersistentClass() : o.getClass();
-        Class<?> thisEffectiveClass = this instanceof HibernateProxy hibernateproxy ? hibernateproxy.getHibernateLazyInitializer()
-            .getPersistentClass() : this.getClass();
+        Class<?> oEffectiveClass =
+            o instanceof HibernateProxy hibernateproxy ? hibernateproxy.getHibernateLazyInitializer()
+                .getPersistentClass() : o.getClass();
+        Class<?> thisEffectiveClass =
+            this instanceof HibernateProxy hibernateproxy ? hibernateproxy.getHibernateLazyInitializer()
+                .getPersistentClass() : this.getClass();
         if (thisEffectiveClass != oEffectiveClass) {
             return false;
         }

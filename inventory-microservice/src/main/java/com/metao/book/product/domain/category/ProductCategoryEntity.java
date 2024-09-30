@@ -1,6 +1,6 @@
-package com.metao.book.product.domain;
+package com.metao.book.product.domain.category;
 
-import com.metao.book.product.domain.category.Category;
+import com.metao.book.product.domain.ProductEntity;
 import com.metao.book.shared.domain.base.AbstractEntity;
 import com.metao.book.shared.domain.base.DomainObjectId;
 import jakarta.persistence.Column;

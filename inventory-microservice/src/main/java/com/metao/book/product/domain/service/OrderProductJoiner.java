@@ -1,5 +1,6 @@
-package com.metao.book.product.application.service;
+package com.metao.book.product.domain.service;
 
+import com.metao.book.product.application.service.Joiner;
 import com.metao.book.product.event.ProductCreatedEvent;
 import com.metao.book.product.domain.ProductEntity;
 import org.springframework.stereotype.Component;

@@ -1,4 +1,4 @@
-package com.metao.book.order.domain;
+package com.metao.book.order.domain.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.DecimalMin;

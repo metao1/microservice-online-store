@@ -3,6 +3,7 @@ package com.metao.book.product.infrastructure.mapper;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.metao.book.product.domain.mapper.ProductDtoMapper;
 import com.metao.book.shared.application.service.FileHandler;
 import java.io.IOException;
 import java.util.Optional;

@@ -1,8 +1,8 @@
 package com.metao.book.product.infrastructure.factory;
 
-import com.metao.book.product.domain.ProductMapper;
+import com.metao.book.product.domain.mapper.ProductMapper;
 import com.metao.book.product.infrastructure.factory.handler.ProductKafkaHandler;
-import com.metao.book.product.infrastructure.mapper.ProductDtoMapper;
+import com.metao.book.product.domain.mapper.ProductDtoMapper;
 import com.metao.book.shared.application.service.FileHandler;
 import jakarta.annotation.PostConstruct;
 import java.util.Objects;

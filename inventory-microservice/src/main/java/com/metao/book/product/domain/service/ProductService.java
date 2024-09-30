@@ -1,9 +1,9 @@
-package com.metao.book.product.application.service;
+package com.metao.book.product.domain.service;
 
-import com.metao.book.product.application.exception.ProductNotFoundException;
+import com.metao.book.product.domain.exception.ProductNotFoundException;
 import com.metao.book.product.domain.ProductEntity;
 import com.metao.book.product.domain.ProductId;
-import com.metao.book.product.domain.ProductRepository;
+import com.metao.book.product.infrastructure.repository.ProductRepository;
 import com.metao.book.product.infrastructure.repository.model.OffsetBasedPageRequest;
 import java.util.List;
 import java.util.Optional;

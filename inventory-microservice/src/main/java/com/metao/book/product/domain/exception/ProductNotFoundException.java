@@ -1,4 +1,4 @@
-package com.metao.book.product.application.exception;
+package com.metao.book.product.domain.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

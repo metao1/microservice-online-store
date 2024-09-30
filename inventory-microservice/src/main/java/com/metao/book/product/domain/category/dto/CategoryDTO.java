@@ -1,4 +1,4 @@
-package com.metao.book.product.application.dto;
+package com.metao.book.product.domain.category.dto;
 
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CategoryDTO implements Serializable {
+
     @NotNull
     private String category;
 }

@@ -1,7 +1,7 @@
 package com.metao.book.product.application.config;
 
-import com.metao.book.product.domain.ProductMapper;
-import com.metao.book.product.domain.ProductRepository;
+import com.metao.book.product.domain.mapper.ProductMapper;
+import com.metao.book.product.infrastructure.repository.ProductRepository;
 import com.metao.book.product.event.ProductCreatedEvent;
 import com.metao.book.shared.application.service.StageProcessor;
 import lombok.RequiredArgsConstructor;

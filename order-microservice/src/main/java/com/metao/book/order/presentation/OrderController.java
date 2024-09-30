@@ -1,7 +1,7 @@
 package com.metao.book.order.presentation;
 
-import com.metao.book.order.domain.OrderDTO;
-import com.metao.book.order.domain.OrderNotFoundException;
+import com.metao.book.order.domain.dto.OrderDTO;
+import com.metao.book.order.domain.exception.OrderNotFoundException;
 import com.metao.book.order.domain.OrderService;
 import com.metao.book.order.domain.OrderStatus;
 import jakarta.validation.Valid;

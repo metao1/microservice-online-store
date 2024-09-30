@@ -1,4 +1,4 @@
-package com.metao.book.order.domain;
+package com.metao.book.order.domain.service;
 
 import org.springframework.stereotype.Service;
 

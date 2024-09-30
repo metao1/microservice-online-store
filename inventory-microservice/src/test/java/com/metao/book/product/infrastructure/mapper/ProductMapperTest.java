@@ -3,11 +3,11 @@ package com.metao.book.product.infrastructure.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.metao.book.product.application.dto.CategoryDTO;
-import com.metao.book.product.application.dto.ProductDTO;
-import com.metao.book.product.domain.ProductCategoryEntity;
+import com.metao.book.product.domain.category.dto.CategoryDTO;
+import com.metao.book.product.domain.dto.ProductDTO;
+import com.metao.book.product.domain.category.ProductCategoryEntity;
 import com.metao.book.product.domain.ProductEntity;
-import com.metao.book.product.domain.ProductMapper;
+import com.metao.book.product.domain.mapper.ProductMapper;
 import com.metao.book.product.domain.category.Category;
 import com.metao.book.product.util.ProductTestUtils;
 import java.math.BigDecimal;

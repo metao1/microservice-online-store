@@ -3,6 +3,7 @@ package com.metao.book.product.domain;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.metao.book.product.domain.category.Category;
+import com.metao.book.product.domain.category.ProductCategoryEntity;
 import com.metao.book.product.domain.image.Image;
 import com.metao.book.shared.domain.financial.Money;
 import java.math.BigDecimal;
@@ -81,7 +82,7 @@ class ProductEntityTest {
     }
 
     @Test
-    void productCategoryTest (){
+    void productCategoryTest() {
         ProductEntity productEntity = new ProductEntity(
             "ASIN",
             "title",

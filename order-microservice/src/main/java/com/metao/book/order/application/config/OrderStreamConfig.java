@@ -1,6 +1,6 @@
 //package com.metao.book.order.application.config;
 //
-//import com.metao.book.order.domain.OrderManageService;
+//import com.metao.book.order.domain.service.OrderManageService;
 //import com.metao.book.shared.OrderEvent;
 //import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 //import java.time.Duration;

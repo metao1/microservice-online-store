@@ -1,4 +1,4 @@
-package com.metao.book.product.domain;
+package com.metao.book.product.domain.category;
 
 import com.metao.book.shared.domain.base.DomainObjectId;
 

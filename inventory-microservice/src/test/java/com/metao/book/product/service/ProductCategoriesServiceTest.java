@@ -3,10 +3,10 @@ package com.metao.book.product.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 
-import com.metao.book.product.application.service.ProductCategoriesService;
-import com.metao.book.product.domain.ProductCategoryEntity;
+import com.metao.book.product.domain.service.ProductCategoriesService;
+import com.metao.book.product.domain.category.ProductCategoryEntity;
 import com.metao.book.product.domain.ProductId;
-import com.metao.book.product.domain.ProductRepository;
+import com.metao.book.product.infrastructure.repository.ProductRepository;
 import com.metao.book.product.domain.category.Category;
 import com.metao.book.product.util.ProductTestUtils;
 import org.junit.jupiter.api.Test;

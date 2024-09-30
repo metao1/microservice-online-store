@@ -1,9 +1,9 @@
 package com.metao.book.product.util;
 
 import com.google.protobuf.Timestamp;
-import com.metao.book.product.application.dto.CategoryDTO;
-import com.metao.book.product.application.dto.ProductDTO;
-import com.metao.book.product.domain.ProductCategoryEntity;
+import com.metao.book.product.domain.category.dto.CategoryDTO;
+import com.metao.book.product.domain.dto.ProductDTO;
+import com.metao.book.product.domain.category.ProductCategoryEntity;
 import com.metao.book.product.domain.ProductEntity;
 import com.metao.book.product.domain.image.Image;
 import com.metao.book.product.event.Category;

@@ -4,9 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.metao.book.product.application.exception.ProductNotFoundException;
+import com.metao.book.product.domain.exception.ProductNotFoundException;
 import com.metao.book.product.domain.ProductId;
-import com.metao.book.product.domain.ProductRepository;
+import com.metao.book.product.infrastructure.repository.ProductRepository;
+import com.metao.book.product.domain.service.ProductService;
 import com.metao.book.product.util.ProductTestUtils;
 import java.util.Optional;
 import org.junit.jupiter.api.Assertions;

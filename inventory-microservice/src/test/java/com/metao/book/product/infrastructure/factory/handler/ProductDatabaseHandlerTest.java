@@ -3,9 +3,9 @@ package com.metao.book.product.infrastructure.factory.handler;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 
-import com.metao.book.product.application.service.ProductService;
-import com.metao.book.product.domain.ProductMapper;
-import com.metao.book.product.domain.ProductRepository;
+import com.metao.book.product.domain.service.ProductService;
+import com.metao.book.product.domain.mapper.ProductMapper;
+import com.metao.book.product.infrastructure.repository.ProductRepository;
 import com.metao.book.product.util.ProductTestUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

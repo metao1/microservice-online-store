@@ -1,8 +1,8 @@
-package com.metao.book.product.infrastructure.mapper;
+package com.metao.book.product.domain.mapper;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.metao.book.product.application.dto.ProductDTO;
+import com.metao.book.product.domain.dto.ProductDTO;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

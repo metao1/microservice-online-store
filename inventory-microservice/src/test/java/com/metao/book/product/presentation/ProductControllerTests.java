@@ -9,11 +9,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.metao.book.product.application.dto.ProductDTO;
-import com.metao.book.product.application.service.ProductService;
-import com.metao.book.product.domain.ProductCategoryEntity;
-import com.metao.book.product.domain.ProductMapper;
-import com.metao.book.product.domain.ProductRepository;
+import com.metao.book.product.domain.dto.ProductDTO;
+import com.metao.book.product.domain.service.ProductService;
+import com.metao.book.product.domain.category.ProductCategoryEntity;
+import com.metao.book.product.domain.mapper.ProductMapper;
+import com.metao.book.product.infrastructure.repository.ProductRepository;
 import com.metao.book.product.domain.category.Category;
 import com.metao.book.product.event.ProductCreatedEvent;
 import com.metao.book.product.infrastructure.factory.producer.KafkaProductProducer;
@@ -117,7 +117,7 @@ class ProductControllerTests {
             )
             .andExpect(status().isCreated())
             .andExpect(content().json("1234567890"));
-        
+
         verify(productMapper).toEvent(any(ProductDTO.class));
     }
 }

@@ -1,8 +1,10 @@
-package com.metao.book.product.domain;
+package com.metao.book.product.domain.mapper;
 
 import com.google.protobuf.Timestamp;
-import com.metao.book.product.application.dto.CategoryDTO;
-import com.metao.book.product.application.dto.ProductDTO;
+import com.metao.book.product.domain.category.ProductCategoryEntity;
+import com.metao.book.product.domain.ProductEntity;
+import com.metao.book.product.domain.category.dto.CategoryDTO;
+import com.metao.book.product.domain.dto.ProductDTO;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Collection;

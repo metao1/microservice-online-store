@@ -1,4 +1,4 @@
-package com.metao.book.order.domain;
+package com.metao.book.order.domain.service;
 
 import com.metao.book.order.OrderCreatedEvent;
 import com.metao.book.order.infrastructure.kafka.KafkaOrderProducer;
