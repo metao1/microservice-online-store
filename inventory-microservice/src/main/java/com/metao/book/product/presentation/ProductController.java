@@ -13,6 +13,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,38 +35,34 @@ public class ProductController {
 
     @GetMapping(value = "/{asin}")
     public ResponseEntity<ProductDTO> productDetails(@PathVariable String asin) throws ProductNotFoundException {
-        return productService.getProductByAsin(asin)
-            .map(productMapper::toDto)
-            .map(ResponseEntity::ok)
+        return productService.getProductByAsin(asin).map(productMapper::toDto).map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping(value = "/offset")
     public ResponseEntity<List<ProductDTO>> allProductsWithOffset(
-        @RequestParam("limit") int limit,
-        @RequestParam("offset") int offset
+        @RequestParam("limit") int limit, @RequestParam("offset") int offset
     ) {
         var l = Optional.of(limit).orElse(10);
         var o = Optional.of(offset).orElse(0);
-        return productService.getAllProductsPageable(l, o)
-            .map(productMapper::toDTOList)
-            .map(ResponseEntity::ok)
+        return productService.getAllProductsPageable(l, o).map(productMapper::toDTOList).map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
     @SneakyThrows
     public ResponseEntity<String> saveProduct(@RequestBody ProductDTO productDTO) {
-        return StageProcessor.accept(productDTO).map(productMapper::toEvent)
-            .applyExceptionally((event, exp) -> {
-                try {
-                    return kafkaProductProducer.publish(event)
-                        .thenApply(ev -> ResponseEntity.ok(ev.getProducerRecord().key()))
-                        .get(30, TimeUnit.SECONDS);
-                } catch (InterruptedException | TimeoutException | ExecutionException e) {
-                    Thread.currentThread().interrupt();
-                    throw new RuntimeException(e);
-                }
-            });
+        return StageProcessor.accept(productDTO).map(productMapper::toEvent).applyExceptionally((event, exp) -> {
+            try {
+                return kafkaProductProducer.publish(event)
+                    .thenApply(
+                        ev -> ResponseEntity.status(HttpStatus.CREATED).body(ev.getProducerRecord().key())
+                    )
+                    .get(30, TimeUnit.SECONDS);
+            } catch (InterruptedException | TimeoutException | ExecutionException e) {
+                Thread.currentThread().interrupt();
+                return ResponseEntity.status(HttpStatusCode.valueOf(500)).body(e.getMessage());
+            }
+        });
     }
 }

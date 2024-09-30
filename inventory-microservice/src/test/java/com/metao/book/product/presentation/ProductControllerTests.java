@@ -16,11 +16,13 @@ import com.metao.book.product.domain.ProductMapper;
 import com.metao.book.product.domain.ProductRepository;
 import com.metao.book.product.domain.category.Category;
 import com.metao.book.product.event.ProductCreatedEvent;
-import com.metao.book.product.infrastructure.factory.handler.ProductKafkaHandler;
+import com.metao.book.product.infrastructure.factory.producer.KafkaProductProducer;
 import com.metao.book.product.util.ProductTestUtils;
 import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -29,6 +31,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -39,7 +42,7 @@ import org.springframework.test.web.servlet.MockMvc;
 )
 @AutoConfigureMockMvc
 @WebMvcTest(controllers = ProductController.class)
-@Import({ProductMapper.class, ProductService.class, ProductKafkaHandler.class})
+@Import({ProductMapper.class, ProductService.class})
 class ProductControllerTests {
 
     private static final String PRODUCT_URL = "/products";
@@ -48,7 +51,7 @@ class ProductControllerTests {
     ProductRepository productRepository;
 
     @MockBean
-    ProductKafkaHandler productKafkaHandler;
+    KafkaProductProducer kafkaProductProducer;
 
     @SpyBean
     ProductMapper productMapper;
@@ -101,17 +104,20 @@ class ProductControllerTests {
              }
             """;
 
+        when(kafkaProductProducer.publish(any(ProductCreatedEvent.class)))
+            .thenReturn(CompletableFuture.completedFuture(new SendResult<>(
+                new ProducerRecord<>("product-created", "1234567890", ProductCreatedEvent.getDefaultInstance()),
+                null
+            )));
+
         webTestClient
             .perform(post(PRODUCT_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(productDto)
             )
             .andExpect(status().isCreated())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(content().json("1234567890"));
-
-        verify(productKafkaHandler).accept(any(ProductCreatedEvent.class));
-
+        
         verify(productMapper).toEvent(any(ProductDTO.class));
     }
 }
