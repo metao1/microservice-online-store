@@ -48,6 +48,7 @@ public class KafkaConsumerConfig {
         ConcurrentKafkaListenerContainerFactory<String, ProductCreatedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(productPaymentEventConsumerFactory());
         factory.setConcurrency(1);
+
         return factory;
     }
 

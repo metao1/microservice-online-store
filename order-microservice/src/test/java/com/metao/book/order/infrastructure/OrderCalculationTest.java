@@ -6,8 +6,8 @@ import com.google.protobuf.Timestamp;
 import com.metao.book.order.BaseKafkaIT;
 import com.metao.book.order.OrderPaymentEvent;
 import com.metao.book.order.OrderTestUtil;
+import com.metao.book.order.application.card.OrderRepository;
 import com.metao.book.order.domain.OrderEntity;
-import com.metao.book.order.infrastructure.repository.OrderRepository;
 import java.time.Instant;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -39,15 +39,15 @@ class OrderCalculationTest extends BaseKafkaIT {
 
         orderRepository.save(orderEntity);
         var orderPaymentEvent = OrderPaymentEvent.newBuilder()
-                .setId(orderEntity.id().toUUID())
-                .setCreateTime(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
-                .setProductId(orderEntity.getProductId())
-                .setCustomerId(orderEntity.getCustomerId())
-                .setStatus(OrderPaymentEvent.Status.CONFIRMED)
-                .build();
+            .setId(orderEntity.id().toUUID())
+            .setCreateTime(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
+            .setProductId(orderEntity.getProductId())
+            .setCustomerId(orderEntity.getCustomerId())
+            .setStatus(OrderPaymentEvent.Status.CONFIRMED)
+            .build();
 
         kafkaTemplate.send(orderPaymentTopic, orderEntity.getCustomerId(), orderPaymentEvent)
-                .thenRun(() -> assertTrue(orderRepository.findById(orderEntity.id()).isPresent()));
+            .thenRun(() -> assertTrue(orderRepository.findById(orderEntity.id()).isPresent()));
     }
 
 }

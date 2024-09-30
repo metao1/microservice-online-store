@@ -1,0 +1,1 @@
+package com.metao.book.shared.application.kafka;

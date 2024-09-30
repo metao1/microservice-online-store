@@ -6,18 +6,24 @@ Online Book Store is a modern E-commerce book management web application, that i
 ![onlinebookstore-architecture.png](img/onlinebookstore-architecture.png)
 
 ### Microservice architecture
-We have several microservices, each of which in located under its directory.
-1. #### Order Microservice:
+We have several microservices, each of which is located under its directory.
+#### 1. Order Microservice:
 Responsible to manage orders
-2. #### Product - Inventory Microservice: [work in progress]
-Responsible to manage inventory, here available books.
-3. #### Logistics: [work in progress]
-Responsible to manage delivering physical books to customers, here available books.
-4. #### Order fulfillment: [work in progress]
-Is a component inside the order microservice
-5. #### Customer: [work in progress]
+
+- Order fulfillment: [work in progress]
+    - Is a component inside the order microservice
+  
+#### 2. Inventory Microservice:
+Responsible to manage inventory and available books.
+
+#### 3. Logistics: [work in progress]
+Responsible to manage delivering books to customers, here available books.
+
+#### 5. Customer: [work in progress]
 Manages customer space, such as customer's info  credits and addresses.
 
+#### 6. Shared-kernel
+A library that contains shared code for all microservices. 
 
 ### Building and running backends
 

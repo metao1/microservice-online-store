@@ -9,17 +9,14 @@ pluginManagement {
 rootProject.name = 'microservice-online-book-store'
 
 include(':inventory-microservice')
-include(':checkout-microservice')
 include(':order-microservice')
 include(':shared-kernel')
 
 project(":inventory-microservice").projectDir = file('inventory-microservice')
-project(":checkout-microservice").projectDir = file('checkout-microservice')
 project(":order-microservice").projectDir = file('order-microservice')
 project(":shared-kernel").projectDir = file('shared-kernel')
 
 gradle.ext.springBootProjects = [
     ':order-microservice',
-    ':inventory-microservice',
-    ':checkout-microservice'
+    ':inventory-microservice'
 ]

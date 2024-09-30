@@ -16,11 +16,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.metao.book.order.BaseKafkaIT;
 import com.metao.book.order.OrderCreatedEvent;
 import com.metao.book.order.OrderTestUtil;
-import com.metao.book.order.application.dto.OrderDTO;
-import com.metao.book.order.application.service.OrderMapper;
+import com.metao.book.order.application.card.OrderRepository;
+import com.metao.book.order.domain.OrderDTO;
 import com.metao.book.order.domain.OrderEntity;
+import com.metao.book.order.domain.OrderMapper;
 import com.metao.book.order.domain.OrderStatus;
-import com.metao.book.order.infrastructure.repository.OrderRepository;
 import com.metao.book.shared.test.StreamBuilderTestUtils;
 import java.time.Duration;
 import java.util.HashSet;
@@ -73,17 +73,17 @@ class OrderScenarioIT extends BaseKafkaIT {
     @DisplayName("When Create an order then it is OK and return the order")
     void createOrderIsOk() {
         var createOrderDTO = OrderDTO.builder()
-                .customerId(CUSTOMER_ID)
-                .productId(PRODUCT_ID)
-                .currency(EUR.toString())
-                .quantity(QUANTITY)
-                .price(PRICE)
+            .customerId(CUSTOMER_ID)
+            .productId(PRODUCT_ID)
+            .currency(EUR.toString())
+            .quantity(QUANTITY)
+            .price(PRICE)
             .build();
 
         mockMvc.perform(post("/order")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(StreamBuilderTestUtils.convertObjectToJsonBytes(objectMapper, createOrderDTO)))
-                .andExpect(status().isOk())
+            .andExpect(status().isOk())
             .andDo(result -> await().atMost(Duration.ofSeconds(20))
                 .untilAsserted(() -> assertEquals(11, orderRepository.findAll().size())));
     }
@@ -93,12 +93,12 @@ class OrderScenarioIT extends BaseKafkaIT {
     @DisplayName("When Get an order then it is OK and return the order")
     void getOrderIsOK() {
         var expectedOrder = OrderCreatedEvent.newBuilder()
-                .setCustomerId(CUSTOMER_ID)
-                .setProductId(PRODUCT_ID)
-                .setCurrency(EUR.toString())
+            .setCustomerId(CUSTOMER_ID)
+            .setProductId(PRODUCT_ID)
+            .setCurrency(EUR.toString())
             .setStatus(OrderCreatedEvent.Status.NEW)
-                .setPrice(PRICE.doubleValue())
-                .setQuantity(QUANTITY.doubleValue())
+            .setPrice(PRICE.doubleValue())
+            .setQuantity(QUANTITY.doubleValue())
             .build();
 
         var expectedOrderEntity = mapper.toEntity(expectedOrder);
@@ -116,7 +116,7 @@ class OrderScenarioIT extends BaseKafkaIT {
         var unknownOrderId = "UNKNOWN_ORDER_ID";
 
         mockMvc.perform(get("/order").param("order_id", unknownOrderId))
-                .andExpect(status().isNotFound());
+            .andExpect(status().isNotFound());
     }
 
     @Test
@@ -124,16 +124,16 @@ class OrderScenarioIT extends BaseKafkaIT {
     @DisplayName("When Create an invalid order then it is bad request")
     void createInvalidOrderRequestIsBadRequest() {
         var createOrderDTO = OrderDTO.builder()
-                .productId(PRODUCT_ID)
-                .currency(EUR.toString())
-                .quantity(QUANTITY)
-                .price(PRICE)
-                .build();
+            .productId(PRODUCT_ID)
+            .currency(EUR.toString())
+            .quantity(QUANTITY)
+            .price(PRICE)
+            .build();
 
         mockMvc.perform(post("/order")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(StreamBuilderTestUtils.convertObjectToJsonBytes(objectMapper, createOrderDTO)))
-                .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest());
     }
 
     @Test
