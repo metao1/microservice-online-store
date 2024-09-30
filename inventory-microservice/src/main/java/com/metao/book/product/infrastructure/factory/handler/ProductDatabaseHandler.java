@@ -1,8 +1,8 @@
 package com.metao.book.product.infrastructure.factory.handler;
 
 import com.metao.book.product.application.service.ProductService;
+import com.metao.book.product.domain.ProductMapper;
 import com.metao.book.product.event.ProductCreatedEvent;
-import com.metao.book.product.infrastructure.mapper.ProductEventMapper;
 import com.metao.book.shared.application.service.StageProcessor;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 public class ProductDatabaseHandler implements Consumer<ProductCreatedEvent> {
 
     private final ProductService productService;
-    private final ProductEventMapper productMapper;
+    private final ProductMapper productMapper;
 
     @Override
     public void accept(@NonNull ProductCreatedEvent event) {

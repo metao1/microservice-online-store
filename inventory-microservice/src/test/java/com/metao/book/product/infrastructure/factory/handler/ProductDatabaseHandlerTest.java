@@ -4,13 +4,11 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 
 import com.metao.book.product.application.service.ProductService;
-import com.metao.book.product.domain.ProductEntity;
+import com.metao.book.product.domain.ProductMapper;
 import com.metao.book.product.domain.ProductRepository;
-import com.metao.book.product.infrastructure.mapper.ProductEventMapper;
 import com.metao.book.product.util.ProductTestUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -20,9 +18,9 @@ class ProductDatabaseHandlerTest {
 
     @Mock
     ProductRepository productRepo;
-    
+
     @InjectMocks
-    ProductEventMapper productMapper;
+    ProductMapper productMapper;
 
     @Test
     void testOnProductCreatedEventThenSavesInDatabase() {
@@ -33,18 +31,10 @@ class ProductDatabaseHandlerTest {
 
         productMsgHandler.accept(event);
 
-        verify(productRepo).save(argThat(new EventMatcher(entity)));
+        verify(productRepo).save(
+            argThat(en -> entity.getTitle().equals(en.getTitle()) &&
+                entity.getDescription().equals(en.getDescription()) &&
+                entity.getPriceCurrency().equals(en.getPriceCurrency()) &&
+                entity.getImage().equals(en.getImage())));
     }
-
-    private record EventMatcher(ProductEntity entity) implements ArgumentMatcher<ProductEntity> {
-
-        @Override
-            public boolean matches(ProductEntity argument) {
-                return entity.getTitle().equals(argument.getTitle()) &&
-                    entity.getDescription().equals(argument.getDescription()) &&
-                    entity.getPriceCurrency().equals(argument.getPriceCurrency()) &&
-                    entity.getImage().equals(argument.getImage());
-            }
-
-        }
 }

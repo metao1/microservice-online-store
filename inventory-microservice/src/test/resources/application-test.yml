@@ -15,6 +15,8 @@ spring:
     generate-ddl: true
 logging:
   level:
-    org.springframework.data: DEBUG
     org.springframework.boot.autoconfigure: ERROR
+    org.springframework.kafka: DEBUG
+    org.springframework.data: DEBUG
+    org.apache.kafka: DEBUG
     org.hibernate: DEBUG

@@ -25,12 +25,12 @@ class ProductMapperTest {
     private static final Currency EUR = Currency.getInstance(Locale.GERMANY);
 
     @InjectMocks
-    ProductEventMapper productEventMapper;
+    ProductMapper ProductMapper;
 
     @Test
     void givenProductDtoWhenConvertToProductEntityIsOk() {
         var productDto = ProductTestUtils.productCreatedEvent();
-        var productEntity = productEventMapper.toEntity(productDto);
+        var productEntity = ProductMapper.toEntity(productDto);
 
         assertThat(productEntity)
             .extracting(

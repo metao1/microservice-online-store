@@ -9,8 +9,6 @@ import com.metao.book.product.domain.ProductEntity;
 import com.metao.book.product.domain.ProductId;
 import com.metao.book.product.domain.ProductRepository;
 import com.metao.book.product.domain.category.Category;
-import com.metao.book.product.infrastructure.BasePostgresIT;
-import com.metao.book.product.infrastructure.factory.handler.ProductKafkaHandler;
 import com.metao.book.product.infrastructure.repository.model.OffsetBasedPageRequest;
 import com.metao.book.product.util.ProductTestUtils;
 import jakarta.transaction.Transactional;
@@ -20,8 +18,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.TestPropertySource;
 
@@ -31,17 +29,15 @@ import org.springframework.test.context.TestPropertySource;
         "kafka.isEnabled=false"
     }
 )
+@DataJpaTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class ProductRepositoryTest extends BasePostgresIT {
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+class ProductRepositoryTest {
 
     private static final String ASIN = "asin";
 
     @Autowired
     ProductRepository productRepository;
-
-    @MockBean
-    ProductKafkaHandler productKafkaHandler;
 
     @BeforeAll
     @DisplayName("Init database with a product")

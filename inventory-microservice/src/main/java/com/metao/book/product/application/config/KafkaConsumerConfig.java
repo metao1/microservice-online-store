@@ -23,10 +23,9 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 @ConditionalOnProperty(value = "kafka.isEnabled", havingValue = "true", matchIfMissing = true)
 public class KafkaConsumerConfig {
 
+    private final KafkaProperties kafkaProperties;
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
-
-    private final KafkaProperties kafkaProperties;
 
     // Configuration for productPaymentEvent
     @Bean
@@ -48,8 +47,7 @@ public class KafkaConsumerConfig {
     public ConcurrentKafkaListenerContainerFactory<String, ProductCreatedEvent> productCreatedEventKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, ProductCreatedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(productPaymentEventConsumerFactory());
-        factory.setConcurrency(3);
-        factory.getContainerProperties().setPollTimeout(3000);
+        factory.setConcurrency(1);
         return factory;
     }
 
@@ -62,6 +60,9 @@ public class KafkaConsumerConfig {
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaProtobufDeserializer.class.getName());
+        props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 300000); // Increase poll interval
+        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 10); // Reduce poll records
+
         props.put(KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_VALUE_TYPE, ProductCreatedEvent.class.getName());
 
         props.putAll(ps);
