@@ -2,15 +2,15 @@ package com.metao.book.product.presentation;
 
 import com.metao.book.product.domain.dto.ProductDTO;
 import com.metao.book.product.domain.exception.ProductNotFoundException;
-import com.metao.book.product.domain.service.ProductService;
 import com.metao.book.product.domain.mapper.ProductMapper;
+import com.metao.book.product.domain.service.ProductService;
 import com.metao.book.product.infrastructure.factory.producer.KafkaProductProducer;
 import com.metao.book.shared.application.service.StageProcessor;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.http.HttpStatus;
@@ -39,14 +39,14 @@ public class ProductController {
             .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping(value = "/offset")
-    public ResponseEntity<List<ProductDTO>> allProductsWithOffset(
+    @GetMapping
+    public Stream<ProductDTO> allProductsWithOffset(
         @RequestParam("limit") int limit, @RequestParam("offset") int offset
     ) {
         var l = Optional.of(limit).orElse(10);
         var o = Optional.of(offset).orElse(0);
-        return productService.getAllProductsPageable(l, o).map(productMapper::toDTOList).map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
+        return productService.getAllProductsPageable(l, o)
+            .map(productMapper::toDto);
     }
 
     @PostMapping
