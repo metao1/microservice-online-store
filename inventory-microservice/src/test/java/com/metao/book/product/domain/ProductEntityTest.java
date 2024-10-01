@@ -2,7 +2,6 @@ package com.metao.book.product.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.metao.book.product.domain.category.Category;
 import com.metao.book.product.domain.category.ProductCategoryEntity;
 import com.metao.book.product.domain.image.Image;
 import com.metao.book.shared.domain.financial.Money;
@@ -92,10 +91,10 @@ class ProductEntityTest {
             new Image("https://example.com/image.jpg")
         );
 
-        ProductCategoryEntity productCategoryEntity = new ProductCategoryEntity(new Category("book"));
+        ProductCategoryEntity productCategoryEntity = new ProductCategoryEntity("book");
 
         productEntity.addCategory(productCategoryEntity);
 
-        assertThat(productEntity.getCategories()).contains(new ProductCategoryEntity(new Category("book")));
+        assertThat(productEntity.getCategories()).contains(new ProductCategoryEntity("book"));
     }
 }

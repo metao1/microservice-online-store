@@ -5,12 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.metao.book.product.application.config.KafkaConfig;
-import com.metao.book.product.domain.service.ProductService;
 import com.metao.book.product.domain.ProductId;
+import com.metao.book.product.domain.service.ProductService;
 import com.metao.book.product.event.ProductCreatedEvent;
 import com.metao.book.product.infrastructure.BaseKafkaIT;
 import com.metao.book.product.infrastructure.factory.handler.kafka.KafkaProductConsumerTestConfig;
-import com.metao.book.product.infrastructure.factory.producer.KafkaProductProducer;
 import com.metao.book.product.util.ProductTestUtils;
 import java.util.Optional;
 import java.util.concurrent.Executors;

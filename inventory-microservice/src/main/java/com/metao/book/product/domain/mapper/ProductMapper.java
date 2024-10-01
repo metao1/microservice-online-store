@@ -19,6 +19,7 @@ import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -44,10 +45,10 @@ public class ProductMapper {
                     .setAsin(pr.asin())
                     .setTitle(pr.title())
                     .setDescription(pr.description() == null ? "" : pr.description())
-                    .setPrice(pr.price().doubleValue())
-                    .setCurrency(pr.currency().toString())
+                    .setPrice(pr.price() == null ? 100d : pr.price().doubleValue())
+                    .setCurrency(pr.currency() == null ? "EUR" : pr.currency().toString())
                     .setImageUrl(pr.imageUrl() == null ? "" : pr.imageUrl())
-                    .setVolume(pr.volume().doubleValue())
+                    .setVolume(RandomGenerator.getDefault().nextDouble(0, 1000))
                     .setCreateTime(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
                     .addAllCategories(
                             pr.categories().stream().map(dto -> Category.newBuilder().setName(dto.getCategory()).build())
@@ -78,7 +79,6 @@ public class ProductMapper {
         return categories
                 .stream()
                 .map(Category::getName)
-                .map(com.metao.book.product.domain.category.Category::new)
                 .map(ProductCategoryEntity::new)
                 .collect(Collectors.toSet());
     }
@@ -87,7 +87,6 @@ public class ProductMapper {
         return source
                 .stream()
                 .map(ProductCategoryEntity::getCategory)
-                .map(com.metao.book.product.domain.category.Category::getValue)
                 .map(CategoryDTO::new)
                 .collect(Collectors.toSet());
     }

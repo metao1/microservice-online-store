@@ -4,7 +4,7 @@ import com.metao.book.product.domain.dto.ProductDTO;
 import com.metao.book.product.domain.exception.ProductNotFoundException;
 import com.metao.book.product.domain.mapper.ProductMapper;
 import com.metao.book.product.domain.service.ProductService;
-import com.metao.book.product.infrastructure.factory.producer.KafkaProductProducer;
+import com.metao.book.product.infrastructure.factory.handler.KafkaProductProducer;
 import com.metao.book.shared.application.service.StageProcessor;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;

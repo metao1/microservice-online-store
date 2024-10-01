@@ -1,4 +1,4 @@
-package com.metao.book.product.infrastructure.factory.producer;
+package com.metao.book.product.infrastructure.factory.handler;
 
 import com.metao.book.product.event.ProductCreatedEvent;
 import java.util.concurrent.CompletableFuture;
@@ -18,8 +18,10 @@ public class KafkaProductProducer {
 
     private final KafkaTemplate<String, ProductCreatedEvent> kafkaTemplate;
     private final NewTopic productTopic;
+    private int counter;
 
     public CompletableFuture<SendResult<String, ProductCreatedEvent>> publish(ProductCreatedEvent event) {
+        log.info("Publishing product event: {}", counter++);
         return kafkaTemplate.send(productTopic.name(), event.getAsin(), event);
     }
 }

@@ -8,10 +8,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
-import java.util.HashSet;
-import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Setter
 @Getter
@@ -19,9 +20,8 @@ import lombok.Setter;
 @Table(name = "product_category")
 public class ProductCategoryEntity extends AbstractEntity<ProductCategoryId> {
 
-    @Getter
     @Column(name = "category", nullable = false)
-    private Category category;
+    private String category;
 
     @ManyToMany(mappedBy = "categories")
     private Set<ProductEntity> productEntities;
@@ -30,7 +30,7 @@ public class ProductCategoryEntity extends AbstractEntity<ProductCategoryId> {
     public ProductCategoryEntity() {
     }
 
-    public ProductCategoryEntity(@NotNull Category category) {
+    public ProductCategoryEntity(@NotNull String category) {
         super(DomainObjectId.randomId(ProductCategoryId.class));
         this.category = category;
         this.productEntities = new HashSet<>();

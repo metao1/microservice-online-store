@@ -14,7 +14,7 @@ import com.metao.book.product.domain.dto.ProductDTO;
 import com.metao.book.product.domain.mapper.ProductMapper;
 import com.metao.book.product.domain.service.ProductService;
 import com.metao.book.product.event.ProductCreatedEvent;
-import com.metao.book.product.infrastructure.factory.producer.KafkaProductProducer;
+import com.metao.book.product.infrastructure.factory.handler.KafkaProductProducer;
 import com.metao.book.product.infrastructure.repository.ProductRepository;
 import com.metao.book.product.infrastructure.repository.model.OffsetBasedPageRequest;
 import com.metao.book.product.util.ProductTestUtils;

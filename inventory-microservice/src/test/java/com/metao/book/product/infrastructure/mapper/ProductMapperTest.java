@@ -3,12 +3,11 @@ package com.metao.book.product.infrastructure.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.metao.book.product.domain.ProductEntity;
+import com.metao.book.product.domain.category.ProductCategoryEntity;
 import com.metao.book.product.domain.category.dto.CategoryDTO;
 import com.metao.book.product.domain.dto.ProductDTO;
-import com.metao.book.product.domain.category.ProductCategoryEntity;
-import com.metao.book.product.domain.ProductEntity;
 import com.metao.book.product.domain.mapper.ProductMapper;
-import com.metao.book.product.domain.category.Category;
 import com.metao.book.product.util.ProductTestUtils;
 import java.math.BigDecimal;
 import java.util.Currency;
@@ -32,22 +31,11 @@ class ProductMapperTest {
         var productDto = ProductTestUtils.productCreatedEvent();
         var productEntity = ProductMapper.toEntity(productDto);
 
-        assertThat(productEntity)
-            .extracting(
-                ProductEntity::getAsin,
-                ProductEntity::getTitle,
-                ProductEntity::getDescription,
-                ProductEntity::getPriceValue,
-                ProductEntity::getPriceCurrency,
+        assertThat(productEntity).extracting(ProductEntity::getAsin, ProductEntity::getTitle,
+                ProductEntity::getDescription, ProductEntity::getPriceValue, ProductEntity::getPriceCurrency,
                 ProductEntity::getCategories)
-            .containsExactlyInAnyOrder(
-                productDto.getAsin(),
-                productDto.getTitle(),
-                productDto.getDescription(),
-                BigDecimal.valueOf(productDto.getPrice()),
-                EUR,
-                Set.of(new ProductCategoryEntity(new Category("book")))
-            );
+            .containsExactlyInAnyOrder(productDto.getAsin(), productDto.getTitle(), productDto.getDescription(),
+                BigDecimal.valueOf(productDto.getPrice()), EUR, Set.of(new ProductCategoryEntity("book")));
     }
 
     @Test
@@ -57,22 +45,12 @@ class ProductMapperTest {
         var productDto = productMapper.toDto(pe);
         var categories = pe.getCategories();
 
-        productDto.categories()
-            .stream()
-            .map(CategoryDTO::getCategory)
-            .forEach(category -> assertTrue(categories.contains(new ProductCategoryEntity(new Category(category)))));
+        productDto.categories().stream().map(CategoryDTO::getCategory)
+            .forEach(category -> assertTrue(categories.contains(new ProductCategoryEntity(category))));
 
-        assertThat(productDto)
-            .extracting(
-                ProductDTO::title,
-                ProductDTO::description,
-                ProductDTO::price,
+        assertThat(productDto).extracting(ProductDTO::title, ProductDTO::description, ProductDTO::price,
                 ProductDTO::imageUrl)
-            .containsExactly(
-                pe.getTitle(),
-                pe.getDescription(),
-                pe.getPriceValue(),
-                pe.getImage().url());
+            .containsExactly(pe.getTitle(), pe.getDescription(), pe.getPriceValue(), pe.getImage().url());
     }
 
 }

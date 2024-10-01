@@ -42,9 +42,35 @@ public class ProductService {
         return pagedProducts.get();
     }
 
-    public void saveProduct(ProductEntity pe) {
-        log.info("save product: {}", pe.toString());
-        this.productRepository.save(pe);
+    public void saveProduct(ProductEntity productEntity) {
+/*
+        Set<ProductCategoryEntity> categoriesToUse = new HashSet<>();
+
+        for (ProductCategoryEntity category : productEntity.getCategories()) {
+            // Check the local cache first
+            ProductCategoryEntity cachedCategory = categoryCache.get(category.id());
+            if (cachedCategory != null) {
+                categoriesToUse.add(cachedCategory);
+            } else {
+                // Attempt to find the existing category by ID
+                ProductCategoryEntity existingCategory = entityManager.find(ProductCategoryEntity.class, category.id());
+
+                if (existingCategory != null) {
+                    // If found, use the existing category and store it in the cache
+                    categoriesToUse.add(existingCategory);
+                    categoryCache.put(existingCategory.id(), existingCategory);
+                } else {
+                    // If not found, merge the new category into the persistence context
+                    ProductCategoryEntity mergedCategory = entityManager.merge(category);
+                    categoriesToUse.add(mergedCategory);
+                    categoryCache.put(mergedCategory.id(), mergedCategory); // Cache the merged category
+                }
+            }
+        }
+
+        productEntity.setCategories(categoriesToUse);
+        entityManager.persist(productEntity); // Persist the product*/
+        productRepository.save(productEntity);
     }
 
 }

@@ -1,10 +1,10 @@
 package com.metao.book.product.util;
 
 import com.google.protobuf.Timestamp;
+import com.metao.book.product.domain.ProductEntity;
+import com.metao.book.product.domain.category.ProductCategoryEntity;
 import com.metao.book.product.domain.category.dto.CategoryDTO;
 import com.metao.book.product.domain.dto.ProductDTO;
-import com.metao.book.product.domain.category.ProductCategoryEntity;
-import com.metao.book.product.domain.ProductEntity;
 import com.metao.book.product.domain.image.Image;
 import com.metao.book.product.event.Category;
 import com.metao.book.product.event.ProductCreatedEvent;
@@ -40,12 +40,8 @@ public class ProductTestUtils {
         var price = BigDecimal.valueOf(12);
         var volume = BigDecimal.valueOf(100d);
         var pe = new ProductEntity(asin, title, description, volume, new Money(EUR, price), new Image(url));
-        pe.addCategory(createProductCategoryEntity());
+        pe.addCategory(new ProductCategoryEntity("book"));
         return pe;
-    }
-
-    public static ProductCategoryEntity createProductCategoryEntity() {
-        return new ProductCategoryEntity(new com.metao.book.product.domain.category.Category("book"));
     }
 
     public static List<ProductEntity> createMultipleProductEntity(int size) {

@@ -1,8 +1,8 @@
 package com.metao.book.product.infrastructure.factory;
 
-import com.metao.book.product.domain.mapper.ProductMapper;
-import com.metao.book.product.infrastructure.factory.handler.ProductKafkaHandler;
 import com.metao.book.product.domain.mapper.ProductDtoMapper;
+import com.metao.book.product.domain.mapper.ProductMapper;
+import com.metao.book.product.infrastructure.factory.handler.KafkaProductProducer;
 import com.metao.book.shared.application.service.FileHandler;
 import jakarta.annotation.PostConstruct;
 import java.util.Objects;
@@ -23,8 +23,7 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "spring.profiles.active", havingValue = "local")
 public class ProductGenerator {
 
-    //private final EventHandler<ProductCreatedEvent> eventHandler;
-    private final ProductKafkaHandler productKafkaHandler;
+    private final KafkaProductProducer productProducer;
     private final ProductDtoMapper dtoMapper;
     private final ProductMapper productMapper;
 
@@ -32,20 +31,18 @@ public class ProductGenerator {
     String productsDataPath;
 
     @PostConstruct
-    public void produceProducts() {
-        //eventHandler.subscribe(productKafkaHandler);
-    }
-
     public void loadProducts() {
         log.info("importing products data from resources");
         try (var source = FileHandler.readResourceInPath(getClass(), productsDataPath)) {
-            source
+            var productsPublisher = source
                 .map(dtoMapper::toDto)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .map(productMapper::toEvent)
-                .filter(Objects::nonNull);
-            //.forEach(eventHandler::publish);
+                .filter(Objects::nonNull)
+                .map(productProducer::publish)
+                .toList();
+            CompletableFuture.allOf(productsPublisher.toArray(new CompletableFuture[0]));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }

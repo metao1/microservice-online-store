@@ -9,7 +9,6 @@ import com.metao.book.shared.domain.financial.Money;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
@@ -75,7 +74,7 @@ public class ProductEntity extends AbstractEntity<ProductId> implements Concurre
 
     @Exclude
     @BatchSize(size = 20)
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinTable(name = "product_category_map", joinColumns = {@JoinColumn(name = "product_id")}, inverseJoinColumns = {
         @JoinColumn(name = "product_category_id")})
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)

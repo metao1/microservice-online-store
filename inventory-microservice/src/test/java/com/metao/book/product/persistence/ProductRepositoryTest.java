@@ -4,11 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.metao.book.product.domain.category.ProductCategoryEntity;
 import com.metao.book.product.domain.ProductEntity;
 import com.metao.book.product.domain.ProductId;
+import com.metao.book.product.domain.category.ProductCategoryEntity;
 import com.metao.book.product.infrastructure.repository.ProductRepository;
-import com.metao.book.product.domain.category.Category;
 import com.metao.book.product.infrastructure.repository.model.OffsetBasedPageRequest;
 import com.metao.book.product.util.ProductTestUtils;
 import jakarta.transaction.Transactional;
@@ -111,7 +110,6 @@ class ProductRepositoryTest {
                     .hasSize(1)
                     .element(0)
                     .extracting(ProductCategoryEntity::getCategory)
-                    .extracting(Category::getValue)
                     .isEqualTo("book")
             );
     }
