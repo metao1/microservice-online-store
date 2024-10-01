@@ -136,19 +136,22 @@ class ProductControllerTests {
         webTestClient.perform(get(String.format("%s?offset=%s&limit=%s", PRODUCT_URL, offset, limit)))
             .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.length()").value(10))
-            .andExpect(jsonPath("$[*].asin", Matchers.contains(extractFieldFromProducts(pes, ProductEntity::getAsin))))
-            .andExpect(jsonPath("$[*].title", extractFieldFromProducts(pes, ProductEntity::getTitle)))
-            .andExpect(jsonPath("$[*].description", extractFieldFromProducts(pes, ProductEntity::getDescription)))
-            .andExpect(jsonPath("$[*].image_url", extractFieldFromProducts(pes, pe -> pe.getImage().url())))
-            .andExpect(
-                jsonPath("$[*].currency", extractFieldFromProducts(pes, pe -> pe.getPriceCurrency().toString())));
-
+            .andExpect(jsonPath("$[*].asin",
+                extractFieldFromProducts(pes, ProductEntity::getAsin)))
+            .andExpect(jsonPath("$[*].title",
+                extractFieldFromProducts(pes, ProductEntity::getTitle)))
+            .andExpect(jsonPath("$[*].description",
+                extractFieldFromProducts(pes, ProductEntity::getDescription)))
+            .andExpect(jsonPath("$[*].image_url",
+                extractFieldFromProducts(pes, pe -> pe.getImage().url())))
+            .andExpect(jsonPath("$[*].currency",
+                extractFieldFromProducts(pes, pe -> pe.getPriceCurrency().toString())));
     }
 
     private Matcher<Iterable<? extends String>> extractFieldFromProducts(
         List<ProductEntity> pes,
         Function<ProductEntity, String> extractor
     ) {
-        return Matchers.contains(pes.stream().map(extractor).toArray(String[]::new));
+        return Matchers.containsInAnyOrder(pes.stream().map(extractor).toArray(String[]::new));
     }
 }
