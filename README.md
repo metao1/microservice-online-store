@@ -23,15 +23,15 @@ Responsible to manage orders
 
 Responsible to manage inventory and available books.
 
-#### 3. Logistics: [work in progress]
+#### 3. Payment Microservice: [work in progress]
 
-Responsible to manage delivering books to customers, here available books.
+Responsible to manage payments related to orders with communication with the payment gateway.
 
-#### 4. User: [work in progress]
+#### 4. User Microservice: [work in progress]
 
 Manages customer space, such as customer's info credits and addresses.
 
-#### 5. Shared-kernel
+#### 5. Shared-kernel:
 
 A library that contains shared code for all microservices.
 
