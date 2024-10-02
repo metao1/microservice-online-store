@@ -11,7 +11,7 @@ class ShowProduct extends Component {
     state = {product_id: "", product: undefined, productAlsoBought: []}
 
     componentDidMount() {
-        var new_product_id = this.props.match.params.id;
+        const new_product_id = this.props.match.params.id;
         this.fetchProductDetails(new_product_id)
     }
 
@@ -20,11 +20,11 @@ class ShowProduct extends Component {
             this.state.product_id != undefined &&
             new_product_id != this.state.product_id) {
             this.state.product_id = "" + new_product_id;
-            var url = '/api/products/details/' + new_product_id;
-            console.log("Fetching url: " + url);
+            const url = 'http://localhost:8083/products/' + new_product_id;
             fetch(url)
             .then(res => res.json())
             .then(product => {
+                console.log(product)
                 this.setState({product});
                 if (product.also_bought) {
                     this.fetchProductAlsoBought(
@@ -56,13 +56,14 @@ class ShowProduct extends Component {
     }
 
     render() {
-        var new_product_id = this.props.match.params.id;
+        const new_product_id = this.props.match.params.id;
         this.fetchProductDetails(new_product_id)
         const currentProduct = this.state.product;
         if (!currentProduct) {
             return ("");
         }
-        var stars = ["star_border", "star_border", "star_border", "star_border",
+        const stars = ["star_border", "star_border", "star_border",
+            "star_border",
             "star_border"];
         if (currentProduct.avg_stars > 0) {
             stars[0] = (currentProduct.avg_stars < 1) ? "star_half" : "star";
@@ -88,8 +89,8 @@ class ShowProduct extends Component {
                             <Row>
                                 <Col xs={10} xsPush={1}>
                                     <div className="item-image">
-                                        <img className="product-image"
-                                             src={currentProduct.imageUrl}
+                                        <div className="product-image"
+                                             style={{backgroundImage: `url(${currentProduct.imageUrl})`}}
                                              alt="product"/>
                                     </div>
 
@@ -123,14 +124,12 @@ class ShowProduct extends Component {
                                                                 currentProduct)}
                                                             size="large">
                                                         <Icon small
-                                                              className="add-icon">add_shopping_cart</Icon>Add
-                                                        to
-                                                        cart
+                                                              className="add-icon">add_shopping_cart</Icon>
+                                                        Add to cart
                                                     </Button>
                                                 </div>
                                                 <div
-                                                    className="product-price">{this.props.currency}{currentProduct.price.toFixed(
-                                                    2)}</div>
+                                                    className="product-price">{this.props.currency}{currentProduct.price}</div>
                                                 <div
                                                     className="product-description">{currentProduct.description}</div>
                                             </div>
@@ -184,7 +183,7 @@ class ShowProduct extends Component {
                                                          key={product.asin}>
                                                         <div className="item">
                                                             <Link
-                                                                to={`/item/${product.asin}`}>
+                                                                to={`/products/${product.asin}`}>
                                                                 <div
                                                                     className="product-img"
                                                                     style={{backgroundImage: `url(${product.imageUrl})`}}></div>

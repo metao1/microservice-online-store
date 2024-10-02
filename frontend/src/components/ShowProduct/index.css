@@ -75,6 +75,8 @@
 }
 
 .product-bio {
+    display: flex;
+    flex-direction: column;
 }
 
 #product-name {

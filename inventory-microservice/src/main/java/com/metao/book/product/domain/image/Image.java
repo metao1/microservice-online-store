@@ -3,16 +3,10 @@ package com.metao.book.product.domain.image;
 import com.metao.book.shared.domain.base.ValueObject;
 import java.util.Objects;
 
-public class Image implements ValueObject {
-
-    private final String url;
+public record Image(String url) implements ValueObject {
 
     public Image(String url) {
         this.url = Objects.requireNonNull(url, "uuid must not be null");
-    }
-
-    public String url() {
-        return url;
     }
 
     @Override
@@ -24,9 +18,4 @@ public class Image implements ValueObject {
         return image.url().equals(url);
     }
 
-    @Override
-    public int hashCode() {
-        int result = url.hashCode();
-        return 31 * result;
-    }
 }

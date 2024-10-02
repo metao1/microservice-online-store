@@ -25,17 +25,16 @@
 }
 
 .item {
-    height: 462px;
+    height: 490px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    margin: 0;
     padding: 0;
     background-color: white;
     transition: transform 300ms bounce;
     box-shadow: 4px 4px 20px rgba(0, 0, 0, 0.1);
     border-radius: 7px;
-    margin-bottom: 50px;
+    margin: 0 0 50px;
 }
 
 .item .price-add {

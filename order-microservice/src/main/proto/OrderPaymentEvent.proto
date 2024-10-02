@@ -13,6 +13,9 @@ message OrderPaymentEvent {
   string customerId = 3;
   string productId = 4;
   Status status = 5;
+  double volume = 6;
+  string currency = 7;
+  double price = 8;
   enum Status {
     NEW = 0;
     SUBMITTED = 1;

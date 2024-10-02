@@ -6,6 +6,7 @@ import com.metao.book.product.domain.mapper.ProductMapper;
 import com.metao.book.product.domain.service.ProductService;
 import com.metao.book.product.infrastructure.factory.handler.KafkaProductProducer;
 import com.metao.book.shared.application.service.StageProcessor;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -45,8 +46,7 @@ public class ProductController {
     ) {
         var l = Optional.of(limit).orElse(10);
         var o = Optional.of(offset).orElse(0);
-        return productService.getAllProductsPageable(l, o)
-            .map(productMapper::toDto);
+        return productService.getAllProductsPageable(l, o).map(productMapper::toDto);
     }
 
     @PostMapping
@@ -55,14 +55,19 @@ public class ProductController {
         return StageProcessor.accept(productDTO).map(productMapper::toEvent).applyExceptionally((event, exp) -> {
             try {
                 return kafkaProductProducer.publish(event)
-                    .thenApply(
-                        ev -> ResponseEntity.status(HttpStatus.CREATED).body(ev.getProducerRecord().key())
-                    )
+                    .thenApply(ev -> ResponseEntity.status(HttpStatus.CREATED).body(ev.getProducerRecord().key()))
                     .get(30, TimeUnit.SECONDS);
             } catch (InterruptedException | TimeoutException | ExecutionException e) {
                 Thread.currentThread().interrupt();
                 return ResponseEntity.status(HttpStatusCode.valueOf(500)).body(e.getMessage());
             }
         });
+    }
+
+    @GetMapping("/category/{name}")
+    public List<ProductDTO> productsByCategory(
+        @PathVariable("name") String name, @RequestParam("offset") int offset, @RequestParam("limit") int limit
+    ) {
+        return productService.getProductsByCategory(limit, offset, name).map(productMapper::toDto).toList();
     }
 }

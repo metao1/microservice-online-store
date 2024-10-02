@@ -81,7 +81,7 @@ class CartProducts extends Component {
                                              alt="product"/>
                                     </div>
                                     <div className="details">
-                                        <Link to={`/item/${product.asin.asin
+                                        <Link to={`/products/${product.asin.asin
                                         || product.asin}`}>{product.title}</Link>
                                     </div>
 

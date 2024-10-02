@@ -243,7 +243,7 @@ export default class App extends Component {
                                    addItemToCart={this.addItemToCart}/>
                            )}/>
 
-                    <Route exact path="/item/:id" render={(props) => (
+                    <Route exact path="/products/:id" render={(props) => (
                         <ShowProduct currency={this.state.currency} {...props}
                                      addItemToCart={this.addItemToCart}/>
                     )}/>

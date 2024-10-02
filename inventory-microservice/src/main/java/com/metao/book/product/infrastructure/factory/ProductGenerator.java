@@ -4,7 +4,6 @@ import com.metao.book.product.domain.mapper.ProductDtoMapper;
 import com.metao.book.product.domain.mapper.ProductMapper;
 import com.metao.book.product.infrastructure.factory.handler.KafkaProductProducer;
 import com.metao.book.shared.application.service.FileHandler;
-import jakarta.annotation.PostConstruct;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -15,10 +14,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.availability.AvailabilityChangeEvent;
 import org.springframework.boot.availability.ReadinessState;
 import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component
+//@Component
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "spring.profiles.active", havingValue = "local")
 public class ProductGenerator {
@@ -29,25 +27,6 @@ public class ProductGenerator {
 
     @Value("${product-sample-data-path}")
     String productsDataPath;
-
-    @PostConstruct
-    public void loadProducts() {
-        log.info("importing products data from resources");
-        try (var source = FileHandler.readResourceInPath(getClass(), productsDataPath)) {
-            var productsPublisher = source
-                .map(dtoMapper::toDto)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .map(productMapper::toEvent)
-                .filter(Objects::nonNull)
-                .map(productProducer::publish)
-                .toList();
-            CompletableFuture.allOf(productsPublisher.toArray(new CompletableFuture[0]));
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
-        log.info("finished publishing products.");
-    }
 
     /**
      * Waits for the {@link ReadinessState#ACCEPTING_TRAFFIC} and starts task execution
@@ -68,6 +47,24 @@ public class ProductGenerator {
              */
             CompletableFuture.runAsync(this::loadProducts);
         }
+    }
+
+    private void loadProducts() {
+        log.info("importing products data from resources");
+        try (var source = FileHandler.readResourceInPath(getClass(), productsDataPath)) {
+            var productsPublisher = source
+                .map(dtoMapper::toDto)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(productMapper::toEvent)
+                .filter(Objects::nonNull)
+                .map(productProducer::publish)
+                .toList();
+            CompletableFuture.allOf(productsPublisher.toArray(new CompletableFuture[0]));
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+        log.info("finished publishing products.");
     }
 
 }

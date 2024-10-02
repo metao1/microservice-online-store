@@ -1,6 +1,7 @@
 plugins {
   id 'java-library'
   id 'maven-publish'
+  id "com.google.protobuf" version "0.9.4"
 }
 
 def commitRefName = System.getenv("CI_COMMIT_REF_NAME") ?: "1.0"
@@ -9,46 +10,79 @@ version = commitRefName
 group = "com.metao.book.shared"
 
 dependencies {
-    implementation "org.springframework.boot:spring-boot-starter-validation"
-    implementation "com.fasterxml.jackson.core:jackson-databind:2.14.0"
-    implementation "org.springframework.boot:spring-boot-starter-data-jpa"
-    implementation "org.springframework.boot:spring-boot-autoconfigure"
-    implementation "io.micrometer:micrometer-registry-prometheus:1.10.5"
-    implementation "io.micrometer:micrometer-core:1.10.5"
+  implementation "org.springframework.boot:spring-boot-starter-validation"
+  implementation "com.fasterxml.jackson.core:jackson-databind:2.14.0"
+  implementation "org.springframework.boot:spring-boot-starter-data-jpa"
+  implementation "org.springframework.boot:spring-boot-autoconfigure"
+  implementation "io.micrometer:micrometer-registry-prometheus:1.10.5"
+  implementation "io.micrometer:micrometer-core:1.10.5"
+  implementation 'io.grpc:grpc-protobuf:1.61.0'
+  implementation 'io.grpc:grpc-stub:1.61.0'
 
-    testImplementation "org.junit.jupiter:junit-jupiter:5.8.2"
-    testImplementation("org.mockito:mockito-core:4.8.0")
-    testImplementation("org.assertj:assertj-core:3.22.0")
+  runtimeOnly 'io.grpc:grpc-netty-shaded:1.61.0'
+
+  testImplementation "org.junit.jupiter:junit-jupiter:5.8.2"
+  testImplementation("org.mockito:mockito-core:4.8.0")
+  testImplementation("org.assertj:assertj-core:3.22.0")
 }
 
 publishing {
   publications {
     mavenJava(MavenPublication) {
       from components.java
-        groupId = 'com.metao.book.shared'
-        artifactId = 'shared-kernel'
-        version = commitRefName
+      groupId = 'com.metao.book.shared'
+      artifactId = 'shared-kernel'
+      version = commitRefName
     }
   }
   repositories {
     maven {
-        name = "local"
-        url = uri("file://${System.getProperty('user.home')}/.m2/repository")
+      name = "local"
+      url = uri("file://${System.getProperty('user.home')}/.m2/repository")
+    }
+  }
+}
+
+sourceSets {
+  main {
+    java {
+      srcDirs 'src/main/java', 'build/generated/source/proto/java/main/java'
+    }
+  }
+}
+
+protobuf {
+  protoc {
+    if (osdetector.os == "osx") {
+      artifact = 'com.google.protobuf:protoc:3.18.0:osx-x86_64'
+    } else {
+      artifact = 'com.google.protobuf:protoc:3.18.0'
+    }
+  }
+
+  plugins {
+    grpc {
+      artifact = 'io.grpc:protoc-gen-grpc-java:1.61.0'
+    }
+  }
+  generateProtoTasks {
+    all()*.plugins {
+      grpc {}
     }
   }
 }
 
 def getCurrentGitBranch() {
-    def gitBranch = "unknown-branch"
+  def gitBranch = "unknown-branch"
   try {
     def workingDir = new File("${project.projectDir}")
-      def result = "git rev-parse --abbrev-ref HEAD".execute(null, workingDir)
+    def result = "git rev-parse --abbrev-ref HEAD".execute(null, workingDir)
     result.waitFor()
     if (result.exitValue() == 0) {
       gitBranch = result.text.trim()
     }
   } catch (e) {
-      logger.error("Unable to fetch current GIT branch", e)
+    logger.error("Unable to fetch current GIT branch", e)
   }
   logger.info("Your current GIT branch is {}", gitBranch)
   return gitBranch

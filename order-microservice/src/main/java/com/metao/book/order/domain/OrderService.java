@@ -1,5 +1,6 @@
 package com.metao.book.order.domain;
 
+import com.metao.book.order.OrderCreatedEvent;
 import com.metao.book.order.application.card.OrderRepository;
 import com.metao.book.order.application.card.OrderSpecifications;
 import com.metao.book.order.domain.dto.OrderDTO;
@@ -18,7 +19,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class OrderService {
 
-    private final KafkaOrderProducer kafkaOrderProducer;
+    private final KafkaOrderProducer<OrderCreatedEvent> kafkaOrderProducer;
     private final OrderRepository orderRepository;
     private final OrderMapper mapper;
 
@@ -26,7 +27,7 @@ public class OrderService {
         return StageProcessor.accept(orderDto)
             .map(mapper::toOrderCreatedEvent)
             .applyExceptionally((orderCreatedEvent, exp) -> {
-                kafkaOrderProducer.sendToKafka(orderCreatedEvent);
+                kafkaOrderProducer.sendToKafka(orderCreatedEvent.getCustomerId(), orderCreatedEvent);
                 return orderCreatedEvent.getId();
             });
     }

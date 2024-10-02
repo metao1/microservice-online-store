@@ -76,7 +76,7 @@ class AdminPanel extends Component {
     }
 
     submitProduct() {
-        const url = '/api/products';
+        const url = '/products';
         let product = {
             description: this.state.description,
             title: this.state.title,

@@ -52,9 +52,10 @@ class Products extends Component {
         const limit = this.props.limit || 12 || nextLimit;
         const offset = this.props.offset || nextOffset || 0;
         if (nextCategory) {
-            url = '/api/products/category/' + nextCategory + '?';
+            url = 'http://localhost:8083/products/category/' + nextCategory
+                + '?';
         } else {
-            url = '/product?';
+            url = 'http://localhost:8083/products?';
         }
         query += "limit=" + limit + '&';
         query += "offset=" + offset;
@@ -132,14 +133,15 @@ class Products extends Component {
                                          key={product.asin.asin
                                              || product.asin}>
                                         <div className="item">
-                                            <Link to={`/item/${product.asin.asin
-                                            || product.asin}`}>
+                                            <Link
+                                                to={`/products/${product.asin}`}>
                                                 <div className="product-img"
-                                                     style={{backgroundImage: `url(${product.imageUrl})`}}></div>
+                                                     style={{backgroundImage: `url(${product.imageUrl})`}}>
+                                                </div>
                                                 <div
                                                     className="product-details">
                                                     <div
-                                                        className="reviews-add">
+                                                        className="reviews-add">`
                                                         <div className="stars">
                                                             <Icon small
                                                                   id="add-icon"
