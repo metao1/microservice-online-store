@@ -16,15 +16,14 @@ class ShowProduct extends Component {
     }
 
     fetchProductDetails = (new_product_id) => {
-        if (new_product_id != undefined &&
-            this.state.product_id != undefined &&
-            new_product_id != this.state.product_id) {
+        if (new_product_id !== undefined &&
+            this.state.product_id !== undefined &&
+            new_product_id !== this.state.product_id) {
             this.state.product_id = "" + new_product_id;
-            const url = 'http://localhost:8083/products/' + new_product_id;
+            const url = 'http://localhost:1091/products/' + new_product_id;
             fetch(url)
             .then(res => res.json())
             .then(product => {
-                console.log(product)
                 this.setState({product});
                 if (product.also_bought) {
                     this.fetchProductAlsoBought(

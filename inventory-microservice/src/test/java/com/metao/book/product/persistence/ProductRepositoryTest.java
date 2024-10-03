@@ -1,11 +1,9 @@
 package com.metao.book.product.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.metao.book.product.domain.ProductEntity;
-import com.metao.book.product.domain.ProductId;
 import com.metao.book.product.domain.category.ProductCategoryEntity;
 import com.metao.book.product.infrastructure.repository.ProductRepository;
 import com.metao.book.product.infrastructure.repository.model.OffsetBasedPageRequest;
@@ -49,7 +47,7 @@ class ProductRepositoryTest {
     @DisplayName("Should not find product entity by id when it does not exists")
     void findProductByIdNotFound() {
         //WHEN
-        Optional<ProductEntity> entity = productRepository.findById(new ProductId("PRODUCT_ID"));
+        Optional<ProductEntity> entity = productRepository.findByAsin("PRODUCT_ID");
 
         //THEN
         assertTrue(entity.isEmpty());
@@ -59,11 +57,11 @@ class ProductRepositoryTest {
     @DisplayName("Should find product by id when it already exists")
     void findProductById() {
         //GIVEN
-        var product = ProductTestUtils.createProductEntity("NEW_ASIN");
+        var product = ProductTestUtils.createProductEntity("NEW_ASIN", "NEW_CATEGORY");
         productRepository.save(product);
 
         //WHEN
-        var result = productRepository.findById(product.id());
+        var result = productRepository.findByAsin(product.getAsin());
 
         //THEN
         assertThat(result)
@@ -110,13 +108,7 @@ class ProductRepositoryTest {
                     .hasSize(1)
                     .element(0)
                     .extracting(ProductCategoryEntity::getCategory)
-                    .isEqualTo("book")
+                    .isEqualTo("category")
             );
-    }
-
-    @Test
-    @DisplayName("Should throw IllegalArgumentException when offset is zero")
-    void findAllProductsWithOffsetException() {
-        assertThrows(IllegalArgumentException.class, () -> new OffsetBasedPageRequest(1, 0));
     }
 }

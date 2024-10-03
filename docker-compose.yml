@@ -89,7 +89,7 @@ services:
       - kafka1
       - kafka-schema-registry
       - kafka-rest-proxy
-      
+
   postgres:
     image: postgres
     hostname: postgres
@@ -109,7 +109,7 @@ services:
     #restart: on-failure
     environment:
       DATABASE_URL: "jdbc:postgresql://postgres:5432/bookstore"
-      SCHEMA_REGISTRY_URL: kafka-schema-registry:8081
+      SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
       BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:9092
       DATABASE_USER: bookstore
       DATABASE_PASSWORD: bookstore
@@ -125,18 +125,14 @@ services:
       - kafka1
       - kafka-schema-registry
 
-  kafkacat:
-    image: confluentinc/cp-kafkacat
-    command: sleep infinity
-
   inventory-microservice:
-    image: online-book-store/inventory-microservice:0.0.1
+    image: online-book-store/inventory-microservice:0.0.2
     container_name: inventory-microservice
     hostname: inventory-microservice
     #restart: on-failure
     environment:
       DATABASE_URL: "jdbc:postgresql://postgres:5432/bookstore"
-      SCHEMA_REGISTRY_URL: kafka-schema-registry:8081
+      SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
       BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:9092
       DATABASE_USER: bookstore
       DATABASE_PASSWORD: bookstore
@@ -146,11 +142,15 @@ services:
       context: inventory-microservice
       dockerfile: src/main/docker/Dockerfile
     ports:
-      - "1091:8080"
+      - "8083:8083"
     depends_on:
       - postgres
       - kafka1
       - kafka-schema-registry
+
+  kafkacat:
+    image: confluentinc/cp-kafkacat
+    command: sleep infinity
 
 volumes:
   postgres:

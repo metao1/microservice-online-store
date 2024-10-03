@@ -3,7 +3,6 @@ package com.metao.book.product.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 
-import com.metao.book.product.domain.ProductId;
 import com.metao.book.product.domain.category.ProductCategoryEntity;
 import com.metao.book.product.domain.service.ProductCategoriesService;
 import com.metao.book.product.infrastructure.repository.ProductRepository;
@@ -30,13 +29,13 @@ class ProductCategoriesServiceTest {
         var returnedProductCategories = Optional.of(ProductTestUtils.createProductEntity());
         doReturn(returnedProductCategories)
             .when(productRepository)
-            .findById(new ProductId(PRODUCT_ID));
+            .findByAsin(PRODUCT_ID);
 
-        var categories = productCategoriesService.getProductCategories(new ProductId(PRODUCT_ID));
+        var categories = productCategoriesService.getProductCategories(PRODUCT_ID);
 
         assertThat(categories)
             .extracting(ProductCategoryEntity::getCategory)
-            .contains("book");
+            .contains("category");
 
     }
 }

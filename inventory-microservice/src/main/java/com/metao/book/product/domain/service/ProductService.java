@@ -1,7 +1,6 @@
 package com.metao.book.product.domain.service;
 
 import com.metao.book.product.domain.ProductEntity;
-import com.metao.book.product.domain.ProductId;
 import com.metao.book.product.domain.exception.ProductNotFoundException;
 import com.metao.book.product.infrastructure.repository.ProductRepository;
 import com.metao.book.product.infrastructure.repository.model.OffsetBasedPageRequest;
@@ -19,13 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProductService {
 
     private final ProductRepository productRepository;
-
-    public Optional<ProductEntity> getProductById(ProductId productId) throws ProductNotFoundException {
-        var productEntity = productRepository.findByProductId(productId.toUUID())
-            .orElseThrow(() -> new ProductNotFoundException("product " + productId + " not found."));
-        return Optional.ofNullable(productEntity);
-    }
-
+    
     public Optional<ProductEntity> getProductByAsin(String asin) throws ProductNotFoundException {
         var productEntity = productRepository.findByAsin(asin)
             .orElseThrow(() -> new ProductNotFoundException("product " + asin + " not found."));

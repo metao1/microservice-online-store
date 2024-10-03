@@ -14,6 +14,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(path = "/products")
@@ -53,6 +55,9 @@ public class ProductController {
     @SneakyThrows
     public ResponseEntity<String> saveProduct(@RequestBody ProductDTO productDTO) {
         return StageProcessor.accept(productDTO).map(productMapper::toEvent).applyExceptionally((event, exp) -> {
+            if (exp != null || event == null) {
+                return ResponseEntity.status(HttpStatusCode.valueOf(400)).body("Invalid input");
+            }
             try {
                 return kafkaProductProducer.publish(event)
                     .thenApply(ev -> ResponseEntity.status(HttpStatus.CREATED).body(ev.getProducerRecord().key()))

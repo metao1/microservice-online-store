@@ -3,7 +3,6 @@ package com.metao.book.product.domain;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.metao.book.product.domain.category.ProductCategoryEntity;
-import com.metao.book.product.domain.image.Image;
 import com.metao.book.shared.domain.financial.Money;
 import java.math.BigDecimal;
 import java.util.Currency;
@@ -19,7 +18,7 @@ class ProductEntityTest {
             "description",
             BigDecimal.ONE,
             new Money(Currency.getInstance("EUR"), BigDecimal.ONE),
-            new Image("https://example.com/image.jpg")
+            "https://example.com/image.jpg"
         );
 
         var productEntity2 = new ProductEntity(
@@ -28,7 +27,7 @@ class ProductEntityTest {
             "description",
             BigDecimal.ONE,
             new Money(Currency.getInstance("EUR"), BigDecimal.ONE),
-            new Image("https://example.com/image.jpg")
+            "https://example.com/image.jpg"
         );
 
         assertThat(productEntity).isEqualTo(productEntity2);
@@ -42,7 +41,7 @@ class ProductEntityTest {
             "description",
             BigDecimal.ONE,
             new Money(Currency.getInstance("EUR"), BigDecimal.ONE),
-            new Image("https://example.com/image.jpg")
+            "https://example.com/image.jpg"
         );
 
         var productEntity2 = new ProductEntity(
@@ -51,7 +50,7 @@ class ProductEntityTest {
             "description",
             BigDecimal.ONE,
             new Money(Currency.getInstance("EUR"), BigDecimal.ONE),
-            new Image("https://example.com/image.jpg")
+            "https://example.com/image.jpg"
         );
 
         assertThat(productEntity).isNotEqualTo(productEntity2);
@@ -65,7 +64,7 @@ class ProductEntityTest {
             "description",
             BigDecimal.ONE,
             new Money(Currency.getInstance("EUR"), BigDecimal.ONE),
-            new Image("https://example.com/image.jpg")
+            "https://example.com/image.jpg"
         );
 
         Object o = new ProductEntity(
@@ -74,7 +73,7 @@ class ProductEntityTest {
             "description",
             BigDecimal.ONE,
             new Money(Currency.getInstance("EUR"), BigDecimal.ONE),
-            new Image("https://example.com/image.jpg")
+            "https://example.com/image.jpg"
         );
 
         assertThat(productEntity).isEqualTo(o);
@@ -88,7 +87,7 @@ class ProductEntityTest {
             "description",
             BigDecimal.ONE,
             new Money(Currency.getInstance("EUR"), BigDecimal.ONE),
-            new Image("https://example.com/image.jpg")
+            "https://example.com/image.jpg"
         );
 
         ProductCategoryEntity productCategoryEntity = new ProductCategoryEntity("book");

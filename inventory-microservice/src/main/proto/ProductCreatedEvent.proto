@@ -19,6 +19,8 @@ message ProductCreatedEvent {
 
   // Category of the product
   repeated Category categories = 9;
+  repeated string bought_together = 10;
+
 }
 
 message Category {

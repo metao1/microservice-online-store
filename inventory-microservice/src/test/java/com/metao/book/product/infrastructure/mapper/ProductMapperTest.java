@@ -50,7 +50,7 @@ class ProductMapperTest {
 
         assertThat(productDto).extracting(ProductDTO::title, ProductDTO::description, ProductDTO::price,
                 ProductDTO::imageUrl)
-            .containsExactly(pe.getTitle(), pe.getDescription(), pe.getPriceValue(), pe.getImage().url());
+            .containsExactly(pe.getTitle(), pe.getDescription(), pe.getPriceValue(), pe.getImageUrl());
     }
 
 }

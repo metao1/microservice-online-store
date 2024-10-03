@@ -10,13 +10,23 @@ spring:
   jpa:
     properties:
       hibernate:
-        show_sql: true
-    show-sql: true
+        show_sql: false
+    show-sql: false
     generate-ddl: true
 logging:
+  pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%t]){yellow} %clr([%c{1.}]){green} %clr(:){red} %clr(%m){faint}%n"
   level:
-    org.springframework.boot.autoconfigure: ERROR
-    org.springframework.kafka: DEBUG
-    org.springframework.data: DEBUG
-    org.apache.kafka: DEBUG
-    org.hibernate: DEBUG
+    org.springframework: ERROR
+    org.springframework.data: ERROR
+    org.springframework.boot: ERROR
+    org.springframework.context: ERROR
+    com.zaxxer.hikari: ERROR
+    org.testcontainers: ERROR
+    io.confluent: ERROR
+    org.flywaydb: ERROR
+    org.postgresql: ERROR
+    org.apache.kafka: ERROR
+    com.metao.book: ERROR
+    org.hibernate: ERROR
+    org.apache: ERROR
+    io.grpc: ERROR

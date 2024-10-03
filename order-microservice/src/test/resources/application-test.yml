@@ -7,10 +7,25 @@ spring:
       security.protocol: PLAINTEXT
       sasl.mechanism: PLAIN
       schema.registry.url: mock://not-used
-
-
+  jpa:
+    properties:
+      hibernate:
+        show_sql: false
+    show-sql: false
+    generate-ddl: true
 logging:
   level:
-    org.springframework.data: DEBUG
-    org.springframework.boot.autoconfigure: ERROR
-    org.hibernate: DEBUG
+    org.springframework: ERROR
+    org.springframework.data: ERROR
+    org.springframework.boot: ERROR
+    org.springframework.context: ERROR
+    com.zaxxer.hikari: ERROR
+    org.testcontainers: ERROR
+    org.apache: ERROR
+    io.confluent: ERROR
+    org.flywaydb: ERROR
+    org.postgresql: ERROR
+    org.apache.kafka: ERROR
+    com.metao.book: ERROR
+    org.hibernate: ERROR
+    io.grpc: ERROR

@@ -5,9 +5,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.metao.book.product.domain.exception.ProductNotFoundException;
-import com.metao.book.product.domain.ProductId;
-import com.metao.book.product.infrastructure.repository.ProductRepository;
 import com.metao.book.product.domain.service.ProductService;
+import com.metao.book.product.infrastructure.repository.ProductRepository;
 import com.metao.book.product.util.ProductTestUtils;
 import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
@@ -29,18 +28,17 @@ class ProductServiceTest {
     @Test
     void getProductByIdNotFound() {
         assertThrows(ProductNotFoundException.class,
-            () -> productService.getProductById(new ProductId("1")));
+            () -> productService.getProductByAsin("1"));
     }
 
     @Test
     void getProductByIdIsFound() {
         var pe = ProductTestUtils.createProductEntity();
-        var id = "1";
 
-        when(productRepo.findById(new ProductId(id)))
+        when(productRepo.findByAsin(pe.getAsin()))
             .thenReturn(Optional.of(pe));
 
-        var product = productService.getProductById(new ProductId(id));
+        var product = productService.getProductByAsin(pe.getAsin());
         Assertions.assertNotNull(product);
     }
 

@@ -1,6 +1,6 @@
 package com.metao.book.order.infrastructure;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.protobuf.Timestamp;
 import com.metao.book.order.BaseKafkaIT;
@@ -38,16 +38,13 @@ class OrderCalculationTest extends BaseKafkaIT {
         OrderEntity orderEntity = OrderTestUtil.buildOrderEntity(1);
 
         orderRepository.save(orderEntity);
-        var orderPaymentEvent = OrderPaymentEvent.newBuilder()
-            .setId(orderEntity.id().toUUID())
+        var orderPaymentEvent = OrderPaymentEvent.newBuilder().setId(orderEntity.id().toUUID())
             .setCreateTime(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
-            .setProductId(orderEntity.getProductId())
-            .setCustomerId(orderEntity.getCustomerId())
-            .setStatus(OrderPaymentEvent.Status.CONFIRMED)
-            .build();
+            .setProductId(orderEntity.getProductId()).setCustomerId(orderEntity.getCustomerId())
+            .setStatus(OrderPaymentEvent.Status.CONFIRMED).build();
 
         kafkaTemplate.send(orderPaymentTopic, orderEntity.getCustomerId(), orderPaymentEvent)
-            .thenRun(() -> assertTrue(orderRepository.findById(orderEntity.id()).isPresent()));
+            .thenRun(() -> assertThat(orderRepository.findByOrderId(orderEntity.id().toUUID())).isPresent());
     }
 
 }

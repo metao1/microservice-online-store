@@ -40,7 +40,7 @@ A library that contains shared code for all microservices.
 Backend applications contains kafka, postgres, and all other applications running on different containers(microservices)
 
 ```shell
-docker compose up --build order-microservice
+docker compose up --build order-microservice inventory-microservice
 ```
 
 ### Building and running frontend

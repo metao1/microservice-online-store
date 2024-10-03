@@ -14,9 +14,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.availability.AvailabilityChangeEvent;
 import org.springframework.boot.availability.ReadinessState;
 import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
 
 @Slf4j
-//@Component
+@Component
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "spring.profiles.active", havingValue = "local")
 public class ProductGenerator {
@@ -49,7 +50,7 @@ public class ProductGenerator {
         }
     }
 
-    private void loadProducts() {
+    public void loadProducts() {
         log.info("importing products data from resources");
         try (var source = FileHandler.readResourceInPath(getClass(), productsDataPath)) {
             var productsPublisher = source

@@ -1,14 +1,12 @@
 package com.metao.book.product.domain;
 
 import com.metao.book.product.domain.category.ProductCategoryEntity;
-import com.metao.book.product.domain.image.Image;
-import com.metao.book.shared.domain.base.AbstractEntity;
 import com.metao.book.shared.domain.base.ConcurrencySafeDomainObject;
-import com.metao.book.shared.domain.base.DomainObjectId;
 import com.metao.book.shared.domain.financial.Money;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
@@ -17,9 +15,9 @@ import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import lombok.EqualsAndHashCode.Include;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -41,17 +39,17 @@ import org.springframework.lang.NonNull;
 @NoArgsConstructor
 @Entity(name = "product")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-public class ProductEntity extends AbstractEntity<ProductId> implements ConcurrencySafeDomainObject {
+public class ProductEntity implements ConcurrencySafeDomainObject {
 
     @Version
-    Long version;
+    private Long version;
 
+    @Id
     @NaturalId
-    @Column(nullable = false, unique = true)
-    @Include
+    @Column(name = "asin", nullable = false)
     private String asin;
 
-    @Column
+    @Column(nullable = false)
     private BigDecimal volume;
 
     @Length(min = 3, max = 255)
@@ -63,7 +61,7 @@ public class ProductEntity extends AbstractEntity<ProductId> implements Concurre
     private String description;
 
     @Column(name = "image", nullable = false)
-    private Image image;
+    private String imageUrl;
 
     @Column(name = "price_value", nullable = false)
     private BigDecimal priceValue;
@@ -72,10 +70,13 @@ public class ProductEntity extends AbstractEntity<ProductId> implements Concurre
     @Column(name = "price_currency", nullable = false)
     private Currency priceCurrency;
 
+    @Column(name = "bought_together")
+    private String boughtTogether;
+
     @Exclude
     @BatchSize(size = 20)
     @ManyToMany(cascade = {CascadeType.MERGE})
-    @JoinTable(name = "product_category_map", joinColumns = {@JoinColumn(name = "product_id")}, inverseJoinColumns = {
+    @JoinTable(name = "product_category_map", joinColumns = {@JoinColumn(name = "asin")}, inverseJoinColumns = {
         @JoinColumn(name = "product_category_id")})
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     private Set<ProductCategoryEntity> categories;
@@ -86,9 +87,8 @@ public class ProductEntity extends AbstractEntity<ProductId> implements Concurre
         @NonNull String description,
         @NonNull BigDecimal volume,
         @NonNull Money money,
-        @NonNull Image image
+        @NonNull String imageUrl
     ) {
-        super(DomainObjectId.randomId(ProductId.class));
         this.version = 1L;
         this.asin = asin;
         this.title = title;
@@ -96,7 +96,7 @@ public class ProductEntity extends AbstractEntity<ProductId> implements Concurre
         this.volume = volume;
         this.priceValue = money.doubleAmount();
         this.priceCurrency = money.currency();
-        this.image = image;
+        this.imageUrl = imageUrl;
         this.categories = new HashSet<>();
     }
 
@@ -105,9 +105,18 @@ public class ProductEntity extends AbstractEntity<ProductId> implements Concurre
         category.getProductEntities().add(this);
     }
 
+    public void addBoughtTogether(@NonNull List<String> asin) {
+        this.boughtTogether = asin.stream().reduce("", (a, b) -> a + "," + b);
+    }
+
     public void removeCategory(@NonNull ProductCategoryEntity category) {
         categories.remove(category);
         category.getProductEntities().remove(this);
+    }
+
+    @Override
+    public final int hashCode() {
+        return Objects.hash(asin);
     }
 
     @Override
@@ -129,10 +138,5 @@ public class ProductEntity extends AbstractEntity<ProductId> implements Concurre
         }
         ProductEntity that = (ProductEntity) o;
         return getAsin() != null && Objects.equals(getAsin(), that.getAsin());
-    }
-
-    @Override
-    public final int hashCode() {
-        return Objects.hash(asin);
     }
 }

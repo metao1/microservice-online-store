@@ -1,26 +1,30 @@
 package com.metao.book.product.domain.category;
 
 import com.metao.book.product.domain.ProductEntity;
-import com.metao.book.shared.domain.base.AbstractEntity;
-import com.metao.book.shared.domain.base.DomainObjectId;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
-
 import java.util.HashSet;
 import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 
 @Setter
 @Getter
 @Entity(name = "product_category")
 @Table(name = "product_category")
-public class ProductCategoryEntity extends AbstractEntity<ProductCategoryId> {
+public class ProductCategoryEntity {
 
-    @Column(name = "category", nullable = false)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "category", nullable = false, unique = true)
     private String category;
 
     @ManyToMany(mappedBy = "categories")
@@ -31,9 +35,14 @@ public class ProductCategoryEntity extends AbstractEntity<ProductCategoryId> {
     }
 
     public ProductCategoryEntity(@NotNull String category) {
-        super(DomainObjectId.randomId(ProductCategoryId.class));
         this.category = category;
         this.productEntities = new HashSet<>();
+    }
+
+    @Override
+    public int hashCode() {
+        int result = category.hashCode();
+        return 31 * result;
     }
 
     @Override
@@ -43,12 +52,6 @@ public class ProductCategoryEntity extends AbstractEntity<ProductCategoryId> {
         }
         ProductCategoryEntity other = (ProductCategoryEntity) obj;
         return other.category.equals(category);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = category.hashCode();
-        return 31 * result;
     }
 
 }

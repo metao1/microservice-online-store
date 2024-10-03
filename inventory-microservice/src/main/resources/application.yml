@@ -2,7 +2,7 @@ server:
   error:
     include-message: always
     include-binding-errors: always
-  port: ${PORT:8083}
+  port: ${PORT:8080}
 
 spring:
   application:
@@ -77,7 +77,7 @@ kafka:
       group-id: "product-created-group"
 
 logging:
-  pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%20.1t]){yellow} %clr(:){red} %clr(%m){faint}%n"
+  pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%t]){yellow} %clr(:){red} %clr(%m){faint}%n"
   level:
     org.springframework.data: INFO
     org.springframework.boot.autoconfigure: ERROR

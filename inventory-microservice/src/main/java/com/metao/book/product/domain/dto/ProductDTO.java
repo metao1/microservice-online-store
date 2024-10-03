@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import java.math.BigDecimal;
 import java.util.Currency;
+import java.util.List;
 import java.util.Set;
 import lombok.Builder;
 import org.hibernate.validator.constraints.Length;
@@ -19,7 +20,7 @@ public record ProductDTO(
     @Pattern(regexp = "^\\d{10}", message = "asin format is wrong")
     String asin,
 
-    @Length(min = 1, max = 1250)
+    @Length(min = 1, max = 2500)
     String description,
 
     @NotNull
@@ -40,6 +41,9 @@ public record ProductDTO(
 
     @NotNull
     BigDecimal volume,
+
+    @JsonProperty("bought_together")
+    List<String> boughtTogether,
 
     Set<CategoryDTO> categories) {
 

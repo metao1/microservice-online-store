@@ -4,7 +4,6 @@ import com.google.protobuf.Timestamp;
 import com.metao.book.order.OrderCreatedEvent;
 import com.metao.book.order.OrderPaymentEvent;
 import com.metao.book.order.application.card.OrderRepository;
-import com.metao.book.order.domain.OrderId;
 import com.metao.book.order.domain.OrderStatus;
 import com.metao.book.order.domain.exception.OrderNotFoundException;
 import com.metao.book.order.domain.mapper.OrderMapper;
@@ -60,7 +59,7 @@ public class KafkaOrderListenerConfig {
                     log.error("can't make order from event :{}", ex.getMessage());
                     return;
                 }
-                var foundOrder = orderRepository.findById(new OrderId(orderPaymentEvent.getId()))
+                var foundOrder = orderRepository.findByOrderId(orderPaymentEvent.getId())
                     .orElseThrow(() -> new OrderNotFoundException(orderPaymentEvent.getId()));
                 OrderStatus orderStatus = OrderStatus.valueOf(String.valueOf(orderPaymentEvent.getStatus()));
                 foundOrder.setStatus(orderStatus);

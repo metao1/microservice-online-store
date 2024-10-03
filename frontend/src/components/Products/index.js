@@ -19,8 +19,8 @@ class Products extends Component {
     componentDidMount() {
         const category = this.props.category
             || this.props.match.params.category;
-        this.setState({category: this.linkEncode(category) || null},
-            this.fetchProducts(this.linkEncode(category)));
+        this.setState({category: this.linkEncode(category) || null})
+        this.fetchProducts(this.linkEncode(category));
     }
 
     componentWillReceiveProps(nextProps) {
@@ -59,9 +59,10 @@ class Products extends Component {
         }
         query += "limit=" + limit + '&';
         query += "offset=" + offset;
-        this.setState({current_query: url + query})
-        if (this.state.current_query !== url + query) {
-            fetch(url + query)
+        const finalUrl = url + query
+        this.setState({current_query: finalUrl})
+        if (this.state.current_query !== finalUrl) {
+            fetch(finalUrl)
             .then(res => res.json())
             .then(products => this.setState(
                 {products, limit, offset, isUpdating: false}));
