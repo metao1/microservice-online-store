@@ -1,7 +1,6 @@
 package com.metao.book.product.domain;
 
 import com.metao.book.product.domain.category.ProductCategoryEntity;
-import com.metao.book.shared.domain.base.ConcurrencySafeDomainObject;
 import com.metao.book.shared.domain.financial.Money;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -39,7 +38,7 @@ import org.springframework.lang.NonNull;
 @NoArgsConstructor
 @Entity(name = "product")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-public class ProductEntity implements ConcurrencySafeDomainObject {
+public class ProductEntity {
 
     @Version
     private Long version;

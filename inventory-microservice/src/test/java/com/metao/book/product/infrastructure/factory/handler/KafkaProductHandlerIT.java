@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -39,9 +38,6 @@ class KafkaProductHandlerIT extends BaseKafkaIT {
 
     @Autowired
     KafkaProductProducer kafkaProductProducer;
-
-    @Value("${kafka.topic.product.name}")
-    String productTopic;
 
     @Autowired
     private KafkaProductConsumerTestConfig consumer;
