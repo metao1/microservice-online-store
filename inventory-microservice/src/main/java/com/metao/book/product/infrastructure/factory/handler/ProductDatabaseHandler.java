@@ -22,13 +22,11 @@ public class ProductDatabaseHandler implements Consumer<ProductCreatedEvent> {
     public void accept(@NonNull ProductCreatedEvent event) {
         StageProcessor.accept(event)
             .map(productMapper::toEntity)
-            .map(productEntity -> {
-                productService.saveProduct(productEntity);
-                return productEntity;
-            }).acceptExceptionally((productEntity, exp) -> {
-                if (exp != null) {
+            .acceptExceptionally((productEntity, exp) -> {
+                if (exp != null || productEntity == null) {
                     log.warn("saving product:{} , failed: {}", productEntity, exp.getMessage());
                 } else {
+                    productService.saveProduct(productEntity);
                     log.info("saved product id:{}", productEntity.getAsin());
                 }
             });

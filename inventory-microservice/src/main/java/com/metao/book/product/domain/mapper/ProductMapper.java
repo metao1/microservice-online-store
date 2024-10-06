@@ -16,7 +16,6 @@ import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.NonNull;
@@ -33,16 +32,20 @@ public class ProductMapper {
     }
 
     public ProductCreatedEvent toEvent(ProductDTO pr) {
-        return ProductCreatedEvent.newBuilder().setAsin(pr.asin()).setTitle(pr.title())
-            .setDescription(pr.description() == null ? "" : pr.description())
-            .setPrice(pr.price() == null ? 100d : pr.price().doubleValue())
+        return ProductCreatedEvent.newBuilder()
+            .setAsin(pr.asin())
+            .setTitle(pr.title() == null ? "title" : pr.title())
+            .setDescription(pr.description() == null ? "description" : pr.description())
+            .setPrice(pr.price() == null ? 0d : pr.price().doubleValue())
             .setCurrency(pr.currency() == null ? "EUR" : pr.currency().toString())
             .setImageUrl(pr.imageUrl() == null ? "" : pr.imageUrl())
-            .setVolume(RandomGenerator.getDefault().nextDouble(0, 1000))
+            .setVolume(10d)
             .setCreateTime(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
             .addAllBoughtTogether(pr.boughtTogether() != null ? pr.boughtTogether().stream().toList() : List.of())
             .addAllCategories(
-                pr.categories().stream().map(dto -> Category.newBuilder().setName(dto.getCategory()).build()).toList())
+                pr.categories() != null ?
+                    pr.categories().stream().map(dto -> Category.newBuilder().setName(dto.getCategory()).build())
+                        .toList() : List.of())
             .build();
     }
 

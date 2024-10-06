@@ -1,6 +1,7 @@
 package com.metao.book.product.infrastructure.repository;
 
 import com.metao.book.product.domain.ProductEntity;
+import com.metao.book.product.domain.category.ProductCategoryEntity;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
@@ -28,4 +29,9 @@ public interface ProductRepository extends PagingAndSortingRepository<ProductEnt
         """)
     List<ProductEntity> findAllByCategories(@Param("category") String category, Pageable pageable);
 
+    @Query("SELECT pc FROM product_category pc WHERE pc.category = :category")
+    List<ProductCategoryEntity> findByCategory(@Param("category") String category);
+
+    @Query("SELECT pc FROM product_category pc WHERE pc.category IN :categories")
+    List<ProductCategoryEntity> findByCategoryIn(@Param("categories") List<String> categories);
 }

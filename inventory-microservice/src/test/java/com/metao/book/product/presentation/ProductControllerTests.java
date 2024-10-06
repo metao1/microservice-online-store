@@ -2,6 +2,7 @@ package com.metao.book.product.presentation;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -15,8 +16,6 @@ import com.metao.book.product.domain.mapper.ProductMapper;
 import com.metao.book.product.domain.service.ProductService;
 import com.metao.book.product.event.ProductCreatedEvent;
 import com.metao.book.product.infrastructure.factory.handler.KafkaProductProducer;
-import com.metao.book.product.infrastructure.repository.ProductRepository;
-import com.metao.book.product.infrastructure.repository.model.OffsetBasedPageRequest;
 import com.metao.book.product.util.ProductTestUtils;
 import java.math.BigDecimal;
 import java.util.List;
@@ -24,6 +23,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
@@ -34,29 +34,27 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
-@TestPropertySource(properties = {"kafka.isEnabled=false"})
 @AutoConfigureMockMvc
+@TestPropertySource(properties = {"kafka.isEnabled=false"})
 @WebMvcTest(controllers = ProductController.class)
-@Import({ProductMapper.class, ProductService.class})
+@Import({ProductMapper.class})
 class ProductControllerTests {
 
     private static final String PRODUCT_URL = "/products";
-
-    @MockBean
-    ProductRepository productRepository;
 
     @MockBean
     KafkaProductProducer kafkaProductProducer;
 
     @SpyBean
     ProductMapper productMapper;
+
+    @MockBean
+    ProductService productService;
 
     @Autowired
     MockMvc webTestClient;
@@ -68,18 +66,17 @@ class ProductControllerTests {
     }
 
     @Test
-    void loadOneProductIsOk() throws Exception {
+    void getOneProductIsOk() throws Exception {
         var pe = ProductTestUtils.createProductEntity();
 
-        when(productRepository.findByAsin(pe.getAsin())).thenReturn(Optional.of(pe));
+        when(productService.getProductByAsin(pe.getAsin())).thenReturn(Optional.of(pe));
 
         webTestClient.perform(get(String.format("%s/%s", PRODUCT_URL, pe.getAsin()))).andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.asin").value(pe.getAsin())).andExpect(jsonPath("$.title").value(pe.getTitle()))
             .andExpect(jsonPath("$.description").value(pe.getDescription()))
             .andExpect(jsonPath("$.categories[0].category").value("category"))
-            .andExpect(jsonPath("$.imageUrl").value(pe.getImageUrl()))
-            .andExpect(jsonPath("$.currency").value("EUR"))
+            .andExpect(jsonPath("$.imageUrl").value(pe.getImageUrl())).andExpect(jsonPath("$.currency").value("EUR"))
             .andExpect(jsonPath("$.price").value(BigDecimal.valueOf(12)));
     }
 
@@ -105,24 +102,20 @@ class ProductControllerTests {
                 null)));
 
         webTestClient.perform(post(PRODUCT_URL).contentType(MediaType.APPLICATION_JSON).content(productDto))
-            .andExpect(status().isCreated())
-            .andExpect(content().json("1234567890"));
+            .andExpect(status().isCreated()).andExpect(content().json("1234567890"));
 
         verify(productMapper).toEvent(any(ProductDTO.class));
     }
 
     @Test
-    void testLoadMultipleProductsIsOk() throws Exception {
+    void testGetMultipleProductsIsOk() throws Exception {
         int limit = 10, offset = 0;
-        var pes = ProductTestUtils.createMultipleProductEntity(10);
-        productRepository.saveAll(pes);
-        Pageable pageable = new OffsetBasedPageRequest(0, 10);
-
-        when(productRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(pes, pageable, 10));
+        List<ProductEntity> pes = ProductTestUtils.createMultipleProductEntity(limit);
 
         // Load multiple products and verify responses
         // OPTION 1 - using for-loop and query multiple times
         for (ProductEntity pe : pes) {
+            when(productService.getAllProductsPageable(limit, offset)).thenReturn(pes.stream());
             webTestClient.perform(get(String.format("%s?offset=%s&limit=%s", PRODUCT_URL, offset, limit)))
                 .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.length()").value(10))
@@ -134,18 +127,51 @@ class ProductControllerTests {
                 .andExpect(jsonPath("$.[?(@.price == " + pe.getPriceValue() + ")]").exists());
         }
 
+        when(productService.getAllProductsPageable(limit, offset)).thenReturn(pes.stream());
+
         // OPTION 2 - using for-loop and query once and then verify responses using matcher -- preferable option
         webTestClient.perform(get(String.format("%s?offset=%s&limit=%s", PRODUCT_URL, offset, limit)))
             .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.length()").value(10))
             .andExpect(jsonPath("$[*].asin", extractFieldFromProducts(pes, ProductEntity::getAsin)))
             .andExpect(jsonPath("$[*].title", extractFieldFromProducts(pes, ProductEntity::getTitle)))
-            .andExpect(jsonPath("$[*].description", extractFieldFromProducts(pes, ProductEntity::getDescription)))
+            .andExpect(
+                jsonPath("$[*].description", extractFieldFromProducts(pes, ProductEntity::getDescription)))
             .andExpect(jsonPath("$[*].imageUrl", extractFieldFromProducts(pes, ProductEntity::getImageUrl)))
             .andExpect(
                 jsonPath("$[*].currency", extractFieldFromProducts(pes, pe -> pe.getPriceCurrency().toString()))
             );
-        ;
+    }
+
+    @Test
+    void testGetMultipleProductsIsOkWithCategories() throws Exception {
+        int limit = 10, offset = 0;
+        Supplier<List<ProductEntity>> pes = () -> ProductTestUtils.createMultipleProductEntity(limit);
+
+    }
+
+    @Test
+    void testGetMultipleProductsIsOkWithAlsoBought() throws Exception {
+        int limit = 10, offset = 0;
+        Supplier<List<ProductEntity>> pes = () -> ProductTestUtils.createMultipleProductEntity(limit);
+
+    }
+
+    @Test
+    void testGetMultipleProductsIsOkWithCategoriesAndAlsoBought() throws Exception {
+        int limit = 10, offset = 0;
+        Supplier<List<ProductEntity>> pes = () -> ProductTestUtils.createMultipleProductEntity(limit);
+
+    }
+
+    @Test
+    void getOneProductIsNotFound() throws Exception {
+        var productId = UUID.randomUUID().toString();
+        when(productService.getProductByAsin(productId)).thenReturn(Optional.empty());
+
+        webTestClient.perform(get(PRODUCT_URL + productId)).andExpect(status().isNotFound());
+
+        verifyNoMoreInteractions(productService);
     }
 
     private Matcher<Iterable<? extends String>> extractFieldFromProducts(

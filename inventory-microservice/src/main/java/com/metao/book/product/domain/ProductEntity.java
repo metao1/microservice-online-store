@@ -75,9 +75,11 @@ public class ProductEntity implements ConcurrencySafeDomainObject {
 
     @Exclude
     @BatchSize(size = 20)
-    @ManyToMany(cascade = {CascadeType.MERGE})
-    @JoinTable(name = "product_category_map", joinColumns = {@JoinColumn(name = "asin")}, inverseJoinColumns = {
-        @JoinColumn(name = "product_category_id")})
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
+    @JoinTable(name = "product_category_map",
+        joinColumns = {@JoinColumn(name = "asin")},
+        inverseJoinColumns = {@JoinColumn(name = "product_category_id")}
+    )
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     private Set<ProductCategoryEntity> categories;
 
@@ -89,7 +91,6 @@ public class ProductEntity implements ConcurrencySafeDomainObject {
         @NonNull Money money,
         @NonNull String imageUrl
     ) {
-        this.version = 1L;
         this.asin = asin;
         this.title = title;
         this.description = description;

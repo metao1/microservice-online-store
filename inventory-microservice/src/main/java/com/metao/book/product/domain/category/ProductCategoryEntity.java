@@ -1,6 +1,7 @@
 package com.metao.book.product.domain.category;
 
 import com.metao.book.product.domain.ProductEntity;
+import jakarta.persistence.Cacheable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -13,11 +14,15 @@ import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 @Setter
 @Getter
+@Cacheable
 @Entity(name = "product_category")
 @Table(name = "product_category")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class ProductCategoryEntity {
 
     @Id
