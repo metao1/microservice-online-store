@@ -11,7 +11,7 @@ services:
       ZOOKEEPER_SERVERS: zoo1:2888:3888
 
   kafka1:
-    image: confluentinc/cp-kafka:7.7.0
+    image: confluentinc/cp-kafka:7.6.0
     hostname: kafka1
     container_name: kafka1
     ports:
