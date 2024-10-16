@@ -66,7 +66,6 @@ services:
     ports:
       - "8082:8082"
     environment:
-      # KAFKA_REST_ZOOKEEPER_CONNECT: zoo1:2181
       KAFKA_REST_LISTENERS: http://0.0.0.0:8082/
       KAFKA_REST_SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081/
       KAFKA_REST_HOST_NAME: kafka-rest-proxy

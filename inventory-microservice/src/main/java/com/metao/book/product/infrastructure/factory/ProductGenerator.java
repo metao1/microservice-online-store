@@ -2,7 +2,7 @@ package com.metao.book.product.infrastructure.factory;
 
 import com.metao.book.product.domain.mapper.ProductDtoMapper;
 import com.metao.book.product.domain.mapper.ProductMapper;
-import com.metao.book.product.infrastructure.factory.handler.KafkaProductProducer;
+import com.metao.book.product.event.ProductCreatedEvent;
 import com.metao.book.shared.application.service.FileHandler;
 import java.util.Objects;
 import java.util.Optional;
@@ -14,6 +14,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.availability.AvailabilityChangeEvent;
 import org.springframework.boot.availability.ReadinessState;
 import org.springframework.context.event.EventListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -22,12 +23,15 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "spring.profiles.active", havingValue = "local")
 public class ProductGenerator {
 
-    private final KafkaProductProducer productProducer;
     private final ProductDtoMapper dtoMapper;
     private final ProductMapper productMapper;
+    private final KafkaTemplate<String, ProductCreatedEvent> kafkaTemplate;
 
     @Value("${product-sample-data-path}")
     String productsDataPath;
+
+    @Value("${kafka.topic.product.name}")
+    String productTopic;
 
     /**
      * Waits for the {@link ReadinessState#ACCEPTING_TRAFFIC} and starts task execution
@@ -53,14 +57,9 @@ public class ProductGenerator {
     public void loadProducts() {
         log.info("importing products data from resources");
         try (var source = FileHandler.readResourceInPath(getClass(), productsDataPath)) {
-            var productsPublisher = source
-                .map(dtoMapper::toDto)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .map(productMapper::toEvent)
-                .filter(Objects::nonNull)
-                .map(productProducer::publish)
-                .toList();
+            var productsPublisher = source.map(dtoMapper::toDto).filter(Optional::isPresent).map(Optional::get)
+                .map(productMapper::toEvent).filter(Objects::nonNull)
+                .map(e -> kafkaTemplate.send(productTopic, e.getAsin(), e)).toList();
             CompletableFuture.allOf(productsPublisher.toArray(new CompletableFuture[0]));
         } catch (Exception e) {
             log.error(e.getMessage(), e);

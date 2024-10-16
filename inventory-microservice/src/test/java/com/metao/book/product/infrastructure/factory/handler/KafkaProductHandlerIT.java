@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -32,13 +33,10 @@ import org.springframework.test.context.TestPropertySource;
 class KafkaProductHandlerIT extends BaseKafkaIT {
 
     private static final String ASIN = "ASIN";
-
     @Autowired
     KafkaTemplate<String, ProductCreatedEvent> kafkaTemplate;
-
-    @Autowired
-    KafkaProductProducer kafkaProductProducer;
-
+    @Value("${kafka.topic.product.name}")
+    private String productTopic;
     @Autowired
     private KafkaProductConsumerTestConfig consumer;
 
@@ -48,13 +46,12 @@ class KafkaProductHandlerIT extends BaseKafkaIT {
     @Test
     @SneakyThrows
     void handleGetProductEvent() {
-        var productCreatedEvent = ProductTestUtils.productCreatedEvent();
+        var event = ProductTestUtils.productCreatedEvent();
         var pe = ProductTestUtils.createProductEntity();
 
-        when(productService.getProductByAsin(ASIN))
-            .thenReturn(Optional.of(pe));
+        when(productService.getProductByAsin(ASIN)).thenReturn(Optional.of(pe));
 
-        kafkaProductProducer.publish(productCreatedEvent);
+        kafkaTemplate.send(productTopic, event.getAsin(), event);
 
         consumer.getLatch().await(5, TimeUnit.SECONDS);
         assertEquals(0, consumer.getLatch().getCount());
@@ -63,13 +60,12 @@ class KafkaProductHandlerIT extends BaseKafkaIT {
     @Test
     @SneakyThrows
     void whenSendingKafkaMessagesInParallelThenSuccessfullySentAll() {
-        var productCreatedEvent = ProductTestUtils.productCreatedEvent();
+        var event = ProductTestUtils.productCreatedEvent();
 
         try (var ex = Executors.newFixedThreadPool(10)) {
             // send 10 parallel kafka publish tasks and wait for them to finish
             var futures = IntStream.rangeClosed(0, 10)
-                .mapToObj(i -> kafkaProductProducer.publish(productCreatedEvent))
-                .toList();
+                .mapToObj(i -> kafkaTemplate.send(productTopic, event.getAsin(), event)).toList();
 
             // wait for all futures to complete
             for (var future : futures) {

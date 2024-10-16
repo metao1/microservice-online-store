@@ -4,7 +4,7 @@ import com.metao.book.product.domain.dto.ProductDTO;
 import com.metao.book.product.domain.exception.ProductNotFoundException;
 import com.metao.book.product.domain.mapper.ProductMapper;
 import com.metao.book.product.domain.service.ProductService;
-import com.metao.book.product.infrastructure.factory.handler.KafkaProductProducer;
+import com.metao.book.product.event.ProductCreatedEvent;
 import com.metao.book.shared.application.service.StageProcessor;
 import java.util.List;
 import java.util.Optional;
@@ -15,15 +15,16 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
@@ -32,14 +33,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(path = "/products")
 public class ProductController {
 
-    private final KafkaProductProducer kafkaProductProducer;
+    private final KafkaTemplate<String, ProductCreatedEvent> kafkaTemplate;
     private final ProductService productService;
     private final ProductMapper productMapper;
+    @Value("${kafka.topic.product.name}")
+    private String productTopic;
 
     @GetMapping(value = "/{asin}")
-    public ResponseEntity<ProductDTO> productDetails(@PathVariable String asin) throws ProductNotFoundException {
-        return productService.getProductByAsin(asin).map(productMapper::toDto).map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
+    public ProductDTO productDetails(@PathVariable String asin) throws ProductNotFoundException {
+        return productService.getProductByAsin(asin).map(productMapper::toDto)
+            .orElseThrow(() -> new ProductNotFoundException("product " + asin + " not found."));
     }
 
     @GetMapping
@@ -53,18 +56,20 @@ public class ProductController {
 
     @PostMapping
     @SneakyThrows
-    public ResponseEntity<String> saveProduct(@RequestBody ProductDTO productDTO) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public boolean saveProduct(@RequestBody ProductDTO productDTO) {
         return StageProcessor.accept(productDTO).map(productMapper::toEvent).applyExceptionally((event, exp) -> {
-            if (exp != null || event == null) {
-                return ResponseEntity.status(HttpStatusCode.valueOf(400)).body("Invalid input");
+            if (exp != null && event == null) {
+                log.warn("invalid event when saving product {}", exp.toString());
+                return false;
             }
             try {
-                return kafkaProductProducer.publish(event)
-                    .thenApply(ev -> ResponseEntity.status(HttpStatus.CREATED).body(ev.getProducerRecord().key()))
-                    .get(30, TimeUnit.SECONDS);
+                kafkaTemplate.send(productTopic, event.getAsin(), event).get(10, TimeUnit.SECONDS);
+                return true;
             } catch (InterruptedException | TimeoutException | ExecutionException e) {
                 Thread.currentThread().interrupt();
-                return ResponseEntity.status(HttpStatusCode.valueOf(500)).body(e.getMessage());
+                log.error("error when saving product {}", e.getMessage(), e);
+                throw new RuntimeException(e);
             }
         });
     }

@@ -17,7 +17,7 @@ public class KafkaProductConsumerTestConfig {
 
     private final CountDownLatch latch = new CountDownLatch(10);
 
-    @RetryableTopic(attempts = "1")
+    @RetryableTopic
     @KafkaListener(id = "product-listener-test", topics = "${kafka.topic.product.name}", containerFactory = "productCreatedEventKafkaListenerContainerFactory", concurrency = "20")
     public void onEvent(ConsumerRecord<String, ProductCreatedEvent> consumerRecord) {
 

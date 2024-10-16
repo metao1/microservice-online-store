@@ -1,6 +1,8 @@
 package com.metao.book.product.presentation;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -15,7 +17,6 @@ import com.metao.book.product.domain.dto.ProductDTO;
 import com.metao.book.product.domain.mapper.ProductMapper;
 import com.metao.book.product.domain.service.ProductService;
 import com.metao.book.product.event.ProductCreatedEvent;
-import com.metao.book.product.infrastructure.factory.handler.KafkaProductProducer;
 import com.metao.book.product.util.ProductTestUtils;
 import java.math.BigDecimal;
 import java.util.List;
@@ -35,7 +36,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.kafka.support.SendResult;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -48,7 +49,7 @@ class ProductControllerTests {
     private static final String PRODUCT_URL = "/products";
 
     @MockBean
-    KafkaProductProducer kafkaProductProducer;
+    KafkaTemplate<String, ProductCreatedEvent> kafkaProductProducer;
 
     @SpyBean
     ProductMapper productMapper;
@@ -96,13 +97,14 @@ class ProductControllerTests {
              }
             """;
 
-        when(kafkaProductProducer.publish(any(ProductCreatedEvent.class))).thenReturn(CompletableFuture.completedFuture(
-            new SendResult<>(
-                new ProducerRecord<>("product-created", "1234567890", ProductCreatedEvent.getDefaultInstance()),
-                null)));
+        var productRecord = new ProducerRecord<>("product-created", "1234567890",
+            ProductCreatedEvent.getDefaultInstance());
+
+        doReturn(CompletableFuture.completedFuture(productRecord)).when(kafkaProductProducer)
+            .send(anyString(), anyString(), any(ProductCreatedEvent.class));
 
         webTestClient.perform(post(PRODUCT_URL).contentType(MediaType.APPLICATION_JSON).content(productDto))
-            .andExpect(status().isCreated()).andExpect(content().json("1234567890"));
+            .andExpect(status().isCreated()).andExpect(content().string("true"));
 
         verify(productMapper).toEvent(any(ProductDTO.class));
     }
@@ -135,12 +137,9 @@ class ProductControllerTests {
             .andExpect(jsonPath("$.length()").value(10))
             .andExpect(jsonPath("$[*].asin", extractFieldFromProducts(pes, ProductEntity::getAsin)))
             .andExpect(jsonPath("$[*].title", extractFieldFromProducts(pes, ProductEntity::getTitle)))
-            .andExpect(
-                jsonPath("$[*].description", extractFieldFromProducts(pes, ProductEntity::getDescription)))
-            .andExpect(jsonPath("$[*].imageUrl", extractFieldFromProducts(pes, ProductEntity::getImageUrl)))
-            .andExpect(
-                jsonPath("$[*].currency", extractFieldFromProducts(pes, pe -> pe.getPriceCurrency().toString()))
-            );
+            .andExpect(jsonPath("$[*].description", extractFieldFromProducts(pes, ProductEntity::getDescription)))
+            .andExpect(jsonPath("$[*].imageUrl", extractFieldFromProducts(pes, ProductEntity::getImageUrl))).andExpect(
+                jsonPath("$[*].currency", extractFieldFromProducts(pes, pe -> pe.getPriceCurrency().toString())));
     }
 
     @Test

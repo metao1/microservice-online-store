@@ -11,8 +11,8 @@ import org.testcontainers.utility.DockerImageName;
 public class BaseKafkaIT {
 
     private static final KafkaContainer kafkaContainer = new KafkaContainer(
-        DockerImageName.parse("confluentinc/cp-kafka:7.6.0"))
-        .withEmbeddedZookeeper();
+        DockerImageName.parse("confluentinc/cp-kafka:7.7.0")
+            .asCompatibleSubstituteFor("apache/kafka"));
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
