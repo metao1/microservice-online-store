@@ -9,16 +9,20 @@ import org.springframework.context.event.EventListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
+/**
+ * Kafka Runner helps to submit Kafka messages asynchronously using lightweight Executor On event of
+ * {@link ContextClosedEvent} the application will gracefully shut down and wait for in-flight tasks to complete.
+ */
 @Slf4j
 @Component
-public class Runner {
+public class KafkaRunner {
 
     private static final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
 
-    public static <K, V> void send(
-        KafkaTemplate<K, V> runnable, String topic, K key, V event
+    public static <K, V> void submit(
+        KafkaTemplate<K, V> kafkaTemplate, String topic, K key, V event
     ) {
-        executor.submit(() -> runnable.send(topic, key, event));
+        executor.submit(() -> kafkaTemplate.send(topic, key, event));
     }
 
     @EventListener

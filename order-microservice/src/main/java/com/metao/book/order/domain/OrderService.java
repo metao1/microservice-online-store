@@ -3,7 +3,7 @@ package com.metao.book.order.domain;
 import com.metao.book.order.OrderCreatedEvent;
 import com.metao.book.order.application.card.OrderRepository;
 import com.metao.book.order.application.card.OrderSpecifications;
-import com.metao.book.order.application.config.Runner;
+import com.metao.book.order.application.config.KafkaRunner;
 import com.metao.book.order.domain.dto.OrderDTO;
 import com.metao.book.order.domain.mapper.OrderMapper;
 import com.metao.book.shared.application.service.StageProcessor;
@@ -30,7 +30,8 @@ public class OrderService {
         return StageProcessor.accept(orderDto)
             .map(mapper::toOrderCreatedEvent)
             .applyExceptionally((orderCreatedEvent, exp) -> {
-                Runner.send(kafkaOrderProducer, orderTopic, orderCreatedEvent.getCustomerId(), orderCreatedEvent);
+                KafkaRunner.submit(kafkaOrderProducer, orderTopic, orderCreatedEvent.getCustomerId(),
+                    orderCreatedEvent);
                 return orderCreatedEvent.getId();
             });
     }
