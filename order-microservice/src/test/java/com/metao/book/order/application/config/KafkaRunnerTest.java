@@ -1,17 +1,17 @@
 package com.metao.book.order.application.config;
 
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
 
 @ExtendWith(MockitoExtension.class)
 class KafkaRunnerTest {
-
-    KafkaTemplate<String, String> kafkaTemplate = Mockito.mock(KafkaTemplate.class);
+    
+    KafkaTemplate<String, String> kafkaTemplate = mock(KafkaTemplate.class);
 
     KafkaRunner<String> kafkaRunner = new KafkaRunner<>(kafkaTemplate);
 
