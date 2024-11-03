@@ -1,35 +1,43 @@
 package com.metao.book.shared;
 
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.metao.book.shared.application.service.EventHandler;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.concurrent.Flow.Subscriber;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 
 class EventHandlerTest {
 
-    private EventHandler<String> eventHandler;
-
     @Test
     void testSubscribe() {
         //GIVEN
-        var payload = "This is a test event";
-        Subscriber<String> subscriber = mock(Subscriber.class);
-        eventHandler = new EventHandler<>() {
+        Queue<Integer> queue = IntStream.of(1, 2, 3, 4).collect(LinkedList::new, LinkedList::add, LinkedList::addAll);
+        Subscriber<Integer> subscriber = mock(Subscriber.class);
+        doNothing().when(subscriber).onNext(anyInt());
+
+        var eventHandler = new EventHandler<String, Integer>() {
+
             @Override
-            public String getEvent() {
-                return payload;
+            public Integer getEvent() {
+                return queue.poll();
             }
         };
 
         //WHEN
         eventHandler.subscribe(subscriber);
-        eventHandler.publish();
+        eventHandler.publish(queue.size());
 
         //THEN
-        verify(subscriber).onNext(payload);
+        for (int i = 0; i < queue.size(); i++) {
+            verify(subscriber).onNext(i + 1);
+        }
     }
 
     @Test
@@ -37,7 +45,7 @@ class EventHandlerTest {
         //GIVEN
         var payload = "This is a test event";
         Subscriber<String> subscriber = mock(Subscriber.class);
-        eventHandler = new EventHandler<>() {
+        var eventHandler = new EventHandler<String, String>() {
             @Override
             public String getEvent() {
                 return payload;
@@ -47,6 +55,7 @@ class EventHandlerTest {
         //WHEN
         eventHandler.subscribe(subscriber);
         eventHandler.cancel();
+        eventHandler.publish(1);
 
         //THEN
         verify(subscriber, never()).onNext(payload);

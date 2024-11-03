@@ -22,10 +22,9 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 @RequiredArgsConstructor
 public class KafkaConsumerConfig {
 
+    private final KafkaProperties kafkaProperties;
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
-
-    private final KafkaProperties kafkaProperties;
 
     // Configuration for OrderPaymentEvent
     @Bean
@@ -45,7 +44,7 @@ public class KafkaConsumerConfig {
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, OrderPaymentEvent> orderPaymentEventKafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, OrderPaymentEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        var factory = new ConcurrentKafkaListenerContainerFactory<String, OrderPaymentEvent>();
         factory.setConsumerFactory(orderPaymentEventConsumerFactory());
         factory.setConcurrency(3);
         factory.getContainerProperties().setPollTimeout(3000);
@@ -70,7 +69,7 @@ public class KafkaConsumerConfig {
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, OrderCreatedEvent> orderCreatedEventKafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, OrderCreatedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        var factory = new ConcurrentKafkaListenerContainerFactory<String, OrderCreatedEvent>();
         factory.setConsumerFactory(orderCreatedEventConsumerFactory());
 
         factory.setConcurrency(3);

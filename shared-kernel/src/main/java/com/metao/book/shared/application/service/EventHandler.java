@@ -1,28 +1,30 @@
 package com.metao.book.shared.application.service;
 
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Flow.Publisher;
 import java.util.concurrent.Flow.Subscriber;
 import java.util.concurrent.Flow.Subscription;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class EventHandler<T> {
+public abstract class EventHandler<K, V> implements Publisher<V> {
 
-    private final ExecutorService executor = ForkJoinPool.commonPool(); // daemon-based
+    private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();// virtual-thread
     private Subscription subscription;
 
-    public void subscribe(Subscriber<? super T> subscriber) {
+    @Override
+    public void subscribe(Subscriber<? super V> subscriber) {
         subscription = new EventSubscription(subscriber, executor);
     }
 
-    public void publish() {
+    public void publish(int n) {
         if (subscription != null) {
-            subscription.request(1);
+            subscription.request(n);
         }
     }
 
@@ -32,23 +34,14 @@ public abstract class EventHandler<T> {
         }
     }
 
-    public abstract T getEvent();
-
-    public class EventPublisher implements Publisher<T> {
-
-        @Override
-        public void subscribe(Subscriber<? super T> subscriber) {
-            subscriber.onSubscribe(new EventSubscription(subscriber, executor));
-        }
-
-    }
+    protected abstract V getEvent();
 
     @RequiredArgsConstructor
     private class EventSubscription implements Subscription {
 
-        private final Subscriber<? super T> subscriber;
+        private final AtomicBoolean isCompleted = new AtomicBoolean(false);
+        private final Subscriber<? super V> subscriber;
         private final ExecutorService executor;
-        private AtomicBoolean isCompleted = new AtomicBoolean(false);
         private Future<?> future;
 
         @Override
@@ -78,10 +71,26 @@ public abstract class EventHandler<T> {
 
         @Override
         public synchronized void cancel() {
+            // Perform cleanup logic here, e.g., closing resources or waiting for tasks to complete
+            log.info("Application is shutting down gracefully...");
+
             if (future != null) {
                 future.cancel(false);
             }
+            // Simulate waiting for in-flight tasks to complete
+            executor.shutdown();
+            try {
+                if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                    log.error("Failed to wait for tasks to complete. forcing shutdown...");
+                    executor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                executor.shutdownNow();
+                Thread.currentThread().interrupt();
+                log.error("Failed to wait for tasks to complete: {}", e.getMessage());
+            }
             isCompleted.set(true);
+            log.info("Resources cleaned up and application shut down.");
         }
     }
 }

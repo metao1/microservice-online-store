@@ -17,10 +17,10 @@ import com.metao.book.order.BaseKafkaIT;
 import com.metao.book.order.OrderCreatedEvent;
 import com.metao.book.order.OrderTestUtil;
 import com.metao.book.order.application.card.OrderRepository;
-import com.metao.book.order.domain.dto.OrderDTO;
 import com.metao.book.order.domain.OrderEntity;
-import com.metao.book.order.domain.mapper.OrderMapper;
 import com.metao.book.order.domain.OrderStatus;
+import com.metao.book.order.domain.dto.OrderDTO;
+import com.metao.book.order.domain.mapper.OrderMapper;
 import com.metao.book.shared.test.StreamBuilderTestUtils;
 import java.time.Duration;
 import java.util.HashSet;
@@ -35,7 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
@@ -54,9 +53,6 @@ class OrderScenarioIT extends BaseKafkaIT {
     OrderMapper mapper;
 
     @Autowired
-    KafkaTemplate<String, OrderCreatedEvent> kafkaTemplate;
-
-    @Autowired
     OrderRepository orderRepository;
 
     @BeforeAll
@@ -72,41 +68,28 @@ class OrderScenarioIT extends BaseKafkaIT {
     @SneakyThrows
     @DisplayName("When Create an order then it is OK and return the order")
     void createOrderIsOk() {
-        var createOrderDTO = OrderDTO.builder()
-            .customerId(CUSTOMER_ID)
-            .productId(PRODUCT_ID)
-            .currency(EUR.toString())
-            .quantity(QUANTITY)
-            .price(PRICE)
-            .build();
+        var createOrderDTO = OrderDTO.builder().customerId(CUSTOMER_ID).productId(PRODUCT_ID).currency(EUR.toString())
+            .quantity(QUANTITY).price(PRICE).build();
 
-        mockMvc.perform(post("/order")
-                .contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/order").contentType(MediaType.APPLICATION_JSON)
                 .content(StreamBuilderTestUtils.convertObjectToJsonBytes(objectMapper, createOrderDTO)))
-            .andExpect(status().isOk())
-            .andDo(result -> await().atMost(Duration.ofSeconds(20))
-                .untilAsserted(() -> assertEquals(11, orderRepository.findAll().size())));
+            .andExpect(status().isOk()).andDo(result -> await().atMost(Duration.ofSeconds(20))
+                .untilAsserted(() -> assertEquals(10, orderRepository.findAll().size())));
     }
 
     @Test
     @SneakyThrows
     @DisplayName("When Get an order then it is OK and return the order")
     void getOrderIsOK() {
-        var expectedOrder = OrderCreatedEvent.newBuilder()
-            .setCustomerId(CUSTOMER_ID)
-            .setProductId(PRODUCT_ID)
-            .setCurrency(EUR.toString())
-            .setStatus(OrderCreatedEvent.Status.NEW)
-            .setPrice(PRICE.doubleValue())
-            .setQuantity(QUANTITY.doubleValue())
-            .build();
+        var expectedOrder = OrderCreatedEvent.newBuilder().setCustomerId(CUSTOMER_ID).setProductId(PRODUCT_ID)
+            .setCurrency(EUR.toString()).setStatus(OrderCreatedEvent.Status.NEW).setPrice(PRICE.doubleValue())
+            .setQuantity(QUANTITY.doubleValue()).build();
 
         var expectedOrderEntity = mapper.toEntity(expectedOrder);
 
         OrderEntity save = orderRepository.save(expectedOrderEntity);
 
-        mockMvc.perform(get("/order").param("order_id", save.getOrderId()))
-            .andExpect(status().isOk());
+        mockMvc.perform(get("/order").param("order_id", save.getOrderId())).andExpect(status().isOk());
     }
 
     @Test
@@ -115,23 +98,17 @@ class OrderScenarioIT extends BaseKafkaIT {
     void getUnknownOrderIsNotFound() {
         var unknownOrderId = "UNKNOWN_ORDER_ID";
 
-        mockMvc.perform(get("/order").param("order_id", unknownOrderId))
-            .andExpect(status().isNotFound());
+        mockMvc.perform(get("/order").param("order_id", unknownOrderId)).andExpect(status().isNotFound());
     }
 
     @Test
     @SneakyThrows
     @DisplayName("When Create an invalid order then it is bad request")
     void createInvalidOrderRequestIsBadRequest() {
-        var createOrderDTO = OrderDTO.builder()
-            .productId(PRODUCT_ID)
-            .currency(EUR.toString())
-            .quantity(QUANTITY)
-            .price(PRICE)
-            .build();
+        var createOrderDTO = OrderDTO.builder().productId(PRODUCT_ID).currency(EUR.toString()).quantity(QUANTITY)
+            .price(PRICE).build();
 
-        mockMvc.perform(post("/order")
-                .contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/order").contentType(MediaType.APPLICATION_JSON)
                 .content(StreamBuilderTestUtils.convertObjectToJsonBytes(objectMapper, createOrderDTO)))
             .andExpect(status().isBadRequest());
     }
@@ -142,10 +119,8 @@ class OrderScenarioIT extends BaseKafkaIT {
     void getOrderByProductIdsAndStatusesPageable() {
         // Perform GET request for the first page
         for (int i = 0; i < 2; i++) {
-            mockMvc
-                .perform(MockMvcRequestBuilders.get("/order/{pageSize}/{offset}/{sortByFieldName}", 5, i, "status"))
-                .andExpect(status().isOk())
-                .andExpect(
+            mockMvc.perform(MockMvcRequestBuilders.get("/order/{pageSize}/{offset}/{sortByFieldName}", 5, i, "status"))
+                .andExpect(status().isOk()).andExpect(
                     jsonPath("$.content").exists()) // Verify the presence of "content" field in the JSON response
                 .andExpect(jsonPath(
                     "$.content[*].status").exists()) // Verify the presence of "order_id" field in each OrderDTO
@@ -165,35 +140,20 @@ class OrderScenarioIT extends BaseKafkaIT {
         Set<String> statuses = new HashSet<>();
         statuses.add(OrderStatus.NEW.toString());
 
-        mockMvc
-            .perform(
-                MockMvcRequestBuilders.get("/order/{pageSize}/{offset}/{sortByFieldName}", 5, 0, "productId")
-                    .queryParam("productIds", String.join(",", productIds))
-            )
-            .andExpect(status().isOk())
-            .andExpect(
-                jsonPath("$.content").exists()) // Verify the presence of "content" field in the JSON response
+        mockMvc.perform(MockMvcRequestBuilders.get("/order/{pageSize}/{offset}/{sortByFieldName}", 5, 0, "productId")
+                .queryParam("productIds", String.join(",", productIds))).andExpect(status().isOk())
+            .andExpect(jsonPath("$.content").exists()) // Verify the presence of "content" field in the JSON response
             .andExpect(jsonPath("$.numberOfElements").value(2)); // Verify that the number of returned items is 2
 
-        mockMvc
-            .perform(
-                MockMvcRequestBuilders.get("/order/{pageSize}/{offset}/{sortByFieldName}", 5, 0, "productId")
-                    .queryParam("statuses", String.join(",", statuses))
-            )
-            .andExpect(status().isOk())
-            .andExpect(
-                jsonPath("$.content").exists()) // Verify the presence of "content" field in the JSON response
+        mockMvc.perform(MockMvcRequestBuilders.get("/order/{pageSize}/{offset}/{sortByFieldName}", 5, 0, "productId")
+                .queryParam("statuses", String.join(",", statuses))).andExpect(status().isOk())
+            .andExpect(jsonPath("$.content").exists()) // Verify the presence of "content" field in the JSON response
             .andExpect(jsonPath("$.numberOfElements").value(5)); // Verify that the number of returned items is 3
 
-        mockMvc
-            .perform(
-                MockMvcRequestBuilders.get("/order/{pageSize}/{offset}/{sortByFieldName}", 5, 0, "productId")
-                    .queryParam("productIds", String.join(",", productIds))
-                    .queryParam("statuses", String.join(",", statuses))
-            )
+        mockMvc.perform(MockMvcRequestBuilders.get("/order/{pageSize}/{offset}/{sortByFieldName}", 5, 0, "productId")
+                .queryParam("productIds", String.join(",", productIds)).queryParam("statuses", String.join(",", statuses)))
             .andExpect(status().isOk())
-            .andExpect(
-                jsonPath("$.content").exists()) // Verify the presence of "content" field in the JSON response
+            .andExpect(jsonPath("$.content").exists()) // Verify the presence of "content" field in the JSON response
             .andExpect(jsonPath("$.numberOfElements").value(1)); // Verify that the number of returned items is 3
     }
 

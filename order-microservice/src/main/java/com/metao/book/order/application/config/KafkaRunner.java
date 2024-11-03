@@ -1,12 +1,21 @@
 package com.metao.book.order.application.config;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import com.metao.book.shared.application.service.EventHandler;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.DelayQueue;
+import java.util.concurrent.Delayed;
+import java.util.concurrent.Flow.Subscriber;
+import java.util.concurrent.Flow.Subscription;
 import java.util.concurrent.TimeUnit;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
 
 /**
@@ -15,32 +24,68 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class KafkaRunner {
+@RequiredArgsConstructor
+public class KafkaRunner<V> extends EventHandler<String, List<CompletableFuture<SendResult<String, V>>>> {
 
-    private static final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+    private final DelayQueue<Message<String, V>> delayeds = new DelayQueue<>();
+    private final KafkaTemplate<String, V> kafkaTemplate;
+    private final List<CompletableFuture<SendResult<String, V>>> list = new ArrayList<>();
 
-    public static <K, V> void submit(
-        KafkaTemplate<K, V> kafkaTemplate, String topic, K key, V event
-    ) {
-        executor.submit(() -> kafkaTemplate.send(topic, key, event));
+    public void subscribe() {
+        subscribe(new Subscriber<>() {
+            @Override
+            public void onSubscribe(Subscription subscription) {
+                log.debug("Subscription created: {}", subscription);
+            }
+
+            @Override
+            public void onNext(List<CompletableFuture<SendResult<String, V>>> item) {
+                log.debug("Item received: {}", item);
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                log.error("Error occurred: {}", throwable.getMessage());
+            }
+
+            @Override
+            public void onComplete() {
+                log.debug("Completed");
+            }
+        });
+    }
+
+    public void submit(String topic, String key, V event) {
+        delayeds.add(new Message<>(topic, key, event, 2000));
+    }
+
+    public void publish() {
+        publish(delayeds.size());
+    }
+
+    @Override
+    public List<CompletableFuture<SendResult<String, V>>> getEvent() {
+        for (Message<String, V> delayed : delayeds) {
+            list.add(kafkaTemplate.send(delayed.topic, delayed.key, delayed.message));
+        }
+        return list;
     }
 
     @EventListener
-    public void run(ContextClosedEvent event) {
-        // Perform cleanup logic here, e.g., closing resources or waiting for tasks to complete
-        log.info("Application is shutting down gracefully...");
-        // Simulate waiting for in-flight tasks to complete
-        executor.shutdown();
-        try {
-            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
-                log.error("Failed to wait for tasks to complete. forcing shutdown...");
-                executor.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            executor.shutdownNow();
-            Thread.currentThread().interrupt();
-            log.error("Failed to wait for tasks to complete: {}", e.getMessage());
+    private void run(ContextClosedEvent event) {
+        cancel();
+    }
+
+    private record Message<K, V>(String topic, K key, V message, long delay) implements Delayed {
+
+        @Override
+        public int compareTo(@NotNull Delayed o) {
+            return 0;
         }
-        log.info("Resources cleaned up and application shut down.");
+
+        @Override
+        public long getDelay(@NotNull TimeUnit unit) {
+            return unit.toMillis(delay);
+        }
     }
 }

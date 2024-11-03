@@ -48,7 +48,7 @@ public class KafkaOrderListenerConfig {
 
     @RetryableTopic
     @KafkaListener(id = "${kafka.topic.order-payment.id}", topics = "${kafka.topic.order-payment.name}", groupId = "${kafka.topic.order-payment.group-id}", containerFactory = "orderPaymentEventKafkaListenerContainerFactory")
-    public void listenToOrderPayment(ConsumerRecord<String, OrderPaymentEvent> orderRecord) {
+    public void onOrderPaymentEvent(ConsumerRecord<String, OrderPaymentEvent> orderRecord) {
         StageProcessor.accept(orderRecord.value()).acceptExceptionally((orderPaymentEvent, ex) -> {
             if (ex != null) {
                 log.error("can't make order from event :{}", ex.getMessage());

@@ -14,24 +14,24 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class OrderService {
 
-    private final KafkaTemplate<String, OrderCreatedEvent> kafkaOrderProducer;
     private final OrderRepository orderRepository;
     private final OrderMapper mapper;
+    private final KafkaRunner<OrderCreatedEvent> kafkaRunner;
     private @Value("${kafka.topic.order-created.name}") String orderTopic;
 
     public String createOrder(OrderDTO orderDto) {
         return StageProcessor.accept(orderDto)
             .map(mapper::toOrderCreatedEvent)
             .applyExceptionally((orderCreatedEvent, exp) -> {
-                KafkaRunner.submit(kafkaOrderProducer, orderTopic, orderCreatedEvent.getCustomerId(),
-                    orderCreatedEvent);
+                kafkaRunner.subscribe();
+                kafkaRunner.submit(orderTopic, orderCreatedEvent.getCustomerId(), orderCreatedEvent);
+                kafkaRunner.publish();
                 return orderCreatedEvent.getId();
             });
     }

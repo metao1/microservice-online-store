@@ -25,6 +25,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import lombok.SneakyThrows;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
@@ -67,12 +68,13 @@ class ProductControllerTests {
     }
 
     @Test
-    void getOneProductIsOk() throws Exception {
+    @SneakyThrows
+    void getOneProductIsOk() {
         var pe = ProductTestUtils.createProductEntity();
-
         when(productService.getProductByAsin(pe.getAsin())).thenReturn(Optional.of(pe));
 
-        webTestClient.perform(get(String.format("%s/%s", PRODUCT_URL, pe.getAsin()))).andExpect(status().isOk())
+        webTestClient.perform(get("%s/%s".formatted(PRODUCT_URL, pe.getAsin())))
+            .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.asin").value(pe.getAsin())).andExpect(jsonPath("$.title").value(pe.getTitle()))
             .andExpect(jsonPath("$.description").value(pe.getDescription()))
@@ -82,7 +84,8 @@ class ProductControllerTests {
     }
 
     @Test
-    void testSaveProductIsOk() throws Exception {
+    @SneakyThrows
+    void testSaveProductIsOk() {
         var productDto = """
             {
                 "asin": "1234567890",
@@ -118,7 +121,7 @@ class ProductControllerTests {
         // OPTION 1 - using for-loop and query multiple times
         for (ProductEntity pe : pes) {
             when(productService.getAllProductsPageable(limit, offset)).thenReturn(pes.stream());
-            webTestClient.perform(get(String.format("%s?offset=%s&limit=%s", PRODUCT_URL, offset, limit)))
+            webTestClient.perform(get("%s?offset=%s&limit=%s".formatted(PRODUCT_URL, offset, limit)))
                 .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.length()").value(10))
                 .andExpect(jsonPath("$.[?(@.asin == '" + pe.getAsin() + "')]").exists())
@@ -132,39 +135,42 @@ class ProductControllerTests {
         when(productService.getAllProductsPageable(limit, offset)).thenReturn(pes.stream());
 
         // OPTION 2 - using for-loop and query once and then verify responses using matcher -- preferable option
-        webTestClient.perform(get(String.format("%s?offset=%s&limit=%s", PRODUCT_URL, offset, limit)))
+        webTestClient.perform(get("%s?offset=%s&limit=%s".formatted(PRODUCT_URL, offset, limit)))
             .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.length()").value(10))
             .andExpect(jsonPath("$[*].asin", extractFieldFromProducts(pes, ProductEntity::getAsin)))
             .andExpect(jsonPath("$[*].title", extractFieldFromProducts(pes, ProductEntity::getTitle)))
             .andExpect(jsonPath("$[*].description", extractFieldFromProducts(pes, ProductEntity::getDescription)))
-            .andExpect(jsonPath("$[*].imageUrl", extractFieldFromProducts(pes, ProductEntity::getImageUrl))).andExpect(
-                jsonPath("$[*].currency", extractFieldFromProducts(pes, pe -> pe.getPriceCurrency().toString())));
+            .andExpect(jsonPath("$[*].imageUrl", extractFieldFromProducts(pes, ProductEntity::getImageUrl)))
+            .andExpect(
+                jsonPath("$[*].currency", extractFieldFromProducts(pes, pe -> pe.getPriceCurrency().toString()))
+            );
     }
 
     @Test
-    void testGetMultipleProductsIsOkWithCategories() throws Exception {
+    void testGetMultipleProductsIsOkWithCategories() {
         int limit = 10, offset = 0;
         Supplier<List<ProductEntity>> pes = () -> ProductTestUtils.createMultipleProductEntity(limit);
 
     }
 
     @Test
-    void testGetMultipleProductsIsOkWithAlsoBought() throws Exception {
+    void testGetMultipleProductsIsOkWithAlsoBought() {
         int limit = 10, offset = 0;
         Supplier<List<ProductEntity>> pes = () -> ProductTestUtils.createMultipleProductEntity(limit);
 
     }
 
     @Test
-    void testGetMultipleProductsIsOkWithCategoriesAndAlsoBought() throws Exception {
+    void testGetMultipleProductsIsOkWithCategoriesAndAlsoBought() {
         int limit = 10, offset = 0;
         Supplier<List<ProductEntity>> pes = () -> ProductTestUtils.createMultipleProductEntity(limit);
 
     }
 
     @Test
-    void getOneProductIsNotFound() throws Exception {
+    @SneakyThrows
+    void getOneProductIsNotFound() {
         var productId = UUID.randomUUID().toString();
         when(productService.getProductByAsin(productId)).thenReturn(Optional.empty());
 
