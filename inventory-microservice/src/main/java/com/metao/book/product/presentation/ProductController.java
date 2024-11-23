@@ -35,13 +35,13 @@ public class ProductController {
 
     private final KafkaTemplate<String, ProductCreatedEvent> kafkaTemplate;
     private final ProductService productService;
-    private final ProductMapper productMapper;
+
     @Value("${kafka.topic.product.name}")
     private String productTopic;
 
     @GetMapping(value = "/{asin}")
     public ProductDTO productDetails(@PathVariable String asin) throws ProductNotFoundException {
-        return productService.getProductByAsin(asin).map(productMapper::toDto)
+        return productService.getProductByAsin(asin).map(ProductMapper::toDto)
             .orElseThrow(() -> new ProductNotFoundException("product " + asin + " not found."));
     }
 
@@ -51,33 +51,35 @@ public class ProductController {
     ) {
         var l = Optional.of(limit).orElse(10);
         var o = Optional.of(offset).orElse(0);
-        return productService.getAllProductsPageable(l, o).map(productMapper::toDto);
+        return productService.getAllProductsPageable(l, o).map(ProductMapper::toDto);
     }
 
     @PostMapping
     @SneakyThrows
     @ResponseStatus(HttpStatus.CREATED)
     public boolean saveProduct(@RequestBody ProductDTO productDTO) {
-        return StageProcessor.accept(productDTO).map(productMapper::toEvent).applyExceptionally((event, exp) -> {
-            if (exp != null && event == null) {
-                log.warn("invalid event when saving product {}", exp.toString());
-                return false;
-            }
-            try {
-                kafkaTemplate.send(productTopic, event.getAsin(), event).get(10, TimeUnit.SECONDS);
-                return true;
-            } catch (InterruptedException | TimeoutException | ExecutionException e) {
-                Thread.currentThread().interrupt();
-                log.error("error when saving product {}", e.getMessage(), e);
-                throw new RuntimeException(e);
-            }
-        });
+        return StageProcessor.accept(productDTO)
+            .map(ProductMapper::toProductCreatedEvent)
+            .applyExceptionally((event, exp) -> {
+                if (exp != null && event == null) {
+                    log.warn("invalid event when saving product {}", exp.toString());
+                    return false;
+                }
+                try {
+                    kafkaTemplate.send(productTopic, event.getAsin(), event).get(10, TimeUnit.SECONDS);
+                    return true;
+                } catch (InterruptedException | TimeoutException | ExecutionException e) {
+                    Thread.currentThread().interrupt();
+                    log.error("error when saving product {}", e.getMessage(), e);
+                    throw new RuntimeException(e);
+                }
+            });
     }
 
     @GetMapping("/category/{name}")
     public List<ProductDTO> productsByCategory(
         @PathVariable("name") String name, @RequestParam("offset") int offset, @RequestParam("limit") int limit
     ) {
-        return productService.getProductsByCategory(limit, offset, name).map(productMapper::toDto).toList();
+        return productService.getProductsByCategory(limit, offset, name).map(ProductMapper::toDto).toList();
     }
 }

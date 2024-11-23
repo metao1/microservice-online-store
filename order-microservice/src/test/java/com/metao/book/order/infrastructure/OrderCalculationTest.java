@@ -35,7 +35,7 @@ class OrderCalculationTest extends BaseKafkaIT {
     @SneakyThrows
     @DisplayName("Send order payment event")
     void sendOrderPaymentEventTest() {
-        OrderEntity orderEntity = OrderTestUtil.buildOrderEntity(1);
+        OrderEntity orderEntity = OrderTestUtil.buildOrder(1);
 
         orderRepository.save(orderEntity);
         var orderPaymentEvent = OrderPaymentEvent.newBuilder().setId(orderEntity.id().toUUID())

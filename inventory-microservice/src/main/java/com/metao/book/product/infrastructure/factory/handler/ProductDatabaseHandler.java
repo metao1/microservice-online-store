@@ -16,15 +16,14 @@ import org.springframework.stereotype.Service;
 public class ProductDatabaseHandler implements Consumer<ProductCreatedEvent> {
 
     private final ProductService productService;
-    private final ProductMapper productMapper;
 
     @Override
     public void accept(@NonNull ProductCreatedEvent event) {
         StageProcessor.accept(event)
-            .map(productMapper::toEntity)
+            .map(ProductMapper::fromProductCreatedEvent)
             .acceptExceptionally((productEntity, exp) -> {
-                if (exp != null || productEntity == null) {
-                    log.warn("saving product:{} , failed: {}", productEntity, exp.getMessage());
+                if (exp != null && productEntity == null) {
+                    log.warn("saving product, failed: {}", exp.getMessage());
                 } else {
                     productService.saveProduct(productEntity);
                     log.info("saved product id:{}", productEntity.getAsin());

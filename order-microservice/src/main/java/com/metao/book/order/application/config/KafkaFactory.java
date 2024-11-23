@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class KafkaRunner<V> extends EventHandler<String, List<CompletableFuture<SendResult<String, V>>>> {
+public class KafkaFactory<V> extends EventHandler<String, List<CompletableFuture<SendResult<String, V>>>> {
 
     private final DelayQueue<Message<String, V>> delayeds = new DelayQueue<>();
     private final KafkaTemplate<String, V> kafkaTemplate;

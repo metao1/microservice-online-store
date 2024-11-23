@@ -9,7 +9,7 @@ import com.metao.book.product.domain.service.ProductService;
 import com.metao.book.product.event.ProductCreatedEvent;
 import com.metao.book.product.infrastructure.BaseKafkaIT;
 import com.metao.book.product.infrastructure.factory.handler.kafka.KafkaProductConsumerTestConfig;
-import com.metao.book.product.util.ProductTestUtils;
+import com.metao.book.product.util.ProductEntityUtils;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -46,8 +46,8 @@ class KafkaProductHandlerIT extends BaseKafkaIT {
     @Test
     @SneakyThrows
     void handleGetProductEvent() {
-        var event = ProductTestUtils.productCreatedEvent();
-        var pe = ProductTestUtils.createProductEntity();
+        var event = ProductEntityUtils.productCreatedEvent();
+        var pe = ProductEntityUtils.createProductEntity();
 
         when(productService.getProductByAsin(ASIN)).thenReturn(Optional.of(pe));
 
@@ -60,7 +60,7 @@ class KafkaProductHandlerIT extends BaseKafkaIT {
     @Test
     @SneakyThrows
     void whenSendingKafkaMessagesInParallelThenSuccessfullySentAll() {
-        var event = ProductTestUtils.productCreatedEvent();
+        var event = ProductEntityUtils.productCreatedEvent();
 
         try (var ex = Executors.newFixedThreadPool(10)) {
             // send 10 parallel kafka publish tasks and wait for them to finish

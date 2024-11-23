@@ -27,7 +27,7 @@ public record ProductDTO(
     @Length(min = 1, max = 255)
     String title,
 
-    @JsonProperty("imageUrl")
+    @JsonProperty("image_url")
     @Length(min = 1, max = 255)
     @Pattern(regexp = "(http(s?):)([/|.|\\w|])*\\.(?:jpg|gif|png)", message = "url format is wrong")
     String imageUrl,

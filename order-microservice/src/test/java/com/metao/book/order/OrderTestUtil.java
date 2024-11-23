@@ -3,28 +3,26 @@ package com.metao.book.order;
 import com.metao.book.order.domain.OrderEntity;
 import com.metao.book.order.domain.OrderStatus;
 import com.metao.book.shared.domain.financial.Money;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 public class OrderTestUtil {
 
-    public static List<OrderEntity> buildDummyOrders(int count) {
+    public static List<OrderEntity> buildMultipleOrders(int count) {
         List<OrderEntity> orders = new ArrayList<>();
-        for (int i = 0; i < count; i++) {
-            OrderEntity order = buildOrderEntity(i);
+        for (int id = 0; id < count; id++) {
+            OrderEntity order = buildOrder(id);
             orders.add(order);
         }
         return orders;
     }
 
-    public static OrderEntity buildOrderEntity(int i) {
-        String customerId = "customer_" + i; // Generate a dummy customer ID
-        String productId = "product_" + i; // Generate a dummy product ID
-        BigDecimal productCount = BigDecimal.valueOf(i + 1); // Incremental product count
-        Money money = new Money(OrderTestConstant.EUR, BigDecimal.valueOf((i + 1) * 10L)); // Dummy money
-        var orderStatus = i % 2 == 0 ? OrderStatus.NEW : OrderStatus.SUBMITTED; // Set status to NEW for all orders
-        return new OrderEntity(customerId, productId, productCount, money, orderStatus);
+    public static OrderEntity buildOrder(int id) {
+        String customerId = "customer_" + id; // Generate a dummy customer ID
+        String productId = "product_" + id; // Generate a dummy product ID
+        Money money = new Money(OrderTestConstant.EUR, BigDecimal.valueOf((id + 1) * 10d)); // Dummy money
+        var orderStatus = id % 2 == 0 ? OrderStatus.NEW : OrderStatus.SUBMITTED; // Set status to NEW for all orders
+        return new OrderEntity(customerId, productId, BigDecimal.valueOf(1d), money, orderStatus);
     }
 }

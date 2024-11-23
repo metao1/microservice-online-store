@@ -5,10 +5,12 @@ import static com.metao.book.order.OrderTestConstant.EUR;
 import static com.metao.book.order.OrderTestConstant.PRICE;
 import static com.metao.book.order.OrderTestConstant.PRODUCT_ID;
 import static com.metao.book.order.OrderTestConstant.QUANTITY;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -20,9 +22,11 @@ import com.metao.book.order.application.card.OrderRepository;
 import com.metao.book.order.domain.OrderEntity;
 import com.metao.book.order.domain.OrderStatus;
 import com.metao.book.order.domain.dto.OrderDTO;
-import com.metao.book.order.domain.mapper.OrderMapper;
+import com.metao.book.order.infrastructure.kafka.KafkaOrderMapper;
 import com.metao.book.shared.test.StreamBuilderTestUtils;
 import java.time.Duration;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -49,9 +53,6 @@ class OrderScenarioIT extends BaseKafkaIT {
     MockMvc mockMvc;
 
     @Autowired
-    OrderMapper mapper;
-
-    @Autowired
     OrderRepository orderRepository;
 
     @BeforeEach
@@ -64,7 +65,7 @@ class OrderScenarioIT extends BaseKafkaIT {
     @DisplayName("When Create an order then it is OK and return the order")
     void createOrderIsOk() {
         // Create a list of dummy orders for the mocked page
-        List<OrderEntity> orders = OrderTestUtil.buildDummyOrders(10);
+        List<OrderEntity> orders = OrderTestUtil.buildMultipleOrders(10);
         orderRepository.saveAllAndFlush(orders);
 
         var createOrderDTO = OrderDTO.builder().customerId(CUSTOMER_ID).productId(PRODUCT_ID).currency(EUR.toString())
@@ -84,7 +85,7 @@ class OrderScenarioIT extends BaseKafkaIT {
             .setCurrency(EUR.toString()).setStatus(OrderCreatedEvent.Status.NEW).setPrice(PRICE.doubleValue())
             .setQuantity(QUANTITY.doubleValue()).build();
 
-        var expectedOrderEntity = mapper.toEntity(expectedOrder);
+        var expectedOrderEntity = KafkaOrderMapper.toEntity(expectedOrder);
 
         OrderEntity save = orderRepository.save(expectedOrderEntity);
 
@@ -117,7 +118,7 @@ class OrderScenarioIT extends BaseKafkaIT {
     @DisplayName("Get orders by product ids and statuses")
     void getOrderByProductIdsAndStatusesPageable() {
         // Create a list of dummy orders for the mocked page
-        List<OrderEntity> orders = OrderTestUtil.buildDummyOrders(10);
+        List<OrderEntity> orders = OrderTestUtil.buildMultipleOrders(10);
         orderRepository.saveAllAndFlush(orders);
 
         // Perform GET request for the first page
@@ -133,12 +134,44 @@ class OrderScenarioIT extends BaseKafkaIT {
 
     @Test
     @SneakyThrows
+    @DisplayName("When update an order then the order is updated successfully")
+    void updateOrderThenOrderIsUpdated() {
+        var order = OrderTestUtil.buildOrder(10);
+        orderRepository.saveAndFlush(order);
+
+        var updatedOrder = OrderDTO.builder()
+            .orderId(order.getOrderId())
+            .productId(order.getProductId())
+            .currency(order.getCurrency().getCurrencyCode())
+            .quantity(order.getQuantity())
+            .status(OrderStatus.CONFIRMED.toString())
+            .customerId(order.getCustomerId())
+            .price(order.getPrice())
+            .createdTime(OffsetDateTime.from(order.getCreatedTime().atOffset(ZoneOffset.UTC)))
+            .build();
+
+        mockMvc.perform(put("/order").contentType(MediaType.APPLICATION_JSON)
+                .content(StreamBuilderTestUtils.convertObjectToJsonBytes(objectMapper, updatedOrder)))
+            .andExpect(status().isOk());
+
+        orderRepository.findByOrderId(order.getOrderId()).ifPresent(orderEntity -> {
+            assertThat(orderEntity.getPrice()).isEqualByComparingTo(updatedOrder.price());
+            assertThat(orderEntity.getQuantity()).isEqualByComparingTo(updatedOrder.quantity());
+            assertThat(orderEntity.getCurrency().getCurrencyCode()).isEqualTo(updatedOrder.currency());
+            assertThat(orderEntity.getProductId()).isEqualTo(updatedOrder.productId());
+            assertThat(orderEntity.getStatus().toString()).hasToString(updatedOrder.status());
+            assertThat(orderEntity.getCustomerId()).isEqualTo(updatedOrder.customerId());
+            assertThat(orderEntity.getCreatedTime()).isEqualTo(updatedOrder.createdTime().toLocalDateTime());
+        });
+    }
+
+    @Test
+    @SneakyThrows
     @DisplayName("When Get orders then it is OK and return the orders")
     void getOrderProductIdsAndStatusWithCriteria() {
 
-        List<OrderEntity> orders = OrderTestUtil.buildDummyOrders(10);
+        List<OrderEntity> orders = OrderTestUtil.buildMultipleOrders(10);
         orderRepository.saveAllAndFlush(orders);
-
         Set<String> productIds = new HashSet<>();
         productIds.add("product_1");
         productIds.add("product_2");

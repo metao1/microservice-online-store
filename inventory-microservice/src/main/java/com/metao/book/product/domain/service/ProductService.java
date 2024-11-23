@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProductService {
 
     private final ProductRepository productRepository;
+
     @PersistenceContext
     private final EntityManager entityManager;
 
@@ -64,7 +65,7 @@ public class ProductService {
 
     public void saveProduct(ProductEntity productEntity) {
         if (canSaveProduct(productEntity)) {
-            productRepository.save(productEntity);
+            productRepository.saveProduct(productEntity);
         }
     }
 

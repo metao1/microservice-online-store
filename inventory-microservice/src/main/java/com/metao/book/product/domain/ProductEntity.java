@@ -97,16 +97,22 @@ public class ProductEntity {
         this.priceValue = money.doubleAmount();
         this.priceCurrency = money.currency();
         this.imageUrl = imageUrl;
-        this.categories = new HashSet<>();
     }
 
     public void addCategory(@NonNull ProductCategoryEntity category) {
+        if (categories == null) {
+            categories = new HashSet<>();
+        }
         categories.add(category);
         category.getProductEntities().add(this);
     }
 
-    public void addBoughtTogether(@NonNull List<String> asin) {
-        this.boughtTogether = asin.stream().reduce("", (a, b) -> a + "," + b);
+    public void setBoughtTogether(@NonNull List<String> asin) {
+        this.boughtTogether = String.join(",", asin);
+    }
+
+    public void addCategories(@NonNull Set<ProductCategoryEntity> categories) {
+        categories.forEach(this::addCategory);
     }
 
     public void removeCategory(@NonNull ProductCategoryEntity category) {

@@ -4,7 +4,6 @@ import com.metao.book.product.domain.mapper.ProductDtoMapper;
 import com.metao.book.product.domain.mapper.ProductMapper;
 import com.metao.book.product.event.ProductCreatedEvent;
 import com.metao.book.shared.application.service.FileHandler;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +23,6 @@ import org.springframework.stereotype.Component;
 public class ProductGenerator {
 
     private final ProductDtoMapper dtoMapper;
-    private final ProductMapper productMapper;
     private final KafkaTemplate<String, ProductCreatedEvent> kafkaTemplate;
 
     @Value("${product-sample-data-path}")
@@ -58,7 +56,7 @@ public class ProductGenerator {
         log.info("importing products data from resources");
         try (var source = FileHandler.readResourceInPath(getClass(), productsDataPath)) {
             var productsPublisher = source.map(dtoMapper::toDto).filter(Optional::isPresent).map(Optional::get)
-                .map(productMapper::toEvent).filter(Objects::nonNull)
+                .map(ProductMapper::toProductCreatedEvent)
                 .map(e -> kafkaTemplate.send(productTopic, e.getAsin(), e)).toList();
             CompletableFuture.allOf(productsPublisher.toArray(new CompletableFuture[0]));
         } catch (Exception e) {

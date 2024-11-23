@@ -9,11 +9,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
 
 @ExtendWith(MockitoExtension.class)
-class KafkaRunnerTest {
-    
+class KafkaFactoryTest {
+
     KafkaTemplate<String, String> kafkaTemplate = mock(KafkaTemplate.class);
 
-    KafkaRunner<String> kafkaRunner = new KafkaRunner<>(kafkaTemplate);
+    KafkaFactory<String> kafkaFactory = new KafkaFactory<>(kafkaTemplate);
 
     @Test
     void testWhenSendingKafkaMessageThenKafkaTemplateSent() {
@@ -23,9 +23,9 @@ class KafkaRunnerTest {
         var message = "message";
 
         //WHEN
-        kafkaRunner.subscribe();
-        kafkaRunner.submit(topic, key, message);
-        kafkaRunner.publish();
+        kafkaFactory.subscribe();
+        kafkaFactory.submit(topic, key, message);
+        kafkaFactory.publish();
 
         //THEN
         verify(kafkaTemplate).send(topic, key, message);

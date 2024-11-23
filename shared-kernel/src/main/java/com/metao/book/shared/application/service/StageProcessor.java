@@ -24,6 +24,9 @@ public class StageProcessor<T> implements Stage<T> {
     @Override
     public <U> Stage<U> map(Function<? super T, ? extends U> function) {
         try {
+            if (cause != null) {
+                throw new RuntimeException(cause);
+            }
             U res = function.apply(value);
             return new MinimalStage<>(res, null);
         } catch (Exception e) {

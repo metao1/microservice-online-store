@@ -4,29 +4,25 @@ import static org.mockito.Mockito.verify;
 
 import com.metao.book.product.domain.mapper.ProductMapper;
 import com.metao.book.product.domain.service.ProductService;
-import com.metao.book.product.util.ProductTestUtils;
+import com.metao.book.product.util.ProductEntityUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class ProductDatabaseHandlerTest {
 
-    @InjectMocks
-    ProductMapper productMapper;
-
     @Mock
     ProductService productService;
 
     @Test
     void testOnProductCreatedEventThenSavesInDatabase() {
-        var productMsgHandler = new ProductDatabaseHandler(productService, productMapper);
-        var event = ProductTestUtils.productCreatedEvent();
-        var entity = productMapper.toEntity(event);
+        var productHandler = new ProductDatabaseHandler(productService);
+        var event = ProductEntityUtils.productCreatedEvent();
+        var entity = ProductMapper.fromProductCreatedEvent(event);
 
-        productMsgHandler.accept(event);
+        productHandler.accept(event);
 
         verify(productService).saveProduct(entity);
 

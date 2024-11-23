@@ -11,6 +11,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
@@ -46,8 +47,7 @@ public class ProductCategoryEntity {
 
     @Override
     public int hashCode() {
-        int result = category.hashCode();
-        return 31 * result;
+        return Objects.hash(category);
     }
 
     @Override

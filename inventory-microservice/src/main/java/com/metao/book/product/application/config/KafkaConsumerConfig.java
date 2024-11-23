@@ -27,20 +27,9 @@ public class KafkaConsumerConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
-    // Configuration for productPaymentEvent
     @Bean
     public ConsumerFactory<String, ProductCreatedEvent> productPaymentEventConsumerFactory() {
-        var ps = kafkaProperties.getProperties();
-        var props = new HashMap<String, Object>();
-
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaProtobufDeserializer.class.getName());
-        props.put(KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_VALUE_TYPE, ProductCreatedEvent.class.getName());
-
-        props.putAll(ps);
-
-        return new DefaultKafkaConsumerFactory<>(props);
+        return createConsumerFactory(ProductCreatedEvent.class);
     }
 
     @Bean
@@ -52,19 +41,16 @@ public class KafkaConsumerConfig {
         return factory;
     }
 
-    // Configuration for productCreatedEvent
-    @Bean
-    public ConsumerFactory<String, ProductCreatedEvent> productCreatedEventConsumerFactory() {
+    private <T> ConsumerFactory<String, T> createConsumerFactory(Class<T> clazz) {
         var ps = kafkaProperties.getProperties();
         var props = new HashMap<String, Object>();
 
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaProtobufDeserializer.class.getName());
+        props.put(KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_VALUE_TYPE, clazz.getName());
         props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 300000); // Increase poll interval
         props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 10); // Reduce poll records
-
-        props.put(KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_VALUE_TYPE, ProductCreatedEvent.class.getName());
 
         props.putAll(ps);
 

@@ -3,10 +3,9 @@ package com.metao.book.order.infrastructure.kafka;
 import com.google.protobuf.Timestamp;
 import com.metao.book.order.OrderCreatedEvent;
 import com.metao.book.order.OrderPaymentEvent;
-import com.metao.book.order.application.card.OrderRepository;
+import com.metao.book.order.domain.OrderService;
 import com.metao.book.order.domain.OrderStatus;
 import com.metao.book.order.domain.exception.OrderNotFoundException;
-import com.metao.book.order.domain.mapper.OrderMapper;
 import com.metao.book.product.event.ProductUpdatedEvent;
 import com.metao.book.shared.application.service.StageProcessor;
 import java.time.Instant;
@@ -25,8 +24,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 public class KafkaOrderListenerConfig {
 
     private final KafkaTemplate<String, ProductUpdatedEvent> kafkaOrderProducer;
-    private final OrderRepository orderRepository;
-    private final OrderMapper orderMapper;
+    private final OrderService orderService;
 
     @Value("${kafka.topic.product-updated.name}")
     private String orderTopic;
@@ -34,14 +32,14 @@ public class KafkaOrderListenerConfig {
     @RetryableTopic
     @KafkaListener(id = "${kafka.topic.order-created.id}", topics = "${kafka.topic.order-created.name}", groupId = "${kafka.topic.order-created.group-id}", containerFactory = "orderCreatedEventKafkaListenerContainerFactory")
     public void onOrderEvent(ConsumerRecord<String, OrderCreatedEvent> orderRecord) {
-        StageProcessor.accept(orderRecord.value()).map(orderMapper::toEntity).map(orderRepository::save)
+        StageProcessor.accept(orderRecord.value())
+            .map(KafkaOrderMapper::toEntity)
+            .map(orderService::save)
             .acceptExceptionally((entity, ex) -> {
-                if (ex != null) {
-                    log.error("can't save order {} , message :{}", entity, ex.getMessage());
-                } else if (entity != null) {
-                    log.info("order {} saved.", entity);
+                if (ex != null || entity == null) {
+                    log.error("error while consuming order, error: {}", ex == null ? "null" : ex.getMessage());
                 } else {
-                    log.error("can't save null order.");
+                    log.info("order {} saved.", entity);
                 }
             });
     }
@@ -54,11 +52,11 @@ public class KafkaOrderListenerConfig {
                 log.error("can't make order from event :{}", ex.getMessage());
                 return;
             }
-            var foundOrder = orderRepository.findByOrderId(orderPaymentEvent.getId())
+            var foundOrder = orderService.getOrderByOrderId(orderPaymentEvent.getId())
                 .orElseThrow(() -> new OrderNotFoundException(orderPaymentEvent.getId()));
             OrderStatus orderStatus = OrderStatus.valueOf(String.valueOf(orderPaymentEvent.getStatus()));
             foundOrder.setStatus(orderStatus);
-            orderRepository.save(foundOrder);
+            orderService.save(foundOrder);
             if (orderStatus == OrderStatus.CONFIRMED) {
                 log.info("order {} confirmed.", orderPaymentEvent.getId());
                 var productUpdatedEvent = ProductUpdatedEvent.newBuilder()

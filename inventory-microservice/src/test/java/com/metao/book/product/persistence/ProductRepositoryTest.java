@@ -7,7 +7,7 @@ import com.metao.book.product.domain.ProductEntity;
 import com.metao.book.product.domain.category.ProductCategoryEntity;
 import com.metao.book.product.infrastructure.repository.ProductRepository;
 import com.metao.book.product.infrastructure.repository.model.OffsetBasedPageRequest;
-import com.metao.book.product.util.ProductTestUtils;
+import com.metao.book.product.util.ProductEntityUtils;
 import jakarta.transaction.Transactional;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeAll;
@@ -21,11 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.TestPropertySource;
 
 @Transactional
-@TestPropertySource(
-    properties = {
-        "kafka.isEnabled=false"
-    }
-)
+@TestPropertySource(properties = {"kafka.isEnabled=false"})
 @DataJpaTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -39,7 +35,7 @@ class ProductRepositoryTest {
     @BeforeAll
     @DisplayName("Init database with a product")
     void init() {
-        var product = ProductTestUtils.createProductEntity();
+        var product = ProductEntityUtils.createProductEntity();
         productRepository.save(product);
     }
 
@@ -57,16 +53,14 @@ class ProductRepositoryTest {
     @DisplayName("Should find product by id when it already exists")
     void findProductById() {
         //GIVEN
-        var product = ProductTestUtils.createProductEntity("NEW_ASIN", "NEW_CATEGORY");
+        var product = ProductEntityUtils.createProductEntity("NEW_ASIN", "NEW_CATEGORY");
         productRepository.save(product);
 
         //WHEN
         var result = productRepository.findByAsin(product.getAsin());
 
         //THEN
-        assertThat(result)
-            .isPresent()
-            .isEqualTo(Optional.of(product));
+        assertThat(result).isPresent().isEqualTo(Optional.of(product));
     }
 
     @Test
@@ -76,22 +70,21 @@ class ProductRepositoryTest {
         var product = productRepository.findByAsin(ASIN).orElseThrow();
 
         //THEN
-        assertThat(product)
-            .isNotNull()
-            .isEqualTo(ProductTestUtils.createProductEntity());
+        assertThat(product).isNotNull().isEqualTo(ProductEntityUtils.createProductEntity());
     }
 
     @Test
     @DisplayName("Should find all products with offset when two items requested is ok")
     void findAllProductsWithOffsetWhenTwoItemsRequestedIsOk() {
-        var pes = ProductTestUtils.createMultipleProductEntity(2);
-        productRepository.saveAll(pes);
+        var pes = ProductEntityUtils.createMultipleProductEntity(2);
+        pes.forEach(productRepository::saveProduct);
         Pageable pageable = new OffsetBasedPageRequest(0, 2);
         var products = productRepository.findAll(pageable);
         var list = products.get();
-        assertThat(list)
-            .isNotNull()
-            .hasSize(2);
+        assertThat(list).isNotNull().hasSize(2).satisfies(p -> {
+            p.forEach(product -> assertThat(product.getAsin()).isNotNull());
+            p.forEach(product -> assertThat(product.getCategories()).hasSize(1).isNotNull());
+        });
     }
 
     @Test
@@ -101,14 +94,8 @@ class ProductRepositoryTest {
         var product = productRepository.findByAsin(ASIN).orElseThrow();
 
         //THEN
-        assertThat(product)
-            .extracting(ProductEntity::getCategories)
-            .satisfies(categories ->
-                assertThat(categories)
-                    .hasSize(1)
-                    .element(0)
-                    .extracting(ProductCategoryEntity::getCategory)
-                    .isEqualTo("category")
-            );
+        assertThat(product).extracting(ProductEntity::getCategories).satisfies(
+            categories -> assertThat(categories).hasSize(1).element(0).extracting(ProductCategoryEntity::getCategory)
+                .isEqualTo("category"));
     }
 }

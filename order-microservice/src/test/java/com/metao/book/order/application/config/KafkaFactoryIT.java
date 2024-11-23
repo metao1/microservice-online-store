@@ -26,12 +26,12 @@ import org.springframework.kafka.annotation.RetryableTopic;
 @Slf4j
 @Import({KafkaConfig.class})
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class KafkaRunnerIT extends BaseKafkaIT {
+class KafkaFactoryIT extends BaseKafkaIT {
 
     private final CountDownLatch latch = new CountDownLatch(5);
 
     @Autowired
-    KafkaRunner<OrderCreatedEvent> kafkaRunner;
+    KafkaFactory<OrderCreatedEvent> kafkaFactory;
 
     @RetryableTopic
     @KafkaListener(id = "order-listener-test", topics = "topic-test")
@@ -44,10 +44,10 @@ class KafkaRunnerIT extends BaseKafkaIT {
     @SneakyThrows
     @DisplayName("When sending Kafka multiple messages then all messages sent successfully")
     void testWhenSendingMultipleKafkaMessagesThenKafkaTemplateSent() {
-        kafkaRunner.subscribe();
-        IntStream.range(0, 10).boxed().forEach(i -> kafkaRunner.submit("topic-test", "key-" + i, getCreatedEvent()));
+        kafkaFactory.subscribe();
+        IntStream.range(0, 10).boxed().forEach(i -> kafkaFactory.submit("topic-test", "key-" + i, getCreatedEvent()));
 
-        kafkaRunner.publish();
+        kafkaFactory.publish();
         latch.await(5, TimeUnit.SECONDS);
 
         assertThat(latch.getCount()).isZero();

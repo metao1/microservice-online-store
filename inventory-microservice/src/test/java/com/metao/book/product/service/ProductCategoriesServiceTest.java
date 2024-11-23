@@ -6,7 +6,7 @@ import static org.mockito.Mockito.doReturn;
 import com.metao.book.product.domain.category.ProductCategoryEntity;
 import com.metao.book.product.domain.service.ProductCategoriesService;
 import com.metao.book.product.infrastructure.repository.ProductRepository;
-import com.metao.book.product.util.ProductTestUtils;
+import com.metao.book.product.util.ProductEntityUtils;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,7 +26,7 @@ class ProductCategoriesServiceTest {
 
     @Test
     void getProductCategories() {
-        var returnedProductCategories = Optional.of(ProductTestUtils.createProductEntity());
+        var returnedProductCategories = Optional.of(ProductEntityUtils.createProductEntity());
         doReturn(returnedProductCategories)
             .when(productRepository)
             .findByAsin(PRODUCT_ID);

@@ -6,7 +6,7 @@ import static org.mockito.Mockito.when;
 
 import com.metao.book.product.domain.service.ProductCategoriesService;
 import com.metao.book.product.infrastructure.repository.ProductRepository;
-import com.metao.book.product.util.ProductTestUtils;
+import com.metao.book.product.util.ProductEntityUtils;
 import java.util.Optional;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.DisplayName;
@@ -32,7 +32,7 @@ class ProductCategoriesServiceTest {
     void getProductCategoriesFound() {
 
         // GIVEN
-        var returnedProductEntity = Optional.of(ProductTestUtils.createProductEntity());
+        var returnedProductEntity = Optional.of(ProductEntityUtils.createProductEntity());
         when(productRepository.findByAsin(PRODUCT_ID))
             .thenReturn(returnedProductEntity);
 
@@ -42,7 +42,7 @@ class ProductCategoriesServiceTest {
         // THEN
         assertThat(productCategories)
             .isNotNull()
-            .isEqualTo(ProductTestUtils.createProductEntity().getCategories());
+            .isEqualTo(ProductEntityUtils.createProductEntity().getCategories());
     }
 
     @Test

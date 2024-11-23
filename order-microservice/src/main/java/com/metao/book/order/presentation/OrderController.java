@@ -1,9 +1,12 @@
 package com.metao.book.order.presentation;
 
-import com.metao.book.order.domain.dto.OrderDTO;
-import com.metao.book.order.domain.exception.OrderNotFoundException;
 import com.metao.book.order.domain.OrderService;
 import com.metao.book.order.domain.OrderStatus;
+import com.metao.book.order.domain.dto.OrderDTO;
+import com.metao.book.order.domain.exception.OrderNotFoundException;
+import com.metao.book.order.domain.mapper.OrderDTOMapper;
+import com.metao.book.order.infrastructure.kafka.KafkaOrderMapper;
+import com.metao.book.order.infrastructure.kafka.OrderEventHandler;
 import jakarta.validation.Valid;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +15,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,10 +28,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class OrderController {
 
     private final OrderService orderService;
+    private final OrderEventHandler orderEventHandler;
 
     @GetMapping
     public OrderDTO getOrderByOrderId(@RequestParam("order_id") String orderId) {
-        return orderService.getOrderByOrderId(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
+        return orderService.getOrderByOrderId(orderId)
+            .map(OrderDTOMapper::toOrderDTO)
+            .orElseThrow(() -> new OrderNotFoundException(orderId));
     }
 
     @GetMapping("/{pageSize}/{offset}/{sortByFieldName}")
@@ -38,11 +45,19 @@ public class OrderController {
         @PathVariable int pageSize,
         @PathVariable String sortByFieldName
     ) {
-        return orderService.getOrderByProductIdsAndOrderStatus(productIds, statuses, offset, pageSize, sortByFieldName);
+        return orderService.getOrderByProductIdsAndOrderStatus(productIds, statuses, offset, pageSize, sortByFieldName)
+            .map(OrderDTOMapper::toOrderDTO);
     }
 
     @PostMapping
     public String createOrder(@RequestBody @Valid OrderDTO orderDto) {
-        return orderService.createOrder(orderDto);
+        var orderCreatedEvent = KafkaOrderMapper.toOrderCreatedEvent(orderDto);
+        return orderEventHandler.publishOrderCreated(orderCreatedEvent);
+    }
+
+    @PutMapping
+    public String updateOrder(@RequestBody @Valid OrderDTO orderDto) {
+        var updatedOrder = KafkaOrderMapper.toOrderCreatedEvent(orderDto);
+        return orderEventHandler.publishOrderUpdated(updatedOrder);
     }
 }

@@ -8,17 +8,16 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Currency;
+import java.util.Objects;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.proxy.HibernateProxy;
 import org.springframework.stereotype.Indexed;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.Currency;
-import java.util.Objects;
 
 @Getter
 @Setter
@@ -38,13 +37,13 @@ public class OrderEntity extends AbstractEntity<OrderId> {
     @Column(name = "customer_id", nullable = false)
     private String customerId;
 
-    @Column(name = "quantity", nullable = false)
+    @Column(name = "quantity", nullable = false, precision = 10, scale = 2)
     private BigDecimal quantity;
 
-    @Column(name = "currency", nullable = false)
+    @Column(name = "currency", nullable = false, precision = 5, scale = 2)
     private Currency currency;
 
-    @Column(name = "price", nullable = false)
+    @Column(name = "price", nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
     @Column(name = "status", nullable = false)
@@ -72,14 +71,6 @@ public class OrderEntity extends AbstractEntity<OrderId> {
         this.createdTime = LocalDateTime.now();
     }
 
-    private static String buildOrderId(String customerId, String productId) {
-        return customerId +
-                "::" +
-                productId +
-                "::" +
-                System.currentTimeMillis();
-    }
-
     @Override
     public final boolean equals(Object o) {
         if (this == o) {
@@ -104,5 +95,13 @@ public class OrderEntity extends AbstractEntity<OrderId> {
     public final int hashCode() {
         return (this instanceof HibernateProxy proxy) ? (proxy).getHibernateLazyInitializer()
             .getPersistentClass().hashCode() : getClass().hashCode();
+    }
+
+    private static String buildOrderId(String customerId, String productId) {
+        return customerId +
+            "::" +
+            productId +
+            "::" +
+            System.currentTimeMillis();
     }
 }

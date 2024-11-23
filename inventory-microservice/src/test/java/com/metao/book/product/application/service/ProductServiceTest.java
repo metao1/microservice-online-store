@@ -1,14 +1,13 @@
 package com.metao.book.product.application.service;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.metao.book.product.domain.exception.ProductNotFoundException;
 import com.metao.book.product.domain.service.ProductService;
 import com.metao.book.product.infrastructure.repository.ProductRepository;
-import com.metao.book.product.util.ProductTestUtils;
+import com.metao.book.product.util.ProductEntityUtils;
 import jakarta.persistence.EntityManager;
 import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
@@ -43,7 +42,7 @@ class ProductServiceTest {
 
     @Test
     void getProductByIdIsFound() {
-        var pe = ProductTestUtils.createProductEntity();
+        var pe = ProductEntityUtils.createProductEntity();
 
         when(productRepo.findByAsin(pe.getAsin()))
             .thenReturn(Optional.of(pe));
@@ -54,21 +53,24 @@ class ProductServiceTest {
 
     @Test
     void testSaveProduct() {
-        var pe = ProductTestUtils.createProductEntity();
+        // GIVEN
+        var pe = ProductEntityUtils.createProductEntity();
         when(productService.canSaveProduct(pe)).thenReturn(true);
 
+        // WHEN
         productService.saveProduct(pe);
 
-        verify(productRepo).save(eq(pe));
+        // THEN
+        verify(productRepo).saveProduct(pe);
     }
 
     @Test
     void testSaveProductNotSaved() {
-        var pe = ProductTestUtils.createProductEntity();
+        var pe = ProductEntityUtils.createProductEntity();
         when(productService.canSaveProduct(pe)).thenReturn(false);
 
         productService.saveProduct(pe);
 
-        verify(productRepo, Mockito.never()).save(eq(pe));
+        verify(productRepo, Mockito.never()).saveProduct(pe);
     }
 }
