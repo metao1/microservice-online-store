@@ -34,11 +34,11 @@ public class KafkaOrderListenerConfig {
     public void onOrderEvent(ConsumerRecord<String, OrderCreatedEvent> orderRecord) {
         StageProcessor.accept(orderRecord.value())
             .map(KafkaOrderMapper::toEntity)
-            .map(orderService::save)
             .acceptExceptionally((entity, ex) -> {
                 if (ex != null || entity == null) {
                     log.error("error while consuming order, error: {}", ex == null ? "null" : ex.getMessage());
                 } else {
+                    orderService.save(entity);
                     log.info("order {} saved.", entity);
                 }
             });

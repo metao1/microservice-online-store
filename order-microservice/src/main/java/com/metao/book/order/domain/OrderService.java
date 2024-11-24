@@ -2,7 +2,6 @@ package com.metao.book.order.domain;
 
 import com.metao.book.order.application.card.OrderRepository;
 import com.metao.book.order.application.card.OrderSpecifications;
-import jakarta.validation.Valid;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -27,12 +26,6 @@ public class OrderService {
         var pageable = PageRequest.of(offset, pageSize, Sort.by(Sort.Direction.ASC, sortByFieldName));
         var spec = OrderSpecifications.findByOrdersByCriteria(productIds, statuses);
         return orderRepository.findAll(spec, pageable);
-    }
-
-    public String updateOrder(@Valid OrderEntity updatedOrder) {
-        //TODO validate the updatedOrder fields are compatible with business criteria
-        orderRepository.save(updatedOrder);
-        return updatedOrder.getOrderId();
     }
 
     public void save(OrderEntity foundOrder) {
