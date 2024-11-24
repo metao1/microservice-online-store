@@ -7,10 +7,12 @@ import com.metao.book.product.domain.category.dto.CategoryDTO;
 import com.metao.book.product.domain.dto.ProductDTO;
 import com.metao.book.product.event.Category;
 import com.metao.book.product.event.ProductCreatedEvent;
+import com.metao.book.product.event.ProductUpdatedEvent;
 import com.metao.book.shared.domain.financial.Money;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Currency;
 import java.util.List;
@@ -74,6 +76,17 @@ public class ProductMapper {
             Optional.of(event.getImageUrl()).orElse(""));
 
         pe.setBoughtTogether(event.getBoughtTogetherList());
+        pe.addCategories(mapCategoryDTOsToEntities(event.getCategoriesList()));
+        return pe;
+    }
+
+    public static ProductEntity fromProductUpdatedEvent(@NonNull ProductUpdatedEvent event) {
+        var pe = new ProductEntity(event.getAsin(), event.getTitle(), event.getDescription(),
+            BigDecimal.valueOf(event.getVolume()),
+            new Money(Currency.getInstance(event.getCurrency()), BigDecimal.valueOf(event.getPrice())),
+            Optional.of(event.getImageUrl()).orElse(""));
+
+        pe.setUpdateTime(LocalDateTime.from(Instant.ofEpochSecond(event.getUpdatedTime().getSeconds())));
         pe.addCategories(mapCategoryDTOsToEntities(event.getCategoriesList()));
         return pe;
     }

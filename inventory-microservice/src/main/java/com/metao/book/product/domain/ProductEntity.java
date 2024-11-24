@@ -12,6 +12,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Version;
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Currency;
 import java.util.HashSet;
 import java.util.List;
@@ -72,6 +73,12 @@ public class ProductEntity {
     @Column(name = "bought_together")
     private String boughtTogether;
 
+    @Column(name = "created_time", nullable = false)
+    private LocalDateTime createdTime;
+
+    @Column(name = "updated_time", nullable = false)
+    private LocalDateTime updateTime;
+
     @Exclude
     @BatchSize(size = 20)
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
@@ -97,6 +104,7 @@ public class ProductEntity {
         this.priceValue = money.doubleAmount();
         this.priceCurrency = money.currency();
         this.imageUrl = imageUrl;
+        this.createdTime = LocalDateTime.now();
     }
 
     public void addCategory(@NonNull ProductCategoryEntity category) {

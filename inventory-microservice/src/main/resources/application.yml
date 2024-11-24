@@ -71,10 +71,14 @@ product-sample-data-path: data/products.txt
 kafka:
   isEnabled: ${KAFKA_ENABLED:true}
   topic:
-    product:
-      id: "product-id"
+    product-created:
+      id: "product-created-id"
       name: "product-created"
       group-id: "product-created-group"
+    product-updated:
+      id: "product-updated-id"
+      name: "product-updated"
+      group-id: "product-updated-group"
 
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%t]){yellow} %clr(:){red} %clr(%m){faint}%n"

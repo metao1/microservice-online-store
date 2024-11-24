@@ -32,13 +32,4 @@ public class OrderEventHandler {
                 return orderCreatedEvent.getId();
             });
     }
-
-    public String publishOrderUpdated(OrderCreatedEvent event) {
-        return StageProcessor.accept(event)
-            .applyExceptionally((orderCreatedEvent, exp) -> {
-                kafkaFactory.submit(orderTopic, orderCreatedEvent.getCustomerId(), orderCreatedEvent);
-                kafkaFactory.publish();
-                return orderCreatedEvent.getId();
-            });
-    }
 }

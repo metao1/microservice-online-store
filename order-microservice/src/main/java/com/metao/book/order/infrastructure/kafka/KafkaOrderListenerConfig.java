@@ -61,8 +61,10 @@ public class KafkaOrderListenerConfig {
                 log.info("order {} confirmed.", orderPaymentEvent.getId());
                 var productUpdatedEvent = ProductUpdatedEvent.newBuilder()
                     .setUpdatedTime(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
-                    .setAsin(orderPaymentEvent.getId()).setCurrency(foundOrder.getCurrency().toString())
-                    .setPrice(orderPaymentEvent.getPrice()).build();
+                    .setAsin(orderPaymentEvent.getId())
+                    .setCurrency(foundOrder.getCurrency().toString())
+                    .setPrice(orderPaymentEvent.getPrice())
+                    .build();
                 kafkaOrderProducer.send(orderTopic, orderPaymentEvent.getCustomerId(), productUpdatedEvent);
             }
         });
