@@ -102,7 +102,7 @@ services:
       POSTGRES_PASSWORD: bookstore
 
   order-microservice:
-    image: online-book-store/order-microservice:0.0.1
+    image: online-store/order-microservice:0.0.1
     container_name: order-microservice
     hostname: order-microservice
     #restart: on-failure
@@ -125,7 +125,7 @@ services:
       - kafka-schema-registry
 
   inventory-microservice:
-    image: online-book-store/inventory-microservice:0.0.2
+    image: online-store/inventory-microservice:0.0.2
     container_name: inventory-microservice
     hostname: inventory-microservice
     #restart: on-failure

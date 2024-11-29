@@ -6,7 +6,7 @@ pluginManagement {
   }
 }
 
-rootProject.name = 'microservice-online-book-store'
+rootProject.name = 'microservice-online-store'
 
 include(':inventory-microservice')
 include(':order-microservice')

@@ -1,4 +1,4 @@
-[![Java CI with Gradle](https://github.com/metao1/microservice-online-book-store/actions/workflows/gradle.yml/badge.svg)](https://github.com/metao1/microservice-online-book-store/actions/workflows/gradle.yml)
+[![Java CI with Gradle](https://github.com/metao1/microservice-online-store/actions/workflows/gradle.yml/badge.svg)](https://github.com/metao1/microservice-online-store/actions/workflows/gradle.yml)
 
 # Online Book Store, a modern E-commerce book management web application
 
