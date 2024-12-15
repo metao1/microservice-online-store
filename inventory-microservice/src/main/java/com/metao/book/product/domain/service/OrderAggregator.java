@@ -1,10 +1,8 @@
 package com.metao.book.product.domain.service;
 
-import java.math.BigDecimal;
-
 import com.metao.book.product.application.service.Aggregator;
 import com.metao.book.product.event.ProductCreatedEvent;
-
+import java.math.BigDecimal;
 import org.springframework.stereotype.Component;
 
 @Component

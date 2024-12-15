@@ -1,6 +1,7 @@
-package com.metao.book.order.application.config;
+package com.metao.book.shared.application.kafka;
 
 import com.metao.book.shared.application.service.EventHandler;
+import jakarta.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -9,25 +10,28 @@ import java.util.concurrent.Delayed;
 import java.util.concurrent.Flow.Subscriber;
 import java.util.concurrent.Flow.Subscription;
 import java.util.concurrent.TimeUnit;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
-import org.springframework.stereotype.Component;
 
 /**
  * Kafka Runner helps to submit Kafka messages asynchronously using lightweight Executor On event of
  * {@link ContextClosedEvent} the application will gracefully shut down and wait for in-flight tasks to complete.
  */
 @Slf4j
-@Component
 @RequiredArgsConstructor
-public class KafkaFactory<V> extends EventHandler<String, List<CompletableFuture<SendResult<String, V>>>> {
+public class KafkaFactory<V> extends EventHandler<CompletableFuture<SendResult<String, V>>> {
 
     private final DelayQueue<Message<String, V>> delayeds = new DelayQueue<>();
+    @Setter
+    private String topic;
+    @Getter
+    private final Class<V> type;
     private final KafkaTemplate<String, V> kafkaTemplate;
     private final List<CompletableFuture<SendResult<String, V>>> list = new ArrayList<>();
 
@@ -39,7 +43,7 @@ public class KafkaFactory<V> extends EventHandler<String, List<CompletableFuture
             }
 
             @Override
-            public void onNext(List<CompletableFuture<SendResult<String, V>>> item) {
+            public void onNext(CompletableFuture<SendResult<String, V>> item) {
                 log.debug("Item received: {}", item);
             }
 
@@ -55,7 +59,7 @@ public class KafkaFactory<V> extends EventHandler<String, List<CompletableFuture
         });
     }
 
-    public void submit(String topic, String key, V event) {
+    public void submit(String key, V event) {
         delayeds.add(new Message<>(topic, key, event, 2000));
     }
 
@@ -64,11 +68,14 @@ public class KafkaFactory<V> extends EventHandler<String, List<CompletableFuture
     }
 
     @Override
-    public List<CompletableFuture<SendResult<String, V>>> getEvent() {
-        for (Message<String, V> delayed : delayeds) {
-            list.add(kafkaTemplate.send(delayed.topic, delayed.key, delayed.message));
+    public CompletableFuture<SendResult<String, V>> getEvent() {
+        CompletableFuture<SendResult<String, V>> send = null;
+        if (!delayeds.isEmpty()) {
+            final Message<String, V> message = delayeds.remove();
+            send = kafkaTemplate.send(message.topic, message.key,
+                message.message);
         }
-        return list;
+        return send;
     }
 
     @EventListener
@@ -79,12 +86,12 @@ public class KafkaFactory<V> extends EventHandler<String, List<CompletableFuture
     private record Message<K, V>(String topic, K key, V message, long delay) implements Delayed {
 
         @Override
-        public int compareTo(@NotNull Delayed o) {
+        public int compareTo(@Nonnull Delayed o) {
             return 0;
         }
 
         @Override
-        public long getDelay(@NotNull TimeUnit unit) {
+        public long getDelay(@Nonnull TimeUnit unit) {
             return unit.toMillis(delay);
         }
     }

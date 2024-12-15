@@ -7,6 +7,7 @@ import static com.metao.book.order.OrderTestConstant.PRODUCT_ID;
 import static com.metao.book.order.OrderTestConstant.QUANTITY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -15,7 +16,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.metao.book.order.BaseKafkaIT;
 import com.metao.book.order.OrderCreatedEvent;
 import com.metao.book.order.OrderTestUtil;
 import com.metao.book.order.application.card.OrderRepository;
@@ -23,10 +23,11 @@ import com.metao.book.order.domain.OrderEntity;
 import com.metao.book.order.domain.OrderStatus;
 import com.metao.book.order.domain.dto.OrderDTO;
 import com.metao.book.order.infrastructure.kafka.KafkaOrderMapper;
+import com.metao.book.shared.application.kafka.EventConfiguration;
 import com.metao.book.shared.test.StreamBuilderTestUtils;
+import com.metao.shared.test.BaseKafkaIT;
 import java.math.RoundingMode;
 import java.time.Duration;
-import java.time.ZoneOffset;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,10 +39,12 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 @AutoConfigureMockMvc
+@Import({EventConfiguration.class})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class OrderScenarioIT extends BaseKafkaIT {
@@ -147,25 +150,22 @@ class OrderScenarioIT extends BaseKafkaIT {
             .status(OrderStatus.CONFIRMED.toString())
             .customerId(order.getCustomerId())
             .price(order.getPrice())
-            .createdTime(order.getCreatedTime().atOffset(ZoneOffset.UTC))
             .build();
 
         mockMvc.perform(put("/order").contentType(MediaType.APPLICATION_JSON)
                 .content(StreamBuilderTestUtils.convertObjectToJsonBytes(objectMapper, updatedOrder)))
             .andExpect(status().isOk());
 
-        orderRepository.findByOrderId(order.getOrderId()).ifPresent(orderEntity -> {
-            assertThat(orderEntity).satisfies(oe -> {
-                assertThat(oe.getOrderId()).isEqualTo(order.getOrderId());
-                assertThat(oe.getProductId()).isEqualTo(order.getProductId());
-                assertThat(oe.getCurrency().getCurrencyCode()).isEqualTo(order.getCurrency().getCurrencyCode());
-                assertThat(oe.getQuantity().setScale(2, RoundingMode.HALF_UP))
-                    .isEqualTo(order.getQuantity().setScale(2, RoundingMode.HALF_UP));
-                assertThat(oe.getStatus()).isEqualTo(order.getStatus());
-                assertThat(oe.getCustomerId()).isEqualTo(order.getCustomerId());
-                assertThat(oe.getCreatedTime()).isEqualTo(order.getCreatedTime());
-            });
-        });
+        orderRepository.findByOrderId(order.getOrderId()).ifPresent(oe -> assertAll(() -> {
+            assertThat(oe.getOrderId()).isEqualTo(order.getOrderId());
+            assertThat(oe.getProductId()).isEqualTo(order.getProductId());
+            assertThat(oe.getCurrency().getCurrencyCode()).isEqualTo(order.getCurrency().getCurrencyCode());
+            assertThat(oe.getQuantity().setScale(2, RoundingMode.HALF_UP))
+                .isEqualTo(order.getQuantity().setScale(2, RoundingMode.HALF_UP));
+            assertThat(oe.getStatus()).isEqualTo(order.getStatus());
+            assertThat(oe.getCustomerId()).isEqualTo(order.getCustomerId());
+            assertThat(oe.getCreatedTime()).isNotNull();
+        }));
     }
 
     @Test

@@ -19,7 +19,7 @@ public interface ProductRepository extends PagingAndSortingRepository<ProductEnt
     @Query("""
             select distinct p, pc
                 from product p
-                join fetch p.categories pc
+                left join fetch p.categories pc
                      where p.asin = :asin
         """)
     Optional<ProductEntity> findByAsin(@Param("asin") String asin);
@@ -27,7 +27,7 @@ public interface ProductRepository extends PagingAndSortingRepository<ProductEnt
     @Query("""
             select distinct p, pc
                 from product p
-                join fetch p.categories pc
+                left join fetch p.categories pc
                      where pc.category = :category
         """)
     List<ProductEntity> findAllByCategories(@Param("category") String category, Pageable pageable);

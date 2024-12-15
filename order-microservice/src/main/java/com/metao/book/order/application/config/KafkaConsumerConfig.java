@@ -2,6 +2,7 @@ package com.metao.book.order.application.config;
 
 import com.metao.book.order.OrderCreatedEvent;
 import com.metao.book.order.OrderPaymentEvent;
+import com.metao.book.shared.OrderUpdatedEvent;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
 import java.util.HashMap;
@@ -75,6 +76,31 @@ public class KafkaConsumerConfig {
         factory.setConcurrency(3);
         factory.getContainerProperties().setPollTimeout(3000);
 
+        return factory;
+    }
+
+    // Configuration for OrderCreatedEvent
+    @Bean
+    public ConsumerFactory<String, OrderUpdatedEvent> orderUpdatedEventConsumerFactory() {
+        var ps = kafkaProperties.getProperties();
+        var props = new HashMap<String, Object>();
+
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaProtobufDeserializer.class.getName());
+        props.put(KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_VALUE_TYPE, OrderUpdatedEvent.class.getName());
+
+        props.putAll(ps);
+
+        return new DefaultKafkaConsumerFactory<>(props);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, OrderUpdatedEvent> orderUpdatedEventKafkaListenerContainerFactory() {
+        var factory = new ConcurrentKafkaListenerContainerFactory<String, OrderUpdatedEvent>();
+        factory.setConsumerFactory(orderUpdatedEventConsumerFactory());
+        factory.setConcurrency(3);
+        factory.getContainerProperties().setPollTimeout(3000);
         return factory;
     }
 

@@ -1,27 +1,37 @@
 [![Java CI with Gradle](https://github.com/metao1/microservice-online-store/actions/workflows/gradle.yml/badge.svg)](https://github.com/metao1/microservice-online-store/actions/workflows/gradle.yml)
 
-# Online Book Store, a modern E-commerce book management web application
+# Microservice Online Shop, a modern E-commerce book management web application using Event-Driven and microservice architecture
 
-Online Book Store is a modern E-commerce book management web application, that is built with modern tech-stacks and
-advanced features. It built with Java Spring boot as backend and React as frontend over a Microservice and event-driven
-architecture based-on Apache Kafka.
+Online Store is a modern E-commerce system for retailing and product management using web application, built using modern tech-stack. It built with Java Spring boot as backend and React as frontend over a Microservice and event-driven communicating based-on Apache Kafka.
+
+### Event Storming for understanding the system
+![event-storming](img/eventstorming.png)
+
+### Online Shop overall architecture
+![online-shop-architecture](img/online-shop-architecture.png)
+
+----------------------------------------------------------------
+
+### component diagram and sequence diagram - microservices rely on event-driven architecture
 
 ![order-payment-inventory-user-diagrams](img/order-payment-inventory-user-diagrams.png)
 
-### Microservice architecture
+----------------------------------------------------------------
 
-We have several microservices, each of which is located under its directory.
+### Components
+
+We have several microservices as components of online shop system, each of which is located under its directory in the project.
 
 #### 1. Order Microservice:
 
 Responsible to manage orders
 
-- Order fulfillment: [work in progress]
+- Order fulfillment:
     - Is a component inside the order microservice
 
-#### 2. Inventory Microservice:
+#### 2. Inventory or Product Microservice:
 
-Responsible to manage inventory and available books.
+Responsible to managing our products in inventory.
 
 #### 3. Payment Microservice: [work in progress]
 
@@ -62,7 +72,7 @@ The application is open in browser on http://localhost:3000
 You can now start browsing products and purchasing some of them. If you like you can add new product as
 from 1500 categories. Then in checkout you can finish your orders and get a confirmation number to track your purchases.
 
-### Bookstore after frontend runs, screenshot
+### Online Store after frontend runs, screenshot
 
 ![product](img/Screenshot-2020-03-31.png)
 

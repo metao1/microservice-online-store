@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class EventHandler<K, V> implements Publisher<V> {
+public abstract class EventHandler<V> implements Publisher<V> {
 
     private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();// virtual-thread
     private Subscription subscription;

@@ -60,19 +60,16 @@ spring:
 
 kafka:
   isEnabled: ${KAFKA_ENABLED:true}
-  topic:
+  topics:
     order-created:
       id: "order-created-id"
       name: "order-created"
       group-id: "order-created-group"
-    product-updated:
-      id: "product-updated-id"
-      name: "product-updated"
-      group-id: "product-updated-group"
-    order-payment:
-      id: "order-payment-id"
-      name: "order-payment"
-      group-id: "order-payment-group"
+    order-updated:
+      id: "order-updated-id"
+      name: "order-updated"
+      group-id: "order-updated-group"
+
 
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%t]){yellow} %clr(:){red} %clr(%m){faint}%n"

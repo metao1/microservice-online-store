@@ -3,7 +3,7 @@ package com.metao.book.product.infrastructure.factory.handler;
 import com.metao.book.product.domain.mapper.ProductMapper;
 import com.metao.book.product.domain.service.ProductService;
 import com.metao.book.product.event.ProductCreatedEvent;
-import com.metao.book.product.event.ProductUpdatedEvent;
+import com.metao.book.shared.ProductUpdatedEvent;
 import com.metao.book.shared.application.service.StageProcessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

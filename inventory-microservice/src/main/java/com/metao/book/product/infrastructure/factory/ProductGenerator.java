@@ -28,7 +28,7 @@ public class ProductGenerator {
     @Value("${product-sample-data-path}")
     String productsDataPath;
 
-    @Value("${kafka.topic.product.name}")
+    @Value("${kafka.topic.product-created.name}")
     String productTopic;
 
     /**

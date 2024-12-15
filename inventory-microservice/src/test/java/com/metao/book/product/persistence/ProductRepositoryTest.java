@@ -21,8 +21,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.TestPropertySource;
 
 @Transactional
-@TestPropertySource(properties = {"kafka.isEnabled=false"})
 @DataJpaTest
+@TestPropertySource(properties = {"kafka.isEnabled=false"})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class ProductRepositoryTest {
@@ -35,6 +35,7 @@ class ProductRepositoryTest {
     @BeforeAll
     @DisplayName("Init database with a product")
     void init() {
+        productRepository.deleteAll();
         var product = ProductEntityUtils.createProductEntity();
         productRepository.save(product);
     }

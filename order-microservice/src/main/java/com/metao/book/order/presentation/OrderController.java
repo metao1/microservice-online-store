@@ -6,10 +6,11 @@ import com.metao.book.order.domain.dto.OrderDTO;
 import com.metao.book.order.domain.exception.OrderNotFoundException;
 import com.metao.book.order.domain.mapper.OrderDTOMapper;
 import com.metao.book.order.infrastructure.kafka.KafkaOrderMapper;
-import com.metao.book.order.infrastructure.kafka.OrderEventHandler;
+import com.metao.book.shared.application.kafka.OrderEventHandler;
 import jakarta.validation.Valid;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @RequiredArgsConstructor
+@Import(OrderEventHandler.class)
 @RequestMapping(path = "/order")
 public class OrderController {
 
@@ -52,12 +54,12 @@ public class OrderController {
     @PostMapping
     public String createOrder(@RequestBody @Valid OrderDTO orderDto) {
         var orderCreatedEvent = KafkaOrderMapper.toOrderCreatedEvent(orderDto);
-        return orderEventHandler.publishOrderCreated(orderCreatedEvent);
+        return orderEventHandler.handle(orderCreatedEvent.getId(), orderCreatedEvent);
     }
 
     @PutMapping
     public String updateOrder(@RequestBody @Valid OrderDTO orderDto) {
-        var updatedOrder = KafkaOrderMapper.toOrderCreatedEvent(orderDto);
-        return orderEventHandler.publishOrderCreated(updatedOrder);
+        var updatedOrder = KafkaOrderMapper.toOrderUpdatedEvent(orderDto);
+        return orderEventHandler.handle(updatedOrder.getId(), updatedOrder);
     }
 }

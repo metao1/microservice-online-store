@@ -1,7 +1,7 @@
 package com.metao.book.product.application.config;
 
 import com.metao.book.product.event.ProductCreatedEvent;
-import com.metao.book.product.event.ProductUpdatedEvent;
+import com.metao.book.shared.ProductUpdatedEvent;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
 import java.util.HashMap;
@@ -42,7 +42,7 @@ public class KafkaConsumerConfig {
     public ConcurrentKafkaListenerContainerFactory<String, ProductCreatedEvent> productCreatedEventKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, ProductCreatedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(productPaymentEventConsumerFactory());
-        factory.setConcurrency(1);
+        factory.setConcurrency(10);
 
         return factory;
     }
@@ -51,7 +51,7 @@ public class KafkaConsumerConfig {
     public ConcurrentKafkaListenerContainerFactory<String, ProductUpdatedEvent> productUpdatedEventKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, ProductUpdatedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(productUpdatedEventConsumerFactory());
-        factory.setConcurrency(1);
+        factory.setConcurrency(10);
 
         return factory;
     }

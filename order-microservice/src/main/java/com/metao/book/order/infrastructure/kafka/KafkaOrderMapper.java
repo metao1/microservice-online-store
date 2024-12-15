@@ -11,6 +11,7 @@ import com.metao.book.order.OrderCreatedEvent;
 import com.metao.book.order.OrderCreatedEvent.Status;
 import com.metao.book.order.domain.OrderEntity;
 import com.metao.book.order.domain.dto.OrderDTO;
+import com.metao.book.shared.OrderUpdatedEvent;
 import com.metao.book.shared.domain.financial.Money;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -32,25 +33,36 @@ public class KafkaOrderMapper {
             .build();
     }
 
-    public static OrderCreatedEvent toOrderUpdatedEvent(OrderDTO dto) {
-        OrderCreatedEvent.Status status = switch (dto.status()) {
-            case "SUBMITTED" -> Status.SUBMITTED;
-            case "REJECTED" -> Status.REJECTED;
-            case "CONFIRMED" -> Status.CONFIRMED;
-            case "ROLLED_BACK" -> Status.ROLLED_BACK;
-            case "NEW" -> Status.NEW;
-            default -> throw new IllegalStateException("Unexpected value: " + dto.status());
-        };
-        return OrderCreatedEvent.newBuilder()
+    public static OrderUpdatedEvent toOrderUpdatedEvent(OrderDTO dto) {
+        return OrderUpdatedEvent.newBuilder()
             .setId(dto.orderId())
-            .setCreateTime(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
-            .setStatus(status)
             .setCustomerId(dto.customerId())
             .setProductId(dto.productId())
             .setCurrency(dto.currency())
             .setQuantity(dto.quantity().doubleValue())
             .setPrice(dto.price().doubleValue())
             .build();
+    }
+
+    public static OrderEntity toEntity(OrderUpdatedEvent oue) {
+        var money = new Money(Currency.getInstance(oue.getCurrency()), BigDecimal.valueOf(oue.getPrice()));
+
+        var status = switch (oue.getStatus()) {
+            case SUBMITTED -> SUBMITTED;
+            case REJECTED -> REJECTED;
+            case NEW -> NEW;
+            case CONFIRMED -> CONFIRMED;
+            case ROLLED_BACK -> ROLLED_BACK;
+            case UNRECOGNIZED -> null;
+        };
+
+        return new OrderEntity(
+            oue.getCustomerId(),
+            oue.getProductId(),
+            BigDecimal.valueOf(oue.getQuantity()),
+            money,
+            status
+        );
     }
 
     public static OrderEntity toEntity(OrderCreatedEvent oce) {

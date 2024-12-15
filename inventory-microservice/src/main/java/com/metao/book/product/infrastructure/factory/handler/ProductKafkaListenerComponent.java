@@ -1,7 +1,7 @@
 package com.metao.book.product.infrastructure.factory.handler;
 
 import com.metao.book.product.event.ProductCreatedEvent;
-import com.metao.book.product.event.ProductUpdatedEvent;
+import com.metao.book.shared.ProductUpdatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;

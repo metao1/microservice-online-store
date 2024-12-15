@@ -17,7 +17,12 @@ import org.springframework.validation.annotation.Validated;
 public class KafkaConfig {
 
     @Bean
-    public NewTopic productTopic(@Value("${kafka.topic.product.name}") String topic) {
+    public NewTopic productCreatedTopic(@Value("${kafka.topic.product-created.name}") String topic) {
+        return createTopic(topic);
+    }
+
+    @Bean
+    public NewTopic productUpdatedTopic(@Value("${kafka.topic.product-updated.name}") String topic) {
         return createTopic(topic);
     }
 

@@ -22,7 +22,7 @@ class EventHandlerTest {
         Subscriber<Integer> subscriber = mock(Subscriber.class);
         doNothing().when(subscriber).onNext(anyInt());
 
-        var eventHandler = new EventHandler<String, Integer>() {
+        var eventHandler = new EventHandler<Integer>() {
 
             @Override
             public Integer getEvent() {
@@ -45,7 +45,7 @@ class EventHandlerTest {
         //GIVEN
         var payload = "This is a test event";
         Subscriber<String> subscriber = mock(Subscriber.class);
-        var eventHandler = new EventHandler<String, String>() {
+        var eventHandler = new EventHandler<String>() {
             @Override
             public String getEvent() {
                 return payload;

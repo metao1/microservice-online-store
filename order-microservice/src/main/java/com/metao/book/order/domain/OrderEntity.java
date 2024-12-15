@@ -54,20 +54,33 @@ public class OrderEntity extends AbstractEntity<OrderId> {
     private LocalDateTime createdTime;
 
     public OrderEntity(
+        String orderId,
+        String productId,
+        String customerId,
+        BigDecimal quantity,
+        Currency currency,
+        BigDecimal price,
+        OrderStatus status
+    ) {
+        super(DomainObjectId.randomId(OrderId.class));
+        this.orderId = orderId;
+        this.productId = productId;
+        this.customerId = customerId;
+        this.quantity = quantity;
+        this.currency = currency;
+        this.price = price;
+        this.status = status;
+    }
+
+    public OrderEntity(
         String customerId,
         String productId,
         BigDecimal quantity,
         Money money,
         OrderStatus status
     ) {
-        super(DomainObjectId.randomId(OrderId.class));
-        this.orderId = buildOrderId(customerId, productId);
-        this.status = status;
-        this.productId = productId;
-        this.customerId = customerId;
-        this.quantity = quantity;
-        this.currency = money.currency();
-        this.price = money.doubleAmount();
+        this(buildOrderId(customerId, productId), productId, customerId, quantity, money.currency(),
+            money.doubleAmount(), status);
         this.createdTime = LocalDateTime.now();
     }
 

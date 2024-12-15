@@ -1,0 +1,46 @@
+plugins {
+  id 'java-library'
+  id 'maven-publish'
+}
+
+def commitRefName = System.getenv("CI_COMMIT_REF_NAME") ?: "1.0"
+
+version = commitRefName
+group = "com.metao.book.shared.test"
+
+ext {
+  testcontainersVersion = "1.17.6"
+}
+
+dependencies {
+  implementation "org.testcontainers:testcontainers"
+  implementation 'org.testcontainers:kafka'
+  implementation "org.testcontainers:junit-jupiter"
+  implementation "org.springframework.boot:spring-boot-starter-test"
+  implementation platform("org.testcontainers:testcontainers-bom:${testcontainersVersion}")
+}
+
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+      from components.java
+      groupId = 'com.metao.book.shared'
+      artifactId = 'shared-test'
+      version = commitRefName
+    }
+  }
+  repositories {
+    maven {
+      name = "local"
+      url = uri("file://${System.getProperty('user.home')}/.m2/repository")
+    }
+  }
+}
+
+dependencyManagement {
+  imports {
+    mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
+  }
+}
+
+

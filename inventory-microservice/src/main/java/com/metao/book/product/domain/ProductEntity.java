@@ -105,6 +105,7 @@ public class ProductEntity {
         this.priceCurrency = money.currency();
         this.imageUrl = imageUrl;
         this.createdTime = LocalDateTime.now();
+        this.updateTime = createdTime;
     }
 
     public void addCategory(@NonNull ProductCategoryEntity category) {
@@ -113,19 +114,23 @@ public class ProductEntity {
         }
         categories.add(category);
         category.getProductEntities().add(this);
+        this.updateTime = LocalDateTime.now();
     }
 
     public void setBoughtTogether(@NonNull List<String> asin) {
         this.boughtTogether = String.join(",", asin);
+        this.updateTime = LocalDateTime.now();
     }
 
     public void addCategories(@NonNull Set<ProductCategoryEntity> categories) {
         categories.forEach(this::addCategory);
+        this.updateTime = LocalDateTime.now();
     }
 
     public void removeCategory(@NonNull ProductCategoryEntity category) {
         categories.remove(category);
         category.getProductEntities().remove(this);
+        this.updateTime = LocalDateTime.now();
     }
 
     @Override

@@ -36,8 +36,7 @@ public class ProductController {
     private final KafkaTemplate<String, ProductCreatedEvent> kafkaTemplate;
     private final ProductService productService;
 
-    @Value("${kafka.topic.product.name}")
-    private String productTopic;
+
 
     @GetMapping(value = "/{asin}")
     public ProductDTO productDetails(@PathVariable String asin) throws ProductNotFoundException {
@@ -57,7 +56,10 @@ public class ProductController {
     @PostMapping
     @SneakyThrows
     @ResponseStatus(HttpStatus.CREATED)
-    public boolean saveProduct(@RequestBody ProductDTO productDTO) {
+    public boolean saveProduct(
+        @RequestBody ProductDTO productDTO,
+        @Value("${kafka.topic.product-created.name}") String productTopic)
+    {
         return StageProcessor.accept(productDTO)
             .map(ProductMapper::toProductCreatedEvent)
             .applyExceptionally((event, exp) -> {

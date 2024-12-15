@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package com.metao.book;
+
+option java_package = "com.metao.book.shared";
+
+message Category {
+  string name = 1;
+}

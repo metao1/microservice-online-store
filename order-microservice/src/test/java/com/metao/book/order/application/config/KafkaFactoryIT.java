@@ -7,8 +7,11 @@ import static com.metao.book.order.OrderTestConstant.PRODUCT_ID;
 import static com.metao.book.order.OrderTestConstant.QUANTITY;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.metao.book.order.BaseKafkaIT;
 import com.metao.book.order.OrderCreatedEvent;
+import com.metao.book.shared.application.kafka.EventConfiguration;
+import com.metao.book.shared.application.kafka.KafkaFactory;
+import com.metao.shared.test.BaseKafkaIT;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
@@ -24,18 +27,18 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
 
 @Slf4j
-@Import({KafkaConfig.class})
+@Import({EventConfiguration.class})
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class KafkaFactoryIT extends BaseKafkaIT {
 
     private final CountDownLatch latch = new CountDownLatch(5);
 
     @Autowired
-    KafkaFactory<OrderCreatedEvent> kafkaFactory;
+    Map<Class<?>, KafkaFactory<?>> kafkaFactoryMap;
 
     @RetryableTopic
-    @KafkaListener(id = "order-listener-test", topics = "topic-test")
-    public void onEvent(ConsumerRecord<String, String> consumerRecord) {
+    @KafkaListener(id = "order-listener-test", topics = "order-created")
+    public void onEvent(ConsumerRecord<String, OrderCreatedEvent> consumerRecord) {
         log.info("Consumed message -> {}", consumerRecord.offset());
         latch.countDown();
     }
@@ -43,9 +46,11 @@ class KafkaFactoryIT extends BaseKafkaIT {
     @Test
     @SneakyThrows
     @DisplayName("When sending Kafka multiple messages then all messages sent successfully")
-    void testWhenSendingMultipleKafkaMessagesThenKafkaTemplateSent() {
-        kafkaFactory.subscribe();
-        IntStream.range(0, 10).boxed().forEach(i -> kafkaFactory.submit("topic-test", "key-" + i, getCreatedEvent()));
+    void testWhenSendingMultipleKafkaMessagesThenSentSuccessfully() {
+        KafkaFactory<OrderCreatedEvent> kafkaFactory = (KafkaFactory<OrderCreatedEvent>) kafkaFactoryMap.get(
+            OrderCreatedEvent.class);
+
+        IntStream.range(0, 10).boxed().forEach(i -> kafkaFactory.submit("order-created", getCreatedEvent()));
 
         kafkaFactory.publish();
         latch.await(5, TimeUnit.SECONDS);

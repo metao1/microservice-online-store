@@ -1,19 +1,22 @@
 package com.metao.book.order.application.config;
 
+import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import com.metao.book.shared.application.kafka.KafkaFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
+import java.time.Duration;
 
 @ExtendWith(MockitoExtension.class)
 class KafkaFactoryTest {
 
     KafkaTemplate<String, String> kafkaTemplate = mock(KafkaTemplate.class);
 
-    KafkaFactory<String> kafkaFactory = new KafkaFactory<>(kafkaTemplate);
+    KafkaFactory<String> kafkaFactory = new KafkaFactory<>(String.class, kafkaTemplate);
 
     @Test
     void testWhenSendingKafkaMessageThenKafkaTemplateSent() {
@@ -24,11 +27,13 @@ class KafkaFactoryTest {
 
         //WHEN
         kafkaFactory.subscribe();
-        kafkaFactory.submit(topic, key, message);
+        kafkaFactory.setTopic(topic);
+        kafkaFactory.submit(key, message);
         kafkaFactory.publish();
 
         //THEN
-        verify(kafkaTemplate).send(topic, key, message);
+        await().atMost(Duration.ofSeconds(5))
+            .untilAsserted(() -> verify(kafkaTemplate).send(topic, key, message));
     }
 
 }
