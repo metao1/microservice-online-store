@@ -1,4 +1,4 @@
-package com.metao.book.order.application.card;
+package com.metao.book.order.application.cart;
 
 import java.io.Serializable;
 import lombok.AllArgsConstructor;

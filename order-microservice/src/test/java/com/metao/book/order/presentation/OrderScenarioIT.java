@@ -18,7 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.metao.book.order.OrderCreatedEvent;
 import com.metao.book.order.OrderTestUtil;
-import com.metao.book.order.application.card.OrderRepository;
+import com.metao.book.order.application.cart.OrderRepository;
 import com.metao.book.order.domain.OrderEntity;
 import com.metao.book.order.domain.OrderStatus;
 import com.metao.book.order.domain.dto.OrderDTO;

@@ -1,7 +1,7 @@
 package com.metao.book.order.domain;
 
-import com.metao.book.order.application.card.OrderRepository;
-import com.metao.book.order.application.card.OrderSpecifications;
+import com.metao.book.order.application.cart.OrderRepository;
+import com.metao.book.order.application.cart.OrderSpecifications;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;

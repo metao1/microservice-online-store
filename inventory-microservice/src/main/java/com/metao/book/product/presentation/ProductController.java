@@ -36,8 +36,6 @@ public class ProductController {
     private final KafkaTemplate<String, ProductCreatedEvent> kafkaTemplate;
     private final ProductService productService;
 
-
-
     @GetMapping(value = "/{asin}")
     public ProductDTO productDetails(@PathVariable String asin) throws ProductNotFoundException {
         return productService.getProductByAsin(asin).map(ProductMapper::toDto)
