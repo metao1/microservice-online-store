@@ -1,4 +1,4 @@
-package com.metao.book.order.application.card;
+package com.metao.book.order.application.cart;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Set;
