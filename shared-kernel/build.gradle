@@ -4,6 +4,11 @@ plugins {
   id "com.google.protobuf" version "0.9.4"
 }
 
+ext {
+  testcontainersVersion = "1.17.6"
+  springBootDependenciesVersion = "3.4.4"
+}
+
 def commitRefName = System.getenv("CI_COMMIT_REF_NAME") ?: "1.0"
 
 version = commitRefName
@@ -16,14 +21,13 @@ dependencies {
   implementation "io.micrometer:micrometer-registry-prometheus:1.10.5"
   implementation "io.micrometer:micrometer-core:1.10.5"
 
-  implementation("org.springframework.boot:spring-boot-starter")
   implementation("org.springframework.kafka:spring-kafka")
   implementation("org.springframework.kafka:spring-kafka-test")
 
   // GRPC
-  implementation 'io.grpc:grpc-protobuf:1.61.0'
-  implementation 'io.grpc:grpc-stub:1.61.0'
-  runtimeOnly 'io.grpc:grpc-netty-shaded:1.61.0'
+  implementation 'io.grpc:grpc-protobuf:1.70.0'
+  implementation 'io.grpc:grpc-stub:1.70.0'
+  runtimeOnly 'io.grpc:grpc-netty-shaded:1.70.0'
 
   // Jackson
   implementation "com.fasterxml.jackson.core:jackson-databind:2.14.0"
@@ -62,21 +66,28 @@ sourceSets {
 protobuf {
   protoc {
     if (osdetector.os == "osx") {
-      artifact = 'com.google.protobuf:protoc:3.18.0:osx-x86_64'
+      artifact = 'com.google.protobuf:protoc:3.25.5:osx-x86_64'
     } else {
-      artifact = 'com.google.protobuf:protoc:3.18.0'
+      artifact = 'com.google.protobuf:protoc:3.25.5'
     }
   }
 
   plugins {
     grpc {
-      artifact = 'io.grpc:protoc-gen-grpc-java:1.61.0'
+      artifact = 'io.grpc:protoc-gen-grpc-java:1.70.0'
     }
   }
   generateProtoTasks {
     all()*.plugins {
       grpc {}
     }
+  }
+}
+
+dependencyManagement {
+  imports {
+    mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
+    mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootDependenciesVersion}"
   }
 }
 

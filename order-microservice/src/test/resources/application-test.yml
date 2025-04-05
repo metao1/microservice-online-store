@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:tc:postgresql:11.1:///integration-tests-db
+    url: jdbc:tc:postgresql:12:///
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
   kafka:
     properties:
@@ -10,8 +10,8 @@ spring:
   jpa:
     properties:
       hibernate:
-        show_sql: false
-    show-sql: false
+        show_sql: true
+    show-sql: true
     generate-ddl: true
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%t]){yellow} %clr([%c{1.}]){green} %clr(:){red} %clr(%m){faint}%n"
@@ -24,7 +24,7 @@ logging:
     org.testcontainers: ERROR
     org.apache: ERROR
     io.confluent: ERROR
-    org.flywaydb: ERROR
+    org.flywaydb: DEBUG
     org.postgresql: ERROR
     org.apache.kafka: ERROR
     com.metao.book: ERROR

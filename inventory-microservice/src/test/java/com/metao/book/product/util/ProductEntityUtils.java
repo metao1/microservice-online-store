@@ -17,13 +17,13 @@ import lombok.experimental.UtilityClass;
 public class ProductEntityUtils {
 
     private static final Currency EUR = Currency.getInstance("EUR");
+    public static final String ASIN = "ABCDEF1234";
 
     public static ProductEntity createProductEntity() {
         var description = "description";
         var title = "title";
-        var asin = "asin";
         var category = "category";
-        return createProductEntity(asin, title, description, category);
+        return createProductEntity(ASIN, title, description, category);
     }
 
     public static ProductEntity createProductEntity(String asin, String category) {
@@ -34,8 +34,8 @@ public class ProductEntityUtils {
 
     public static ProductEntity createProductEntity(String asin, String title, String description, String category) {
         var url = "https://example.com/image.jpg";
-        var price = BigDecimal.valueOf(12);
-        var volume = BigDecimal.valueOf(100d);
+        var price = new BigDecimal("12.00");
+        var volume = new BigDecimal("100.00");
         var pe = new ProductEntity(asin, title, description, volume, new Money(EUR, price), url);
         pe.addCategory(new ProductCategoryEntity(category));
         return pe;

@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS order_table
   id            BYTEA                       NOT NULL,
   product_id    VARCHAR(255)                NOT NULL,
   customer_id   VARCHAR(255)                NOT NULL,
-  quantity DECIMAL                     NOT NULL,
+  quantity      DECIMAL                     NOT NULL,
   currency      VARCHAR(255)                NOT NULL,
   price         DECIMAL                     NOT NULL,
   status        VARCHAR(255)                NOT NULL,
@@ -12,4 +12,4 @@ CREATE TABLE IF NOT EXISTS order_table
 );
 
 ALTER TABLE order_table ADD COLUMN order_id VARCHAR(255) NOT NULL default '';
-CREATE INDEX order_id_index ON order_table (order_id);
+CREATE INDEX order_id_index ON order_table (product_id);
