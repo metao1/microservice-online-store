@@ -47,20 +47,28 @@ spring:
     enabled: true
     baseline-version: 0
     outOfOrder: false
-    locations: classpath:db/migration
+    locations: classpath:migration
     clean-disabled: true
+    create-schemas: true
     default-schema: "bookstore"
+    baseline-on-migrate: true
     validate-on-migrate: true
-    baseline-on-migrate: false
   jpa:
     database: POSTGRESQL
-    show-sql: false
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    hibernate:
-      ddl-auto: none
+    generate-ddl: false
     properties:
       open-in-view: false
       hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 20
+          order_inserts: true
+          order_updates: true
+          batch_versioned_data: true
+        cache:
+          use_query_cache: true
+          use_second_level_cache: true
+          region.factory_class: org.hibernate.cache.ehcache.EhCacheRegionFactory
         connection:
           provider_disables_autocommit: true
         temp:
@@ -69,16 +77,18 @@ spring:
 product-sample-data-path: data/products.txt
 
 kafka:
-  isEnabled: ${KAFKA_ENABLED:true}
+  enabled: ${KAFKA_ENABLED:true}
   topic:
     product-created:
       id: "product-created-id"
       name: "product-created"
       group-id: "product-created-group"
+      class-path: "com.metao.book.product.event.ProductCreatedEvent"
     product-updated:
       id: "product-updated-id"
       name: "product-updated"
       group-id: "product-updated-group"
+      class-path: "com.metao.book.shared.ProductUpdatedEvent"
 
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%t]){yellow} %clr(:){red} %clr(%m){faint}%n"

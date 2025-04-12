@@ -1,4 +1,4 @@
-package com.metao.book.product.application.config;
+package com.metao.book.order.application.config;
 
 import com.metao.book.shared.application.ObjectMapperConfig;
 import com.metao.book.shared.application.kafka.KafkaEventConfiguration;

@@ -1,5 +1,6 @@
 package com.metao.book.shared;
 
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -7,6 +8,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.metao.book.shared.application.service.EventHandler;
+import java.time.Duration;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.Flow.Subscriber;
@@ -36,7 +38,9 @@ class EventHandlerTest {
 
         //THEN
         for (int i = 0; i < queue.size(); i++) {
-            verify(subscriber).onNext(i + 1);
+            int finalI = i;
+            await().atMost(Duration.ofSeconds(20))
+                .untilAsserted(() -> verify(subscriber).onNext(finalI + 1));
         }
     }
 

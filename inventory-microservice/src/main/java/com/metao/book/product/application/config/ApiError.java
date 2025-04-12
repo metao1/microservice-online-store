@@ -22,7 +22,6 @@ import org.springframework.validation.FieldError;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiError {
 
-    public static final String REFER_TO_DOCS = " Please refer to the documentation for allowed value(s) or format(s).";
     /**
      * HTTP status code.
      */
@@ -58,6 +57,5 @@ public class ApiError {
         this.message = message;
         this.errorCode = errorCode;
     }
-
 
 }

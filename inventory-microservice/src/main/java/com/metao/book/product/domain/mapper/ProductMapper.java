@@ -13,13 +13,11 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 
@@ -34,8 +32,6 @@ public class ProductMapper {
             .volume(pr.getVolume())
             .currency(pr.getPriceCurrency())
             .price(pr.getPriceValue())
-            .boughtTogether(
-                Stream.ofNullable(pr.getBoughtTogether()).flatMap(s -> Arrays.stream(s.split(","))).toList())
             .categories(mapCategoryEntitiesToDTOs(pr.getCategories()))
             .imageUrl(pr.getImageUrl())
             .build();
@@ -44,12 +40,12 @@ public class ProductMapper {
     public static ProductCreatedEvent toProductCreatedEvent(ProductDTO pr) throws NullPointerException {
         return ProductCreatedEvent.newBuilder()
             .setAsin(pr.asin())
-            .setTitle(pr.title())
-            .setDescription(pr.description())
-            .setPrice(pr.price().doubleValue())
-            .setCurrency(pr.currency().toString())
-            .setImageUrl(pr.imageUrl())
-            .setVolume(pr.volume().doubleValue())
+            .setTitle(pr.title() != null ? pr.title() : "")
+            .setDescription(pr.description() != null ? pr.description() : "")
+            .setPrice(pr.price() != null ? pr.price().doubleValue() : BigDecimal.ZERO.doubleValue())
+            .setCurrency(pr.currency() != null ? pr.currency().toString() : "")
+            .setImageUrl(pr.imageUrl() != null ? pr.imageUrl() : "")
+            .setVolume(pr.volume() != null ? pr.volume().doubleValue() : BigDecimal.ZERO.doubleValue())
             .setCreateTime(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
             .addAllBoughtTogether(pr.boughtTogether() != null ? pr.boughtTogether() : List.of())
             .addAllCategories(mapToCategories(pr))
@@ -63,8 +59,6 @@ public class ProductMapper {
             pr.volume(),
             new Money(pr.currency(), pr.price()),
             Optional.of(pr.imageUrl()).orElse(""));
-
-        pe.setBoughtTogether(pr.boughtTogether());
         pe.addCategories(mapCategoryDTOsToEntities(mapToCategories(pr)));
         return pe;
     }
@@ -74,8 +68,6 @@ public class ProductMapper {
             BigDecimal.valueOf(event.getVolume()),
             new Money(Currency.getInstance(event.getCurrency()), BigDecimal.valueOf(event.getPrice())),
             Optional.of(event.getImageUrl()).orElse(""));
-
-        pe.setBoughtTogether(event.getBoughtTogetherList());
         pe.addCategories(mapCategoryDTOsToEntities(event.getCategoriesList()));
         return pe;
     }

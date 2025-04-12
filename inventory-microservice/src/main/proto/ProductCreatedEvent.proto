@@ -11,7 +11,7 @@ message ProductCreatedEvent {
   string asin = 1;
   // Created updated date.
   google.protobuf.Timestamp create_time = 2;
-  string title = 3;
+  optional string title = 3;
   optional string description = 4;
   double price = 5;
   double volume = 6;

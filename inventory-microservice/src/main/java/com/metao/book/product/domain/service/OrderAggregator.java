@@ -12,5 +12,4 @@ public class OrderAggregator implements Aggregator<ProductCreatedEvent, BigDecim
     public BigDecimal apply(ProductCreatedEvent order, BigDecimal total) {
         return total.add(BigDecimal.valueOf(order.getPrice()));
     }
-
 }

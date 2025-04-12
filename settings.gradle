@@ -11,18 +11,14 @@ rootProject.name = 'microservice-online-store'
 include(':inventory-microservice')
 include(':order-microservice')
 include(':shared-kernel')
-//include(':shared-kafka')
 include(':shared-test')
 
 project(":inventory-microservice").projectDir = file('inventory-microservice')
 project(":order-microservice").projectDir = file('order-microservice')
 project(":shared-kernel").projectDir = file('shared-kernel')
-//project(":shared-kafka").projectDir = file('shared-kafka')
 project(":shared-test").projectDir = file('shared-test')
 
 gradle.ext.springBootProjects = [
     ':order-microservice',
-    ':inventory-microservice',
-    //'shared-kafka',
-    'shared-test'
+    ':inventory-microservice'
 ]

@@ -37,7 +37,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @AutoConfigureMockMvc
-@TestPropertySource(properties = {"kafka.isEnabled=false"})
+@TestPropertySource(properties = {"kafka.enabled=false"})
 @WebMvcTest(controllers = ProductController.class)
 class ProductControllerTests {
 
@@ -73,7 +73,7 @@ class ProductControllerTests {
             .andExpect(jsonPath("$.categories[0].category").value("category"))
             .andExpect(jsonPath("$.image_url").value(pe.getImageUrl()))
             .andExpect(jsonPath("$.currency").value("EUR"))
-            .andExpect(jsonPath("$.price").value(BigDecimal.valueOf(12)));
+            .andExpect(jsonPath("$.price").value(new BigDecimal("12.0")));
     }
 
     @Test

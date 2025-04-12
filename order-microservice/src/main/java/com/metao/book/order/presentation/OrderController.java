@@ -1,12 +1,12 @@
 package com.metao.book.order.presentation;
 
+import com.metao.book.order.application.config.OrderEventHandler;
 import com.metao.book.order.domain.OrderService;
 import com.metao.book.order.domain.OrderStatus;
 import com.metao.book.order.domain.dto.OrderDTO;
 import com.metao.book.order.domain.exception.OrderNotFoundException;
 import com.metao.book.order.domain.mapper.OrderDTOMapper;
 import com.metao.book.order.infrastructure.kafka.KafkaOrderMapper;
-import com.metao.book.shared.application.kafka.OrderEventHandler;
 import jakarta.validation.Valid;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;

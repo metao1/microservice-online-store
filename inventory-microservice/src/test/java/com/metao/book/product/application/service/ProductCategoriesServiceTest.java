@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
+import com.metao.book.product.domain.exception.ProductNotFoundException;
 import com.metao.book.product.domain.service.ProductCategoriesService;
 import com.metao.book.product.infrastructure.repository.ProductRepository;
 import com.metao.book.product.util.ProductEntityUtils;
@@ -34,21 +35,23 @@ class ProductCategoriesServiceTest {
         // GIVEN
         var returnedProductEntity = Optional.of(ProductEntityUtils.createProductEntity());
         when(productRepository.findByAsin(PRODUCT_ID))
-            .thenReturn(returnedProductEntity);
+                .thenReturn(returnedProductEntity);
 
         // WHEN
         var productCategories = categoriesService.getProductCategories(PRODUCT_ID);
 
         // THEN
         assertThat(productCategories)
-            .isNotNull()
-            .isEqualTo(ProductEntityUtils.createProductEntity().getCategories());
+                .isNotNull()
+                .isEqualTo(ProductEntityUtils.createProductEntity().getCategories());
     }
 
     @Test
     @SneakyThrows
     @DisplayName("Get product categories not found")
     void testGetProductCategoriesNotFound() {
-        assertThatThrownBy(() -> categoriesService.getProductCategories(PRODUCT_ID));
+        assertThatThrownBy(() -> categoriesService.getProductCategories(PRODUCT_ID))
+                .isInstanceOf(ProductNotFoundException.class)
+                .hasMessageContaining(PRODUCT_ID);
     }
 }

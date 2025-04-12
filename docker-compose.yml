@@ -26,6 +26,7 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka1:9092,PLAINTEXT_HOST://localhost:9094
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OUTER_BROKER_LISTENER_NAME: PLAINTEXT_HOST
       KAFKA_DEFAULT_REPLICATION_FACTOR: 1
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_NUM_PARTITIONS: 1
@@ -101,8 +102,28 @@ services:
       POSTGRES_USER: bookstore
       POSTGRES_PASSWORD: bookstore
 
+  postgres-order:
+    image: postgres
+    hostname: postgres-order
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-order:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: bookstore-order
+      POSTGRES_USER: bookstore
+      POSTGRES_PASSWORD: bookstore
+
+  frontend:
+    container_name: frontend
+    hostname: frontend
+    #restart: on-failure
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
   order-microservice:
-    image: online-store/order-microservice:0.0.1
     container_name: order-microservice
     hostname: order-microservice
     #restart: on-failure
@@ -125,7 +146,6 @@ services:
       - kafka-schema-registry
 
   inventory-microservice:
-    image: online-store/inventory-microservice:0.0.2
     container_name: inventory-microservice
     hostname: inventory-microservice
     #restart: on-failure
@@ -153,6 +173,9 @@ services:
 
 volumes:
   postgres:
+    driver:
+      local
+  postgres-order:
     driver:
       local
 
