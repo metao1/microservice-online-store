@@ -1,4 +1,4 @@
-package com.metao.book.product.presentation;
+package com.metao.book.product.infrastructure.factory.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
