@@ -21,7 +21,7 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 @EnableKafka
 @Configuration
 @RequiredArgsConstructor
-@ConditionalOnProperty(value = "kafka.isEnabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = "kafka.enabled", havingValue = "true", matchIfMissing = true)
 public class KafkaConsumerConfig {
 
     private final KafkaProperties kafkaProperties;
@@ -42,7 +42,7 @@ public class KafkaConsumerConfig {
     public ConcurrentKafkaListenerContainerFactory<String, ProductCreatedEvent> productCreatedEventKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, ProductCreatedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(productPaymentEventConsumerFactory());
-        factory.setConcurrency(10);
+        factory.setConcurrency(1);
 
         return factory;
     }
@@ -51,7 +51,7 @@ public class KafkaConsumerConfig {
     public ConcurrentKafkaListenerContainerFactory<String, ProductUpdatedEvent> productUpdatedEventKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, ProductUpdatedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(productUpdatedEventConsumerFactory());
-        factory.setConcurrency(10);
+        factory.setConcurrency(1);
 
         return factory;
     }

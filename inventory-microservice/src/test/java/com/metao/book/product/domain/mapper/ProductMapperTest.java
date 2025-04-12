@@ -63,7 +63,6 @@ class ProductMapperTest {
             assertThat(pe.getPriceCurrency()).isEqualTo(productDto.currency());
             assertThat(pe.getVolume()).isEqualTo(productDto.volume());
             assertThat(pe.getImageUrl()).isEqualTo(productDto.imageUrl());
-            assertThat(pe.getBoughtTogether()).isEqualTo(String.join(",", productDto.boughtTogether()));
             assertThat(pe.getCategories())
                 .extracting(ProductCategoryEntity::getCategory)
                 .containsExactlyInAnyOrderElementsOf(
@@ -100,7 +99,6 @@ class ProductMapperTest {
             assertThat(pe.getPriceCurrency()).isEqualTo(Currency.getInstance(productCreatedEvent.getCurrency()));
             assertThat(pe.getVolume()).isEqualByComparingTo(BigDecimal.valueOf(productCreatedEvent.getVolume()));
             assertThat(pe.getImageUrl()).isEqualTo(productCreatedEvent.getImageUrl());
-            assertThat(pe.getBoughtTogether()).isEqualTo(String.join(",", productCreatedEvent.getBoughtTogetherList()));
             assertThat(pe.getCategories())
                 .extracting(ProductCategoryEntity::getCategory)
                 .containsExactlyInAnyOrderElementsOf(

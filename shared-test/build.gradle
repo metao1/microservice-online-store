@@ -10,6 +10,7 @@ group = "com.metao.book.shared.test"
 
 ext {
   testcontainersVersion = "1.17.6"
+  springBootDependenciesVersion = "3.4.4"
 }
 
 dependencies {
@@ -40,7 +41,6 @@ publishing {
 dependencyManagement {
   imports {
     mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
+    mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootDependenciesVersion}"
   }
 }
-
-

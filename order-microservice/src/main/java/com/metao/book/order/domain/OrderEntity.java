@@ -21,10 +21,10 @@ import org.springframework.stereotype.Indexed;
 
 @Getter
 @Setter
-@ToString
+@Entity
 @Indexed
+@ToString
 @NoArgsConstructor
-@Entity(name = "order")
 @Table(name = "order_table")
 public class OrderEntity extends AbstractEntity<OrderId> {
 
@@ -54,14 +54,13 @@ public class OrderEntity extends AbstractEntity<OrderId> {
     private LocalDateTime createdTime;
 
     public OrderEntity(
-        String orderId,
-        String productId,
-        String customerId,
-        BigDecimal quantity,
-        Currency currency,
-        BigDecimal price,
-        OrderStatus status
-    ) {
+            String orderId,
+            String productId,
+            String customerId,
+            BigDecimal quantity,
+            Currency currency,
+            BigDecimal price,
+            OrderStatus status) {
         super(DomainObjectId.randomId(OrderId.class));
         this.orderId = orderId;
         this.productId = productId;
@@ -73,14 +72,13 @@ public class OrderEntity extends AbstractEntity<OrderId> {
     }
 
     public OrderEntity(
-        String customerId,
-        String productId,
-        BigDecimal quantity,
-        Money money,
-        OrderStatus status
-    ) {
+            String customerId,
+            String productId,
+            BigDecimal quantity,
+            Money money,
+            OrderStatus status) {
         this(buildOrderId(customerId, productId), productId, customerId, quantity, money.currency(),
-            money.doubleAmount(), status);
+                money.doubleAmount(), status);
         this.createdTime = LocalDateTime.now();
     }
 
@@ -92,29 +90,31 @@ public class OrderEntity extends AbstractEntity<OrderId> {
         if (o == null) {
             return false;
         }
-        Class<?> oEffectiveClass =
-            (o instanceof HibernateProxy s) ? (s.getHibernateLazyInitializer().getPersistentClass()) : o.getClass();
-        Class<?> thisEffectiveClass =
-            (o instanceof HibernateProxy proxy) ? (proxy).getHibernateLazyInitializer().getPersistentClass()
+        Class<?> oEffectiveClass = (o instanceof HibernateProxy s)
+                ? (s.getHibernateLazyInitializer().getPersistentClass())
+                : o.getClass();
+        Class<?> thisEffectiveClass = (o instanceof HibernateProxy proxy)
+                ? (proxy).getHibernateLazyInitializer().getPersistentClass()
                 : this.getClass();
         if (thisEffectiveClass != oEffectiveClass) {
             return false;
         }
         OrderEntity that = (OrderEntity) o;
-        return productId != null && Objects.equals(productId, that.productId);
+        return Objects.equals(this.productId, that.productId) &&
+                Objects.equals(this.customerId, that.customerId) &&
+                Objects.equals(this.orderId, that.orderId);
     }
 
     @Override
     public final int hashCode() {
-        return (this instanceof HibernateProxy proxy) ? (proxy).getHibernateLazyInitializer()
-            .getPersistentClass().hashCode() : getClass().hashCode();
+        return Objects.hash(this.productId, this.customerId, this.orderId);
     }
 
     private static String buildOrderId(String customerId, String productId) {
         return customerId +
-            "::" +
-            productId +
-            "::" +
-            System.currentTimeMillis();
+                "::" +
+                productId +
+                "::" +
+                System.currentTimeMillis();
     }
 }

@@ -5,19 +5,26 @@ import com.metao.book.shared.domain.financial.Money;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.SequenceGenerators;
+import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.validation.Valid;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Currency;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -35,19 +42,32 @@ import org.springframework.lang.NonNull;
 @Getter
 @Setter
 @ToString
-@NaturalIdCache // fetch the entity without hitting the database
+//@Cacheable
+@NaturalIdCache
+//@EnableCaching
 @NoArgsConstructor
 @Entity(name = "product")
+@Table(name = "product_table")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-public class ProductEntity {
-
-    @Version
-    private Long version;
+public class ProductEntity implements Serializable {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "product_sequence")
+    @SequenceGenerators(
+        @SequenceGenerator(
+            name = "product_sequence"
+        )
+    )
+    @Column(name = "id", updatable = false, nullable = false)
+    private Long id;
+
     @NaturalId
     @Column(name = "asin", nullable = false)
     private String asin;
+
+    @Version
+    @Column(name = "version")
+    private Long version;
 
     @Column(nullable = false)
     private BigDecimal volume;
@@ -56,22 +76,20 @@ public class ProductEntity {
     @Column(name = "title", nullable = false)
     private String title;
 
-    @Length(min = 3, max = 1200)
-    @Column(name = "description", length = 1200)
+    @Lob
+    @Column(name = "description", columnDefinition = "TEXT")
+    @Size(max = 10_485_760, message = "Content exceeds 10MB limit")
     private String description;
 
-    @Column(name = "image", nullable = false)
+    @Column(name = "image_url", nullable = false)
     private String imageUrl;
 
-    @Column(name = "price_value", nullable = false)
+    @Column(name = "price_value", nullable = false, precision = 10, scale = 2)
     private BigDecimal priceValue;
 
     @Valid
     @Column(name = "price_currency", nullable = false)
     private Currency priceCurrency;
-
-    @Column(name = "bought_together")
-    private String boughtTogether;
 
     @Column(name = "created_time", nullable = false)
     private LocalDateTime createdTime;
@@ -80,10 +98,10 @@ public class ProductEntity {
     private LocalDateTime updateTime;
 
     @Exclude
-    @BatchSize(size = 20)
+    @BatchSize(size = 50)
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     @JoinTable(name = "product_category_map",
-        joinColumns = {@JoinColumn(name = "asin")},
+        joinColumns = {@JoinColumn(name = "product_asin")},
         inverseJoinColumns = {@JoinColumn(name = "product_category_id")}
     )
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
@@ -114,11 +132,6 @@ public class ProductEntity {
         }
         categories.add(category);
         category.getProductEntities().add(this);
-        this.updateTime = LocalDateTime.now();
-    }
-
-    public void setBoughtTogether(@NonNull List<String> asin) {
-        this.boughtTogether = String.join(",", asin);
         this.updateTime = LocalDateTime.now();
     }
 

@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "kafka.isEnabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(name = "kafka.enabled", havingValue = "true", matchIfMissing = true)
 public class ProductKafkaListenerComponent {
 
     private final ProductDatabaseHandler productDatabaseHandler;

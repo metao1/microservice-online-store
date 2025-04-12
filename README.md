@@ -7,7 +7,7 @@ Online Store is a modern E-commerce system for retailing and product management 
 ### Event Storming for understanding the system
 ![event-storming](img/eventstorming.png)
 
-### Online Shop overall architecture
+### Event-Driven architecture online Shop overall architecture
 ![online-shop-architecture](img/online-shop-architecture.png)
 
 ----------------------------------------------------------------

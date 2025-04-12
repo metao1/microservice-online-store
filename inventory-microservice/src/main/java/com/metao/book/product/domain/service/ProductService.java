@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,13 +28,13 @@ public class ProductService {
     @PersistenceContext
     private final EntityManager entityManager;
 
-    public Optional<ProductEntity> getProductByAsin(String asin) throws ProductNotFoundException {
+    public Optional<ProductEntity> getProductByAsin(String asin) {
         var productEntity = productRepository.findByAsin(asin)
-            .orElseThrow(() -> new ProductNotFoundException("product " + asin + " not found."));
+            .orElseThrow(() -> new ProductNotFoundException(asin));
         return Optional.ofNullable(productEntity);
     }
 
-    public Stream<ProductEntity> getAllProductsPageable(int limit, int offset) throws ProductNotFoundException {
+    public Stream<ProductEntity> getAllProductsPageable(int limit, int offset) {
         var pageable = new OffsetBasedPageRequest(offset, limit);
         var pagedProducts = productRepository.findAll(pageable);
         if (pagedProducts.isEmpty()) {
@@ -52,21 +53,39 @@ public class ProductService {
         return products.stream();
     }
 
-    public boolean canSaveProduct(ProductEntity productEntity) {
-        if (entityManager.getReference(ProductEntity.class, productEntity.getAsin()) != null) {
+    public boolean saveProduct(ProductEntity productEntity) {
+        ProductEntity existingProductEntity = findEntityByReference(ProductEntity.class, productEntity.getAsin(),
+            "asin");
+        if (existingProductEntity != null) {
             return false;
         }
-        Set<ProductCategoryEntity> filteredCategories = productEntity.getCategories().stream()
-            .filter(category -> entityManager.getReference(ProductCategoryEntity.class, category.getCategory()) != null)
-            .collect(Collectors.toSet());
-        productEntity.setCategories(filteredCategories);
+        // product needs to be saved first to have a managed state, when categories are added later
+        // the product will be updated the hibernates is able to track the changes and hence saves the categories in
+        // the product relationship. Otherwise, if categories are added directly before the product is saved, the
+        // categories will be in transient state and will not be tracked by hibernates.
+        productRepository.save(productEntity);
+        // Resolve categories using cache and natural ID lookup
+        saveCategory(productEntity);
         return true;
     }
 
-    public void saveProduct(ProductEntity productEntity) {
-        if (canSaveProduct(productEntity)) {
-            productRepository.saveProduct(productEntity);
+    void saveCategory(ProductEntity pe) {
+        Set<ProductCategoryEntity> managedCategories = pe.getCategories().stream()
+            .map(productCategory -> findEntityByReference(productCategory.getClass(), productCategory.getCategory(),
+                "category"))
+            .collect(Collectors.toSet());
+        if (managedCategories.isEmpty()) {
+            return;
         }
+        pe.setCategories(managedCategories);
+    }
+
+    private <T> T findEntityByReference(Class<T> reference, Object obj, String attributeName)
+        throws ClassCastException {
+        Session session = entityManager.unwrap(Session.class);
+        return session.byNaturalId(reference)
+            .using(attributeName, obj)
+            .getReference();
     }
 
 }

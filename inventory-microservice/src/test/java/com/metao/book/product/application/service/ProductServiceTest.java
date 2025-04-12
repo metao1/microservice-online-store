@@ -1,76 +1,86 @@
 package com.metao.book.product.application.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
+import com.metao.book.product.domain.category.ProductCategoryEntity;
 import com.metao.book.product.domain.exception.ProductNotFoundException;
 import com.metao.book.product.domain.service.ProductService;
-import com.metao.book.product.infrastructure.repository.ProductRepository;
 import com.metao.book.product.util.ProductEntityUtils;
-import jakarta.persistence.EntityManager;
-import java.util.Optional;
-import org.junit.jupiter.api.Assertions;
+import java.math.BigDecimal;
+import java.util.Currency;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest
+@ActiveProfiles("test")
+@TestPropertySource(properties = { "kafka.enabled=false" })
 class ProductServiceTest {
 
-    @Mock
-    ProductRepository productRepo;
-
-    @Mock
-    EntityManager entityManger;
-
+    @Autowired
     ProductService productService;
 
     @BeforeEach
     void setUp() {
-        productService = Mockito.spy(new ProductService(productRepo, entityManger));
+        productService.saveProduct(ProductEntityUtils.createProductEntity());
     }
 
     @Test
     void getProductByIdNotFound() {
-        assertThrows(ProductNotFoundException.class,
-            () -> productService.getProductByAsin("1"));
+        assertThrows(ProductNotFoundException.class, () -> productService.getProductByAsin("1"));
     }
 
     @Test
     void getProductByIdIsFound() {
-        var pe = ProductEntityUtils.createProductEntity();
-
-        when(productRepo.findByAsin(pe.getAsin()))
-            .thenReturn(Optional.of(pe));
-
-        var product = productService.getProductByAsin(pe.getAsin());
-        Assertions.assertNotNull(product);
+        var pe = productService.getProductByAsin("ABCDEF1234");
+        assertThat(pe)
+                .isNotNull()
+                .isPresent()
+                .hasValueSatisfying(p -> {
+                    assertThat(p.getAsin()).isEqualTo("ABCDEF1234");
+                    assertThat(p.getTitle()).isEqualTo("title");
+                    assertThat(p.getDescription()).isEqualTo("description");
+                    assertThat(p.getPriceValue()).isEqualTo(new BigDecimal("12.00"));
+                    assertThat(p.getPriceCurrency()).isEqualTo(Currency.getInstance("EUR"));
+                    assertThat(p.getVolume()).isEqualTo(new BigDecimal("100.00"));
+                    assertThat(p.getImageUrl()).isEqualTo("https://example.com/image.jpg");
+                    assertThat(p.getCategories())
+                            .hasSize(1)
+                            .first()
+                            .extracting(ProductCategoryEntity::getCategory)
+                            .isEqualTo("category");
+                });
     }
 
     @Test
-    void testSaveProduct() {
+    void testSaveAnotherProductIsSuccessful() {
         // GIVEN
-        var pe = ProductEntityUtils.createProductEntity();
-        when(productService.canSaveProduct(pe)).thenReturn(true);
+        var pe = ProductEntityUtils.createProductEntity("ABCDEF1235", "book");
+        productService.saveProduct(pe);
 
         // WHEN
-        productService.saveProduct(pe);
+        var newProduct = productService.getProductByAsin(pe.getAsin());
 
         // THEN
-        verify(productRepo).saveProduct(pe);
-    }
-
-    @Test
-    void testSaveProductNotSaved() {
-        var pe = ProductEntityUtils.createProductEntity();
-        when(productService.canSaveProduct(pe)).thenReturn(false);
-
-        productService.saveProduct(pe);
-
-        verify(productRepo, Mockito.never()).saveProduct(pe);
+        assertThat(newProduct)
+                .isPresent()
+                .hasValueSatisfying(p -> {
+                    assertThat(p.getAsin()).isEqualTo("ABCDEF1235");
+                    assertThat(p.getTitle()).isEqualTo("title");
+                    assertThat(p.getDescription()).isEqualTo("description");
+                    assertThat(p.getPriceValue()).isEqualTo(new BigDecimal("12.00"));
+                    assertThat(p.getPriceCurrency()).isEqualTo(Currency.getInstance("EUR"));
+                    assertThat(p.getVolume()).isEqualTo(new BigDecimal("100.00"));
+                    assertThat(p.getImageUrl()).isEqualTo("https://example.com/image.jpg");
+                    assertThat(p.getCategories())
+                            .hasSize(1)
+                            .first()
+                            .extracting(ProductCategoryEntity::getCategory)
+                            .isEqualTo("book");
+                });
     }
 }
