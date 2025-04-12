@@ -1,6 +1,7 @@
 package com.metao.book.product.infrastructure.factory.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -8,6 +9,7 @@ import com.metao.book.product.domain.service.ProductService;
 import com.metao.book.product.event.ProductCreatedEvent;
 import com.metao.book.product.util.ProductEntityUtils;
 import com.metao.shared.test.BaseKafkaIT;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -59,9 +61,8 @@ class KafkaProductHandlerIT extends BaseKafkaIT {
 
         kafkaTemplate.send(productTopic, event.getAsin(), event);
 
-        latch.await(5, TimeUnit.SECONDS);
-
-        assertThat(latch.getCount()).isZero();
+        await().atMost(Duration.ofSeconds(5))
+                .untilAsserted(()-> assertThat(latch.getCount()).isZero());
     }
 
     @Test
@@ -91,7 +92,10 @@ class KafkaProductHandlerIT extends BaseKafkaIT {
     }
 
     @RetryableTopic
-    @KafkaListener(id = "${kafka.topic.product-created.id}-test", topics = "${kafka.topic.product-created.name}", groupId = "${kafka.topic.product-created.group-id}-test", containerFactory = "productCreatedEventKafkaListenerContainerFactory")
+    @KafkaListener(id = "${kafka.topic.product-created.id}-test",
+        topics = "${kafka.topic.product-created.name}",
+        groupId = "${kafka.topic.product-created.group-id}-test",
+        containerFactory = "productCreatedEventKafkaListenerContainerFactory")
     public void onEvent(ConsumerRecord<String, ProductCreatedEvent> consumerRecord) {
         log.info("Consumed message -> {}", consumerRecord.offset());
         latch.countDown();
