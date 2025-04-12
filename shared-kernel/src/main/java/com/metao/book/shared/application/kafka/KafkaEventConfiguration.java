@@ -1,46 +1,54 @@
 package com.metao.book.shared.application.kafka;
-/*
-
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.core.ProducerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
 
 @Getter
 @Setter
-@ConditionalOnProperty(
-    havingValue = "true",
-    name = {"kafka.enabled"}
-)
+@Configuration
+@EnableAutoConfiguration
 @ConfigurationProperties("kafka")
 public class KafkaEventConfiguration {
 
     private boolean enabled;
-    private Map<String, KafkaPropertyTopic> topics;
-    
+    private Map<String, KafkaPropertyTopic> topic;
+
     @Bean
     public Map<Class<?>, KafkaFactory<?>> kafkaFactoryMap(
         final Map<String, KafkaFactory<?>> kafkaFactories
     ) {
-        return getTopics().entrySet().stream().map((entry) ->
-                kafkaFactories.computeIfPresent(entry.getKey(), (k, kafkaFactory) -> {
-                    kafkaFactory.setTopic(entry.getValue().name());
+        return topic.values().stream().map(
+                kafkaPropertyTopic -> kafkaFactories.computeIfPresent(kafkaPropertyTopic.id(), (k, kafkaFactory) -> {
+                    kafkaFactory.setTopic(kafkaPropertyTopic.name());
                     return kafkaFactory;
-                }))
+                })
+            )
             .filter(Objects::nonNull)
             .collect(Collectors.toMap(KafkaFactory::getType, Function.identity()));
+    }
+
+    @Bean
+    public Map<String, KafkaFactory<?>> kafkaFactories(KafkaFactoryBuilder kafkaFactoryBuilder)
+        throws ClassNotFoundException {
+        Map<String, KafkaFactory<?>> factories = new HashMap<>();
+
+        for (KafkaPropertyTopic topic : topic.values()) {
+            factories.put(topic.id(), kafkaFactoryBuilder.createFactory(Class.forName(topic.classPath())));
+        }
+
+        return factories;
     }
 
     @Bean
@@ -52,7 +60,6 @@ public class KafkaEventConfiguration {
 
     }
 
-    @Configuration
     @RequiredArgsConstructor
     static class KafkaFactoryBuilder {
 
@@ -64,21 +71,4 @@ public class KafkaEventConfiguration {
             return new KafkaFactory<>(valueType, kafkaTemplate);
         }
     }
-
-    @Configuration
-    class KafkaFactoryConfig {
-
-        @Bean
-        public Map<String, KafkaFactory<?>> kafkaFactories(KafkaFactoryBuilder kafkaFactoryBuilder)
-            throws ClassNotFoundException {
-            Map<String, KafkaFactory<?>> factories = new HashMap<>();
-
-            for (KafkaPropertyTopic topic : KafkaEventConfiguration.this.topics.values()) {
-                factories.put(topic.id, kafkaFactoryBuilder.createFactory(Class.forName(topic.classPath)));
-            }
-
-            return factories;
-        }
-    }
 }
-*/

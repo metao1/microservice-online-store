@@ -2,8 +2,6 @@ package com.metao.book.shared.application.kafka;
 
 import com.metao.book.shared.application.service.EventHandler;
 import jakarta.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
@@ -33,7 +31,6 @@ public class KafkaFactory<V> extends EventHandler<CompletableFuture<SendResult<S
     @Getter
     private final Class<V> type;
     private final KafkaTemplate<String, V> kafkaTemplate;
-    private final List<CompletableFuture<SendResult<String, V>>> list = new ArrayList<>();
 
     public void subscribe() {
         subscribe(new Subscriber<>() {

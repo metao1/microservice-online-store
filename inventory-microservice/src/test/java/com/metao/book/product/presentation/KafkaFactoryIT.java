@@ -1,13 +1,8 @@
-package com.metao.book.order.application.config;
+package com.metao.book.product.presentation;
 
-import static com.metao.book.order.OrderTestConstant.CUSTOMER_ID;
-import static com.metao.book.order.OrderTestConstant.EUR;
-import static com.metao.book.order.OrderTestConstant.PRICE;
-import static com.metao.book.order.OrderTestConstant.PRODUCT_ID;
-import static com.metao.book.order.OrderTestConstant.QUANTITY;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.metao.book.order.OrderCreatedEvent;
+import com.metao.book.product.event.ProductCreatedEvent;
 import com.metao.book.shared.application.kafka.KafkaFactory;
 import com.metao.shared.test.BaseKafkaIT;
 import java.util.Map;
@@ -34,10 +29,10 @@ class KafkaFactoryIT extends BaseKafkaIT {
     Map<Class<?>, KafkaFactory<?>> kafkaFactoryMap;
 
     @RetryableTopic
-    @KafkaListener(id = "order-listener-test",
-        topics = "order-created",
-        containerFactory = "orderCreatedEventKafkaListenerContainerFactory")
-    public void onEvent(ConsumerRecord<String, OrderCreatedEvent> consumerRecord) {
+    @KafkaListener(id = "product-created-listener-test",
+        topics = "product-created",
+        containerFactory = "productCreatedEventKafkaListenerContainerFactory")
+    public void onEvent(ConsumerRecord<String, ProductCreatedEvent> consumerRecord) {
         log.info("Consumed message -> {}", consumerRecord.offset());
         latch.countDown();
     }
@@ -46,21 +41,18 @@ class KafkaFactoryIT extends BaseKafkaIT {
     @SneakyThrows
     @DisplayName("When sending Kafka multiple messages then all messages sent successfully")
     void testWhenSendingMultipleKafkaMessagesThenSentSuccessfully() {
-        KafkaFactory<OrderCreatedEvent> kafkaFactory = (KafkaFactory<OrderCreatedEvent>)
-            kafkaFactoryMap.get(OrderCreatedEvent.class);
-
-        IntStream.range(0, 10).boxed().forEach(i -> kafkaFactory.submit("order-created", getCreatedEvent()));
-
+        KafkaFactory<ProductCreatedEvent> kafkaFactory = (KafkaFactory<ProductCreatedEvent>)
+            kafkaFactoryMap.get(ProductCreatedEvent.class);
         kafkaFactory.subscribe();
+        IntStream.range(0, 10).boxed().forEach(i -> kafkaFactory.submit(i + "", getCreatedEvent()));
+
         kafkaFactory.publish();
         latch.await(5, TimeUnit.SECONDS);
 
         assertThat(latch.getCount()).isZero();
     }
 
-    private static OrderCreatedEvent getCreatedEvent() {
-        return OrderCreatedEvent.newBuilder().setCustomerId(CUSTOMER_ID).setProductId(PRODUCT_ID)
-                .setCurrency(EUR.toString()).setStatus(OrderCreatedEvent.Status.NEW).setPrice(PRICE.doubleValue())
-                .setQuantity(QUANTITY.doubleValue()).build();
+    private static ProductCreatedEvent getCreatedEvent() {
+        return ProductCreatedEvent.newBuilder().build();
     }
 }

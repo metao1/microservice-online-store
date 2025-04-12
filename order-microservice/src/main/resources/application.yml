@@ -61,17 +61,17 @@ spring:
 
 kafka:
   enabled: ${KAFKA_ENABLED:true}
-  topics:
+  topic:
     order-created:
       id: "order-created-id"
       name: "order-created"
       group-id: "order-created-group"
-      classPath: "com.metao.book.shared.OrderUpdatedEvent"
+      class-path: "com.metao.book.order.OrderCreatedEvent"
     order-updated:
       id: "order-updated-id"
       name: "order-updated"
       group-id: "order-updated-group"
-      classPath: "com.metao.book.shared.OrderUpdatedEvent"
+      class-path: "com.metao.book.shared.OrderUpdatedEvent"
 
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%t]){yellow} %clr(:){red} %clr(%m){faint}%n"

@@ -134,7 +134,7 @@ class OrderScenarioIT extends BaseKafkaIT {
                         mockMvc.perform(get("/order/{pageSize}/{offset}/{sortByFieldName}", 5, i, "status"))
                                         .andExpect(status().isOk()).andExpect(jsonPath("$.content").exists())
                                         .andExpect(jsonPath("$.content[*].status").exists())
-                                        .andExpect(jsonPath("$.numberOfElements").value(5));
+                                        .andExpect(jsonPath("$.number_of_elements").value(5));
                 }
         }
 
@@ -190,7 +190,7 @@ class OrderScenarioIT extends BaseKafkaIT {
                                 .andExpect(jsonPath("$.content").exists()) // Verify the presence of "content" field in
                                                                            // the JSON
                                                                            // response
-                                .andExpect(jsonPath("$.numberOfElements").value(2)); // Verify that the number of
+                                .andExpect(jsonPath("$.number_of_elements").value(2)); // Verify that the number of
                                                                                      // returned items is 2
 
                 mockMvc.perform(get("/order/{pageSize}/{offset}/{sortByFieldName}", 5, 0, "productId")
@@ -198,7 +198,7 @@ class OrderScenarioIT extends BaseKafkaIT {
                                 .andExpect(jsonPath("$.content").exists()) // Verify the presence of "content" field in
                                                                            // the JSON
                                                                            // response
-                                .andExpect(jsonPath("$.numberOfElements").value(5)); // Verify that the number of
+                                .andExpect(jsonPath("$.number_of_elements").value(5)); // Verify that the number of
                                                                                      // returned items is 3
 
                 mockMvc.perform(get("/order/{pageSize}/{offset}/{sortByFieldName}", 5, 0, "productId")
@@ -208,7 +208,7 @@ class OrderScenarioIT extends BaseKafkaIT {
                                 .andExpect(jsonPath("$.content").exists()) // Verify the presence of "content" field in
                                                                            // the JSON
                                                                            // response
-                                .andExpect(jsonPath("$.numberOfElements").value(1)); // Verify that the number of
+                                .andExpect(jsonPath("$.number_of_elements").value(1)); // Verify that the number of
                                                                                      // returned items is 3
         }
 

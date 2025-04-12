@@ -1,20 +1,18 @@
 package com.metao.shared.test;
 
-import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.kafka.ConfluentKafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
 @Slf4j
-@UtilityClass
 @Testcontainers
 public class BaseKafkaIT {
 
-    private static final ConfluentKafkaContainer kafkaContainer = new ConfluentKafkaContainer(
+    private static final KafkaContainer kafkaContainer = new KafkaContainer(
         DockerImageName.parse("confluentinc/cp-kafka:7.7.0")
             .asCompatibleSubstituteFor("apache/kafka"));
 

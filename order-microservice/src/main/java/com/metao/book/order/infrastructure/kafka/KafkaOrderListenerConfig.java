@@ -19,9 +19,9 @@ public class KafkaOrderListenerConfig {
     private final OrderService orderService;
 
     @RetryableTopic
-    @KafkaListener(id = "${kafka.topics.order-created.id}",
-        topics = "${kafka.topics.order-created.name}",
-        groupId = "${kafka.topics.order-created.group-id}",
+    @KafkaListener(id = "${kafka.topic.order-created.id}",
+        topics = "${kafka.topic.order-created.name}",
+        groupId = "${kafka.topic.order-created.group-id}",
         containerFactory = "orderCreatedEventKafkaListenerContainerFactory")
     public void onOrderCreatedEvent(ConsumerRecord<String, OrderCreatedEvent> orderRecord) {
         StageProcessor.accept(orderRecord.value())
@@ -37,9 +37,9 @@ public class KafkaOrderListenerConfig {
     }
 
     @RetryableTopic
-    @KafkaListener(id = "${kafka.topics.order-updated.id}",
-        topics = "${kafka.topics.order-updated.name}",
-        groupId = "${kafka.topics.order-updated.group-id}",
+    @KafkaListener(id = "${kafka.topic.order-updated.id}",
+        topics = "${kafka.topic.order-updated.name}",
+        groupId = "${kafka.topic.order-updated.group-id}",
         containerFactory = "orderUpdatedEventKafkaListenerContainerFactory")
     public void onOrderUpdatedEvent(ConsumerRecord<String, OrderUpdatedEvent> orderRecord) {
         StageProcessor.accept(orderRecord.value())
@@ -53,6 +53,4 @@ public class KafkaOrderListenerConfig {
                 }
             });
     }
-
-
 }

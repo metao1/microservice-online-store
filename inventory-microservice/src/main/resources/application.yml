@@ -83,10 +83,12 @@ kafka:
       id: "product-created-id"
       name: "product-created"
       group-id: "product-created-group"
+      class-path: "com.metao.book.product.event.ProductCreatedEvent"
     product-updated:
       id: "product-updated-id"
       name: "product-updated"
       group-id: "product-updated-group"
+      class-path: "com.metao.book.shared.ProductUpdatedEvent"
 
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%t]){yellow} %clr(:){red} %clr(%m){faint}%n"

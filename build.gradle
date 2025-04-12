@@ -31,6 +31,8 @@ subprojects {
       implementation("org.springframework.boot:spring-boot-starter-web") {
         exclude group: "org.springframework.boot", module: "spring-boot-starter-logging"
       }
+      implementation "org.springframework.boot:spring-boot-autoconfigure"
+
       implementation platform("org.testcontainers:testcontainers-bom:${testcontainersVersion}")
       implementation 'commons-codec:commons-codec:1.17.1'
 
