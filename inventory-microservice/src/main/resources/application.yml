@@ -23,10 +23,10 @@ spring:
       enable-auto-commit: false
       properties:
         session.timeout.ms: 30000
-        max.poll.interval.ms: 3000
+        max.poll.interval.ms: 300
         max.idle.time.ms: 60000
         heartbeat.interval.ms: 1000
-        auto.offset.reset: earliest
+        auto.offset.reset: latest
         allow.auto.create.topics: 'false'
         spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
         spring.deserializer.value.delegate.class: io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer
@@ -48,9 +48,8 @@ spring:
     baseline-version: 0
     outOfOrder: false
     locations: classpath:migration
-    clean-disabled: true
+    clean-disabled: false
     create-schemas: true
-    default-schema: "bookstore"
     baseline-on-migrate: true
     validate-on-migrate: true
   jpa:

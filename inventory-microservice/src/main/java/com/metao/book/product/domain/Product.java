@@ -1,15 +1,17 @@
 package com.metao.book.product.domain;
 
-import com.metao.book.product.domain.category.ProductCategoryEntity;
+import static jakarta.persistence.FetchType.LAZY;
+
+import com.metao.book.product.domain.category.ProductCategory;
 import com.metao.book.shared.domain.financial.Money;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Cacheable;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.SequenceGenerator;
@@ -17,6 +19,8 @@ import jakarta.persistence.SequenceGenerators;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -24,7 +28,6 @@ import java.util.Currency;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -37,19 +40,21 @@ import org.hibernate.annotations.NaturalId;
 import org.hibernate.annotations.NaturalIdCache;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.validator.constraints.Length;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.lang.NonNull;
+import org.springframework.util.CollectionUtils;
 
 @Getter
 @Setter
 @ToString
-//@Cacheable
+@Cacheable
 @NaturalIdCache
-//@EnableCaching
+@EnableCaching
 @NoArgsConstructor
 @Entity(name = "product")
-@Table(name = "product_table")
+@Table(name = "product")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-public class ProductEntity implements Serializable {
+public class Product implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "product_sequence")
@@ -61,8 +66,9 @@ public class ProductEntity implements Serializable {
     @Column(name = "id", updatable = false, nullable = false)
     private Long id;
 
+    @NotNull
     @NaturalId
-    @Column(name = "asin", nullable = false)
+    @Column(name = "asin", nullable = false, unique = true, length = 10)
     private String asin;
 
     @Version
@@ -72,11 +78,12 @@ public class ProductEntity implements Serializable {
     @Column(nullable = false)
     private BigDecimal volume;
 
-    @Length(min = 3, max = 255)
+    @Length(min = 3)
     @Column(name = "title", nullable = false)
     private String title;
 
     @Lob
+    @Basic(fetch = LAZY)
     @Column(name = "description", columnDefinition = "TEXT")
     @Size(max = 10_485_760, message = "Content exceeds 10MB limit")
     private String description;
@@ -100,14 +107,10 @@ public class ProductEntity implements Serializable {
     @Exclude
     @BatchSize(size = 50)
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
-    @JoinTable(name = "product_category_map",
-        joinColumns = {@JoinColumn(name = "product_asin")},
-        inverseJoinColumns = {@JoinColumn(name = "product_category_id")}
-    )
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-    private Set<ProductCategoryEntity> categories;
+    private Set<ProductCategory> categories;
 
-    public ProductEntity(
+    public Product(
         @NonNull String asin,
         @NonNull String title,
         @NonNull String description,
@@ -126,24 +129,26 @@ public class ProductEntity implements Serializable {
         this.updateTime = createdTime;
     }
 
-    public void addCategory(@NonNull ProductCategoryEntity category) {
+    public void addCategory(@NonNull ProductCategory category) {
         if (categories == null) {
             categories = new HashSet<>();
         }
         categories.add(category);
-        category.getProductEntities().add(this);
         this.updateTime = LocalDateTime.now();
+        category.getProductEntities().add(this);
     }
 
-    public void addCategories(@NonNull Set<ProductCategoryEntity> categories) {
+    public void addCategories(@NonNull Set<ProductCategory> categories) {
         categories.forEach(this::addCategory);
         this.updateTime = LocalDateTime.now();
     }
 
-    public void removeCategory(@NonNull ProductCategoryEntity category) {
-        categories.remove(category);
-        category.getProductEntities().remove(this);
-        this.updateTime = LocalDateTime.now();
+    public void removeCategory(@NonNull ProductCategory category) {
+        if (!CollectionUtils.isEmpty(category.getProductEntities())) {
+            categories.remove(category);
+            category.getProductEntities().remove(this);
+            this.updateTime = LocalDateTime.now();
+        }
     }
 
     @Override
@@ -168,7 +173,7 @@ public class ProductEntity implements Serializable {
         if (thisEffectiveClass != oEffectiveClass) {
             return false;
         }
-        ProductEntity that = (ProductEntity) o;
+        Product that = (Product) o;
         return getAsin() != null && Objects.equals(getAsin(), that.getAsin());
     }
 }

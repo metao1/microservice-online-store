@@ -4,8 +4,22 @@ spring:
     username: bookstore
     password: bookstore
   jpa:
-    show-sql: true
+    database: POSTGRESQL
     generate-ddl: true
+    properties:
+      open-in-view: false
+      hibernate:
+        connection:
+          provider_disables_autocommit: true
+        temp:
+          use_jdbc_metadata_defaults: false
+    hibernate:
+      ddl-auto: none
+  flyway:
+    baseline-on-migrate: true
+    baseline-version: 0
+    outOfOrder: false
+    clean-disabled: true
   kafka:
     # Required connection configs for Kafka producer, consumer, and admin
     bootstrap-servers: "PLAINTEXT://localhost:9094"
@@ -14,7 +28,6 @@ spring:
       schema.registry.url: "http://localhost:8081"
       security.protocol: "PLAINTEXT"
       sasl.mechanism: "PLAIN"
-
 logging:
   level:
     org.springframework.data: DEBUG

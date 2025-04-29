@@ -6,7 +6,9 @@ dependencies {
   implementation 'org.springframework.boot:spring-boot-starter-validation'
 
   implementation 'org.springframework.kafka:spring-kafka'
+  implementation 'org.apache.kafka:kafka-clients:4.0.0'
   implementation 'org.postgresql:postgresql:42.7.3'
+  runtimeOnly 'org.postgresql:postgresql:42.7.3'
 
   implementation 'io.confluent:kafka-protobuf-serializer:7.8.0'
   implementation "io.confluent:kafka-streams-protobuf-serde:7.8.0"
@@ -14,9 +16,7 @@ dependencies {
   implementation 'org.flywaydb:flyway-database-postgresql:10.11.0'
   implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
-  testImplementation 'org.testcontainers:kafka'
-
-  implementation 'org.flywaydb:flyway-core:10.11.0'
+  implementation 'org.flywaydb:flyway-core'
 
   // cache
   implementation 'org.hibernate:hibernate-core-jakarta:5.6.12.Final'
