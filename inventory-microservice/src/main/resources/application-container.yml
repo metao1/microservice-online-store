@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5433/bookstore-order
+    url: jdbc:postgresql://postgres:5432/bookstore
     username: bookstore
     password: bookstore
   jpa:
@@ -22,13 +22,12 @@ spring:
     clean-disabled: true
   kafka:
     # Required connection configs for Kafka producer, consumer, and admin
-    bootstrap-servers: "PLAINTEXT://localhost:9094"
+    bootstrap-servers: "PLAINTEXT://kafka1:9094"
     # Required connection configs for Confluent Cloud Schema Registry
     properties:
-      schema.registry.url: "http://localhost:8081"
+      schema.registry.url: "http://kafka-schema-registry:8081"
       security.protocol: "PLAINTEXT"
       sasl.mechanism: "PLAIN"
-
 logging:
   level:
     org.springframework.data: DEBUG

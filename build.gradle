@@ -2,20 +2,21 @@ plugins {
   id "base"
   id "idea"
   id "com.github.spotbugs" version "6.0.19"
+  id "org.flywaydb.flyway" version "10.11.0" apply false
   id "com.google.cloud.tools.jib" version "3.1.4" apply false
-  id "org.springframework.boot" version "3.4.4"
+  id "org.springframework.boot" version "3.4.5"
   id "io.spring.dependency-management" version "1.1.6" apply false
   id "com.google.protobuf" version "0.9.4" apply false
 }
 
 ext {
-  testcontainersVersion = "1.17.6"
   micrometerVersion = "1.12.3"
 }
 
 subprojects {
   group "com.metao.book"
   apply plugin: "java"
+  apply plugin: "com.google.protobuf"
   apply plugin: "io.spring.dependency-management"
 
   repositories {
@@ -27,13 +28,12 @@ subprojects {
   if (isSpringProject) {
     apply plugin: "org.springframework.boot"
     apply plugin: "com.google.protobuf"
+    apply plugin: "org.flywaydb.flyway"
     dependencies {
       implementation("org.springframework.boot:spring-boot-starter-web") {
         exclude group: "org.springframework.boot", module: "spring-boot-starter-logging"
       }
       implementation "org.springframework.boot:spring-boot-autoconfigure"
-
-      implementation platform("org.testcontainers:testcontainers-bom:${testcontainersVersion}")
       implementation 'commons-codec:commons-codec:1.17.1'
 
       testImplementation "org.springframework.boot:spring-boot-starter-test"
@@ -71,7 +71,6 @@ subprojects {
     dependencyManagement {
       imports {
         mavenBom "io.micrometer:micrometer-bom:$micrometerVersion"
-        mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
       }
     }
   }

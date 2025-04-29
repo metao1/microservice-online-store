@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +21,7 @@ import org.springframework.kafka.core.ProducerFactory;
 @Configuration
 @EnableAutoConfiguration
 @ConfigurationProperties("kafka")
+@ConditionalOnProperty(value = "kafka.enabled", havingValue = "true")
 public class KafkaEventConfiguration {
 
     private boolean enabled;

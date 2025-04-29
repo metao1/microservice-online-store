@@ -5,7 +5,6 @@ plugins {
 }
 
 ext {
-  testcontainersVersion = "1.17.6"
   springBootDependenciesVersion = "3.4.4"
 }
 
@@ -89,7 +88,6 @@ protobuf {
 
 dependencyManagement {
   imports {
-    mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
     mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootDependenciesVersion}"
   }
 }

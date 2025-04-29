@@ -1,8 +1,8 @@
 package com.metao.book.product.domain.mapper;
 
 import com.google.protobuf.Timestamp;
-import com.metao.book.product.domain.ProductEntity;
-import com.metao.book.product.domain.category.ProductCategoryEntity;
+import com.metao.book.product.domain.Product;
+import com.metao.book.product.domain.category.ProductCategory;
 import com.metao.book.product.domain.category.dto.CategoryDTO;
 import com.metao.book.product.domain.dto.ProductDTO;
 import com.metao.book.product.event.ProductCreatedEvent;
@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Currency;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -24,7 +25,7 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class ProductMapper {
 
-    public static ProductDTO toDto(@NotNull ProductEntity pr) throws NullPointerException {
+    public static ProductDTO toDto(@NotNull Product pr) throws NullPointerException {
         return ProductDTO.builder()
             .description(pr.getDescription())
             .title(pr.getTitle())
@@ -40,10 +41,10 @@ public class ProductMapper {
     public static ProductCreatedEvent toProductCreatedEvent(ProductDTO pr) throws NullPointerException {
         return ProductCreatedEvent.newBuilder()
             .setAsin(pr.asin())
-            .setTitle(pr.title() != null ? pr.title() : "")
+            .setTitle(pr.title() != null ? pr.title() : "No title")
             .setDescription(pr.description() != null ? pr.description() : "")
             .setPrice(pr.price() != null ? pr.price().doubleValue() : BigDecimal.ZERO.doubleValue())
-            .setCurrency(pr.currency() != null ? pr.currency().toString() : "")
+            .setCurrency(pr.currency() != null ? pr.currency().toString() : "EUR")
             .setImageUrl(pr.imageUrl() != null ? pr.imageUrl() : "")
             .setVolume(pr.volume() != null ? pr.volume().doubleValue() : BigDecimal.ZERO.doubleValue())
             .setCreateTime(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
@@ -52,8 +53,8 @@ public class ProductMapper {
             .build();
     }
 
-    public static ProductEntity fromDto(@NonNull ProductDTO pr) {
-        var pe = new ProductEntity(pr.asin(),
+    public static Product fromDto(@NonNull ProductDTO pr) {
+        var pe = new Product(pr.asin(),
             pr.title(),
             pr.description(),
             pr.volume(),
@@ -63,8 +64,10 @@ public class ProductMapper {
         return pe;
     }
 
-    public static ProductEntity fromProductCreatedEvent(@NonNull ProductCreatedEvent event) {
-        var pe = new ProductEntity(event.getAsin(), event.getTitle(), event.getDescription(),
+    public static Product fromProductCreatedEvent(@NonNull ProductCreatedEvent event) {
+        var pe = new Product(event.getAsin(),
+            event.getTitle(),
+            event.getDescription(),
             BigDecimal.valueOf(event.getVolume()),
             new Money(Currency.getInstance(event.getCurrency()), BigDecimal.valueOf(event.getPrice())),
             Optional.of(event.getImageUrl()).orElse(""));
@@ -72,8 +75,10 @@ public class ProductMapper {
         return pe;
     }
 
-    public static ProductEntity fromProductUpdatedEvent(@NonNull ProductUpdatedEvent event) {
-        var pe = new ProductEntity(event.getAsin(), event.getTitle(), event.getDescription(),
+    public static Product fromProductUpdatedEvent(@NonNull ProductUpdatedEvent event) {
+        var pe = new Product(event.getAsin(),
+            event.getTitle(),
+            event.getDescription(),
             BigDecimal.valueOf(event.getVolume()),
             new Money(Currency.getInstance(event.getCurrency()), BigDecimal.valueOf(event.getPrice())),
             Optional.of(event.getImageUrl()).orElse(""));
@@ -89,16 +94,17 @@ public class ProductMapper {
                 .toList() : List.of();
     }
 
-    private static Set<ProductCategoryEntity> mapCategoryDTOsToEntities(@NonNull List<Category> categories) {
+    private static Set<ProductCategory> mapCategoryDTOsToEntities(@NonNull List<Category> categories) {
         return categories.stream()
             .map(Category::getName)
-            .map(ProductCategoryEntity::new)
+            .map(ProductCategory::new)
             .collect(Collectors.toSet());
     }
 
-    private static Set<CategoryDTO> mapCategoryEntitiesToDTOs(@NonNull Set<ProductCategoryEntity> source) {
+    private static Set<CategoryDTO> mapCategoryEntitiesToDTOs(@NonNull Set<ProductCategory> source) {
         return source.stream()
-            .map(ProductCategoryEntity::getCategory)
+            .map(ProductCategory::getCategory)
+            .filter(Objects::nonNull)
             .map(CategoryDTO::new)
             .collect(Collectors.toSet());
     }

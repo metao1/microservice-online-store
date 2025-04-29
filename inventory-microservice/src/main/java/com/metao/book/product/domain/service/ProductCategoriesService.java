@@ -1,8 +1,8 @@
 package com.metao.book.product.domain.service;
 
-import com.metao.book.product.domain.ProductEntity;
+import com.metao.book.product.domain.Product;
 import com.metao.book.product.domain.category.ProductCategoriesInterface;
-import com.metao.book.product.domain.category.ProductCategoryEntity;
+import com.metao.book.product.domain.category.ProductCategory;
 import com.metao.book.product.domain.exception.ProductNotFoundException;
 import com.metao.book.product.infrastructure.repository.ProductRepository;
 import java.util.Set;
@@ -18,8 +18,8 @@ public class ProductCategoriesService implements ProductCategoriesInterface {
     private final ProductRepository productRepository;
 
     @Override
-    public Set<ProductCategoryEntity> getProductCategories(String productId) {
-        return productRepository.findByAsin(productId).map(ProductEntity::getCategories)
+    public Set<ProductCategory> getProductCategories(String productId) {
+        return productRepository.findByAsin(productId).map(Product::getCategories)
             .orElseThrow(() -> new ProductNotFoundException(productId));
     }
 }

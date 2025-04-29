@@ -3,9 +3,10 @@ package com.metao.book.product.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 
-import com.metao.book.product.domain.category.ProductCategoryEntity;
+import com.metao.book.product.domain.category.ProductCategory;
 import com.metao.book.product.domain.service.ProductCategoriesService;
 import com.metao.book.product.infrastructure.repository.ProductRepository;
+import com.metao.book.product.infrastructure.util.ProductConstant;
 import com.metao.book.product.util.ProductEntityUtils;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -34,8 +35,8 @@ class ProductCategoriesServiceTest {
         var categories = productCategoriesService.getProductCategories(PRODUCT_ID);
 
         assertThat(categories)
-            .extracting(ProductCategoryEntity::getCategory)
-            .contains("category");
+            .extracting(ProductCategory::getCategory)
+            .contains(ProductConstant.CATEGORY);
 
     }
 }

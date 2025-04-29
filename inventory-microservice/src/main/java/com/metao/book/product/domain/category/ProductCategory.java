@@ -1,7 +1,6 @@
 package com.metao.book.product.domain.category;
 
-import com.metao.book.product.domain.ProductEntity;
-import com.metao.book.shared.domain.base.AbstractEntity;
+import com.metao.book.product.domain.Product;
 import jakarta.persistence.Cacheable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,29 +16,23 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
-import java.util.function.Function;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.NaturalId;
 import org.hibernate.annotations.NaturalIdCache;
-import org.hibernate.annotations.UuidGenerator;
-import org.hibernate.annotations.UuidGenerator.Style;
 import org.springframework.cache.annotation.EnableCaching;
 
 @Setter
 @Getter
-//@Cacheable
+@Cacheable
 @NaturalIdCache
-//@EnableCaching
+@EnableCaching
 @Entity(name = "product_category")
 @Table(name = "product_category")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-public class ProductCategoryEntity implements Serializable {
+public class ProductCategory implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "product_sequence")
@@ -52,18 +45,17 @@ public class ProductCategoryEntity implements Serializable {
     private Long id;
 
     @NaturalId
-    @BatchSize(size = 50)
     @Column(name = "category", nullable = false, unique = true)
     private String category;
 
     @ManyToMany(mappedBy = "categories")
-    private Set<ProductEntity> productEntities;
+    private Set<Product> productEntities;
 
     @SuppressWarnings("unused")
-    public ProductCategoryEntity() {
+    public ProductCategory() {
     }
 
-    public ProductCategoryEntity(@NotNull String category) {
+    public ProductCategory(@NotNull String category) {
         this.category = category;
         this.productEntities = new HashSet<>();
     }
@@ -78,7 +70,7 @@ public class ProductCategoryEntity implements Serializable {
         if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
-        ProductCategoryEntity other = (ProductCategoryEntity) obj;
+        ProductCategory other = (ProductCategory) obj;
         return other.category.equals(category);
     }
 
