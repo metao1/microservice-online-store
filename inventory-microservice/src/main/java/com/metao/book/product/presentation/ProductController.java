@@ -11,7 +11,6 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -43,12 +42,12 @@ public class ProductController {
     }
 
     @GetMapping
-    public Stream<ProductDTO> allProductsWithOffset(
+    public List<ProductDTO> allProductsWithOffset(
         @RequestParam("limit") int limit, @RequestParam("offset") int offset
     ) {
         var l = Optional.of(limit).orElse(10);
         var o = Optional.of(offset).orElse(0);
-        return productService.getAllProductsPageable(l, o).map(ProductMapper::toDto);
+        return productService.getAllProductsPageable(l, o).map(ProductMapper::toDto).toList();
     }
 
     @PostMapping

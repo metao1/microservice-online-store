@@ -1,19 +1,21 @@
 package com.metao.book.product.domain;
 
+import static com.metao.book.product.infrastructure.util.ProductConstant.ASIN;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.metao.book.product.domain.category.ProductCategoryEntity;
+import com.metao.book.product.domain.category.ProductCategory;
+import com.metao.book.product.infrastructure.util.ProductConstant;
 import com.metao.book.shared.domain.financial.Money;
 import java.math.BigDecimal;
 import java.util.Currency;
 import org.junit.jupiter.api.Test;
 
-class ProductEntityTest {
+class ProductTest {
 
     @Test
     void testEquals() {
-        var productEntity = new ProductEntity(
-            "ASIN",
+        var productEntity = new Product(
+            ASIN,
             "title",
             "description",
             BigDecimal.ONE,
@@ -21,8 +23,8 @@ class ProductEntityTest {
             "https://example.com/image.jpg"
         );
 
-        var productEntity2 = new ProductEntity(
-            "ASIN",
+        var productEntity2 = new Product(
+            ASIN,
             "title",
             "description",
             BigDecimal.ONE,
@@ -35,8 +37,8 @@ class ProductEntityTest {
 
     @Test
     void testNotEquals() {
-        var productEntity = new ProductEntity(
-            "ASIN",
+        var productEntity = new Product(
+            ASIN,
             "title",
             "description",
             BigDecimal.ONE,
@@ -44,8 +46,8 @@ class ProductEntityTest {
             "https://example.com/image.jpg"
         );
 
-        var productEntity2 = new ProductEntity(
-            "otherASIN",
+        var productEntity2 = new Product(
+            ProductConstant.NEW_ASIN,
             "title",
             "description",
             BigDecimal.ONE,
@@ -58,8 +60,8 @@ class ProductEntityTest {
 
     @Test
     void typeTest() {
-        ProductEntity productEntity = new ProductEntity(
-            "ASIN",
+        Product product = new Product(
+            ASIN,
             "title",
             "description",
             BigDecimal.ONE,
@@ -67,8 +69,8 @@ class ProductEntityTest {
             "https://example.com/image.jpg"
         );
 
-        Object o = new ProductEntity(
-            "ASIN",
+        Object o = new Product(
+            ASIN,
             "title",
             "description",
             BigDecimal.ONE,
@@ -76,13 +78,13 @@ class ProductEntityTest {
             "https://example.com/image.jpg"
         );
 
-        assertThat(productEntity).isEqualTo(o);
+        assertThat(product).isEqualTo(o);
     }
 
     @Test
     void productCategoryTest() {
-        ProductEntity productEntity = new ProductEntity(
-            "ASIN",
+        Product product = new Product(
+            ASIN,
             "title",
             "description",
             BigDecimal.ONE,
@@ -90,10 +92,10 @@ class ProductEntityTest {
             "https://example.com/image.jpg"
         );
 
-        ProductCategoryEntity productCategoryEntity = new ProductCategoryEntity("book");
+        ProductCategory productCategory = new ProductCategory(ProductConstant.CATEGORY);
 
-        productEntity.addCategory(productCategoryEntity);
+        product.addCategory(productCategory);
 
-        assertThat(productEntity.getCategories()).contains(new ProductCategoryEntity("book"));
+        assertThat(product.getCategories()).contains(new ProductCategory(ProductConstant.CATEGORY));
     }
 }

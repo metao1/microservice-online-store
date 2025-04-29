@@ -17,17 +17,17 @@ import org.hibernate.validator.constraints.Length;
 public record ProductDTO(
 
     @NotNull
-    @Pattern(regexp = "^\\d{10}", message = "asin format is wrong")
+    @Pattern(regexp = "^\\w{10}", message = "asin format is wrong")
     String asin,
 
-    @Length(min = 1, max = 2500)
-    String description,
-
     @NotNull
-    @Length(min = 1, max = 255)
+    @Length(min = 1, max = 2500)
     String title,
 
-    @JsonProperty("image_url")
+    @Length(min = 1, max = 10_485_760)
+    String description,
+
+    @JsonProperty("imageUrl")
     @Length(min = 1, max = 255)
     @Pattern(regexp = "(http(s?):)([/|.|\\w|])*\\.(?:jpg|gif|png)", message = "url format is wrong")
     String imageUrl,

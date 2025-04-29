@@ -1,16 +1,16 @@
 package com.metao.book.product.persistence;
 
+import static com.metao.book.product.infrastructure.util.ProductConstant.NEW_ASIN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.metao.book.product.domain.ProductEntity;
-import com.metao.book.product.domain.category.ProductCategoryEntity;
+import com.metao.book.product.domain.Product;
+import com.metao.book.product.domain.category.ProductCategory;
 import com.metao.book.product.infrastructure.repository.ProductRepository;
 import com.metao.book.product.infrastructure.repository.model.OffsetBasedPageRequest;
 import com.metao.book.product.util.ProductEntityUtils;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -45,7 +45,7 @@ class ProductRepositoryTest {
     @DisplayName("Should not find product entity by id when it does not exists")
     void findProductByIdNotFound() {
         // WHEN
-        Optional<ProductEntity> entity = productRepository.findByAsin("PRODUCT_ID");
+        Optional<Product> entity = productRepository.findByAsin("PRODUCT_ID");
 
         // THEN
         assertTrue(entity.isEmpty());
@@ -55,11 +55,11 @@ class ProductRepositoryTest {
     @DisplayName("Should find product by id when it already exists")
     void findProductById() {
         // GIVEN
-        var product = ProductEntityUtils.createProductEntity("NEW_ASIN", "NEW_CATEGORY");
+        var product = ProductEntityUtils.createProductEntity(NEW_ASIN, "NEW_CATEGORY");
         productRepository.save(product);
 
         // WHEN
-        var result = productRepository.findByAsin(product.getAsin());
+        var result = productRepository.findByAsin(product.getAsin().toString());
 
         // THEN
         assertThat(result).isPresent().isEqualTo(Optional.of(product));
@@ -69,14 +69,14 @@ class ProductRepositoryTest {
     @DisplayName("Should find product by asin")
     void findProductByAsin() {
         // GIVEN
-        productRepository.save(ProductEntityUtils.createProductEntity("NEW_ASIN", "NEW_CATEGORY"));
+        productRepository.save(ProductEntityUtils.createProductEntity(NEW_ASIN, "NEW_CATEGORY"));
         // WHEN
-        var product = productRepository.findByAsin("NEW_ASIN").orElseThrow();
+        var product = productRepository.findByAsin(NEW_ASIN).orElseThrow();
 
         // THEN
         assertThat(product)
                 .isNotNull()
-                .isEqualTo(ProductEntityUtils.createProductEntity("NEW_ASIN", "NEW_CATEGORY"));
+                .isEqualTo(ProductEntityUtils.createProductEntity(NEW_ASIN, "NEW_CATEGORY"));
     }
 
     @PersistenceContext
@@ -86,10 +86,10 @@ class ProductRepositoryTest {
     @DisplayName("Should find all products with offset when two items requested is ok")
     void findAllProductsWithOffsetWhenTwoItemsRequestedIsOk() {
         var pes = ProductEntityUtils.createMultipleProductEntity(2);
-        for (ProductEntity pe : pes) {
-            Set<ProductCategoryEntity> managedCategories = pe.getCategories().stream()
+        for (Product pe : pes) {
+            Set<ProductCategory> managedCategories = pe.getCategories().stream()
                     .map(c -> entityManager.unwrap(Session.class)
-                            .byNaturalId(ProductCategoryEntity.class)
+                            .byNaturalId(ProductCategory.class)
                             .using("category", c.getCategory())
                             .getReference())
                     .collect(Collectors.toSet());
@@ -110,16 +110,16 @@ class ProductRepositoryTest {
     @DisplayName("Should find product's categories")
     void findProductCategories() {
         // GIVEN
-        productRepository.save(ProductEntityUtils.createProductEntity("NEW_ASIN2", "NEW_CATEGORY"));
+        productRepository.save(ProductEntityUtils.createProductEntity(NEW_ASIN, "NEW_CATEGORY"));
         // WHEN
-        var product = productRepository.findByAsin("NEW_ASIN2").orElseThrow();
+        var product = productRepository.findByAsin(NEW_ASIN).orElseThrow();
 
         // THEN
         assertThat(product)
-                .extracting(ProductEntity::getCategories)
+                .extracting(Product::getCategories)
                 .satisfies(
                         categories -> assertThat(categories).hasSize(1).element(0)
-                                .extracting(ProductCategoryEntity::getCategory)
+                                .extracting(ProductCategory::getCategory)
                                 .isEqualTo("NEW_CATEGORY"));
     }
 }

@@ -12,9 +12,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.metao.book.product.domain.ProductEntity;
+import com.metao.book.product.domain.Product;
 import com.metao.book.product.domain.service.ProductService;
 import com.metao.book.product.event.ProductCreatedEvent;
+import com.metao.book.product.infrastructure.util.ProductConstant;
 import com.metao.book.product.util.ProductEntityUtils;
 import java.math.BigDecimal;
 import java.util.List;
@@ -37,7 +38,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @AutoConfigureMockMvc
-@TestPropertySource(properties = {"kafka.enabled=false"})
+@TestPropertySource(properties = "kafka.enabled=false")
 @WebMvcTest(controllers = ProductController.class)
 class ProductControllerTests {
 
@@ -70,8 +71,8 @@ class ProductControllerTests {
             .andExpect(jsonPath("$.asin").value(pe.getAsin())).
             andExpect(jsonPath("$.title").value(pe.getTitle()))
             .andExpect(jsonPath("$.description").value(pe.getDescription()))
-            .andExpect(jsonPath("$.categories[0].category").value("category"))
-            .andExpect(jsonPath("$.image_url").value(pe.getImageUrl()))
+            .andExpect(jsonPath("$.categories[0].category").value(ProductConstant.CATEGORY))
+            .andExpect(jsonPath("$.imageUrl").value(pe.getImageUrl()))
             .andExpect(jsonPath("$.currency").value("EUR"))
             .andExpect(jsonPath("$.price").value(new BigDecimal("12.0")));
     }
@@ -108,12 +109,12 @@ class ProductControllerTests {
     @Test
     void whenGetProductsThenProductsAreReturned() throws Exception {
         int limit = 10, offset = 0;
-        List<ProductEntity> pes = ProductEntityUtils.createMultipleProductEntity(limit);
+        List<Product> pes = ProductEntityUtils.createMultipleProductEntity(limit);
         when(productService.getAllProductsPageable(limit, offset)).thenReturn(pes.stream());
 
         // Load multiple products and verify responses
         // OPTION 1 - using for-loop and query multiple times
-        for (ProductEntity pe : pes) {
+        for (Product pe : pes) {
             when(productService.getAllProductsPageable(limit, offset)).thenReturn(pes.stream());
             webTestClient.perform(get("%s?offset=%s&limit=%s".formatted(PRODUCT_URL, offset, limit)))
                 .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -121,7 +122,7 @@ class ProductControllerTests {
                 .andExpect(jsonPath("$.[?(@.asin == '" + pe.getAsin() + "')]").exists())
                 .andExpect(jsonPath("$.[?(@.title == '" + pe.getTitle() + "')]").exists())
                 .andExpect(jsonPath("$.[?(@.description == '" + pe.getDescription() + "')]").exists())
-                .andExpect(jsonPath("$.[?(@.image_url == '" + pe.getImageUrl() + "')]").exists())
+                .andExpect(jsonPath("$.[?(@.imageUrl == '" + pe.getImageUrl() + "')]").exists())
                 .andExpect(jsonPath("$.[?(@.currency == '" + pe.getPriceCurrency().toString() + "')]").exists())
                 .andExpect(jsonPath("$.[?(@.price == " + pe.getPriceValue() + ")]").exists())
                 .andExpect(jsonPath("$.[?(@.volume == " + pe.getVolume() + ")]").exists())
@@ -133,15 +134,15 @@ class ProductControllerTests {
         webTestClient.perform(get("%s?offset=%s&limit=%s".formatted(PRODUCT_URL, offset, limit)))
             .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.length()").value(10))
-            .andExpect(jsonPath("$[*].asin", extractFieldFromProducts(pes, ProductEntity::getAsin)))
-            .andExpect(jsonPath("$[*].title", extractFieldFromProducts(pes, ProductEntity::getTitle)))
-            .andExpect(jsonPath("$[*].description", extractFieldFromProducts(pes, ProductEntity::getDescription)))
-            .andExpect(jsonPath("$[*].image_url", extractFieldFromProducts(pes, ProductEntity::getImageUrl)))
+            .andExpect(jsonPath("$[*].asin", extractFieldFromProducts(pes, Product::getAsin)))
+            .andExpect(jsonPath("$[*].title", extractFieldFromProducts(pes, Product::getTitle)))
+            .andExpect(jsonPath("$[*].description", extractFieldFromProducts(pes, Product::getDescription)))
+            .andExpect(jsonPath("$[*].imageUrl", extractFieldFromProducts(pes, Product::getImageUrl)))
             .andExpect(
                 jsonPath("$[*].currency", extractFieldFromProducts(pes, pe -> pe.getPriceCurrency().getCurrencyCode()))
             )
             .andExpect(jsonPath("$[*].volume", extractFieldFromProducts(pes, pe -> pe.getVolume().doubleValue())))
-            .andExpect(jsonPath("$[*].categories[*].category", "book").exists());
+            .andExpect(jsonPath("$[*].categories[*].category", ProductConstant.CATEGORY).exists());
     }
 
     @Test
@@ -156,7 +157,7 @@ class ProductControllerTests {
     }
 
     private <T> Matcher<Iterable<?>> extractFieldFromProducts(
-        List<ProductEntity> pes, Function<ProductEntity, T> extractor
+            List<Product> pes, Function<Product, T> extractor
     ) {
         return Matchers.containsInAnyOrder(pes.stream().map(extractor).toArray());
     }

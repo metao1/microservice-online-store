@@ -5,8 +5,7 @@ COPY --chown=user:user build/libs/inventory-microservice.jar app.jar
 FROM jdk AS inventory-microservice
 
 # Set environment variables
-ENV JAVA_OPTS="-Xms256m -Xmx2048m -XX:UseSVE=0" \
-    SLEEP=1
+ENV JAVA_OPTS="-Xms256m -Xmx2048m"
 
 # Run as non-root user
 USER 1001

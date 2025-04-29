@@ -1,21 +1,22 @@
 package com.metao.book.product.domain.service;
 
-import com.metao.book.product.domain.ProductEntity;
-import com.metao.book.product.domain.category.ProductCategoryEntity;
+import com.metao.book.product.domain.Product;
+import com.metao.book.product.domain.category.ProductCategory;
 import com.metao.book.product.domain.exception.ProductNotFoundException;
 import com.metao.book.product.infrastructure.repository.ProductRepository;
 import com.metao.book.product.infrastructure.repository.model.OffsetBasedPageRequest;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 @Slf4j
 @Service
@@ -28,13 +29,14 @@ public class ProductService {
     @PersistenceContext
     private final EntityManager entityManager;
 
-    public Optional<ProductEntity> getProductByAsin(String asin) {
+
+    public Optional<Product> getProductByAsin(String asin) {
         var productEntity = productRepository.findByAsin(asin)
             .orElseThrow(() -> new ProductNotFoundException(asin));
         return Optional.ofNullable(productEntity);
     }
 
-    public Stream<ProductEntity> getAllProductsPageable(int limit, int offset) {
+    public Stream<Product> getAllProductsPageable(int limit, int offset) {
         var pageable = new OffsetBasedPageRequest(offset, limit);
         var pagedProducts = productRepository.findAll(pageable);
         if (pagedProducts.isEmpty()) {
@@ -43,41 +45,39 @@ public class ProductService {
         return pagedProducts.get();
     }
 
-    public Stream<ProductEntity> getProductsByCategory(int limit, int offset, String category)
+    public Stream<Product> getProductsByCategory(int limit, int offset, String category)
         throws ProductNotFoundException {
         var pageable = new OffsetBasedPageRequest(offset, limit);
         var products = productRepository.findAllByCategories(category, pageable);
         if (products.isEmpty()) {
-            throw new ProductNotFoundException("products not found.");
+            throw new ProductNotFoundException("Product with category %s".formatted(category));
         }
         return products.stream();
     }
 
-    public boolean saveProduct(ProductEntity productEntity) {
-        ProductEntity existingProductEntity = findEntityByReference(ProductEntity.class, productEntity.getAsin(),
-            "asin");
-        if (existingProductEntity != null) {
+    public boolean saveProduct(Product product) {
+        Product existingProduct = findEntityByReference(Product.class, product.getAsin(), "asin");
+        if (existingProduct != null) {
             return false;
         }
         // product needs to be saved first to have a managed state, when categories are added later
         // the product will be updated the hibernates is able to track the changes and hence saves the categories in
         // the product relationship. Otherwise, if categories are added directly before the product is saved, the
         // categories will be in transient state and will not be tracked by hibernates.
-        productRepository.save(productEntity);
         // Resolve categories using cache and natural ID lookup
-        saveCategory(productEntity);
+        saveCategory(product);
+        productRepository.save(product);
         return true;
     }
 
-    void saveCategory(ProductEntity pe) {
-        Set<ProductCategoryEntity> managedCategories = pe.getCategories().stream()
-            .map(productCategory -> findEntityByReference(productCategory.getClass(), productCategory.getCategory(),
-                "category"))
-            .collect(Collectors.toSet());
-        if (managedCategories.isEmpty()) {
+    void saveCategory(Product pe) {
+        if (CollectionUtils.isEmpty(pe.getCategories())) {
             return;
         }
-        pe.setCategories(managedCategories);
+        final Set<ProductCategory> managedCategories = findEntityByReference(pe);
+        if (!managedCategories.isEmpty()) {
+            pe.getCategories().removeAll(managedCategories);
+        }
     }
 
     private <T> T findEntityByReference(Class<T> reference, Object obj, String attributeName)
@@ -88,4 +88,26 @@ public class ProductService {
             .getReference();
     }
 
+    // TODO use the above method instead
+    Set<ProductCategory> findEntityByReference(Product product)
+        throws ClassCastException {
+        Session session = entityManager.unwrap(Session.class);
+        Set<ProductCategory> managedCategories = new LinkedHashSet<>();
+
+        for (ProductCategory category : product.getCategories()) {
+            // Leverage natural ID cache
+            ProductCategory existing = session.byNaturalId(ProductCategory.class)
+                .using("category", category.getCategory())
+                .loadOptional()
+                .orElseGet(() -> {
+                    session.persist(category);
+                    return category;
+                });
+
+            managedCategories.add(existing);
+        }
+        product.setCategories(managedCategories);
+
+        return product.getCategories();
+    }
 }

@@ -11,7 +11,7 @@ services:
       ZOOKEEPER_SERVERS: zoo1:2888:3888
 
   kafka1:
-    image: confluentinc/cp-kafka:7.6.0
+    image: confluentinc/cp-kafka:7.8.0
     hostname: kafka1
     container_name: kafka1
     ports:
@@ -123,12 +123,13 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:80"
+
   order-microservice:
     container_name: order-microservice
     hostname: order-microservice
     #restart: on-failure
     environment:
-      DATABASE_URL: "jdbc:postgresql://postgres:5432/bookstore"
+      DATABASE_URL: "jdbc:postgresql://postgres-order:5432/bookstore-order"
       SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
       BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:9092
       DATABASE_USER: bookstore
@@ -153,6 +154,7 @@ services:
       DATABASE_URL: "jdbc:postgresql://postgres:5432/bookstore"
       SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
       BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:9092
+      SPRING_PROFILES_ACTIVE: "container"
       DATABASE_USER: bookstore
       DATABASE_PASSWORD: bookstore
       SECURITY_PROTOCOL: PLAINTEXT

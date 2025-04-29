@@ -1,9 +1,11 @@
 package com.metao.book.product.application.service;
 
+import static com.metao.book.product.infrastructure.util.ProductConstant.ASIN;
+import static com.metao.book.product.infrastructure.util.ProductConstant.CATEGORY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.metao.book.product.domain.category.ProductCategoryEntity;
+import com.metao.book.product.domain.category.ProductCategory;
 import com.metao.book.product.domain.exception.ProductNotFoundException;
 import com.metao.book.product.domain.service.ProductService;
 import com.metao.book.product.util.ProductEntityUtils;
@@ -18,7 +20,7 @@ import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@TestPropertySource(properties = { "kafka.enabled=false" })
+@TestPropertySource(properties = "kafka.enabled=false")
 class ProductServiceTest {
 
     @Autowired
@@ -36,12 +38,12 @@ class ProductServiceTest {
 
     @Test
     void getProductByIdIsFound() {
-        var pe = productService.getProductByAsin("ABCDEF1234");
+        var pe = productService.getProductByAsin(ASIN);
         assertThat(pe)
                 .isNotNull()
                 .isPresent()
                 .hasValueSatisfying(p -> {
-                    assertThat(p.getAsin()).isEqualTo("ABCDEF1234");
+                    assertThat(p.getAsin()).isEqualTo(ASIN);
                     assertThat(p.getTitle()).isEqualTo("title");
                     assertThat(p.getDescription()).isEqualTo("description");
                     assertThat(p.getPriceValue()).isEqualTo(new BigDecimal("12.00"));
@@ -51,15 +53,15 @@ class ProductServiceTest {
                     assertThat(p.getCategories())
                             .hasSize(1)
                             .first()
-                            .extracting(ProductCategoryEntity::getCategory)
-                            .isEqualTo("category");
+                            .extracting(ProductCategory::getCategory)
+                            .isEqualTo(CATEGORY);
                 });
     }
 
     @Test
     void testSaveAnotherProductIsSuccessful() {
         // GIVEN
-        var pe = ProductEntityUtils.createProductEntity("ABCDEF1235", "book");
+        var pe = ProductEntityUtils.createProductEntity(ASIN, CATEGORY);
         productService.saveProduct(pe);
 
         // WHEN
@@ -69,7 +71,7 @@ class ProductServiceTest {
         assertThat(newProduct)
                 .isPresent()
                 .hasValueSatisfying(p -> {
-                    assertThat(p.getAsin()).isEqualTo("ABCDEF1235");
+                    assertThat(p.getAsin()).isEqualTo(ASIN);
                     assertThat(p.getTitle()).isEqualTo("title");
                     assertThat(p.getDescription()).isEqualTo("description");
                     assertThat(p.getPriceValue()).isEqualTo(new BigDecimal("12.00"));
@@ -79,8 +81,8 @@ class ProductServiceTest {
                     assertThat(p.getCategories())
                             .hasSize(1)
                             .first()
-                            .extracting(ProductCategoryEntity::getCategory)
-                            .isEqualTo("book");
+                            .extracting(ProductCategory::getCategory)
+                            .isEqualTo(CATEGORY);
                 });
     }
 }

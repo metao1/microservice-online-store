@@ -1,13 +1,15 @@
 package com.metao.book.product.domain.mapper;
 
+import static com.metao.book.product.infrastructure.util.ProductConstant.ASIN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.protobuf.Timestamp;
-import com.metao.book.product.domain.category.ProductCategoryEntity;
+import com.metao.book.product.domain.category.ProductCategory;
 import com.metao.book.product.domain.category.dto.CategoryDTO;
 import com.metao.book.product.domain.dto.ProductDTO;
 import com.metao.book.product.event.ProductCreatedEvent;
+import com.metao.book.product.infrastructure.util.ProductConstant;
 import com.metao.book.shared.CategoryOuterClass.Category;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -40,7 +42,7 @@ class ProductMapperTest {
     void toDtoToProductEntityReturnSuccessfully() {
         // THEN
         var productDto = ProductDTO.builder()
-            .asin("ASIN")
+            .asin(ASIN)
             .title("title")
             .description("description")
             .price(BigDecimal.ONE)
@@ -48,7 +50,7 @@ class ProductMapperTest {
             .volume(BigDecimal.ONE)
             .imageUrl("https://example.com/image.jpg")
             .boughtTogether(List.of("ASIN1", "ASIN2"))
-            .categories(Set.of(new CategoryDTO("category")))
+            .categories(Set.of(new CategoryDTO(ProductConstant.CATEGORY)))
             .build();
 
         // WHEN
@@ -64,7 +66,7 @@ class ProductMapperTest {
             assertThat(pe.getVolume()).isEqualTo(productDto.volume());
             assertThat(pe.getImageUrl()).isEqualTo(productDto.imageUrl());
             assertThat(pe.getCategories())
-                .extracting(ProductCategoryEntity::getCategory)
+                .extracting(ProductCategory::getCategory)
                 .containsExactlyInAnyOrderElementsOf(
                     productDto.categories().stream().map(CategoryDTO::category).toList()
                 );
@@ -75,7 +77,7 @@ class ProductMapperTest {
     void toProductEntityFromProductCreatedEventSuccessfully() {
         // GIVEN
         ProductCreatedEvent productCreatedEvent = ProductCreatedEvent.newBuilder()
-            .setAsin("ASIN")
+            .setAsin(ASIN)
             .setTitle("title")
             .setDescription("description")
             .setPrice(1.0)
@@ -100,7 +102,7 @@ class ProductMapperTest {
             assertThat(pe.getVolume()).isEqualByComparingTo(BigDecimal.valueOf(productCreatedEvent.getVolume()));
             assertThat(pe.getImageUrl()).isEqualTo(productCreatedEvent.getImageUrl());
             assertThat(pe.getCategories())
-                .extracting(ProductCategoryEntity::getCategory)
+                .extracting(ProductCategory::getCategory)
                 .containsExactlyInAnyOrderElementsOf(
                     productCreatedEvent.getCategoriesList().stream().map(Category::getName).toList()
                 );

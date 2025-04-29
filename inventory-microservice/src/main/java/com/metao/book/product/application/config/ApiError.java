@@ -1,7 +1,7 @@
 package com.metao.book.product.application.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.AccessLevel;
@@ -47,7 +47,7 @@ public class ApiError {
     /**
      * The date-time instance of when the error happened.
      */
-    private final ZonedDateTime timestamp = ZonedDateTime.now();
+    private final LocalDateTime timestamp = LocalDateTime.now();
 
     @Builder
     public ApiError(HttpStatus status, final String message, String errorCode) {

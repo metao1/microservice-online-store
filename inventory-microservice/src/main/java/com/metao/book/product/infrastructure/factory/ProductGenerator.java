@@ -55,7 +55,9 @@ public class ProductGenerator {
     public void loadProducts() {
         log.info("importing products data from resources");
         try (var source = FileHandler.readResourceInPath(getClass(), productsDataPath)) {
-            var productsPublisher = source.map(dtoMapper::toDto).filter(Optional::isPresent).map(Optional::get)
+            var productsPublisher = source.map(dtoMapper::toDto)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .map(ProductMapper::toProductCreatedEvent)
                 .map(e -> kafkaTemplate.send(productTopic, e.getAsin(), e)).toList();
             CompletableFuture.allOf(productsPublisher.toArray(new CompletableFuture[0]));

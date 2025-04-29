@@ -18,9 +18,9 @@ public class EventValidator implements Validator {
     public void validate(@NotNull Object target, @NotNull Errors errors) {
         ProductCreatedEvent productCreatedEvent = (ProductCreatedEvent) target;
         if (productCreatedEvent.getCurrency().isEmpty()) {
-            errors.rejectValue("currency", "currency.empty");
+            errors.rejectValue("currency", "currency.invalid");
         }
-        if (productCreatedEvent.getPrice() <= 0) {
+        if (productCreatedEvent.getPrice() < 0) {
             errors.rejectValue("price", "price.invalid");
         }
     }

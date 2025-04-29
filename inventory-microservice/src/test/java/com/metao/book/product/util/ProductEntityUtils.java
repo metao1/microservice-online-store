@@ -1,9 +1,12 @@
 package com.metao.book.product.util;
 
+import static com.metao.book.product.infrastructure.util.ProductConstant.ASIN;
+
 import com.google.protobuf.Timestamp;
-import com.metao.book.product.domain.ProductEntity;
-import com.metao.book.product.domain.category.ProductCategoryEntity;
+import com.metao.book.product.domain.Product;
+import com.metao.book.product.domain.category.ProductCategory;
 import com.metao.book.product.event.ProductCreatedEvent;
+import com.metao.book.product.infrastructure.util.ProductConstant;
 import com.metao.book.shared.CategoryOuterClass.Category;
 import com.metao.book.shared.domain.financial.Money;
 import java.math.BigDecimal;
@@ -17,37 +20,35 @@ import lombok.experimental.UtilityClass;
 public class ProductEntityUtils {
 
     private static final Currency EUR = Currency.getInstance("EUR");
-    public static final String ASIN = "ABCDEF1234";
 
-    public static ProductEntity createProductEntity() {
+    public static Product createProductEntity() {
         var description = "description";
         var title = "title";
-        var category = "category";
-        return createProductEntity(ASIN, title, description, category);
+        return createProductEntity(ASIN, title, description, ProductConstant.CATEGORY);
     }
 
-    public static ProductEntity createProductEntity(String asin, String category) {
+    public static Product createProductEntity(String asin, String category) {
         var description = "description";
         var title = "title";
         return createProductEntity(asin, title, description, category);
     }
 
-    public static ProductEntity createProductEntity(String asin, String title, String description, String category) {
+    public static Product createProductEntity(String asin, String title, String description, String category) {
         var url = "https://example.com/image.jpg";
         var price = new BigDecimal("12.00");
         var volume = new BigDecimal("100.00");
-        var pe = new ProductEntity(asin, title, description, volume, new Money(EUR, price), url);
-        pe.addCategory(new ProductCategoryEntity(category));
+        var pe = new Product(asin, title, description, volume, new Money(EUR, price), url);
+        pe.addCategory(new ProductCategory(category));
         return pe;
     }
 
-    public static List<ProductEntity> createMultipleProductEntity(int size) {
+    public static List<Product> createMultipleProductEntity(int size) {
         final var description = "description";
         var title = "title";
 
         return Stream.iterate(0, a -> a + 1)
             .limit(size)
-            .map(a -> createProductEntity(a.toString() + a, title + a, description, "book"))
+            .map(a -> createProductEntity(a.toString() + a, title + a, description, ProductConstant.CATEGORY))
             .toList();
     }
 
@@ -60,7 +61,7 @@ public class ProductEntityUtils {
             .setTitle("TITLE")
             .setDescription("DESCRIPTION")
             .setImageUrl("IMAGE_URL")
-            .addAllCategories(List.of(Category.newBuilder().setName("book").build())).build();
+            .addAllCategories(List.of(Category.newBuilder().setName(ProductConstant.CATEGORY).build())).build();
 
     }
 }
