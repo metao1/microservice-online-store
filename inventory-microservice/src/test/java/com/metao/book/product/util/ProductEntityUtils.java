@@ -48,7 +48,7 @@ public class ProductEntityUtils {
 
         return Stream.iterate(0, a -> a + 1)
             .limit(size)
-            .map(a -> createProductEntity(a.toString() + a, title + a, description, ProductConstant.CATEGORY))
+            .map(a -> createProductEntity(a.toString() + a, title + a, description + a, ProductConstant.CATEGORY))
             .toList();
     }
 

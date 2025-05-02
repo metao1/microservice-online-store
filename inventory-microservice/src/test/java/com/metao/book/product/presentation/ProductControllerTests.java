@@ -1,7 +1,6 @@
 package com.metao.book.product.presentation;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -21,10 +20,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import lombok.SneakyThrows;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
@@ -32,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -45,7 +41,7 @@ class ProductControllerTests {
     private static final String PRODUCT_URL = "/products";
 
     @MockitoBean
-    KafkaTemplate<String, ProductCreatedEvent> kafkaProductProducer;
+    com.metao.book.product.application.service.kafkaProductProducer kafkaProductProducer;
 
     @MockitoBean
     ProductService productService;
@@ -94,29 +90,29 @@ class ProductControllerTests {
              }
             """;
 
-        var productRecord = new ProducerRecord<>("product-created", "1234567890",
-            ProductCreatedEvent.getDefaultInstance());
-
-        doReturn(CompletableFuture.completedFuture(productRecord)).when(kafkaProductProducer)
-            .send(anyString(), anyString(), any(ProductCreatedEvent.class));
+        doReturn(Boolean.TRUE).when(kafkaProductProducer)
+            .sendEvent(any(ProductCreatedEvent.class));
 
         webTestClient.perform(post(PRODUCT_URL).contentType(MediaType.APPLICATION_JSON).content(productDto))
             .andExpect(status().isCreated()).andExpect(content().string("true"));
 
-        verify(kafkaProductProducer).send(anyString(), anyString(), any(ProductCreatedEvent.class));
+        verify(kafkaProductProducer).sendEvent(any(ProductCreatedEvent.class));
     }
 
     @Test
     void whenGetProductsThenProductsAreReturned() throws Exception {
         int limit = 10, offset = 0;
+        var category = "book";
         List<Product> pes = ProductEntityUtils.createMultipleProductEntity(limit);
-        when(productService.getAllProductsPageable(limit, offset)).thenReturn(pes.stream());
+        when(productService.getProductsByCategory(limit, offset, category))
+            .thenReturn(pes);
 
         // Load multiple products and verify responses
         // OPTION 1 - using for-loop and query multiple times
         for (Product pe : pes) {
-            when(productService.getAllProductsPageable(limit, offset)).thenReturn(pes.stream());
-            webTestClient.perform(get("%s?offset=%s&limit=%s".formatted(PRODUCT_URL, offset, limit)))
+            when(productService.getProductsByCategory(limit, offset, category)).thenReturn(pes);
+            webTestClient.perform(
+                    get("%s/category/%s?offset=%s&limit=%s".formatted(PRODUCT_URL, category, offset, limit)))
                 .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.length()").value(10))
                 .andExpect(jsonPath("$.[?(@.asin == '" + pe.getAsin() + "')]").exists())
@@ -129,9 +125,9 @@ class ProductControllerTests {
                 .andExpect(jsonPath("$.[?(@.categories[0].category == 'book')]").exists());
         }
 
-        when(productService.getAllProductsPageable(limit, offset)).thenReturn(pes.stream());
+        when(productService.getProductsByCategory(limit, offset, category)).thenReturn(pes);
         // OPTION 2 - using for-loop and query once and then verify responses using matcher -- preferable option
-        webTestClient.perform(get("%s?offset=%s&limit=%s".formatted(PRODUCT_URL, offset, limit)))
+        webTestClient.perform(get("%s/category/%s?offset=%s&limit=%s".formatted(PRODUCT_URL, category, offset, limit)))
             .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.length()").value(10))
             .andExpect(jsonPath("$[*].asin", extractFieldFromProducts(pes, Product::getAsin)))
