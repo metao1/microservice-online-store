@@ -38,4 +38,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             WHERE to_tsvector('english', description) @@ plainto_tsquery('english', :query)
             """, nativeQuery = true)
     List<Product> searchDescriptions(@Param("query") String query);
+
+    @Query("SELECT p FROM product p WHERE " +
+           "LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(p.asin) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    List<Product> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 }

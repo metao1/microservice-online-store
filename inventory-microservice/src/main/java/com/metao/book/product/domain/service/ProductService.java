@@ -2,7 +2,9 @@ package com.metao.book.product.domain.service;
 
 import com.metao.book.product.domain.Product;
 import com.metao.book.product.domain.category.ProductCategory;
+import com.metao.book.product.domain.dto.ProductDTO; // Added import
 import com.metao.book.product.domain.exception.ProductNotFoundException;
+import com.metao.book.product.domain.mapper.ProductMapper; // Added import
 import com.metao.book.product.infrastructure.repository.ProductRepository;
 import com.metao.book.product.infrastructure.repository.model.OffsetBasedPageRequest;
 import jakarta.persistence.EntityManager;
@@ -14,6 +16,8 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
+import org.springframework.data.domain.PageRequest; // Added import
+import org.springframework.data.domain.Pageable;   // Added import
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -90,5 +94,11 @@ public class ProductService {
                 .loadOptional()
             ).<ProductCategory>mapMulti(Optional::ifPresent)
             .collect(Collectors.toSet());
+    }
+
+    public List<ProductDTO> searchProductsByKeyword(String keyword, int offset, int limit) {
+        Pageable pageable = PageRequest.of(offset, limit);
+        List<Product> products = productRepository.searchByKeyword(keyword, pageable);
+        return products.stream().map(ProductMapper::toDto).collect(Collectors.toList());
     }
 }
