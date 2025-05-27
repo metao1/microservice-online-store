@@ -2,6 +2,7 @@ package com.metao.book.order.application.cart;
 
 import com.metao.book.order.domain.OrderEntity;
 import com.metao.book.order.domain.OrderId;
+import java.util.List; // Added for List return type
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -38,4 +39,12 @@ public interface OrderRepository extends JpaRepository<OrderEntity, OrderId> {
     Page<OrderEntity> findAll(
             Specification<OrderEntity> spec,
             Pageable pageable);
+
+    /**
+     * Finds all OrderEntity instances for a given customerId.
+     *
+     * @param customerId the ID of the customer
+     * @return a List of OrderEntity instances
+     */
+    List<OrderEntity> findAllByCustomerId(String customerId);
 }
