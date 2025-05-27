@@ -28,12 +28,39 @@ class ProductServiceTest {
 
     @BeforeEach
     void setUp() {
-        productService.saveProduct(ProductEntityUtils.createProductEntity());
+        ProductEntityUtils.createMultipleProductEntity(200)
+            .forEach(productService::saveProduct);
     }
 
     @Test
     void getProductByIdNotFound() {
         assertThrows(ProductNotFoundException.class, () -> productService.getProductByAsin("1"));
+    }
+
+    @Test
+    void testGetProductsByCategory() {
+        var pes = productService.getProductsByCategory(CATEGORY, 0, 50);
+
+        assertThat(pes)
+            .isNotNull()
+            .isNotEmpty()
+            .hasSize(50)
+            .first()
+            .satisfies(p -> {
+                assertThat(p.getAsin()).isEqualTo("00");
+                assertThat(p.getTitle()).isEqualTo("title");
+                assertThat(p.getDescription()).isEqualTo("description");
+                assertThat(p.getPriceValue()).isEqualTo(new BigDecimal("12.00"));
+                assertThat(p.getPriceCurrency()).isEqualTo(Currency.getInstance("EUR"));
+                assertThat(p.getVolume()).isEqualTo(new BigDecimal("100.00"));
+                assertThat(p.getImageUrl()).isEqualTo("https://example.com/image.jpg");
+                assertThat(p.getCategories())
+                    .hasSize(1)
+                    .first()
+                    .extracting(ProductCategory::getCategory)
+                    .isEqualTo(CATEGORY);
+            });
+
     }
 
     @Test
