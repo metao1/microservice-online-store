@@ -167,7 +167,7 @@ class E2EProductPurchaseTest {
             OrderEntity order = orders.get(0);
             assertThat(order.getCustomerId()).isEqualTo(userId);
             assertThat(order.getProductId()).isEqualTo(asin1);
-            assertThat(order.getStatus()).isEqualTo(OrderStatus.CONFIRMED);
+            assertThat(order.getStatus()).isEqualTo(OrderStatus.PAID); // Changed to PAID
             assertThat(order.getPrice()).isEqualByComparingTo(price1);
         });
     }

@@ -70,14 +70,20 @@ This document outlines potential edge cases and exception flows for the implemen
     *   **Edge Case**: Kafka broker is down or unreachable when `OrderEventHandler` tries to publish `OrderCreatedEvent`.
         *   **Expected**: `OrderEventHandler`'s `applyExceptionally` block might catch this, but the current implementation within it just calls `kafkaFactory.submit/publish` again. Robust retry/dead-letter queue (DLQ) mechanism would be needed for production. Spring Kafka's `@RetryableTopic` on the listener side helps with consumer errors, but producer errors need handling too.
 
-## Payment (Mocked in Order Microservice Kafka Listener)
+## Payment (Handled by `payment-microservice` - Mocked Processing)
 
-*   **Current Mock**: All new orders are automatically transitioned to `CONFIRMED` status by the `KafkaOrderListenerConfig`.
-*   **Edge Cases (Future - Real Payment Microservice):**
+*   **Current Mock**: The `payment-microservice` consumes `OrderCreatedEvent`s, simulates payment processing (random success/failure), and produces `OrderPaymentEvent`s (`SUCCESSFUL` or `FAILED`). The `order-microservice` consumes these events to update order status to `PAID` or `PAYMENT_FAILED`.
+*   **Edge Cases:**
+    *   **`payment-microservice` is down/unavailable**: `OrderCreatedEvent`s will queue in Kafka (if topic is durable) or be lost (if not/retention period exceeded). Orders in `order-microservice` will remain in `NEW` (or initial) status. No `OrderPaymentEvent` will be produced.
+    *   **`OrderPaymentEvent` is lost**: If `payment-microservice` processes payment but its `OrderPaymentEvent` fails to be published or is lost before `order-microservice` consumes it, the order status in `order-microservice` will not be updated, leading to inconsistency. (Requires robust Kafka production/consumption, possibly dead-letter queues).
+    *   **`order-microservice` fails to process `OrderPaymentEvent`**: If `order-microservice`'s listener for payment events fails (e.g., database issue when updating order status), the event might go to a DLQ or be retried. Order status would remain unchanged until resolved.
+    *   **Duplicate `OrderCreatedEvent` processing by `payment-microservice`**: If the payment service processes the same order event twice (e.g., due to Kafka consumer retries without idempotency), it might attempt two payments or send two `OrderPaymentEvent`s. The payment processing logic should ideally be idempotent.
+    *   **Duplicate `OrderPaymentEvent` processing by `order-microservice`**: The `PaymentEventListener` in `order-microservice` has basic idempotency (checks if order is already `PAID`/`PAYMENT_FAILED`).
+*   **Future Considerations (Real Payment Microservice):**
     *   Payment authorization failure (insufficient funds, invalid card).
     *   Payment gateway timeout or errors.
     *   Fraud detection holds.
-    *   **Expected (Future)**: Order status should reflect `PAYMENT_FAILED`, `PENDING_PAYMENT`, etc. Order should not proceed to fulfillment. Events like `OrderPaymentFailedEvent` would be consumed by `order-microservice`.
+    *   Handling refunds and chargebacks.
 
 ## Order Confirmation Notification (Placeholder Log Message)
 

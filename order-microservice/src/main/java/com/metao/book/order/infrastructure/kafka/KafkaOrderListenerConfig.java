@@ -2,7 +2,7 @@ package com.metao.book.order.infrastructure.kafka;
 
 import com.metao.book.order.OrderCreatedEvent;
 import com.metao.book.order.domain.OrderService;
-import com.metao.book.order.domain.OrderStatus; // Added import
+import com.metao.book.order.domain.OrderStatus;
 import com.metao.book.shared.OrderUpdatedEvent;
 import com.metao.book.shared.application.service.StageProcessor;
 import lombok.RequiredArgsConstructor;
@@ -31,15 +31,9 @@ public class KafkaOrderListenerConfig {
                 if (ex != null || entity == null) {
                     log.error("error while consuming order, error: {}", ex == null ? "null" : ex.getMessage());
                 } else {
-                    orderService.save(entity); // Initial save with NEW status (or whatever is default from mapping)
+                    orderService.save(entity);
                     log.info("order {} saved.", entity);
-
-                    // --- Start of new mock payment logic ---
-                    log.info("Mock payment processing for order: {}", entity.getOrderId());
-                    entity.setStatus(OrderStatus.CONFIRMED);
-                    orderService.save(entity); // Save again with CONFIRMED status
-                    log.info("Order {} status updated to CONFIRMED after mock payment. Notification pending.", entity.getOrderId());
-                    // --- End of new mock payment logic ---
+                    // Mock payment logic removed. Order status will now be updated by PaymentEventListener.
                 }
             });
     }

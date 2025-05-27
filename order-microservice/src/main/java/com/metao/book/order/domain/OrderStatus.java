@@ -5,9 +5,11 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum OrderStatus {
     NEW("NEW"),
-    SUBMITTED("SUBMITTED"),
-    REJECTED("REJECTED"),
-    CONFIRMED("CONFIRMED"),
+    SUBMITTED("SUBMITTED"), 
+    CONFIRMED("CONFIRMED"), 
+    PAID("PAID"),           
+    PAYMENT_FAILED("PAYMENT_FAILED"), 
+    REJECTED("REJECTED"),   
     ROLLED_BACK("ROLLED_BACK");
 
     @JsonValue
@@ -20,11 +22,11 @@ public enum OrderStatus {
     @JsonCreator
     public OrderStatus toStatus(String value) {
         for (OrderStatus orderStatus : OrderStatus.values()) {
-            if (value.equals(this.value.toUpperCase())) {
+            if (orderStatus.value.equalsIgnoreCase(value)) { 
                 return orderStatus;
             }
         }
-        throw new RuntimeException("No value matched for Status");
+        throw new IllegalArgumentException("No matching OrderStatus for value: " + value);
     }
 
     @Override

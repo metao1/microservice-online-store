@@ -7,6 +7,10 @@ spring:
       security.protocol: PLAINTEXT
       sasl.mechanism: PLAIN
       schema.registry.url: mock://not-used
+    # Topic Names (add order-payment topic for test context if needed, though primarily for listeners)
+    topic:
+      order-payment:
+        name: order-payment-events # Define the topic name for payment events
   jpa:
     properties:
       hibernate:
