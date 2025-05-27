@@ -4,7 +4,7 @@ import com.metao.book.product.domain.Product;
 import com.metao.book.product.domain.dto.ProductDTO;
 import com.metao.book.product.domain.mapper.ProductMapper;
 import com.metao.book.product.infrastructure.repository.ProductRepository;
-import com.metao.book.shared.domain.financial.Money; // Correct import for Money
+import com.metao.book.shared.domain.financial.Money;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,11 +18,11 @@ import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Currency;
-import java.util.Optional; // Added import
+import java.util.Optional;
 
-import com.metao.book.product.domain.exception.ProductNotFoundException; // Added import
+import com.metao.book.product.domain.exception.ProductNotFoundException;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows; // Added import
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -32,22 +32,17 @@ class ProductServiceTest {
     @Mock
     private ProductRepository productRepository;
 
-    // ProductMapper is a class with static methods, so no need to mock if used as ProductMapper.toDto
-
     @InjectMocks
     private ProductService productService;
 
     private Product product1;
-    // private ProductDTO productDTO1; // Not explicitly needed as it's created during the service call
 
     @BeforeEach
     void setUp() {
-        // Product(asin, title, description, volume, money, imageUrl)
         product1 = new Product("ASIN001", "Test Title 1", "Description for test", 
                                BigDecimal.ONE, 
                                new com.metao.book.shared.domain.financial.Money(Currency.getInstance("USD"), BigDecimal.TEN), 
                                "http://example.com/image1.jpg");
-        // productDTO1 will be implicitly created by the mapper in the service method.
     }
 
     @Test
@@ -55,7 +50,7 @@ class ProductServiceTest {
         String keyword = "Test";
         int offset = 0;
         int limit = 10;
-        Pageable pageable = PageRequest.of(offset, limit); // Spring Data JPA pages are 0-indexed for offset
+        Pageable pageable = PageRequest.of(offset, limit);
         when(productRepository.searchByKeyword(eq(keyword), eq(pageable))).thenReturn(List.of(product1));
 
         List<ProductDTO> results = productService.searchProductsByKeyword(keyword, offset, limit);
@@ -63,14 +58,15 @@ class ProductServiceTest {
         assertThat(results).isNotNull();
         assertThat(results).hasSize(1);
         
-        // Assertions based on ProductMapper.toDto logic
         ProductDTO resultDTO = results.get(0);
         assertThat(resultDTO.asin()).isEqualTo(product1.getAsin());
         assertThat(resultDTO.title()).isEqualTo(product1.getTitle());
         assertThat(resultDTO.description()).isEqualTo(product1.getDescription());
+        // Assuming ProductMapper correctly maps volume, price, currency, imageUrl based on Product entity getters
+        // For example:
         assertThat(resultDTO.volume()).isEqualByComparingTo(product1.getVolume());
-        assertThat(resultDTO.price()).isEqualByComparingTo(product1.getPriceValue());
-        assertThat(resultDTO.currency()).isEqualTo(product1.getPriceCurrency());
+        assertThat(resultDTO.price()).isEqualByComparingTo(product1.getPriceValue()); // Assuming getPriceValue() for BigDecimal price
+        assertThat(resultDTO.currency()).isEqualTo(product1.getPriceCurrency()); // Assuming getPriceCurrency()
         assertThat(resultDTO.imageUrl()).isEqualTo(product1.getImageUrl());
     }
 
@@ -105,6 +101,7 @@ class ProductServiceTest {
         String nonExistentAsin = "NONEXISTENTASIN";
         when(productRepository.findByAsin(nonExistentAsin)).thenReturn(Optional.empty());
 
+        // As per worker's report on previous test creation, this service method throws ProductNotFoundException
         assertThrows(ProductNotFoundException.class, () -> {
             productService.getProductByAsin(nonExistentAsin);
         });
@@ -116,8 +113,6 @@ class ProductServiceTest {
         String categoryName = "TestCategory";
         int offset = 0;
         int limit = 10;
-        // The Pageable in ProductService.getProductsByCategory uses OffsetBasedPageRequest,
-        // but for mocking repository, PageRequest.of is fine as it's about the interface.
         Pageable pageable = PageRequest.of(offset, limit); 
         when(productRepository.findAllByCategories(eq(categoryName), eq(pageable))).thenReturn(List.of(product1));
 

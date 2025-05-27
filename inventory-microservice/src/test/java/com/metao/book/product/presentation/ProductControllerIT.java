@@ -1,7 +1,7 @@
 package com.metao.book.product.presentation;
 
 import com.metao.book.product.domain.Product;
-import com.metao.book.product.domain.category.ProductCategory; // Added for category test
+import com.metao.book.product.domain.category.ProductCategory;
 import com.metao.book.product.domain.dto.ProductDTO;
 import com.metao.book.product.infrastructure.repository.ProductRepository;
 import com.metao.book.shared.domain.financial.Money;
@@ -61,21 +61,14 @@ class ProductControllerIT {
         RestAssured.port = port;
         RestAssured.basePath = "/products"; 
 
-        productRepository.deleteAll(); // Clean up before each test
+        productRepository.deleteAll();
 
         Money money10 = new Money(Currency.getInstance("USD"), BigDecimal.TEN);
         Money money20 = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(20));
 
         product1 = new Product("ASIN001", "Laptop Pro", "High-end laptop", BigDecimal.valueOf(1.5), money10, "img1.jpg");
         
-        // Setup category
         categoryElectronics = new ProductCategory("Electronics");
-        // The Product entity has CascadeType.PERSIST and MERGE for categories.
-        // This means saving the Product should also save the new ProductCategory if it's not already managed.
-        // However, ProductCategory itself has an ID and might need to be managed/found first if it could already exist.
-        // For simplicity in this test, we assume new categories are created and cascaded.
-        // If ProductCategory had its own repository, we might save it there first.
-        // For this test, we'll add it to the product and save the product.
         product1.addCategory(categoryElectronics); 
         productRepository.save(product1);
 
@@ -86,11 +79,6 @@ class ProductControllerIT {
     @AfterEach
     void tearDown() {
         productRepository.deleteAll();
-        // If ProductCategoryRepository was used, cleanup categories too.
-        // Since we rely on cascade from Product for categories, deleteAll on products should be enough if orphanRemoval is not configured.
-        // For safety, if categories were independently saved, they'd need explicit deletion.
-        // Given the ManyToMany, deleting products won't delete categories unless they are orphaned and orphanRemoval=true on the other side (not typical for ManyToMany).
-        // However, for this test scope, productRepository.deleteAll() is the primary cleanup.
     }
 
     @Test
@@ -148,7 +136,7 @@ class ProductControllerIT {
     void getProductsByCategory_whenProductsExist_returnsProductList() {
         ProductDTO[] products = given()
             .contentType(ContentType.JSON)
-            .queryParam("offset", 0) // Add required params for pagination
+            .queryParam("offset", 0)
             .queryParam("limit", 10)
         .when()
             .get("/category/{name}", categoryElectronics.getCategory())
@@ -170,7 +158,7 @@ class ProductControllerIT {
         .when()
             .get("/category/{name}", "NonExistentCategory")
         .then()
-            .statusCode(HttpStatus.OK.value()) // Controller returns List<ProductDTO>, so OK with empty list
+            .statusCode(HttpStatus.OK.value())
             .extract().as(ProductDTO[].class);
 
         assertThat(products).isEmpty();
