@@ -22,11 +22,12 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import org.springframework.test.context.ActiveProfiles; // Added import
+// import org.springframework.test.context.DynamicPropertyRegistry; // Removed
+// import org.springframework.test.context.DynamicPropertySource; // Removed
+// import org.testcontainers.containers.PostgreSQLContainer; // Removed
+// import org.testcontainers.junit.jupiter.Container; // Removed
+import org.testcontainers.junit.jupiter.Testcontainers; // Keep for now, review later
 
 import java.math.BigDecimal;
 import java.time.Duration;
@@ -44,6 +45,7 @@ import static org.hamcrest.Matchers.*;
                topics = {"${kafka.topic.order-created.name}"}) // Ensure this matches application.properties
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class) // To run tests in order
 @DirtiesContext // Ensures a clean context for this test class
+@ActiveProfiles("test") // Added active profile
 class E2EProductPurchaseTest {
 
     @LocalServerPort // Port for order-microservice
@@ -52,23 +54,8 @@ class E2EProductPurchaseTest {
     // Hardcoded port for inventory-microservice (assumed to be running independently or via docker-compose)
     private final String inventoryMicroserviceBaseUri = "http://localhost:8083"; 
 
-    @Container
-    static PostgreSQLContainer<?> postgresOrderDB = new PostgreSQLContainer<>("postgres:15-alpine")
-            .withDatabaseName("bookstore-order")
-            .withUsername("bookstore")
-            .withPassword("bookstore");
-
-    @DynamicPropertySource
-    static void setProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgresOrderDB::getJdbcUrl);
-        registry.add("spring.datasource.username", postgresOrderDB::getUsername);
-        registry.add("spring.datasource.password", postgresOrderDB::getPassword);
-        registry.add("spring.flyway.url", postgresOrderDB::getJdbcUrl);
-        registry.add("spring.flyway.user", postgresOrderDB::getUsername);
-        registry.add("spring.flyway.password", postgresOrderDB::getPassword);
-        // Using spring.kafka.properties prefix as it's more common with Spring Kafka
-        registry.add("spring.kafka.properties.schema.registry.url", () -> "mock://localhost:8081"); 
-    }
+    // @Container static PostgreSQLContainer<?> postgresOrderDB ... // Removed
+    // @DynamicPropertySource static void setProperties(...) ... // Removed
 
     @Autowired
     private ShoppingCartRepository shoppingCartRepository;

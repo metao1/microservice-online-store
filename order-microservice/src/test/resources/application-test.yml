@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:tc:postgresql:12:///
+    url: jdbc:tc:postgresql:15-alpine:///bookstore-order
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
   kafka:
     properties:
