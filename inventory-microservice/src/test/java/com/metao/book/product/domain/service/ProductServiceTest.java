@@ -107,16 +107,18 @@ class ProductServiceTest {
         });
     }
 
-    // --- Tests for getProductsByCategory ---
+    // --- Tests for getProductsByCategories ---
     @Test
-    void getProductsByCategory_whenProductsExist_returnsDtoList() {
+    void getProductsByCategories_singleCategory_whenProductsExist_returnsDtoList() {
         String categoryName = "TestCategory";
+        List<String> categoryNames = List.of(categoryName); // Pass as list
         int offset = 0;
         int limit = 10;
         Pageable pageable = PageRequest.of(offset, limit); 
-        when(productRepository.findAllByCategories(eq(categoryName), eq(pageable))).thenReturn(List.of(product1));
+        // Mock repository to expect a list
+        when(productRepository.findAllByCategories(eq(categoryNames), eq(pageable))).thenReturn(List.of(product1));
 
-        List<ProductDTO> results = productService.getProductsByCategory(limit, offset, categoryName);
+        List<ProductDTO> results = productService.getProductsByCategories(limit, offset, categoryNames); // Call new method
 
         assertThat(results).isNotNull();
         assertThat(results).hasSize(1);
@@ -125,14 +127,57 @@ class ProductServiceTest {
     }
 
     @Test
-    void getProductsByCategory_whenNoProductsExist_returnsEmptyList() {
-        String categoryName = "EmptyCategory";
+    void getProductsByCategories_multipleCategories_whenProductsExist_returnsDtoList() {
+        List<String> categoryNames = List.of("Category1", "Category2");
         int offset = 0;
         int limit = 10;
         Pageable pageable = PageRequest.of(offset, limit);
-        when(productRepository.findAllByCategories(eq(categoryName), eq(pageable))).thenReturn(Collections.emptyList());
+        // Assume product1 would be returned if it matched any of these categories
+        when(productRepository.findAllByCategories(eq(categoryNames), eq(pageable))).thenReturn(List.of(product1)); 
 
-        List<ProductDTO> results = productService.getProductsByCategory(limit, offset, categoryName);
+        List<ProductDTO> results = productService.getProductsByCategories(limit, offset, categoryNames);
+
+        assertThat(results).isNotNull();
+        assertThat(results).hasSize(1); // Or more if more products are mocked
+        assertThat(results.get(0).asin()).isEqualTo(product1.getAsin());
+    }
+
+    @Test
+    void getProductsByCategories_singleCategory_whenNoProductsExist_returnsEmptyList() {
+        String categoryName = "EmptyCategory";
+        List<String> categoryNames = List.of(categoryName); // Pass as list
+        int offset = 0;
+        int limit = 10;
+        Pageable pageable = PageRequest.of(offset, limit);
+        // Mock repository to expect a list
+        when(productRepository.findAllByCategories(eq(categoryNames), eq(pageable))).thenReturn(Collections.emptyList());
+
+        List<ProductDTO> results = productService.getProductsByCategories(limit, offset, categoryNames); // Call new method
+
+        assertThat(results).isNotNull();
+        assertThat(results).isEmpty();
+    }
+
+    @Test
+    void getProductsByCategories_whenCategoryListIsEmpty_returnsEmptyList() {
+        List<String> categoryNames = Collections.emptyList();
+        int offset = 0;
+        int limit = 10;
+        // No need to mock repository as service should return early
+
+        List<ProductDTO> results = productService.getProductsByCategories(limit, offset, categoryNames);
+
+        assertThat(results).isNotNull();
+        assertThat(results).isEmpty();
+    }
+
+    @Test
+    void getProductsByCategories_whenCategoryListIsNull_returnsEmptyList() {
+        int offset = 0;
+        int limit = 10;
+        // No need to mock repository as service should return early
+
+        List<ProductDTO> results = productService.getProductsByCategories(limit, offset, null);
 
         assertThat(results).isNotNull();
         assertThat(results).isEmpty();

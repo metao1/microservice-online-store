@@ -1,11 +1,15 @@
 package com.metao.book.product.presentation;
 
 import com.metao.book.product.application.service.kafkaProductProducer;
+import com.metao.book.product.application.service.kafkaProductProducer;
 import com.metao.book.product.domain.dto.ProductDTO;
 import com.metao.book.product.domain.exception.ProductNotFoundException;
 import com.metao.book.product.domain.mapper.ProductMapper;
 import com.metao.book.product.domain.service.ProductService;
+import java.util.Arrays; // Added import
+import java.util.Collections; // Added import
 import java.util.List;
+import java.util.stream.Collectors; // Added import
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -44,13 +48,22 @@ public class ProductController {
         return kafkaProductProducer.sendEvent(ProductMapper.toProductCreatedEvent(productDTO));
     }
 
-    @GetMapping("/category/{name}")
-    public List<ProductDTO> productsByCategory(
-        @PathVariable("name") String name, @RequestParam("offset") int offset, @RequestParam("limit") int limit
+    @GetMapping("/categories/{categoriesCsv}")
+    public List<ProductDTO> productsByCategories(
+        @PathVariable("categoriesCsv") String categoriesCsv,
+        @RequestParam(value = "offset", defaultValue = "0") int offset,
+        @RequestParam(value = "limit", defaultValue = "10") int limit
     ) {
-        return productService.getProductsByCategory(limit, offset, name).stream()
-            .map(ProductMapper::toDto)
-            .toList();
+        List<String> categoryList;
+        if (categoriesCsv == null || categoriesCsv.trim().isEmpty()) {
+            categoryList = java.util.Collections.emptyList();
+        } else {
+            categoryList = java.util.Arrays.stream(categoriesCsv.split(","))
+                                     .map(String::trim)
+                                     .filter(s -> !s.isEmpty())
+                                     .collect(java.util.stream.Collectors.toList());
+        }
+        return productService.getProductsByCategories(limit, offset, categoryList);
     }
 
     @GetMapping("/search")

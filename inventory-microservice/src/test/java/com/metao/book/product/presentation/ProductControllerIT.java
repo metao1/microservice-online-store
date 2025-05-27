@@ -133,13 +133,13 @@ class ProductControllerIT {
     }
     
     @Test
-    void getProductsByCategory_whenProductsExist_returnsProductList() {
+    void getProductsByCategories_singleCategory_whenProductsExist_returnsProductList() {
         ProductDTO[] products = given()
             .contentType(ContentType.JSON)
             .queryParam("offset", 0)
             .queryParam("limit", 10)
         .when()
-            .get("/category/{name}", categoryElectronics.getCategory())
+            .get("/categories/{categoriesCsv}", categoryElectronics.getCategory()) 
         .then()
             .statusCode(HttpStatus.OK.value())
             .extract().as(ProductDTO[].class);
@@ -150,13 +150,79 @@ class ProductControllerIT {
     }
 
     @Test
-    void getProductsByCategory_whenCategoryDoesNotExistOrNoProducts_returnsEmptyList() {
+    void getProductsByCategories_nonExistentCategory_returnsEmptyList() {
          ProductDTO[] products = given()
             .contentType(ContentType.JSON)
             .queryParam("offset", 0)
             .queryParam("limit", 10)
         .when()
-            .get("/category/{name}", "NonExistentCategory")
+            .get("/categories/{categoriesCsv}", "NonExistentCategory") 
+        .then()
+            .statusCode(HttpStatus.OK.value())
+            .extract().as(ProductDTO[].class);
+
+        assertThat(products).isEmpty();
+    }
+
+    @Test
+    void getProductsByCategories_multipleCategories_findsProductInOne() {
+        // product1 is in "Electronics" (categoryElectronics)
+        String categoriesCsv = categoryElectronics.getCategory() + ",Books"; // "Electronics,Books"
+
+        ProductDTO[] products = given()
+            .contentType(ContentType.JSON)
+            .queryParam("offset", 0)
+            .queryParam("limit", 10)
+        .when()
+            .get("/categories/{categoriesCsv}", categoriesCsv)
+        .then()
+            .statusCode(HttpStatus.OK.value())
+            .extract().as(ProductDTO[].class);
+
+        assertThat(products).hasSize(1); 
+        assertThat(products[0].asin()).isEqualTo(product1.getAsin());
+    }
+
+    @Test
+    void getProductsByCategories_multipleCategoriesWithSpaces_parsesCorrectly() {
+        String categoriesCsvWithSpaces = " " + categoryElectronics.getCategory() + " , Books "; 
+        ProductDTO[] products = given()
+            .contentType(ContentType.JSON)
+            .queryParam("offset", 0)
+            .queryParam("limit", 10)
+        .when()
+            .get("/categories/{categoriesCsv}", categoriesCsvWithSpaces)
+        .then()
+            .statusCode(HttpStatus.OK.value())
+            .extract().as(ProductDTO[].class);
+
+        assertThat(products).hasSize(1);
+        assertThat(products[0].asin()).isEqualTo(product1.getAsin());
+    }
+    
+    @Test
+    void getProductsByCategories_emptyCategoryString_returnsEmptyList() {
+        ProductDTO[] products = given()
+            .contentType(ContentType.JSON)
+            .queryParam("offset", 0)
+            .queryParam("limit", 10)
+        .when()
+            .get("/categories/{categoriesCsv}", " ") // A space, which trims to empty
+        .then()
+            .statusCode(HttpStatus.OK.value())
+            .extract().as(ProductDTO[].class);
+
+        assertThat(products).isEmpty();
+    }
+
+    @Test
+    void getProductsByCategories_onlyCommaSeparator_returnsEmptyList() {
+        ProductDTO[] products = given()
+            .contentType(ContentType.JSON)
+            .queryParam("offset", 0)
+            .queryParam("limit", 10)
+        .when()
+            .get("/categories/{categoriesCsv}", ",,,") 
         .then()
             .statusCode(HttpStatus.OK.value())
             .extract().as(ProductDTO[].class);

@@ -20,12 +20,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Optional<Product> findByAsin(@Param("asin") String asin);
 
     @Query("""
-                select distinct p, pc
-                    from product p
-                    left join p.categories pc
-                         where pc.category = :category
+                SELECT DISTINCT p
+                FROM product p
+                LEFT JOIN FETCH p.categories pc
+                WHERE pc.category IN :categories
             """)
-    List<Product> findAllByCategories(@Param("category") String category, Pageable pageable);
+    List<Product> findAllByCategories(@Param("categories") List<String> categories, Pageable pageable);
 
     @Query("SELECT pc FROM product_category pc WHERE pc.category = :category")
     Optional<ProductCategory> findByCategory(@Param("category") String category);
