@@ -1,22 +1,20 @@
 spring:
   datasource:
-    url: jdbc:tc:postgresql:15-alpine:///bookstore-order
+    url: jdbc:tc:postgresql:11.1:///integration-tests-db
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
   kafka:
     properties:
       security.protocol: PLAINTEXT
       sasl.mechanism: PLAIN
       schema.registry.url: mock://not-used
-    # Topic Names (add order-payment topic for test context if needed, though primarily for listeners)
-    topic:
-      order-payment:
-        name: order-payment-events # Define the topic name for payment events
   jpa:
+    generate-ddl: true
     properties:
       hibernate:
         show_sql: true
     show-sql: true
-    generate-ddl: true
+  flyway:
+    enabled: false
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%t]){yellow} %clr([%c{1.}]){green} %clr(:){red} %clr(%m){faint}%n"
   level:

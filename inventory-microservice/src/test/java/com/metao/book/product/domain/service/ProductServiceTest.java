@@ -1,10 +1,19 @@
 package com.metao.book.product.domain.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+
 import com.metao.book.product.domain.Product;
 import com.metao.book.product.domain.dto.ProductDTO;
+import com.metao.book.product.domain.exception.ProductNotFoundException;
 import com.metao.book.product.domain.mapper.ProductMapper;
 import com.metao.book.product.infrastructure.repository.ProductRepository;
-import com.metao.book.shared.domain.financial.Money;
+import com.metao.book.product.util.ProductEntityUtils;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,18 +22,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-
-import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.List;
-import java.util.Currency;
-import java.util.Optional;
-
-import com.metao.book.product.domain.exception.ProductNotFoundException;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
@@ -39,10 +36,7 @@ class ProductServiceTest {
 
     @BeforeEach
     void setUp() {
-        product1 = new Product("ASIN001", "Test Title 1", "Description for test", 
-                               BigDecimal.ONE, 
-                               new com.metao.book.shared.domain.financial.Money(Currency.getInstance("USD"), BigDecimal.TEN), 
-                               "http://example.com/image1.jpg");
+        product1 = ProductEntityUtils.createProductEntity();
     }
 
     @Test
@@ -118,7 +112,10 @@ class ProductServiceTest {
         // Mock repository to expect a list
         when(productRepository.findAllByCategories(eq(categoryNames), eq(pageable))).thenReturn(List.of(product1));
 
-        List<ProductDTO> results = productService.getProductsByCategories(limit, offset, categoryNames); // Call new method
+        var results = productService.getProductsByCategories(limit, offset, categoryNames)
+            .stream()
+            .map(ProductMapper::toDto)
+            .toList();
 
         assertThat(results).isNotNull();
         assertThat(results).hasSize(1);
@@ -133,9 +130,12 @@ class ProductServiceTest {
         int limit = 10;
         Pageable pageable = PageRequest.of(offset, limit);
         // Assume product1 would be returned if it matched any of these categories
-        when(productRepository.findAllByCategories(eq(categoryNames), eq(pageable))).thenReturn(List.of(product1)); 
+        when(productRepository.findAllByCategories(eq(categoryNames), eq(pageable))).thenReturn(List.of(product1));
 
-        List<ProductDTO> results = productService.getProductsByCategories(limit, offset, categoryNames);
+        var results = productService.getProductsByCategories(limit, offset, categoryNames)
+            .stream()
+            .map(ProductMapper::toDto)
+            .toList();
 
         assertThat(results).isNotNull();
         assertThat(results).hasSize(1); // Or more if more products are mocked
@@ -152,7 +152,10 @@ class ProductServiceTest {
         // Mock repository to expect a list
         when(productRepository.findAllByCategories(eq(categoryNames), eq(pageable))).thenReturn(Collections.emptyList());
 
-        List<ProductDTO> results = productService.getProductsByCategories(limit, offset, categoryNames); // Call new method
+        var results = productService.getProductsByCategories(limit, offset, categoryNames)
+            .stream()
+            .map(ProductMapper::toDto)
+            .toList();
 
         assertThat(results).isNotNull();
         assertThat(results).isEmpty();
@@ -165,7 +168,10 @@ class ProductServiceTest {
         int limit = 10;
         // No need to mock repository as service should return early
 
-        List<ProductDTO> results = productService.getProductsByCategories(limit, offset, categoryNames);
+        var results = productService.getProductsByCategories(limit, offset, categoryNames)
+            .stream()
+            .map(ProductMapper::toDto)
+            .toList();
 
         assertThat(results).isNotNull();
         assertThat(results).isEmpty();
@@ -177,10 +183,13 @@ class ProductServiceTest {
         int limit = 10;
         // No need to mock repository as service should return early
 
-        List<ProductDTO> results = productService.getProductsByCategories(limit, offset, null);
+        var results = productService.getProductsByCategories(limit, offset, null)
+            .stream()
+            .map(ProductMapper::toDto)
+            .toList();
 
         assertThat(results).isNotNull();
         assertThat(results).isEmpty();
     }
 }
-```
+

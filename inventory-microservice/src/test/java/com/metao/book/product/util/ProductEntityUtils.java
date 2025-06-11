@@ -3,9 +3,9 @@ package com.metao.book.product.util;
 import static com.metao.book.product.infrastructure.util.ProductConstant.ASIN;
 
 import com.google.protobuf.Timestamp;
+import com.metao.book.product.ProductCreatedEvent;
 import com.metao.book.product.domain.Product;
 import com.metao.book.product.domain.category.ProductCategory;
-import com.metao.book.product.event.ProductCreatedEvent;
 import com.metao.book.product.infrastructure.util.ProductConstant;
 import com.metao.book.shared.CategoryOuterClass.Category;
 import com.metao.book.shared.domain.financial.Money;

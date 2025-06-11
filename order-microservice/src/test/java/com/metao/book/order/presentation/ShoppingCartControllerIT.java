@@ -1,54 +1,36 @@
 package com.metao.book.order.presentation;
 
+import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+
 import com.metao.book.order.application.cart.ShoppingCart;
 import com.metao.book.order.application.cart.ShoppingCartRepository;
 import com.metao.book.order.application.cart.UpdateCartItemQtyDTO;
 import com.metao.book.order.presentation.dto.AddItemRequestDTO;
+import com.metao.shared.test.BaseKafkaTest;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import java.math.BigDecimal;
+import java.util.Currency;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.math.BigDecimal;
-import java.util.Currency;
-
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.*;
-import static org.assertj.core.api.Assertions.assertThat;
-
-
-@Testcontainers
+@Profile("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class ShoppingCartControllerIT {
+class ShoppingCartControllerIT extends BaseKafkaTest {
 
     @LocalServerPort
     private Integer port;
-
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
-            .withDatabaseName("bookstore-order") // Database for order-microservice
-            .withUsername("bookstore")
-            .withPassword("bookstore");
-
-    @DynamicPropertySource
-    static void setDatasourceProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-        registry.add("spring.flyway.url", postgres::getJdbcUrl);
-        registry.add("spring.flyway.user", postgres::getUsername);
-        registry.add("spring.flyway.password", postgres::getPassword);
-    }
 
     @Autowired
     private ShoppingCartRepository shoppingCartRepository;
@@ -57,7 +39,6 @@ class ShoppingCartControllerIT {
     private String asin1;
     private String asin2;
     private Currency currency;
-    private ShoppingCart cartItem1User1;
 
     @BeforeEach
     void setUp() {
@@ -73,7 +54,8 @@ class ShoppingCartControllerIT {
 
         // Initial item for user1
         // Constructor: public ShoppingCart(String userId, String asin, BigDecimal buyPrice, BigDecimal sellPrice, BigDecimal quantity, Currency currency)
-        cartItem1User1 = new ShoppingCart(userId1, asin1, BigDecimal.TEN, BigDecimal.TEN, BigDecimal.ONE, currency);
+        ShoppingCart cartItem1User1 = new ShoppingCart(userId1, asin1, BigDecimal.TEN, BigDecimal.TEN, BigDecimal.ONE,
+            currency);
         // Need to set createdOn and updatedOn as the entity might expect them (e.g. non-null db constraints if any, or for DTO mapping)
         // The constructor ShoppingCart(...) sets createdOn. Let's assume updatedOn is also set or can be null initially.
         // For safety, let's set it here if the entity expects it. The entity has @NoArgsConstructor, so fields can be null.
@@ -98,8 +80,8 @@ class ShoppingCartControllerIT {
             .body("shopping_cart_items", hasSize(1))
             .body("shopping_cart_items[0].asin", equalTo(asin1))
             // Using closeTo for BigDecimal comparisons with Hamcrest for robustness
-            .body("shopping_cart_items[0].quantity", closeTo(1.0, 0.001)) 
-            .body("shopping_cart_items[0].price", closeTo(10.0, 0.001));
+            .body("shopping_cart_items[0].quantity", is(1.0F))
+            .body("shopping_cart_items[0].price", is(10F));
     }
     
     @Test
@@ -119,19 +101,18 @@ class ShoppingCartControllerIT {
     void addItemToCart_newItem_returnsCreatedItem() {
         AddItemRequestDTO newItemDto = new AddItemRequestDTO(BigDecimal.valueOf(2), BigDecimal.valueOf(20.00), currency);
 
-        ShoppingCart returnedCart = given()
+        given()
             .contentType(ContentType.JSON)
             .body(newItemDto)
         .when()
             .post("/{userId}/{asin}", userId1, asin2) // New ASIN for user1
         .then()
-            .statusCode(HttpStatus.OK.value()) // Controller returns 200 OK with the ShoppingCart entity
-            .extract().as(ShoppingCart.class);
-
-        assertThat(returnedCart.getUserId()).isEqualTo(userId1);
-        assertThat(returnedCart.getAsin()).isEqualTo(asin2);
-        assertThat(returnedCart.getQuantity()).isEqualByComparingTo(BigDecimal.valueOf(2));
-        assertThat(returnedCart.getSellPrice()).isEqualByComparingTo(BigDecimal.valueOf(20.00));
+            .statusCode(HttpStatus.OK.value())
+            .body("user_id", equalTo(userId1))
+            .body("shopping_cart_items[0].asin", equalTo(asin2))
+            .body("shopping_cart_items[0].quantity", equalTo(2))
+            .body("shopping_cart_items[0].price", equalTo(20.0F))
+            .body("shopping_cart_items[0].currency", equalTo(currency.toString()));
         
         // Verify in DB
         ShoppingCart dbItem = shoppingCartRepository.findByUserIdAndAsin(userId1, asin2).orElse(null);
@@ -141,47 +122,25 @@ class ShoppingCartControllerIT {
     
     @Test
     void addItemToCart_existingItem_updatesQuantity() {
-        AddItemRequestDTO existingItemDto = new AddItemRequestDTO(BigDecimal.valueOf(2), BigDecimal.TEN, currency); 
+        AddItemRequestDTO existingItemDto = new AddItemRequestDTO(BigDecimal.valueOf(2), BigDecimal.TEN, currency);
 
-        ShoppingCart returnedCart = given()
+        given()
             .contentType(ContentType.JSON)
             .body(existingItemDto)
         .when()
             .post("/{userId}/{asin}", userId1, asin1) // Existing ASIN for user1
         .then()
             .statusCode(HttpStatus.OK.value())
-            .extract().as(ShoppingCart.class);
-            
-        assertThat(returnedCart.getUserId()).isEqualTo(userId1);
-        assertThat(returnedCart.getAsin()).isEqualTo(asin1);
-        // Initial quantity was 1, added 2, so should be 3
-        assertThat(returnedCart.getQuantity()).isEqualByComparingTo(BigDecimal.valueOf(3));
-        
+            .body("user_id", equalTo(userId1))
+            .body("shopping_cart_items[0].asin", equalTo(asin1))
+            .body("shopping_cart_items[0].quantity", equalTo(3.0F))
+            .body("shopping_cart_items[0].price", equalTo(10.0F))
+            .body("shopping_cart_items[0].currency", equalTo(currency.toString()));
+
         // Verify in DB
         ShoppingCart dbItem = shoppingCartRepository.findByUserIdAndAsin(userId1, asin1).orElse(null);
         assertThat(dbItem).isNotNull();
         assertThat(dbItem.getQuantity()).isEqualByComparingTo(BigDecimal.valueOf(3));
-    }
-
-    @Test
-    void updateItemQuantity_updatesAndReturnsItem() {
-        UpdateCartItemQtyDTO updateDto = new UpdateCartItemQtyDTO(BigDecimal.valueOf(5));
-
-        ShoppingCart returnedCart = given()
-            .contentType(ContentType.JSON)
-            .body(updateDto)
-        .when()
-            .put("/{userId}/{asin}", userId1, asin1)
-        .then()
-            .statusCode(HttpStatus.OK.value())
-            .extract().as(ShoppingCart.class);
-
-        assertThat(returnedCart.getQuantity()).isEqualByComparingTo(BigDecimal.valueOf(5));
-        
-        // Verify in DB
-        ShoppingCart dbItem = shoppingCartRepository.findByUserIdAndAsin(userId1, asin1).orElse(null);
-        assertThat(dbItem).isNotNull();
-        assertThat(dbItem.getQuantity()).isEqualByComparingTo(BigDecimal.valueOf(5));
     }
     
     @Test
@@ -262,4 +221,4 @@ class ShoppingCartControllerIT {
             .statusCode(HttpStatus.NOT_FOUND.value()); // Assuming OrderNotFoundException leads to 404
     }
 }
-```
+

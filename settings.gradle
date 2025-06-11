@@ -12,16 +12,19 @@ include(':inventory-microservice')
 include(':order-microservice')
 include(':shared-kernel')
 include(':shared-test')
-include(':payment-microservice') // Added payment-microservice
+include(':kafka-lib')
+include(':payment-microservice')
 
 project(":inventory-microservice").projectDir = file('inventory-microservice')
 project(":order-microservice").projectDir = file('order-microservice')
 project(":shared-kernel").projectDir = file('shared-kernel')
 project(":shared-test").projectDir = file('shared-test')
-project(":payment-microservice").projectDir = file('payment-microservice') // Added projectDir for payment-microservice
+project(":kafka-lib").projectDir = file('kafka-lib')
+project(":payment-microservice").projectDir = file('payment-microservice')
 
 gradle.ext.springBootProjects = [
     ':order-microservice',
     ':inventory-microservice',
-    ':payment-microservice' // Added payment-microservice
+    ':payment-microservice',
+    ':kafka-lib'
 ]

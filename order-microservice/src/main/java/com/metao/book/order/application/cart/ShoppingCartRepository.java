@@ -1,7 +1,5 @@
 package com.metao.book.order.application.cart;
 
-import com.metao.book.order.domain.ShoppingCart;
-import com.metao.book.order.domain.ShoppingCartKey;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,6 +1,6 @@
 package com.metao.book.product.application.config;
 
-import com.metao.book.product.event.ProductCreatedEvent;
+import com.metao.book.product.ProductCreatedEvent;
 import com.metao.book.shared.ProductUpdatedEvent;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;

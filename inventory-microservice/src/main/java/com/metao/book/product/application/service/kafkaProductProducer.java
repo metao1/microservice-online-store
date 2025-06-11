@@ -1,6 +1,6 @@
 package com.metao.book.product.application.service;
 
-import com.metao.book.product.event.ProductCreatedEvent;
+import com.metao.book.product.ProductCreatedEvent;
 import com.metao.book.shared.application.service.StageProcessor;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;

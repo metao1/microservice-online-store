@@ -1,46 +1,21 @@
-plugins {
-    id 'java'
-    id 'org.springframework.boot' version '3.4.5'
-    id 'io.spring.dependency-management' version '1.1.6'
-    id "com.google.protobuf" version "0.9.4"
-}
-
-group = 'com.metao.book'
-version = '0.0.1-SNAPSHOT'
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
-
-repositories {
-    mavenCentral()
-}
-
-ext {
-}
-
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.kafka:spring-kafka'
-    implementation 'org.projectlombok:lombok:1.18.36'
-    annotationProcessor 'org.projectlombok:lombok:1.18.36'
+  implementation "com.metao.book.shared:shared-kernel:1.0"
+  implementation "com.metao.book.shared:shared-test:1.0"
+  implementation "com.metao.kafka.lib:kafka-lib:1.0"
 
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.kafka:spring-kafka-test'
-    testImplementation 'org.testcontainers:junit-jupiter'
-    testImplementation 'org.mockito:mockito-core:4.8.0'
-    testImplementation 'io.rest-assured:rest-assured:5.4.0'
-    
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
+  implementation "org.springframework.boot:spring-boot-starter-validation"
+  implementation "org.springframework.kafka:spring-kafka"
 
-    implementation project(':shared-kernel')
-    implementation 'com.google.protobuf:protobuf-java:3.25.3'
-    implementation 'com.google.protobuf:protobuf-java-util:3.25.3'
-    implementation 'io.confluent:kafka-protobuf-serializer:7.6.0'
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "org.springframework.kafka:spring-kafka-test"
+  testImplementation "org.testcontainers:junit-jupiter"
+  testImplementation "org.mockito:mockito-core:4.8.0"
+  testImplementation "io.rest-assured:rest-assured:5.4.0"
+  implementation "io.grpc:grpc-protobuf:1.70.0"
+  implementation "io.grpc:grpc-stub:1.70.0"
+
+  testImplementation "org.junit:junit-bom:5.10.0"
+  testImplementation "org.junit.jupiter:junit-jupiter"
 }
 
 dependencyManagement {
@@ -53,23 +28,37 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-protobuf {
-    protoc {
-        artifact = "com.google.protobuf:protoc:3.25.3" 
+sourceSets {
+  main {
+    java {
+      srcDirs 'src/main/java', 'build/generated/source/proto/java/main/java'
     }
-    generateProtoTasks {
-        all().forEach { task ->
-            task.builtins {
-                java { option "java_multiple_files=true" }
-            }
-        }
-    }
+  }
 }
 
-sourceSets {
-    main {
-        java {
-            srcDirs 'build/generated/source/proto/main/java', 'src/main/java'
-        }
+protobuf {
+  protoc {
+    if (osdetector.os == "osx") {
+      artifact = 'com.google.protobuf:protoc:3.25.5:osx-x86_64'
+    } else {
+      artifact = 'com.google.protobuf:protoc:3.25.5'
     }
+  }
+
+  plugins {
+    grpc {
+      artifact = 'io.grpc:protoc-gen-grpc-java:1.70.0'
+    }
+  }
+  generateProtoTasks {
+    all()*.plugins {
+      grpc {}
+    }
+  }
+}
+
+tasks.named('build') {
+  dependsOn ':shared-kernel:publishAllPublicationsToLocalRepository'
+  dependsOn ':shared-test:publishAllPublicationsToLocalRepository'
+  dependsOn 'generateProto'
 }

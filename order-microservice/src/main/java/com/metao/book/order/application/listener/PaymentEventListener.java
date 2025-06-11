@@ -1,18 +1,17 @@
 package com.metao.book.order.application.listener;
 
-import com.metao.book.order.OrderPaymentEvent;
 import com.metao.book.order.domain.OrderEntity;
 import com.metao.book.order.domain.OrderService;
 import com.metao.book.order.domain.OrderStatus;
+import com.metao.book.shared.OrderPaymentEvent;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional; // Important for DB update
-
-import java.util.Optional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class PaymentEventListener {
@@ -57,7 +56,7 @@ public class PaymentEventListener {
                 break;
             case FAILED:
                 orderEntity.setStatus(OrderStatus.PAYMENT_FAILED); 
-                log.info("Order item {} status updated to PAYMENT_FAILED. Reason: {}", orderEntity.getOrderId(), paymentEvent.getErrorMessage());
+                log.info("Order item {} status updated to PAYMENT_FAILED. Status: {}", orderEntity.getOrderId(), paymentEvent.getStatus());
                 break;
             default:
                 log.warn("Unhandled payment status {} for order item {}.", 

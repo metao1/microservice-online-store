@@ -1,14 +1,24 @@
 package com.metao.book.order;
 
+import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+
+import com.metao.book.order.application.cart.OrderRepository;
 import com.metao.book.order.application.cart.ShoppingCart;
 import com.metao.book.order.application.cart.ShoppingCartRepository;
 import com.metao.book.order.domain.OrderEntity;
-import com.metao.book.order.application.cart.OrderRepository; // Using the path from previous IT tests
 import com.metao.book.order.domain.OrderStatus;
 import com.metao.book.order.presentation.dto.AddItemRequestDTO;
 import com.metao.book.order.presentation.dto.CreateOrderRequestDTO;
+import com.metao.shared.test.BaseKafkaTest;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import java.math.BigDecimal;
+import java.time.Duration;
+import java.util.Currency;
+import java.util.List;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,33 +30,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
-import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles; // Added import
-// import org.springframework.test.context.DynamicPropertyRegistry; // Removed
-// import org.springframework.test.context.DynamicPropertySource; // Removed
-// import org.testcontainers.containers.PostgreSQLContainer; // Removed
-// import org.testcontainers.junit.jupiter.Container; // Removed
-import org.testcontainers.junit.jupiter.Testcontainers; // Keep for now, review later
+import org.springframework.test.context.ActiveProfiles;
 
-import java.math.BigDecimal;
-import java.time.Duration;
-import java.util.Currency;
-import java.util.List;
-
-import static io.restassured.RestAssured.given;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.*;
-
-
-@Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT) // For order-microservice
-@EmbeddedKafka(partitions = 1, brokerProperties = { "listeners=PLAINTEXT://localhost:9092", "port=9092" },
-               topics = {"${kafka.topic.order-created.name}"}) // Ensure this matches application.properties
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class) // To run tests in order
 @DirtiesContext // Ensures a clean context for this test class
 @ActiveProfiles("test") // Added active profile
-class E2EProductPurchaseTest {
+class E2EProductPurchaseTest extends BaseKafkaTest {
 
     @LocalServerPort // Port for order-microservice
     private Integer orderMicroservicePort;
@@ -172,4 +163,4 @@ class E2EProductPurchaseTest {
         });
     }
 }
-```
+

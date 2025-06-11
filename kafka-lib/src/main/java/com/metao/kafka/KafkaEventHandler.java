@@ -1,18 +1,22 @@
-package com.metao.book.shared.application.kafka;
+package com.metao.kafka;
 
-import com.metao.book.shared.application.service.StageProcessor;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.availability.AvailabilityChangeEvent;
 import org.springframework.boot.availability.ReadinessState;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-@Service
+@Component
 @RequiredArgsConstructor
-public class OrderEventHandler {
+public class KafkaEventHandler {
 
+    @Lazy
     private final Map<Class<?>, KafkaFactory<?>> kafkaFactoryMap;
+
+    private ArrayBlockingQueue<?> blockingQueue = new ArrayBlockingQueue<>(1);
 
     @EventListener
     public void run(AvailabilityChangeEvent<ReadinessState> event) {
@@ -23,12 +27,9 @@ public class OrderEventHandler {
 
     @SuppressWarnings("unchecked")
     public <V> String handle(String key, V e) {
-        final KafkaFactory<V> kafkaFactory = (KafkaFactory<V>) kafkaFactoryMap.get(e.getClass());
-        return StageProcessor.accept(e)
-            .applyExceptionally((event, err) -> {
-                kafkaFactory.submit(key, event);
-                kafkaFactory.publish();
-                return key;
-            });
+        KafkaFactory<V> kafkaFactory = (KafkaFactory<V>) kafkaFactoryMap.get(e.getClass());
+        kafkaFactory.submit(key, e);
+        kafkaFactory.publish();
+        return key;
     }
 }

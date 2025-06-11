@@ -1,105 +1,46 @@
 package com.metao.book.order.presentation;
 
+import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+
+import com.google.protobuf.Timestamp;
+import com.metao.book.order.application.cart.OrderRepository;
 import com.metao.book.order.application.cart.ShoppingCart;
 import com.metao.book.order.application.cart.ShoppingCartRepository;
 import com.metao.book.order.domain.OrderEntity;
-import com.metao.book.order.application.cart.OrderRepository; // Corrected path as per file structure
 import com.metao.book.order.domain.OrderStatus;
-import com.metao.book.order.presentation.dto.CreateOrderRequestDTO; // Record DTO
+import com.metao.book.order.presentation.dto.CreateOrderRequestDTO;
+import com.metao.book.shared.OrderPaymentEvent;
+import com.metao.shared.test.BaseKafkaTest;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import org.awaitility.Awaitility; // For polling DB for status change
+import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Currency;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import com.metao.book.order.OrderPaymentEvent; // Added import
-import io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer; // Added import
-import org.apache.kafka.clients.producer.ProducerConfig; // Added import
-import org.apache.kafka.common.serialization.StringSerializer; // Added import
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration; // Added import
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.annotation.Bean; // Added import
 import org.springframework.http.HttpStatus;
-import org.springframework.kafka.core.DefaultKafkaProducerFactory; // Added import
-import org.springframework.kafka.core.KafkaTemplate; // Added import
-import org.springframework.kafka.core.ProducerFactory; // Added import
-import org.springframework.kafka.test.EmbeddedKafkaBroker; // Added import
-import org.springframework.kafka.test.context.EmbeddedKafka;
-import org.springframework.kafka.test.utils.KafkaTestUtils; // Added import
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.math.BigDecimal;
-import java.time.Duration;
-import java.util.Currency;
-import java.util.HashMap; // Added import
-import java.util.List;
-import java.util.Map; // Added import
-import java.util.Optional;
-import java.util.UUID; // For generating paymentId
-
-import static io.restassured.RestAssured.given;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.*;
-
-@Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@EmbeddedKafka(partitions = 1, 
-               brokerProperties = { "listeners=PLAINTEXT://localhost:9094", "port=9094" }, // Changed port
-               topics = {
-                   "${kafka.topic.order-created.name}", 
-                   "${kafka.topic.order-payment.name}" // Added payment topic
-               })
 @DirtiesContext // To ensure Kafka and DB are reset between test classes if needed
-class OrderControllerIT {
-
-    // TestConfiguration for OrderPaymentEvent producer
-    @TestConfiguration
-    static class KafkaTestProducerConfiguration {
-        @Bean
-        public ProducerFactory<String, OrderPaymentEvent> orderPaymentEventProducerFactory(EmbeddedKafkaBroker broker) {
-            Map<String, Object> configProps = new HashMap<>(KafkaTestUtils.producerProps(broker));
-            configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-            configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaProtobufSerializer.class);
-            // Assuming schema registry URL is picked from DynamicPropertySource 
-            // or is not strictly needed by serializer in this test context.
-            return new DefaultKafkaProducerFactory<>(configProps);
-        }
-
-        @Bean
-        public KafkaTemplate<String, OrderPaymentEvent> orderPaymentEventKafkaTemplate(
-                ProducerFactory<String, OrderPaymentEvent> orderPaymentEventProducerFactory) {
-            return new KafkaTemplate<>(orderPaymentEventProducerFactory);
-        }
-    }
+class OrderControllerIT extends BaseKafkaTest {
 
     @LocalServerPort
     private Integer port;
-
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
-            .withDatabaseName("bookstore-order")
-            .withUsername("bookstore")
-            .withPassword("bookstore");
-
-    @DynamicPropertySource
-    static void setProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-        registry.add("spring.flyway.url", postgres::getJdbcUrl);
-        registry.add("spring.flyway.user", postgres::getUsername);
-        registry.add("spring.flyway.password", postgres::getPassword);
-        // For EmbeddedKafka, Spring Boot autoconfigures bootstrap servers.
-        // Mock schema registry URL for Confluent Protobuf serializer if used by producer/consumer.
-        registry.add("spring.kafka.properties.schema.registry.url", () -> "mock://localhost:8081"); 
-    }
 
     @Autowired
     private ShoppingCartRepository shoppingCartRepository;
@@ -115,7 +56,6 @@ class OrderControllerIT {
 
     private String userId1;
     private String asin1, asin2;
-    private Currency currency;
 
     @BeforeEach
     void setUp() {
@@ -128,11 +68,15 @@ class OrderControllerIT {
         userId1 = "userOrderTest";
         asin1 = "ASIN_ORDER_001";
         asin2 = "ASIN_ORDER_002";
-        currency = Currency.getInstance("USD");
+        Currency currency = Currency.getInstance("USD");
 
         // Setup cart for the user
-        ShoppingCart item1 = new ShoppingCart(userId1, asin1, BigDecimal.valueOf(10), BigDecimal.valueOf(10), BigDecimal.ONE, currency);
-        ShoppingCart item2 = new ShoppingCart(userId1, asin2, BigDecimal.valueOf(20), BigDecimal.valueOf(20), BigDecimal.valueOf(2), currency);
+        ShoppingCart item1 = new ShoppingCart(userId1, asin1, BigDecimal.valueOf(10), BigDecimal.valueOf(10),
+            BigDecimal.ONE,
+            currency);
+        ShoppingCart item2 = new ShoppingCart(userId1, asin2, BigDecimal.valueOf(20), BigDecimal.valueOf(20),
+            BigDecimal.valueOf(2),
+            currency);
         shoppingCartRepository.saveAll(List.of(item1, item2));
     }
 
@@ -174,10 +118,10 @@ class OrderControllerIT {
         List<OrderEntity> createdOrders = orderRepository.findAllByCustomerId(userId1);
         for (OrderEntity order : createdOrders) {
             OrderPaymentEvent paymentEvent = OrderPaymentEvent.newBuilder()
-                    .setOrderId(order.getOrderId())
-                    .setPaymentId(UUID.randomUUID().toString())
+                .setId(order.getOrderId())
                     .setStatus(OrderPaymentEvent.Status.SUCCESSFUL) // Simulate successful payment
-                    .setProcessedTimestamp(System.currentTimeMillis())
+                    .setPaymentId(UUID.randomUUID().toString())
+                    .setCreateTime(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
                     .build();
             orderPaymentEventKafkaTemplate.send(orderPaymentTopicName, order.getOrderId(), paymentEvent);
         }
@@ -242,7 +186,7 @@ class OrderControllerIT {
                 .setOrderId(orderIdToConfirm)
                 .setPaymentId(UUID.randomUUID().toString())
                 .setStatus(OrderPaymentEvent.Status.SUCCESSFUL) // Simulate successful payment
-                .setProcessedTimestamp(System.currentTimeMillis())
+                .setCreateTime(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
                 .build();
         orderPaymentEventKafkaTemplate.send(orderPaymentTopicName, orderIdToConfirm, paymentEvent);
 
@@ -267,4 +211,4 @@ class OrderControllerIT {
             .body("status", equalTo(OrderStatus.PAID.name())); // Expect PAID status
     }
 }
-```
+

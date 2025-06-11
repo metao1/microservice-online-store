@@ -5,10 +5,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.protobuf.Timestamp;
+import com.metao.book.product.ProductCreatedEvent;
 import com.metao.book.product.domain.category.ProductCategory;
 import com.metao.book.product.domain.category.dto.CategoryDTO;
 import com.metao.book.product.domain.dto.ProductDTO;
-import com.metao.book.product.event.ProductCreatedEvent;
 import com.metao.book.product.infrastructure.util.ProductConstant;
 import com.metao.book.shared.CategoryOuterClass.Category;
 import java.math.BigDecimal;

@@ -1,22 +1,22 @@
 package com.metao.book.payment.service;
 
-import com.metao.book.order.OrderCreatedEvent;
-import com.metao.book.order.OrderPaymentEvent; // Corrected to use existing OrderPaymentEvent
-import com.metao.book.order.OrderPaymentEvent.Status; // Corrected to use existing Status from OrderPaymentEvent
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
+import com.google.protobuf.Timestamp;
+import com.metao.book.shared.OrderCreatedEvent;
+import com.metao.book.shared.OrderPaymentEvent;
+import com.metao.book.shared.OrderPaymentEvent.Status;
 import java.time.Instant;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 @Service
 public class PaymentProcessingService {
 
+    private static final Random random = new Random();
     private static final Logger log = LoggerFactory.getLogger(PaymentProcessingService.class);
-    private final Random random = new Random();
 
     public OrderPaymentEvent processPayment(OrderCreatedEvent orderEvent) {
         log.info("Processing payment for order item: {}, product: {}, amount: {} {}", 
@@ -34,7 +34,7 @@ public class PaymentProcessingService {
         boolean paymentSuccessful = random.nextBoolean(); // 50/50 chance for mock
 
         Status status = paymentSuccessful ? Status.SUCCESSFUL : Status.FAILED;
-        String message = paymentSuccessful ? "Payment successful." : "Payment failed due to insufficient funds (mock).";
+        String message = paymentSuccessful ? "successful." : "failed due to insufficient funds (mock).";
          
         log.info("Payment for order item {}: {}", orderEvent.getId(), message);
 
@@ -46,7 +46,7 @@ public class PaymentProcessingService {
                 .setPaymentId(UUID.randomUUID().toString())
                 .setStatus(status)
                 .setErrorMessage(paymentSuccessful ? "" : message) // Assuming ErrorMessage field for failure details
-                .setProcessedTimestamp(Instant.now().toEpochMilli())
+                .setCreateTime(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
                 .build();
     }
 }

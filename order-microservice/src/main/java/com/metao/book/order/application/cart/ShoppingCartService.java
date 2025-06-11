@@ -30,7 +30,7 @@ public class ShoppingCartService {
                         item.getSellPrice(), // Assuming sellPrice is the price to display
                         item.getCurrency()
                 ))
-                .collect(Collectors.toList());
+                .toList();
         // The grand total calculation will be handled by the client or a future enhancement.
         // The ShoppingCartDto is a record: ShoppingCartDto(Long createdOn, String userId, Set<ShoppingCartItem> shoppingCartItems)
         return new ShoppingCartDto(null, userId, new HashSet<>(cartItems));

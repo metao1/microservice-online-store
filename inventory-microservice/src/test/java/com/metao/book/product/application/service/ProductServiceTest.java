@@ -13,14 +13,18 @@ import java.math.BigDecimal;
 import java.util.Currency;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.context.annotation.Profile;
 import org.springframework.test.context.TestPropertySource;
 
-@SpringBootTest
-@ActiveProfiles("test")
-@TestPropertySource(properties = "kafka.enabled=false")
+@Profile("test")
+@TestInstance(Lifecycle.PER_CLASS)
+@TestPropertySource(properties = "kafka.enabled=true")
+@SpringBootTest(webEnvironment = WebEnvironment.NONE)
 class ProductServiceTest {
 
     @Autowired

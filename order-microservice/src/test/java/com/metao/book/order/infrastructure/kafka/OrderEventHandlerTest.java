@@ -2,11 +2,12 @@ package com.metao.book.order.infrastructure.kafka;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.metao.book.order.OrderCreatedEvent;
-import com.metao.book.order.application.config.OrderEventHandler;
+import com.metao.book.shared.OrderCreatedEvent;
 import com.metao.book.shared.OrderUpdatedEvent;
 import com.metao.book.shared.OrderUpdatedEvent.Status;
-import com.metao.shared.test.BaseKafkaIT;
+import com.metao.kafka.KafkaEventConfiguration;
+import com.metao.kafka.KafkaEventHandler;
+import com.metao.shared.test.BaseKafkaTest;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import lombok.SneakyThrows;
@@ -27,15 +28,15 @@ import org.springframework.test.context.TestPropertySource;
 @Slf4j
 @ActiveProfiles("test")
 @TestInstance(Lifecycle.PER_CLASS)
-@SpringBootTest(webEnvironment = WebEnvironment.NONE)
 @TestPropertySource(properties = "kafka.enabled=true")
-class OrderEventHandlerTest extends BaseKafkaIT {
+@SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = {KafkaEventConfiguration.class, KafkaEventHandler.class})
+class OrderEventHandlerTest extends BaseKafkaTest {
 
     private final CountDownLatch latch1 = new CountDownLatch(1);
     private final CountDownLatch latch2 = new CountDownLatch(1);
 
     @Autowired
-    OrderEventHandler eventHandler;
+    KafkaEventHandler eventHandler;
 
     @Test
     @SneakyThrows

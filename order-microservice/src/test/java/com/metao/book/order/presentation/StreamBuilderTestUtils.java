@@ -1,4 +1,4 @@
-package com.metao.book.shared.test;
+package com.metao.book.order.presentation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.experimental.UtilityClass;

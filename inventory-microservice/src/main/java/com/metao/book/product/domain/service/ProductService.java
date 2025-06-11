@@ -6,10 +6,9 @@ import com.metao.book.product.domain.dto.ProductDTO;
 import com.metao.book.product.domain.exception.ProductNotFoundException;
 import com.metao.book.product.domain.mapper.ProductMapper;
 import com.metao.book.product.infrastructure.repository.ProductRepository;
-// import com.metao.book.product.infrastructure.repository.model.OffsetBasedPageRequest; // No longer used
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import java.util.Collections; // Added import
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -41,16 +40,12 @@ public class ProductService {
         return Optional.ofNullable(productEntity);
     }
 
-    public List<ProductDTO> getProductsByCategories(int limit, int offset, List<String> categoryNames) {
-        if (categoryNames == null || categoryNames.isEmpty()) {
+    public List<Product> getProductsByCategories(int limit, int offset, List<String> categoryNames) {
+        if (CollectionUtils.isEmpty(categoryNames)) {
             return Collections.emptyList();
         }
         Pageable pageable = PageRequest.of(offset, limit);
-        List<Product> pagedProducts = productRepository.findAllByCategories(categoryNames, pageable);
-        
-        return pagedProducts.stream()
-                            .map(ProductMapper::toDto)
-                            .collect(Collectors.toList());
+        return productRepository.findAllByCategories(categoryNames, pageable);
     }
 
     public boolean saveProduct(Product product) {

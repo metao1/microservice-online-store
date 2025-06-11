@@ -67,8 +67,8 @@ This document outlines potential edge cases and exception flows for the implemen
     *   **Edge Case**: One of many cart items fails processing (e.g., hypothetical inventory check fails for one item).
         *   **Expected**: Transactional behavior needs to be defined. Does the whole order fail? Or are partial orders created? Current implementation creates separate order events for each cart item. If one event publication fails, others might still proceed. The `OrderController` loop does not seem transactional across all items.
 *   **Kafka Interaction:**
-    *   **Edge Case**: Kafka broker is down or unreachable when `OrderEventHandler` tries to publish `OrderCreatedEvent`.
-        *   **Expected**: `OrderEventHandler`'s `applyExceptionally` block might catch this, but the current implementation within it just calls `kafkaFactory.submit/publish` again. Robust retry/dead-letter queue (DLQ) mechanism would be needed for production. Spring Kafka's `@RetryableTopic` on the listener side helps with consumer errors, but producer errors need handling too.
+    *   **Edge Case**: Kafka broker is down or unreachable when `KafkaEventHandler` tries to publish `OrderCreatedEvent`.
+        *   **Expected**: `KafkaEventHandler`'s `applyExceptionally` block might catch this, but the current implementation within it just calls `kafkaFactory.submit/publish` again. Robust retry/dead-letter queue (DLQ) mechanism would be needed for production. Spring Kafka's `@RetryableTopic` on the listener side helps with consumer errors, but producer errors need handling too.
 
 ## Payment (Handled by `payment-microservice` - Mocked Processing)
 

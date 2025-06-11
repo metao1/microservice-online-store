@@ -1,6 +1,5 @@
-package com.metao.book.shared.application.kafka;
+package com.metao.kafka;
 
-import com.metao.book.shared.application.service.EventHandler;
 import jakarta.annotation.Nonnull;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.DelayQueue;
@@ -25,7 +24,8 @@ import org.springframework.kafka.support.SendResult;
 @RequiredArgsConstructor
 public class KafkaFactory<V> extends EventHandler<CompletableFuture<SendResult<String, V>>> {
 
-    private final DelayQueue<Message<String, V>> delayeds = new DelayQueue<>();
+    private final DelayQueue<Message<String, V>> ongoingQueue = new DelayQueue<>();
+
     @Setter
     private String topic;
     @Getter
@@ -57,20 +57,19 @@ public class KafkaFactory<V> extends EventHandler<CompletableFuture<SendResult<S
     }
 
     public void submit(String key, V event) {
-        delayeds.add(new Message<>(topic, key, event, 2000));
+        ongoingQueue.add(new Message<>(topic, key, event, 2000));
     }
 
     public void publish() {
-        publish(delayeds.size());
+        publish(ongoingQueue.size());
     }
 
     @Override
     public CompletableFuture<SendResult<String, V>> getEvent() {
         CompletableFuture<SendResult<String, V>> send = null;
-        if (!delayeds.isEmpty()) {
-            final Message<String, V> message = delayeds.remove();
-            send = kafkaTemplate.send(message.topic, message.key,
-                message.message);
+        if (!ongoingQueue.isEmpty()) {
+            final Message<String, V> message = ongoingQueue.remove();
+            send = kafkaTemplate.send(message.topic, message.key, message.message);
         }
         return send;
     }

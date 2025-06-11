@@ -1,31 +1,42 @@
+ext {
+  testcontainersVersion = "1.20.6"
+}
+
 dependencies {
-  implementation 'com.metao.book.shared:shared-kernel:1.0'
-  implementation 'com.metao.book.shared:shared-test:1.0'
+  implementation "com.metao.book.shared:shared-kernel:1.0"
+  implementation "com.metao.book.shared:shared-test:1.0"
+  implementation "com.metao.kafka.lib:kafka-lib:1.0"
 
-  implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-  implementation 'org.springframework.boot:spring-boot-starter-validation'
+  implementation "org.springframework.boot:spring-boot-starter-data-jpa"
+  implementation "org.springframework.boot:spring-boot-starter-validation"
 
-  implementation 'org.springframework.kafka:spring-kafka'
-  implementation 'org.postgresql:postgresql:42.7.3'
+  implementation "org.springframework.kafka:spring-kafka"
+  implementation "org.postgresql:postgresql:42.7.3"
 
-  implementation 'io.confluent:kafka-protobuf-serializer:7.8.0'
+  implementation "io.confluent:kafka-protobuf-serializer:7.8.0"
   implementation "io.confluent:kafka-streams-protobuf-serde:7.8.0"
 
-  implementation 'org.flywaydb:flyway-database-postgresql:10.11.0'
-  implementation 'org.springframework.boot:spring-boot-starter-actuator'
+  implementation "org.flywaydb:flyway-database-postgresql:10.11.0"
+  implementation "org.springframework.boot:spring-boot-starter-actuator"
 
-  implementation 'org.flywaydb:flyway-core'
+  implementation "org.flywaydb:flyway-core"
 
   // cache
-  implementation 'org.hibernate:hibernate-core-jakarta:5.6.12.Final'
-  implementation 'org.hibernate:hibernate-ehcache:5.6.12.Final'
-  //implementation 'org.ehcache:ehcache:3.10.8'
+  implementation "org.hibernate:hibernate-core-jakarta:5.6.12.Final"
+  implementation "org.hibernate:hibernate-ehcache:5.6.12.Final"
+  //implementation "org.ehcache:ehcache:3.10.8"
 
-  implementation 'io.grpc:grpc-protobuf:1.70.0'
-  implementation 'io.grpc:grpc-stub:1.70.0'
+  implementation "io.grpc:grpc-protobuf:1.70.0"
+  implementation "io.grpc:grpc-stub:1.70.0"
 
-  testImplementation 'org.mockito:mockito-core:4.8.0'
-  testImplementation 'io.rest-assured:rest-assured:5.4.0'
+  testImplementation "org.mockito:mockito-core:4.8.0"
+  testImplementation "io.rest-assured:rest-assured:5.4.0"
+
+  testImplementation "org.testcontainers:junit-jupiter"
+  testImplementation "org.testcontainers:postgresql:1.17.6"
+  testImplementation "org.testcontainers:testcontainers"
+
+  testImplementation platform("org.testcontainers:testcontainers-bom:${testcontainersVersion}")
 }
 
 sourceSets {

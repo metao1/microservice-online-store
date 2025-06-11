@@ -1,7 +1,7 @@
 package com.metao.book.order.application.config;
 
-import com.metao.book.order.OrderCreatedEvent;
-import com.metao.book.order.OrderPaymentEvent;
+import com.metao.book.shared.OrderCreatedEvent;
+import com.metao.book.shared.OrderPaymentEvent;
 import com.metao.book.shared.OrderUpdatedEvent;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;

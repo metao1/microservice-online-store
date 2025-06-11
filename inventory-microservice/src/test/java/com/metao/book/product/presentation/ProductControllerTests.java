@@ -11,9 +11,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.metao.book.product.ProductCreatedEvent;
 import com.metao.book.product.domain.Product;
 import com.metao.book.product.domain.service.ProductService;
-import com.metao.book.product.event.ProductCreatedEvent;
 import com.metao.book.product.infrastructure.util.ProductConstant;
 import com.metao.book.product.util.ProductEntityUtils;
 import java.math.BigDecimal;
@@ -102,17 +102,18 @@ class ProductControllerTests {
     @Test
     void whenGetProductsThenProductsAreReturned() throws Exception {
         int limit = 10, offset = 0;
-        var category = "book";
+        var categories = List.of("book");
+        String formattedCategories = String.join(",", categories);
         List<Product> pes = ProductEntityUtils.createMultipleProductEntity(limit);
-        when(productService.getProductsByCategory(limit, offset, category))
+        when(productService.getProductsByCategories(limit, offset, categories))
             .thenReturn(pes);
 
         // Load multiple products and verify responses
         // OPTION 1 - using for-loop and query multiple times
         for (Product pe : pes) {
-            when(productService.getProductsByCategory(limit, offset, category)).thenReturn(pes);
+            when(productService.getProductsByCategories(limit, offset, categories)).thenReturn(pes);
             webTestClient.perform(
-                    get("%s/category/%s?offset=%s&limit=%s".formatted(PRODUCT_URL, category, offset, limit)))
+                    get("%s/categories/%s?offset=%s&limit=%s".formatted(PRODUCT_URL, formattedCategories, offset, limit)))
                 .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.length()").value(10))
                 .andExpect(jsonPath("$.[?(@.asin == '" + pe.getAsin() + "')]").exists())
@@ -125,9 +126,10 @@ class ProductControllerTests {
                 .andExpect(jsonPath("$.[?(@.categories[0].category == 'book')]").exists());
         }
 
-        when(productService.getProductsByCategory(limit, offset, category)).thenReturn(pes);
+        when(productService.getProductsByCategories(limit, offset, categories)).thenReturn(pes);
         // OPTION 2 - using for-loop and query once and then verify responses using matcher -- preferable option
-        webTestClient.perform(get("%s/category/%s?offset=%s&limit=%s".formatted(PRODUCT_URL, category, offset, limit)))
+        webTestClient.perform(
+                get("%s/categories/%s?offset=%s&limit=%s".formatted(PRODUCT_URL, formattedCategories, offset, limit)))
             .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.length()").value(10))
             .andExpect(jsonPath("$[*].asin", extractFieldFromProducts(pes, Product::getAsin)))

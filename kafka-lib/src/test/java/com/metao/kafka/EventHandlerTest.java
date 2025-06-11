@@ -1,4 +1,4 @@
-package com.metao.book.shared;
+package com.metao.kafka;
 
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -7,7 +7,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import com.metao.book.shared.application.service.EventHandler;
 import java.time.Duration;
 import java.util.LinkedList;
 import java.util.Queue;

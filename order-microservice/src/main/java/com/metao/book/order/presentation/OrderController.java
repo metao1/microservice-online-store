@@ -1,18 +1,16 @@
 package com.metao.book.order.presentation;
 
+import com.metao.book.order.application.cart.ShoppingCartDto;
+import com.metao.book.order.application.cart.ShoppingCartItem;
 import com.metao.book.order.application.cart.ShoppingCartService;
-import com.metao.book.order.application.config.OrderEventHandler;
 import com.metao.book.order.domain.OrderService;
 import com.metao.book.order.domain.OrderStatus;
 import com.metao.book.order.domain.dto.OrderDTO;
-import com.metao.book.order.domain.dto.ShoppingCartDto;
-import com.metao.book.order.domain.dto.ShoppingCartItem;
 import com.metao.book.order.domain.exception.OrderNotFoundException;
 import com.metao.book.order.domain.mapper.OrderDTOMapper;
 import com.metao.book.order.infrastructure.kafka.KafkaOrderMapper;
-import com.metao.book.order.presentation.dto.CreateOrderRequestDTO;
+import com.metao.kafka.KafkaEventHandler;
 import jakarta.validation.Valid;
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -34,12 +32,12 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @RequiredArgsConstructor
-@Import(OrderEventHandler.class)
+@Import(KafkaEventHandler.class)
 @RequestMapping(path = "/order")
 public class OrderController {
 
     private final OrderService orderService;
-    private final OrderEventHandler orderEventHandler;
+    private final KafkaEventHandler orderEventHandler;
     private final ShoppingCartService shoppingCartService;
 
     @GetMapping
@@ -57,14 +55,15 @@ public class OrderController {
         @PathVariable int pageSize,
         @PathVariable String sortByFieldName
     ) {
+
         return orderService.getOrderByProductIdsAndOrderStatus(productIds, statuses, offset, pageSize, sortByFieldName)
             .map(OrderDTOMapper::toOrderDTO);
     }
 
     @PostMapping
-    public ResponseEntity<List<String>> createOrder(@RequestBody @Valid CreateOrderRequestDTO createOrderRequest) {
-        String userId = createOrderRequest.getUserId();
-        ShoppingCartDto cart = shoppingCartService.getCartForUser(userId);
+    public ResponseEntity<List<String>> createOrder(@RequestBody @Valid OrderDTO createOrderRequest) {
+        String customerId = createOrderRequest.customerId();
+        ShoppingCartDto cart = shoppingCartService.getCartForUser(customerId);
 
         if (cart == null || cart.shoppingCartItems() == null || cart.shoppingCartItems().isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(List.of("Cart is empty or user not found."));
@@ -75,11 +74,10 @@ public class OrderController {
             OrderDTO orderDtoFromCartItem = OrderDTO.builder()
                 .orderId(null) // Will be generated downstream
                 .productId(item.asin())
-                .customerId(userId)
-                .createdTime(OffsetDateTime.now())
+                .customerId(customerId)
                 .quantity(item.quantity())
                 .currency(item.currency().getCurrencyCode())
-                .status(com.metao.book.order.domain.OrderStatus.NEW.name()) // Default status
+                .status(OrderStatus.NEW.name()) // Default status
                 .price(item.price())
                 .build();
 
@@ -89,7 +87,7 @@ public class OrderController {
         }
 
         if (!eventIds.isEmpty()) {
-            shoppingCartService.clearCart(userId);
+            shoppingCartService.clearCart(customerId);
         }
 
         return ResponseEntity.ok(eventIds);

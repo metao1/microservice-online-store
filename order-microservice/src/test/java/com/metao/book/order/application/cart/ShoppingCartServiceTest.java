@@ -201,4 +201,4 @@ class ShoppingCartServiceTest {
         verify(shoppingCartRepository).deleteByUserId(userId);
     }
 }
-```
+

@@ -1,8 +1,13 @@
 package com.metao.book.payment.listener;
 
-import com.metao.book.order.OrderCreatedEvent;
-import com.metao.book.order.OrderPaymentEvent;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.metao.book.payment.service.PaymentProcessingService;
+import com.metao.book.shared.OrderCreatedEvent;
+import com.metao.book.shared.OrderPaymentEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,11 +16,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class OrderCreatedEventListenerTest {
@@ -52,4 +52,4 @@ class OrderCreatedEventListenerTest {
         verify(kafkaTemplate).send(eq(testPaymentTopic), eq(paymentEvent.getOrderId()), eq(paymentEvent));
     }
 }
-```
+

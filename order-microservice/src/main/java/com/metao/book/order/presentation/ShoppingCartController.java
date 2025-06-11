@@ -1,9 +1,10 @@
 package com.metao.book.order.presentation;
 
+import com.metao.book.order.application.cart.ShoppingCart;
+import com.metao.book.order.application.cart.ShoppingCartDto;
 import com.metao.book.order.application.cart.ShoppingCartService;
 import com.metao.book.order.application.cart.UpdateCartItemQtyDTO;
-import com.metao.book.order.domain.ShoppingCart;
-import com.metao.book.order.domain.dto.ShoppingCartDto;
+import com.metao.book.order.infrastructure.ShoppingCartMapper;
 import com.metao.book.order.presentation.dto.AddItemRequestDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -32,17 +33,18 @@ public class ShoppingCartController {
     }
 
     @PostMapping("/{userId}/{asin}")
-    public ResponseEntity<ShoppingCart> addItemToCart(
+    public ResponseEntity<ShoppingCartDto> addItemToCart(
             @PathVariable String userId,
             @PathVariable String asin,
             @RequestBody AddItemRequestDTO addItemRequestDTO) {
         ShoppingCart cartItem = shoppingCartService.addItemToCart(
                 userId,
                 asin,
-                addItemRequestDTO.getQuantity(),
-                addItemRequestDTO.getPrice(),
-                addItemRequestDTO.getCurrency());
-        return ResponseEntity.ok(cartItem);
+            addItemRequestDTO.quantity(),
+            addItemRequestDTO.price(),
+            addItemRequestDTO.currency());
+        var shoppingCardDto = ShoppingCartMapper.mapToDto(cartItem);
+        return ResponseEntity.ok(shoppingCardDto);
     }
 
     @PutMapping("/{userId}/{asin}")
@@ -53,7 +55,7 @@ public class ShoppingCartController {
         ShoppingCart cartItem = shoppingCartService.updateItemQuantity(
                 userId,
                 asin,
-                updateCartItemQtyDTO.getQuantity());
+            updateCartItemQtyDTO.quantity());
         if (cartItem == null) {
             // This case handles when quantity is set to 0 or less, and item is removed.
             return ResponseEntity.noContent().build(); 

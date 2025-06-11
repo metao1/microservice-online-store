@@ -1,4 +1,4 @@
-package com.metao.book.shared.application.kafka;
+package com.metao.kafka;
 
 import java.util.HashMap;
 import java.util.Map;
