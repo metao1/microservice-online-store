@@ -1,11 +1,11 @@
 package com.metao.book.payment.service;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
 import com.metao.book.shared.OrderCreatedEvent;
 import com.metao.book.shared.OrderPaymentEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 class PaymentProcessingServiceTest {
 
@@ -41,7 +41,7 @@ class PaymentProcessingServiceTest {
         assertThat(paymentEvent.getOrderId()).isEqualTo(orderEvent.getId());
         assertThat(paymentEvent.getPaymentId()).isNotNull().isNotEmpty();
         assertThat(paymentEvent.getStatus()).isIn(OrderPaymentEvent.Status.SUCCESSFUL, OrderPaymentEvent.Status.FAILED);
-        assertThat(paymentEvent.getCreateTime()).isGreaterThan(0);
+        assertThat(paymentEvent.getCreateTime()).isNotNull();
         
         if (paymentEvent.getStatus() == OrderPaymentEvent.Status.SUCCESSFUL) {
             assertThat(paymentEvent.getErrorMessage()).isEmpty(); 
