@@ -2,9 +2,10 @@ package com.metao.book.product.domain.service;
 
 import com.metao.book.product.domain.Product;
 import com.metao.book.product.domain.category.ProductCategory;
+import com.metao.book.product.domain.dto.ProductDTO;
 import com.metao.book.product.domain.exception.ProductNotFoundException;
+import com.metao.book.product.domain.mapper.ProductMapper;
 import com.metao.book.product.infrastructure.repository.ProductRepository;
-import com.metao.book.product.infrastructure.repository.model.OffsetBasedPageRequest;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.validation.constraints.Min;
@@ -20,8 +21,12 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -43,14 +48,12 @@ public class ProductService {
         return Optional.ofNullable(productEntity);
     }
 
-    public List<Product> getProductsByCategory(int limit, int offset, String category)
-        throws ProductNotFoundException {
-        var pageable = new OffsetBasedPageRequest(offset, limit);
-        var pagedProducts = productRepository.findAllByCategories(category, pageable);
-        if (!pagedProducts.isEmpty()) {
-            return pagedProducts;
+    public List<Product> getProductsByCategories(int limit, int offset, List<String> categoryNames) {
+        if (CollectionUtils.isEmpty(categoryNames)) {
+            return Collections.emptyList();
         }
-        throw new ProductNotFoundException("products not found.");
+        Pageable pageable = PageRequest.of(offset, limit);
+        return productRepository.findAllByCategories(categoryNames, pageable);
     }
 
     public boolean saveProduct(Product product) {
@@ -131,5 +134,11 @@ public class ProductService {
                 .loadOptional()
             ).<ProductCategory>mapMulti(Optional::ifPresent)
             .collect(Collectors.toSet());
+    }
+
+    public List<ProductDTO> searchProductsByKeyword(String keyword, int offset, int limit) {
+        Pageable pageable = PageRequest.of(offset, limit);
+        List<Product> products = productRepository.searchByKeyword(keyword, pageable);
+        return products.stream().map(ProductMapper::toDto).collect(Collectors.toList());
     }
 }

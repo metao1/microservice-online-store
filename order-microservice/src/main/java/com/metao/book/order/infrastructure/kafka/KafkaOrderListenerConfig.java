@@ -1,7 +1,7 @@
 package com.metao.book.order.infrastructure.kafka;
 
-import com.metao.book.order.OrderCreatedEvent;
 import com.metao.book.order.domain.OrderService;
+import com.metao.book.shared.OrderCreatedEvent;
 import com.metao.book.shared.OrderUpdatedEvent;
 import com.metao.book.shared.application.service.StageProcessor;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +32,7 @@ public class KafkaOrderListenerConfig {
                 } else {
                     orderService.save(entity);
                     log.info("order {} saved.", entity);
+                    // Mock payment logic removed. Order status will now be updated by PaymentEventListener.
                 }
             });
     }

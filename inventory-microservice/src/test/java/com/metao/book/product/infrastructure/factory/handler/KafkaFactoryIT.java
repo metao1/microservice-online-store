@@ -2,9 +2,9 @@ package com.metao.book.product.infrastructure.factory.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.metao.book.product.event.ProductCreatedEvent;
-import com.metao.book.shared.application.kafka.KafkaFactory;
-import com.metao.shared.test.BaseKafkaIT;
+import com.metao.book.product.ProductCreatedEvent;
+import com.metao.kafka.KafkaFactory;
+import com.metao.shared.test.BaseKafkaTest;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -23,7 +23,7 @@ import org.springframework.kafka.annotation.RetryableTopic;
 @Slf4j
 @Profile("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class KafkaFactoryIT extends BaseKafkaIT {
+class KafkaFactoryIT extends BaseKafkaTest {
 
     private final CountDownLatch latch = new CountDownLatch(10);
 

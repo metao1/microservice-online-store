@@ -22,12 +22,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Optional<Product> findByAsin(@Param("asin") String asin);
 
     @Query("""
-                select distinct p, pc
-                    from product p
-                    left join p.categories pc
-                         where pc.category = :category
+                SELECT DISTINCT p
+                FROM product p
+                LEFT JOIN FETCH p.categories pc
+                WHERE pc.category IN :categories
             """)
-    List<Product> findAllByCategories(@Param("category") String category, Pageable pageable);
+    List<Product> findAllByCategories(@Param("categories") List<String> categories, Pageable pageable);
 
     @Query("SELECT pc FROM product_category pc WHERE pc.category = :category")
     Optional<ProductCategory> findByCategory(@Param("category") String category);
@@ -35,6 +35,17 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT pc FROM product_category pc WHERE pc.category IN :categories")
     List<ProductCategory> findByCategoryIn(@Param("categories") List<String> categories);
 
+    @Query(value = """
+            SELECT * FROM product_table
+            WHERE to_tsvector('english', description) @@ plainto_tsquery('english', :query)
+            """, nativeQuery = true)
+    List<Product> searchDescriptions(@Param("query") String query);
+
+    @Query("SELECT p FROM product p WHERE " +
+           "LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(p.asin) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    List<Product> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
     // Step 1: page on IDs only
     @Query("""
             SELECT p.id

@@ -1,8 +1,8 @@
 package com.metao.book.product.infrastructure.factory;
 
+import com.metao.book.product.ProductCreatedEvent;
 import com.metao.book.product.domain.mapper.ProductDtoMapper;
 import com.metao.book.product.domain.mapper.ProductMapper;
-import com.metao.book.product.event.ProductCreatedEvent;
 import com.metao.book.shared.application.service.FileHandler;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;

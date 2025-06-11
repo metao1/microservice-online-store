@@ -1,6 +1,6 @@
 package com.metao.book.order.domain.service;
 
-import com.metao.book.order.OrderCreatedEvent;
+import com.metao.book.shared.OrderCreatedEvent;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;

@@ -5,6 +5,7 @@ import static com.metao.book.order.OrderTestConstant.EUR;
 import static com.metao.book.order.OrderTestConstant.PRICE;
 import static com.metao.book.order.OrderTestConstant.PRODUCT_ID;
 import static com.metao.book.order.OrderTestConstant.QUANTITY;
+import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -16,17 +17,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.metao.book.order.OrderCreatedEvent;
 import com.metao.book.order.OrderTestUtil;
 import com.metao.book.order.application.cart.OrderRepository;
 import com.metao.book.order.domain.OrderEntity;
 import com.metao.book.order.domain.OrderStatus;
 import com.metao.book.order.domain.dto.OrderDTO;
 import com.metao.book.order.infrastructure.kafka.KafkaOrderMapper;
-import com.metao.book.shared.test.StreamBuilderTestUtils;
-import com.metao.shared.test.BaseKafkaIT;
+import com.metao.book.order.presentation.dto.AddItemRequestDTO;
+import com.metao.book.shared.OrderCreatedEvent;
+import com.metao.shared.test.BaseKafkaTest;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
+import java.util.Currency;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,7 +43,8 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -47,40 +53,61 @@ import org.springframework.test.web.servlet.MockMvc;
 @ActiveProfiles("test")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class OrderScenarioIT extends BaseKafkaIT {
+class OrderScenarioIT extends BaseKafkaTest {
 
-        @Autowired
-        ObjectMapper objectMapper;
+    private final String asin1 = "ASIN_E2E_001"; // Assume this product exists in inventory-microservice
 
-        @Autowired
-        MockMvc mockMvc;
+    @LocalServerPort
+    Integer port;
 
-        @Autowired
-        OrderRepository orderRepository;
+    @Autowired
+    ObjectMapper objectMapper;
 
-        @BeforeEach
-        public void setup() {
-                orderRepository.deleteAll();
-        }
+    @Autowired
+    MockMvc mockMvc;
 
-        @Test
-        @SneakyThrows
-        @DisplayName("When Create an order then it is OK and return the order")
-        void createOrderIsOk() {
-                // Create a list of dummy orders for the mocked page
-                List<OrderEntity> orders = OrderTestUtil.buildMultipleOrders(10);
-                orderRepository.saveAllAndFlush(orders);
+    @Autowired
+    OrderRepository orderRepository;
 
-                var createOrderDTO = OrderDTO.builder().customerId(CUSTOMER_ID).productId(PRODUCT_ID)
-                                .currency(EUR.toString())
-                                .quantity(QUANTITY).price(PRICE).build();
+    @BeforeEach
+    public void setup() {
+        RestAssured.port = port;
+        orderRepository.deleteAll();
+    }
 
-                mockMvc.perform(post("/order").contentType(MediaType.APPLICATION_JSON)
-                                .content(StreamBuilderTestUtils.convertObjectToJsonBytes(objectMapper, createOrderDTO)))
-                                .andExpect(status().isOk())
-                                .andDo(result -> await().atMost(Duration.ofSeconds(20))
-                                                .untilAsserted(() -> assertEquals(11,
-                                                                orderRepository.findAll().size())));
+    @Test
+    @SneakyThrows
+    @DisplayName("When Create an order then it is OK and return the order")
+    void createOrderIsOk() {
+
+        final var addItemRequestDTO = new AddItemRequestDTO(BigDecimal.ONE, BigDecimal.TEN,
+            Currency.getInstance("USD"));
+        given()
+            .contentType(ContentType.JSON)
+            .queryParam("keyword", "Laptop")
+            .body(addItemRequestDTO)
+            .post("/cart/{userId}/{asin}", CUSTOMER_ID, asin1)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+
+        // Create a list of dummy orders for the mocked page
+        List<OrderEntity> orders = OrderTestUtil.buildMultipleOrders(10);
+        orderRepository.saveAllAndFlush(orders);
+
+        var createOrderDTO = OrderDTO.builder()
+            .customerId(CUSTOMER_ID)
+            .productId(PRODUCT_ID)
+            .currency(EUR.toString())
+            .quantity(QUANTITY)
+            .price(PRICE)
+            .build();
+
+        mockMvc.perform(post("/order").contentType(MediaType.APPLICATION_JSON)
+                .content(StreamBuilderTestUtils.convertObjectToJsonBytes(objectMapper, createOrderDTO)))
+            .andExpect(status().isOk())
+            .andDo(result -> await().atMost(Duration.ofSeconds(20))
+                .untilAsserted(() -> assertEquals(11,
+                    orderRepository.findAll().size())));
         }
 
         @Test

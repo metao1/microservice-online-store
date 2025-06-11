@@ -169,6 +169,28 @@ services:
       - kafka1
       - kafka-schema-registry
 
+  payment-microservice:
+    container_name: payment-microservice
+    hostname: payment-microservice
+    environment:
+      SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
+      BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:9092
+      SPRING_PROFILES_ACTIVE: "container" 
+      # Add other necessary env vars like DB connection if payment-microservice uses one
+      # Example:
+      # DATABASE_URL: "jdbc:postgresql://postgres-payment:5432/bookstore-payment" 
+      # DATABASE_USER: bookstore
+      # DATABASE_PASSWORD: bookstore
+    build:
+      context: payment-microservice
+      dockerfile: src/main/docker/Dockerfile
+    ports:
+      - "8084:8084"
+    depends_on:
+      - kafka1
+      - kafka-schema-registry
+      # Add postgres-payment if a dedicated DB is used for payment-microservice
+
   kafkacat:
     image: confluentinc/cp-kafkacat
     command: sleep infinity

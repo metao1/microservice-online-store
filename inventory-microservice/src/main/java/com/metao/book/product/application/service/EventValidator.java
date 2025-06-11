@@ -1,6 +1,6 @@
 package com.metao.book.product.application.service;
 
-import com.metao.book.product.event.ProductCreatedEvent;
+import com.metao.book.product.ProductCreatedEvent;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.Errors;

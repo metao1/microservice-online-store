@@ -5,11 +5,14 @@ import com.metao.book.product.domain.dto.ProductDTO;
 import com.metao.book.product.domain.exception.ProductNotFoundException;
 import com.metao.book.product.domain.mapper.ProductMapper;
 import com.metao.book.product.domain.service.ProductService;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,12 +47,28 @@ public class ProductController {
         return kafkaProductProducer.sendEvent(ProductMapper.toProductCreatedEvent(productDTO));
     }
 
-    @GetMapping("/category/{name}")
-    public List<ProductDTO> productsByCategory(
-        @PathVariable("name") String name, @RequestParam("offset") int offset, @RequestParam("limit") int limit
+    @GetMapping("/categories/{categoriesCsv}")
+    public List<ProductDTO> productsByCategories(
+        @PathVariable("categoriesCsv") String categoriesCsv,
+        @RequestParam(value = "offset", defaultValue = "0") int offset,
+        @RequestParam(value = "limit", defaultValue = "10") int limit
     ) {
-        return productService.getProductsByCategory(limit, offset, name).stream()
-            .map(ProductMapper::toDto)
+        var categoryList = Arrays.stream(categoriesCsv.split(","))
+                                     .map(String::trim)
+            .filter(StringUtils::hasText)
             .toList();
+
+        return productService.getProductsByCategories(limit, offset, categoryList)
+            .stream()
+            .map(ProductMapper::toDto)
+            .collect(Collectors.toList());
+    }
+
+    @GetMapping("/search")
+    public List<ProductDTO> searchProducts(
+            @RequestParam("keyword") String keyword,
+            @RequestParam(value = "offset", defaultValue = "0") int offset,
+            @RequestParam(value = "limit", defaultValue = "10") int limit) {
+        return productService.searchProductsByKeyword(keyword, offset, limit);
     }
 }

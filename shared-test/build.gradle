@@ -9,7 +9,7 @@ version = commitRefName
 group = "com.metao.book.shared.test"
 
 ext {
-  testcontainersVersion = "1.17.6"
+  testcontainersVersion = "1.20.6"
   springBootDependenciesVersion = "3.4.4"
 }
 

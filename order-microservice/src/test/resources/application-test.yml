@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:tc:postgresql:12:///
+    url: jdbc:tc:postgresql:11.1:///integration-tests-db
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
   kafka:
     properties:
@@ -8,11 +8,13 @@ spring:
       sasl.mechanism: PLAIN
       schema.registry.url: mock://not-used
   jpa:
+    generate-ddl: true
     properties:
       hibernate:
         show_sql: true
     show-sql: true
-    generate-ddl: true
+  flyway:
+    enabled: false
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%t]){yellow} %clr([%c{1.}]){green} %clr(:){red} %clr(%m){faint}%n"
   level:

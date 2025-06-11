@@ -21,4 +21,3 @@ message ProductUpdatedEvent {
   // Category of the product
   repeated Category categories = 9;
 }
-

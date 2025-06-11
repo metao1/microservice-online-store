@@ -7,9 +7,9 @@ import static com.metao.book.order.OrderTestConstant.PRODUCT_ID;
 import static com.metao.book.order.OrderTestConstant.QUANTITY;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.metao.book.order.OrderCreatedEvent;
-import com.metao.book.shared.application.kafka.KafkaFactory;
-import com.metao.shared.test.BaseKafkaIT;
+import com.metao.book.shared.OrderCreatedEvent;
+import com.metao.kafka.KafkaFactory;
+import com.metao.shared.test.BaseKafkaTest;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -26,7 +26,7 @@ import org.springframework.kafka.annotation.RetryableTopic;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class KafkaFactoryIT extends BaseKafkaIT {
+class KafkaFactoryIT extends BaseKafkaTest {
 
     private final CountDownLatch latch = new CountDownLatch(10);
 
