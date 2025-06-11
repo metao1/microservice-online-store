@@ -8,16 +8,25 @@ import com.metao.book.product.domain.mapper.ProductMapper;
 import com.metao.book.product.infrastructure.repository.ProductRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
+
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -32,7 +41,6 @@ public class ProductService {
 
     @PersistenceContext
     private final EntityManager entityManager;
-
 
     public Optional<Product> getProductByAsin(String asin) throws ProductNotFoundException{
         var productEntity = productRepository.findByAsin(asin)
@@ -53,14 +61,48 @@ public class ProductService {
         if (existingProduct != null) {
             return false;
         }
-        // product needs to be saved first to have a managed state, when categories are added later
-        // the product will be updated the hibernates is able to track the changes and hence saves the categories in
-        // the product relationship. Otherwise, if categories are added directly before the product is saved, the
-        // categories will be in transient state and will not be tracked by hibernates.
-        // Resolve categories using cache and natural ID lookup
         saveCategory(product);
         productRepository.save(product);
         return true;
+    }
+
+    public Slice<Product> getProductsByCategory(
+        @NotNull String category,
+        @Min(value = 0) int offset,
+        @Min(value = 1) int limit
+    ) {
+        var pageRequest = new OffsetBasedPageRequest(offset, limit);
+        List<Long> ids = productRepository.findProductIdsByCategory(category, pageRequest);
+
+        // detect “hasNext” by seeing if we got limit+1 results
+        boolean hasNext = ids.size() > limit;
+        if (hasNext) {
+            ids = ids.subList(0, limit);
+        }
+
+        // empty result early-exit
+        if (ids.isEmpty()) {
+            return new SliceImpl<>(
+                Collections.emptyList(),
+                pageRequest,
+                false
+            );
+        }
+
+        // Step 2: fetch Products with categories eagerly
+        List<Product> fetched = productRepository
+            .findByIdInWithCategories(ids);
+
+        // re-order to match the ID page order
+        Map<Long, Product> byId = fetched.stream()
+            .collect(Collectors.toMap(Product::getId, Function.identity()));
+
+        List<Product> ordered = ids.stream()
+            .map(byId::get)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+
+        return new SliceImpl<>(ordered, pageRequest, hasNext);
     }
 
     void saveCategory(Product pe) {
