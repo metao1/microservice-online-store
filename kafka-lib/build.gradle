@@ -1,0 +1,95 @@
+plugins {
+  id 'java-library'
+  id 'maven-publish'
+  id "com.google.protobuf" version "0.9.4"
+}
+
+ext {
+  springBootDependenciesVersion = "3.4.4"
+}
+
+def commitRefName = System.getenv("CI_COMMIT_REF_NAME") ?: "1.0"
+
+version = commitRefName
+group = "com.metao.kafka"
+
+dependencies {
+  implementation "com.metao.book.shared:shared-test:1.0"
+
+  implementation "org.springframework.kafka:spring-kafka"
+
+  implementation "org.springframework.boot:spring-boot-starter-actuator"
+
+  implementation "io.confluent:kafka-protobuf-serializer:7.8.0"
+
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "org.springframework.boot:spring-boot-test"
+}
+
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+      from components.java
+      groupId = 'com.metao.kafka'
+      artifactId = 'kafka-lib'
+      version = commitRefName
+    }
+  }
+  repositories {
+    maven {
+      name = "local"
+      url = uri("file://${System.getProperty('user.home')}/.m2/repository")
+    }
+  }
+}
+
+sourceSets {
+  main {
+    java {
+      srcDirs 'src/main/java', 'build/generated/source/proto/java/main/java'
+    }
+  }
+}
+
+protobuf {
+  protoc {
+    if (osdetector.os == "osx") {
+      artifact = 'com.google.protobuf:protoc:3.25.5:osx-x86_64'
+    } else {
+      artifact = 'com.google.protobuf:protoc:3.25.5'
+    }
+  }
+
+  plugins {
+    grpc {
+      artifact = 'io.grpc:protoc-gen-grpc-java:1.70.0'
+    }
+  }
+  generateProtoTasks {
+    all()*.plugins {
+      grpc {}
+    }
+  }
+}
+
+dependencyManagement {
+  imports {
+    mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootDependenciesVersion}"
+  }
+}
+
+def getCurrentGitBranch() {
+  def gitBranch = "unknown-branch"
+  try {
+    def workingDir = new File("${project.projectDir}")
+    def result = "git rev-parse --abbrev-ref HEAD".execute(null, workingDir)
+    result.waitFor()
+    if (result.exitValue() == 0) {
+      gitBranch = result.text.trim()
+    }
+  } catch (e) {
+    logger.error("Unable to fetch current GIT branch", e)
+  }
+  logger.info("Your current GIT branch is {}", gitBranch)
+  return gitBranch
+}
