@@ -5,6 +5,7 @@ spring:
   flyway:
     enabled: false
   kafka:
+    bootstrap-servers: localhost:9092
     properties:
       security.protocol: PLAINTEXT
       sasl.mechanism: PLAIN
@@ -16,6 +17,20 @@ spring:
         show_sql: true
     show-sql: true
     generate-ddl: true
+
+# Override environment variables for testing
+server:
+  port: 0
+
+# Test-specific property overrides
+DATABASE_URL: jdbc:tc:postgresql:11.1:///integration-tests-db
+DATABASE_USER: test
+DATABASE_PASSWORD: test
+BOOTSTRAP_SERVERS: localhost:9092
+SCHEMA_REGISTRY_URL: mock://not-used
+SECURITY_PROTOCOL: PLAINTEXT
+SASL_MECHANISM: PLAIN
+KAFKA_ENABLED: true
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%t]){yellow} %clr([%c{1.}]){green} %clr(:){red} %clr(%m){faint}%n"
   level:

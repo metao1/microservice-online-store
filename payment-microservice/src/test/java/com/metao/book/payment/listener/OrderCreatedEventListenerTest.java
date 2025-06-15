@@ -1,21 +1,19 @@
 package com.metao.book.payment.listener;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.metao.book.payment.service.PaymentProcessingService;
 import com.metao.book.shared.OrderCreatedEvent;
 import com.metao.book.shared.OrderPaymentEvent;
+import com.metao.kafka.KafkaEventHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class OrderCreatedEventListenerTest {
@@ -24,16 +22,14 @@ class OrderCreatedEventListenerTest {
     private PaymentProcessingService paymentProcessingService;
 
     @Mock
-    private KafkaTemplate<String, OrderPaymentEvent> kafkaTemplate;
+    private KafkaEventHandler eventHandler;
 
     @InjectMocks
     private OrderCreatedEventListener eventListener;
 
-    private final String testPaymentTopic = "test-order-payment-events";
-
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(eventListener, "orderPaymentTopicName", testPaymentTopic);
+        eventListener = new OrderCreatedEventListener(paymentProcessingService, eventHandler);
     }
 
     @Test
@@ -47,9 +43,9 @@ class OrderCreatedEventListenerTest {
 
         eventListener.handleOrderCreatedEvent(orderEvent);
 
-        verify(paymentProcessingService).processPayment(eq(orderEvent));
-        // Verify that KafkaTemplate.send is called with the correct topic, key (orderId from paymentEvent), and payload
-        verify(kafkaTemplate).send(eq(testPaymentTopic), eq(paymentEvent.getOrderId()), eq(paymentEvent));
+        verify(paymentProcessingService).processPayment(orderEvent);
+        // Verify that eventHandler.handle is called with the correct key and payload
+        verify(eventHandler).handle(paymentEvent.getOrderId(), paymentEvent);
     }
 }
 

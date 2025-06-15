@@ -7,7 +7,6 @@ import com.metao.kafka.KafkaEventHandler;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
@@ -22,13 +21,6 @@ public class OrderCreatedEventListener {
     private final PaymentProcessingService paymentProcessingService;
 
     private final KafkaEventHandler eventHandler;
-
-    @Value("${kafka.topic.order-payment.name}")
-    private String orderPaymentTopicName;
-    
-    // This value is used by @KafkaListener, ensure it's correctly resolved
-    // @Value("${kafka.topic.order-created.name}")
-    // private String orderCreatedTopicName; // Not strictly needed as a field if only used in annotation
 
     @KafkaListener(topics = "${kafka.topic.order-created.name}", groupId = "${spring.kafka.consumer.group-id}")
     public void handleOrderCreatedEvent(OrderCreatedEvent orderEvent) {

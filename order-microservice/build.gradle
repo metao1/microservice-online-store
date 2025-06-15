@@ -4,7 +4,6 @@ ext {
 
 dependencies {
   implementation "com.metao.book.shared:shared-kernel:1.0"
-  implementation "com.metao.book.shared:shared-test:1.0"
   implementation "com.metao.kafka.lib:kafka-lib:1.0"
 
   implementation "org.springframework.boot:spring-boot-starter-data-jpa"
@@ -32,11 +31,13 @@ dependencies {
   testImplementation "org.mockito:mockito-core:4.8.0"
   testImplementation "io.rest-assured:rest-assured:5.4.0"
 
-  testImplementation "org.testcontainers:junit-jupiter"
-  testImplementation "org.testcontainers:postgresql:1.17.6"
-  testImplementation "org.testcontainers:testcontainers"
-
-  testImplementation platform("org.testcontainers:testcontainers-bom:${testcontainersVersion}")
+  // Test dependencies
+  testImplementation "com.metao.book.shared:shared-test:1.0"
+  testImplementation 'org.springframework.boot:spring-boot-starter-test'
+  testImplementation 'org.springframework.kafka:spring-kafka-test'
+  testImplementation 'org.testcontainers:postgresql:1.19.3'
+  testImplementation 'org.assertj:assertj-core:3.24.2'
+  testImplementation 'org.mockito:mockito-core:5.7.0'
 }
 
 sourceSets {

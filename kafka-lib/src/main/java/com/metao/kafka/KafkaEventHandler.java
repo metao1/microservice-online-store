@@ -1,7 +1,6 @@
 package com.metao.kafka;
 
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.availability.AvailabilityChangeEvent;
 import org.springframework.boot.availability.ReadinessState;
@@ -16,7 +15,6 @@ public class KafkaEventHandler {
     @Lazy
     private final Map<Class<?>, KafkaFactory<?>> kafkaFactoryMap;
 
-    private ArrayBlockingQueue<?> blockingQueue = new ArrayBlockingQueue<>(1);
 
     @EventListener
     public void run(AvailabilityChangeEvent<ReadinessState> event) {

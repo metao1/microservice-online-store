@@ -23,12 +23,10 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 
 @Slf4j
 @ActiveProfiles("test")
 @TestInstance(Lifecycle.PER_CLASS)
-@TestPropertySource(properties = "kafka.enabled=true")
 @SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = {KafkaEventConfiguration.class, KafkaEventHandler.class})
 class OrderEventHandlerTest extends BaseKafkaTest {
 

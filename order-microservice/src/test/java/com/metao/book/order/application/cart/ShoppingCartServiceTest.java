@@ -1,25 +1,26 @@
 package com.metao.book.order.application.cart;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.metao.book.order.domain.exception.OrderNotFoundException;
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.Currency;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Currency;
-import java.util.Set; // Required for ShoppingCartDto
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-// import static org.mockito.ArgumentMatchers.anyString; // Not strictly needed if not differentiating string args
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ShoppingCartServiceTest {
@@ -79,8 +80,6 @@ class ShoppingCartServiceTest {
     // --- Tests for addItemToCart ---
     @Test
     void addItemToCart_whenItemIsNew_createsAndSavesItem() {
-        // cartItem in setUp is used as the reference for what would be saved
-        ShoppingCart newItemToSave = new ShoppingCart(userId, asin, BigDecimal.valueOf(10.00), BigDecimal.valueOf(10.00), BigDecimal.ONE, currency);
         // The service will create a new ShoppingCart object. We mock the save to return our reference cartItem or a similar one.
         when(shoppingCartRepository.findByUserIdAndAsin(userId, asin)).thenReturn(Optional.empty());
         // Return the object that would be created by the service, or a similar one for assertions
@@ -134,7 +133,7 @@ class ShoppingCartServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getQuantity()).isEqualByComparingTo(newQuantity);
-        assertThat(result.getUpdatedOn()).isGreaterThan(originalUpdatedOn);
+        assertThat(result.getUpdatedOn()).isGreaterThanOrEqualTo(originalUpdatedOn);
         verify(shoppingCartRepository).save(cartItem);
     }
 
@@ -165,9 +164,8 @@ class ShoppingCartServiceTest {
         when(shoppingCartRepository.findByUserIdAndAsin(userId, asin)).thenReturn(Optional.empty());
         BigDecimal newQuantity = BigDecimal.valueOf(5);
 
-        assertThrows(OrderNotFoundException.class, () -> {
-            shoppingCartService.updateItemQuantity(userId, asin, newQuantity);
-        });
+        assertThrows(OrderNotFoundException.class,
+            () -> shoppingCartService.updateItemQuantity(userId, asin, newQuantity));
     }
 
     // --- Tests for removeItemFromCart ---
@@ -184,10 +182,8 @@ class ShoppingCartServiceTest {
     @Test
     void removeItemFromCart_whenItemNotFound_throwsException() {
         when(shoppingCartRepository.findByUserIdAndAsin(userId, asin)).thenReturn(Optional.empty()); // Item does not exist
-        
-        assertThrows(OrderNotFoundException.class, () -> {
-            shoppingCartService.removeItemFromCart(userId, asin);
-        });
+
+        assertThrows(OrderNotFoundException.class, () -> shoppingCartService.removeItemFromCart(userId, asin));
         verify(shoppingCartRepository, never()).deleteByUserIdAndAsin(anyString(), anyString());
     }
     

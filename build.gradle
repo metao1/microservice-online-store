@@ -48,8 +48,7 @@ subprojects {
     implementation "io.grpc:grpc-stub:1.70.0"
     runtimeOnly "io.grpc:grpc-netty-shaded:1.70.0"
 
-    // Jackson
-    implementation "com.fasterxml.jackson.core:jackson-databind:2.14.0"
+    // Jackson - Let Spring Boot manage the version
 
     // Test
     testImplementation "org.junit.jupiter:junit-jupiter:5.8.2"
@@ -61,6 +60,12 @@ subprojects {
     implementation "org.projectlombok:lombok:1.18.36"
     annotationProcessor "org.projectlombok:lombok:1.18.36"
     testAnnotationProcessor "org.projectlombok:lombok:1.18.36"
+
+    testImplementation "org.testcontainers:junit-jupiter"
+    testImplementation "org.testcontainers:postgresql:1.17.6"
+    testImplementation "org.testcontainers:testcontainers"
+
+    testImplementation platform("org.testcontainers:testcontainers-bom:${testcontainersVersion}")
 
     implementation "org.springframework.boot:spring-boot-starter-test"
   }

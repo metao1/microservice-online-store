@@ -80,8 +80,8 @@ class ShoppingCartControllerIT extends BaseKafkaTest {
             .body("shopping_cart_items", hasSize(1))
             .body("shopping_cart_items[0].asin", equalTo(asin1))
             // Using closeTo for BigDecimal comparisons with Hamcrest for robustness
-            .body("shopping_cart_items[0].quantity", is(1.0F))
-            .body("shopping_cart_items[0].price", is(10F));
+            .body("shopping_cart_items[0].quantity", is(1))
+            .body("shopping_cart_items[0].price", is(10));
     }
     
     @Test
@@ -133,8 +133,8 @@ class ShoppingCartControllerIT extends BaseKafkaTest {
             .statusCode(HttpStatus.OK.value())
             .body("user_id", equalTo(userId1))
             .body("shopping_cart_items[0].asin", equalTo(asin1))
-            .body("shopping_cart_items[0].quantity", equalTo(3.0F))
-            .body("shopping_cart_items[0].price", equalTo(10.0F))
+            .body("shopping_cart_items[0].quantity", equalTo(3))
+            .body("shopping_cart_items[0].price", equalTo(10))
             .body("shopping_cart_items[0].currency", equalTo(currency.toString()));
 
         // Verify in DB

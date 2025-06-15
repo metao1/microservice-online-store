@@ -1,16 +1,11 @@
 package com.metao.book.order.application.cart;
 
-import com.metao.book.order.domain.exception.OrderNotFoundException; // Corrected import
-import com.metao.book.order.application.cart.ShoppingCart;         // Corrected import
-import com.metao.book.order.application.cart.ShoppingCartDto;      // Corrected import
-import com.metao.book.order.application.cart.ShoppingCartItem;     // Corrected import
-// ShoppingCartKey is not used directly in this service
+import com.metao.book.order.domain.exception.OrderNotFoundException;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.Currency;
-import java.util.HashSet; // Added for Set conversion
+import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,8 +24,7 @@ public class ShoppingCartService {
                         item.getQuantity(),
                         item.getSellPrice(), // Assuming sellPrice is the price to display
                         item.getCurrency()
-                ))
-                .toList();
+                )).toList();
         // The grand total calculation will be handled by the client or a future enhancement.
         // The ShoppingCartDto is a record: ShoppingCartDto(Long createdOn, String userId, Set<ShoppingCartItem> shoppingCartItems)
         return new ShoppingCartDto(null, userId, new HashSet<>(cartItems));
@@ -45,9 +39,6 @@ public class ShoppingCartService {
                     return existingItem;
                 })
                 .orElseGet(() -> {
-                    // Constructor handles createdOn, but updatedOn should be set for new items too.
-                    // The ShoppingCart constructor (userId, asin, buyPrice, sellPrice, quantity, currency)
-                    // already sets createdOn = Instant.now().toEpochMilli();
                     ShoppingCart newItem = new ShoppingCart(userId, asin, price, price, quantity, currency);
                     newItem.setUpdatedOn(newItem.getCreatedOn()); // Set updatedOn to createdOn for new items
                     return newItem;
@@ -58,11 +49,12 @@ public class ShoppingCartService {
     @Transactional
     public ShoppingCart updateItemQuantity(String userId, String asin, BigDecimal newQuantity) {
         ShoppingCart item = shoppingCartRepository.findByUserIdAndAsin(userId, asin)
-                .orElseThrow(() -> new OrderNotFoundException("Cart item not found for user " + userId + " and asin " + asin));
+            .orElseThrow(() -> new OrderNotFoundException(
+                String.format("Cart item not found for user %s and asin %s", userId, asin)));
 
         if (newQuantity.compareTo(BigDecimal.ZERO) <= 0) {
             shoppingCartRepository.deleteByUserIdAndAsin(userId, asin);
-            return null; 
+            return null;
         } else {
             item.setQuantity(newQuantity);
             item.setUpdatedOn(OffsetDateTime.now().toInstant().toEpochMilli()); // Corrected timestamp
