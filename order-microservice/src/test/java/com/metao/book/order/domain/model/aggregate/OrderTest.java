@@ -3,7 +3,7 @@ package com.metao.book.order.domain.model.aggregate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.metao.book.order.domain.model.event.OrderCreatedEvent;
+import com.metao.book.order.domain.model.event.DomainOrderCreatedEvent;
 import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.order.domain.model.event.OrderItemAddedEvent;
 import com.metao.book.order.domain.model.event.OrderStatusChangedEvent;
@@ -56,9 +56,9 @@ class OrderTest {
             // Verify events
             List<DomainEvent> events = order.getDomainEvents();
             assertThat(events).hasSize(1);
-            assertThat(events.getFirst()).isInstanceOf(OrderCreatedEvent.class);
+            assertThat(events.getFirst()).isInstanceOf(DomainOrderCreatedEvent.class);
 
-            OrderCreatedEvent createdEvent = (OrderCreatedEvent) events.getFirst();
+            DomainOrderCreatedEvent createdEvent = (DomainOrderCreatedEvent) events.getFirst();
             assertThat(createdEvent.getOrderId()).isEqualTo(orderId);
             assertThat(createdEvent.getCustomerId()).isEqualTo(customerId);
         }
@@ -286,7 +286,7 @@ class OrderTest {
             Order order = new Order(OrderId.generate(), new CustomerId("customer123"));
             List<DomainEvent> events = order.getDomainEvents();
             assertThatThrownBy(
-                () -> events.add(new OrderCreatedEvent(OrderId.generate(), new CustomerId("customer123"))))
+                () -> events.add(new DomainOrderCreatedEvent(OrderId.generate(), new CustomerId("customer123"))))
                 .isInstanceOf(UnsupportedOperationException.class);
         }
 
@@ -299,7 +299,7 @@ class OrderTest {
 
             List<DomainEvent> events = order.getDomainEvents();
             assertThat(events).hasSize(3); // Created + ItemAdded + StatusChanged
-            assertThat(events.getFirst()).isInstanceOf(OrderCreatedEvent.class);
+            assertThat(events.getFirst()).isInstanceOf(DomainOrderCreatedEvent.class);
             assertThat(events.get(1)).isInstanceOf(OrderItemAddedEvent.class);
             assertThat(events.get(2)).isInstanceOf(OrderStatusChangedEvent.class);
         }

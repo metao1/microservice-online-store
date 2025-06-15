@@ -161,7 +161,7 @@ class PaymentDomainServiceTest {
         // When/Then
         assertThatThrownBy(() -> paymentDomainService.processPayment(paymentId))
             .isInstanceOf(PaymentNotFoundException.class)
-            .hasMessageContaining("Payment not found");
+            .hasMessageContaining("Payment id payment-123 not found");
     }
 
     @Test

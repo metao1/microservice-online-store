@@ -1,7 +1,7 @@
 package com.metao.book.order.domain.model.aggregate;
 
 import com.metao.book.order.domain.model.entity.OrderItem;
-import com.metao.book.order.domain.model.event.OrderCreatedEvent;
+import com.metao.book.order.domain.model.event.DomainOrderCreatedEvent;
 import com.metao.book.order.domain.model.event.OrderItemAddedEvent;
 import com.metao.book.order.domain.model.event.OrderStatusChangedEvent;
 import com.metao.book.order.domain.model.valueobject.CustomerId;
@@ -45,7 +45,7 @@ public class Order {
         this.total = new Money(Currency.getInstance("USD"), BigDecimal.ZERO);
 
         // Raise OrderCreatedEvent
-        domainEvents.add(new OrderCreatedEvent(id, customerId));
+        domainEvents.add(new DomainOrderCreatedEvent(id, customerId));
     }
 
     public void addItem(ProductId productId, String productName, Quantity quantity, Money unitPrice) {

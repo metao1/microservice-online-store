@@ -25,6 +25,5 @@ project(":payment-microservice").projectDir = file('payment-microservice')
 gradle.ext.springBootProjects = [
     ':order-microservice',
     ':inventory-microservice',
-    ':payment-microservice',
-    ':kafka-lib'
+    ':payment-microservice'
 ]
