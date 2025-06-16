@@ -15,6 +15,7 @@ public class KafkaEventHandler {
     @Lazy
     private final Map<Class<?>, KafkaFactory<?>> kafkaFactoryMap;
 
+
     @EventListener
     public void run(AvailabilityChangeEvent<ReadinessState> event) {
         if (event.getState().equals(ReadinessState.ACCEPTING_TRAFFIC)) {

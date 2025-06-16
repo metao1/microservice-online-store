@@ -110,6 +110,7 @@ tasks.register('buildDependencies') {
   dependsOn ':inventory-microservice:build'
   dependsOn ':payment-microservice:build'
   dependsOn ':order-microservice:build'
+  dependsOn ':payment-microservice:build'
 }
 
 tasks.named('build') {
