@@ -2,6 +2,7 @@ package com.metao.book.payment.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -126,6 +127,8 @@ class PaymentApplicationServiceTest {
         assertThat(result).isEqualTo(expectedDTO);
         verify(paymentDomainService).processPayment(any(PaymentId.class));
         // Note: kafkaEventHandler.handle is only called if payment has domain events
+        verify(paymentRepository).findById(any(PaymentId.class));
+        assertTrue(paymentMapper.toDTO(payment).isSuccessful());
     }
 
     @Test
@@ -142,8 +145,10 @@ class PaymentApplicationServiceTest {
         Optional<PaymentDTO> result = paymentApplicationService.getPaymentById(paymentId);
 
         // Then
-        assertThat(result).isPresent();
-        assertThat(result.get()).isEqualTo(expectedDTO);
+        assertThat(result)
+            .isPresent()
+            .get()
+            .isEqualTo(expectedDTO);
     }
 
     @Test

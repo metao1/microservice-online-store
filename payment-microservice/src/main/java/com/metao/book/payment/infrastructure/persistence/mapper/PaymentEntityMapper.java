@@ -2,7 +2,6 @@ package com.metao.book.payment.infrastructure.persistence.mapper;
 
 import com.metao.book.payment.domain.model.aggregate.Payment;
 import com.metao.book.payment.domain.model.valueobject.OrderId;
-import com.metao.book.payment.domain.model.valueobject.PaymentId;
 import com.metao.book.payment.domain.model.valueobject.PaymentMethod;
 import com.metao.book.payment.domain.model.valueobject.PaymentStatus;
 import com.metao.book.payment.infrastructure.persistence.entity.PaymentEntity;
@@ -34,22 +33,21 @@ public class PaymentEntityMapper {
     /**
      * Convert PaymentEntity to domain Payment
      */
-    public Payment toDomain(PaymentEntity entity) {
-        PaymentId paymentId = PaymentId.of(entity.getPaymentId());
-        OrderId orderId = OrderId.of(entity.getOrderId());
-        Money amount = new Money(entity.getCurrency(), entity.getAmount());
-        PaymentMethod paymentMethod = mapPaymentMethod(entity.getPaymentMethodType(), entity.getPaymentMethodDetails());
-        PaymentStatus status = mapPaymentStatus(entity.getStatus());
+    public Payment toDomain(PaymentEntity payment) {
+        OrderId orderId = OrderId.of(payment.getOrderId());
+        Money amount = new Money(payment.getCurrency(), payment.getAmount());
+        PaymentMethod paymentMethod = mapPaymentMethod(payment.getPaymentMethodType(), payment.getPaymentMethodDetails());
+        PaymentStatus status = mapPaymentStatus(payment.getStatus());
 
         return Payment.reconstruct(
-            paymentId,
+            payment.id(),
             orderId,
             amount,
             paymentMethod,
             status,
-            entity.getFailureReason(),
-            entity.getProcessedAt(),
-            entity.getCreatedAt()
+            payment.getFailureReason(),
+            payment.getProcessedAt(),
+            payment.getCreatedAt()
         );
     }
 

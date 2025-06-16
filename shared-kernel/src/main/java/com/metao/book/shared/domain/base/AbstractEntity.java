@@ -13,7 +13,7 @@ import org.springframework.lang.NonNull;
  * @param <T> the entity T type.
  */
 @MappedSuperclass
-public abstract class AbstractEntity<T extends DomainObjectId> implements IdentifiableDomainObject<T> {
+public abstract class AbstractEntity<T extends ValueObject> implements IdentifiableDomainObject<T> {
 
     @Id
     @JsonProperty("id")
