@@ -17,7 +17,6 @@ dependencies {
   implementation "io.grpc:grpc-protobuf:1.70.0"
   implementation "io.grpc:grpc-stub:1.70.0"
 
-  testImplementation "org.junit:junit-bom:5.10.0"
   testImplementation "org.junit.jupiter:junit-jupiter"
   testImplementation "com.metao.book.shared:shared-test:1.0"
 }
