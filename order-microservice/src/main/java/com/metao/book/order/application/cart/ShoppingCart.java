@@ -67,34 +67,6 @@ public class ShoppingCart {
         this.currency = currency;
     }
 
-    public static ShoppingCart createCart(
-        String userId,
-        String asin,
-        BigDecimal buyPrice,
-        BigDecimal sellPrice,
-        BigDecimal quantity,
-        Currency currency
-    ) {
-        return new ShoppingCart(userId, asin, buyPrice, sellPrice, quantity, currency);
-    }
-
-    public void increaseQuantity() {
-        setUpdatedOn(Instant.now().toEpochMilli());
-        this.quantity = quantity.add(BigDecimal.ONE);
-    }
-
-    public void decreaseQuantity() {
-        if (this.quantity.compareTo(BigDecimal.ZERO) > 0) {
-            this.quantity = this.quantity.subtract(BigDecimal.ONE);
-        }
-        setUpdatedOn(Instant.now().toEpochMilli());
-    }
-
-    public void setAsin(String asin) {
-        this.asin = asin;
-        setUpdatedOn(Instant.now().toEpochMilli());
-    }
-
     @Override
     public int hashCode() {
         return Objects.hash(userId, asin);

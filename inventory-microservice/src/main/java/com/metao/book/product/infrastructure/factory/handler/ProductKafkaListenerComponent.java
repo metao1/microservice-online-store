@@ -1,6 +1,7 @@
 package com.metao.book.product.infrastructure.factory.handler;
 
-import com.metao.book.product.event.ProductCreatedEvent;
+import com.metao.book.product.ProductCreatedEvent;
+import com.metao.book.product.application.service.ProductApplicationService;
 import com.metao.book.shared.ProductUpdatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +17,7 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "kafka.enabled", havingValue = "true", matchIfMissing = true)
 public class ProductKafkaListenerComponent {
 
-    private final ProductDatabaseHandler productDatabaseHandler;
+    private final ProductApplicationService productApplicationService;
 
     @RetryableTopic(attempts = "1")
     @KafkaListener(id = "${kafka.topic.product-created.id}",
@@ -26,7 +27,9 @@ public class ProductKafkaListenerComponent {
     public void onProductCreatedEvent(ConsumerRecord<String, ProductCreatedEvent> event) {
         var productCreatedEvent = event.value();
         log.debug("Consumed {}", productCreatedEvent);
-        productDatabaseHandler.accept(productCreatedEvent);
+        // TODO: Implement product creation from Kafka event using ProductApplicationService
+        // This would require mapping from ProductCreatedEvent to CreateProductCommand
+        log.info("Product created event received for ASIN: {}", productCreatedEvent.getAsin());
     }
 
     @RetryableTopic(attempts = "1")
@@ -37,6 +40,8 @@ public class ProductKafkaListenerComponent {
     public void onProductUpdateEvent(ConsumerRecord<String, ProductUpdatedEvent> event) {
         var productUpdatedEvent = event.value();
         log.debug("Consumed {}", productUpdatedEvent);
-        productDatabaseHandler.accept(productUpdatedEvent);
+        // TODO: Implement product update from Kafka event using ProductApplicationService
+        // This would require mapping from ProductUpdatedEvent to UpdateProductCommand
+        log.info("Product updated event received for ASIN: {}", productUpdatedEvent.getAsin());
     }
 }

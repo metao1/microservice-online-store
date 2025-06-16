@@ -4,7 +4,7 @@ package com.metao.book;
 import "google/protobuf/timestamp.proto";
 
 option java_multiple_files = true;
-option java_package = "com.metao.book.order";
+option java_package = "com.metao.book.shared";
 
 message OrderCreatedEvent {
   string id = 1;

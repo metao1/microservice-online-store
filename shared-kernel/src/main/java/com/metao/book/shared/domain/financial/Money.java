@@ -15,9 +15,17 @@ import org.springframework.lang.NonNull;
 public class Money implements ValueObject {
 
     @JsonProperty("currency")
-    private final Currency currency;
+    private Currency currency;
     @JsonProperty("amount")
-    private final BigDecimal amount;
+    private BigDecimal amount;
+
+    /**
+     * Default constructor for JPA/Hibernate.
+     */
+    protected Money() {
+        this.currency = Currency.getInstance("USD"); // Default currency
+        this.amount = BigDecimal.ZERO;
+    }
 
     /**
      * Creates a new {@code Money} object.
@@ -88,6 +96,75 @@ public class Money implements ValueObject {
     @NonNull
     public Money multiply(BigDecimal multiplicand) {
         return new Money(currency, amount.multiply(multiplicand));
+    }
+
+    /**
+     * Returns a new {@code Money} object whose amount is this amount divided by {@code divisor}.
+     *
+     * @param divisor the value to divide the amount by.
+     * @return {@code this} / {@code divisor}
+     */
+    @NonNull
+    public Money divide(BigDecimal divisor) {
+        return new Money(currency, amount.divide(divisor, BigDecimal.ROUND_HALF_UP));
+    }
+
+    /**
+     * Returns a zero money amount in USD currency.
+     */
+    public static Money zero() {
+        return new Money(Currency.getInstance("USD"), BigDecimal.ZERO);
+    }
+
+    /**
+     * Creates a new Money object with the specified amount and currency.
+     */
+    public static Money of(BigDecimal amount, Currency currency) {
+        return new Money(currency, amount);
+    }
+
+    /**
+     * Checks if this money amount is greater than the specified amount.
+     */
+    public boolean isGreaterThan(Money other) {
+        Objects.requireNonNull(other, "other must not be null");
+        if (!currency.equals(other.currency)) {
+            throw new IllegalArgumentException("Cannot compare Money objects with different currencies");
+        }
+        return amount.compareTo(other.amount) > 0;
+    }
+
+    /**
+     * Checks if this money amount is greater than or equal to the specified amount.
+     */
+    public boolean isGreaterThanOrEqual(Money other) {
+        Objects.requireNonNull(other, "other must not be null");
+        if (!currency.equals(other.currency)) {
+            throw new IllegalArgumentException("Cannot compare Money objects with different currencies");
+        }
+        return amount.compareTo(other.amount) >= 0;
+    }
+
+    /**
+     * Checks if this money amount is less than the specified amount.
+     */
+    public boolean isLessThan(Money other) {
+        Objects.requireNonNull(other, "other must not be null");
+        if (!currency.equals(other.currency)) {
+            throw new IllegalArgumentException("Cannot compare Money objects with different currencies");
+        }
+        return amount.compareTo(other.amount) < 0;
+    }
+
+    /**
+     * Checks if this money amount is less than or equal to the specified amount.
+     */
+    public boolean isLessThanOrEqual(Money other) {
+        Objects.requireNonNull(other, "other must not be null");
+        if (!currency.equals(other.currency)) {
+            throw new IllegalArgumentException("Cannot compare Money objects with different currencies");
+        }
+        return amount.compareTo(other.amount) <= 0;
     }
 
     /**

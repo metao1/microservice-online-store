@@ -1,7 +1,7 @@
 package com.metao.book.order.application.cart;
 
-import com.metao.book.order.domain.OrderEntity;
-import com.metao.book.order.domain.OrderStatus;
+import com.metao.book.order.domain.model.valueobject.OrderStatus;
+import com.metao.book.order.infrastructure.persistence.entity.OrderEntity;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
@@ -18,7 +18,15 @@ public class OrderSpecifications {
     ) {
         return (root, query, criteriaBuilder) -> {
             Predicate predicate = criteriaBuilder.conjunction();
-            predicate = addPredicateForField(criteriaBuilder, predicate, root.get("productId"), productIds);
+
+            // For productIds, we need to join with OrderItemEntity
+            if (!CollectionUtils.isEmpty(productIds)) {
+                var itemsJoin = root.join("items");
+                var productIdPath = itemsJoin.get("productId").get("value");
+                predicate = criteriaBuilder.and(predicate, productIdPath.in(productIds));
+            }
+
+            // For status, we can use the direct field
             predicate = addPredicateForField(criteriaBuilder, predicate, root.get("status"), statuses);
             return predicate;
         };

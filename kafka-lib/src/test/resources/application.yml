@@ -1,0 +1,38 @@
+spring:
+  kafka:
+    # Required connection configs for Kafka producer, consumer, and admin
+    bootstrap-servers: "PLAINTEXT://kafka1:9094"
+    # Required connection configs for Confluent Cloud Schema Registry
+    properties:
+      schema.registry.url: mock://not-used
+      security.protocol: "PLAINTEXT"
+      sasl.mechanism: "PLAIN"
+    consumer:
+      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      isolation-level: read_committed
+      auto-offset-reset: none
+      enable-auto-commit: false
+      properties:
+        session.timeout.ms: 30000
+        max.poll.interval.ms: 300
+        heartbeat.interval.ms: 1000
+        auto.offset.reset: earliest
+        allow.auto.create.topics: "false"
+        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+        spring.deserializer.value.delegate.class: io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer
+      properties:
+        enable.idempotence: true
+    admin:
+      auto-create: true
+kafka:
+  enabled: ${KAFKA_ENABLED:true}
+  topic:
+    created-event-test:
+      id: "created-event-id"
+      name: "created-event-test"
+      group-id: "created-event-test-group"
+      class-path: "com.metao.kafka.CreatedEventTest"

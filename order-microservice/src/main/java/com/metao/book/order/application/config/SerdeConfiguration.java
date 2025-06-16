@@ -1,6 +1,6 @@
 package com.metao.book.order.application.config;
 
-import com.metao.book.order.OrderPaymentEvent;
+import com.metao.book.shared.OrderPaymentEvent;
 import io.confluent.kafka.streams.serdes.protobuf.KafkaProtobufSerde;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package com.metao.kafka;
+import "google/protobuf/timestamp.proto";
+
+option java_multiple_files = true;
+option java_package = "com.metao.kafka";
+
+message CreatedEventTest {
+  string id = 1;
+  // Created updated date.
+  google.protobuf.Timestamp create_time = 7;
+  // Last updated date.
+  optional google.protobuf.Timestamp update_time = 8;
+  string customerId = 10;
+  string productId = 2;
+  Status status = 3;
+  double quantity = 4;
+  double price = 5;
+  string currency = 6;
+  enum Status {
+    NEW = 0;
+    SUBMITTED = 1;
+    REJECTED = 2;
+    CONFIRMED = 3;
+    ROLLED_BACK = 4;
+  };
+
+  message UUID {
+    // typedef string
+  }
+}
+
