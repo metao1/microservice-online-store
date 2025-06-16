@@ -29,9 +29,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
@@ -53,26 +53,24 @@ class OrderControllerIT extends BaseKafkaTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @MockitoBean
     private OrderApplicationService orderApplicationService;
 
     // Mock all the dependencies that might be needed by the application context
-    @MockBean
+    @MockitoBean
     private OrderRepository orderRepository;
 
-    @MockBean
+    @MockitoBean
     private DomainEventPublisher domainEventPublisher;
 
-    @MockBean
+    @MockitoBean
     private ShoppingCartService shoppingCartService;
 
     private OrderId testOrderId;
-    private CustomerId testCustomerId;
 
     @BeforeEach
     void setUp() {
         testOrderId = OrderId.generate();
-        testCustomerId = new CustomerId("customer123");
     }
 
     @Nested
