@@ -7,24 +7,23 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "org.springframework.kafka:spring-kafka"
 
-  runtimeOnly "com.h2database:h2"
+  implementation "org.hibernate:hibernate-jcache:5.6.15.Final"
+  implementation "com.github.ben-manes.caffeine:caffeine:3.1.8"
+  implementation "com.github.ben-manes.caffeine:jcache:3.1.8"
+
+  implementation "io.grpc:grpc-protobuf:1.70.0"
+  implementation "io.grpc:grpc-stub:1.70.0"
+  implementation "org.flywaydb:flyway-core"
 
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.springframework.kafka:spring-kafka-test"
-
-  testImplementation "org.mockito:mockito-core:4.8.0"
-  testImplementation "io.rest-assured:rest-assured:5.4.0"
-  implementation "io.grpc:grpc-protobuf:1.70.0"
-  implementation "io.grpc:grpc-stub:1.70.0"
-
-  testImplementation "org.junit.jupiter:junit-jupiter"
   testImplementation "com.metao.book.shared:shared-test:1.0"
-}
+  testImplementation 'org.testcontainers:postgresql:1.19.3'
+  testImplementation "io.rest-assured:rest-assured:5.4.0"
+  testImplementation "org.mockito:mockito-core:4.8.0"
+  testImplementation 'org.testcontainers:jdbc:1.19.3'
 
-dependencyManagement {
-    imports {
-        mavenBom org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES
-    }
+  testRuntimeOnly 'org.postgresql:postgresql'
 }
 
 tasks.named('test') {

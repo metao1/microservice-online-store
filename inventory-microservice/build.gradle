@@ -18,10 +18,11 @@ dependencies {
 
   implementation "org.flywaydb:flyway-core"
 
-  // cache
+  // cache - Modern JCache with Caffeine
   implementation "org.hibernate:hibernate-core-jakarta:5.6.12.Final"
-  implementation "org.hibernate:hibernate-ehcache:5.6.12.Final"
-  //implementation "org.ehcache:ehcache:3.10.8"
+  implementation "org.hibernate:hibernate-jcache:5.6.15.Final"
+  implementation "com.github.ben-manes.caffeine:caffeine:3.1.8"
+  implementation "com.github.ben-manes.caffeine:jcache:3.1.8"
 
   implementation "io.grpc:grpc-protobuf:1.70.0"
   implementation "io.grpc:grpc-stub:1.70.0"

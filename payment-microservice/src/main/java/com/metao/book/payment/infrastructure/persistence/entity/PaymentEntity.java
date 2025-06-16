@@ -1,10 +1,11 @@
 package com.metao.book.payment.infrastructure.persistence.entity;
 
+import com.metao.book.payment.domain.model.valueobject.PaymentId;
+import com.metao.book.shared.domain.base.AbstractEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -21,11 +22,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 @Table(name = "payment")
-public class PaymentEntity {
-
-    @Id
-    @Column(name = "payment_id", nullable = false)
-    private String paymentId;
+public class PaymentEntity extends AbstractEntity<PaymentId> {
 
     @Column(name = "order_id", nullable = false)
     private String orderId;
@@ -66,7 +63,7 @@ public class PaymentEntity {
         PaymentStatusEntity status,
         LocalDateTime createdAt
     ) {
-        this.paymentId = paymentId;
+        this.id = PaymentId.of(paymentId);
         this.orderId = orderId;
         this.amount = amount;
         this.currency = currency;
@@ -89,5 +86,22 @@ public class PaymentEntity {
         SUCCESSFUL,
         FAILED,
         CANCELLED
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        PaymentEntity that = (PaymentEntity) obj;
+        return id.equals(that.id);
     }
 }
