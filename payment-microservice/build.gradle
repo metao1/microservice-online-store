@@ -1,0 +1,67 @@
+dependencies {
+  implementation "com.metao.book.shared:shared-kernel:1.0"
+  implementation "com.metao.kafka:kafka-lib:1.0"
+
+  implementation "org.springframework.boot:spring-boot-starter-validation"
+  implementation "org.springframework.boot:spring-boot-starter-data-jpa"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.kafka:spring-kafka"
+
+  runtimeOnly "com.h2database:h2"
+
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "org.springframework.kafka:spring-kafka-test"
+
+  testImplementation "org.mockito:mockito-core:4.8.0"
+  testImplementation "io.rest-assured:rest-assured:5.4.0"
+  implementation "io.grpc:grpc-protobuf:1.70.0"
+  implementation "io.grpc:grpc-stub:1.70.0"
+
+  testImplementation "org.junit.jupiter:junit-jupiter"
+  testImplementation "com.metao.book.shared:shared-test:1.0"
+}
+
+dependencyManagement {
+    imports {
+        mavenBom org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+sourceSets {
+  main {
+    java {
+      srcDirs 'src/main/java', 'build/generated/source/proto/java/main/java'
+    }
+  }
+}
+
+protobuf {
+  protoc {
+    if (osdetector.os == "osx") {
+      artifact = 'com.google.protobuf:protoc:3.25.5:osx-x86_64'
+    } else {
+      artifact = 'com.google.protobuf:protoc:3.25.5'
+    }
+  }
+
+  plugins {
+    grpc {
+      artifact = 'io.grpc:protoc-gen-grpc-java:1.70.0'
+    }
+  }
+  generateProtoTasks {
+    all()*.plugins {
+      grpc {}
+    }
+  }
+}
+
+tasks.named('build') {
+  dependsOn ':shared-kernel:publishAllPublicationsToLocalRepository'
+  dependsOn ':shared-test:publishAllPublicationsToLocalRepository'
+  dependsOn 'generateProto'
+}

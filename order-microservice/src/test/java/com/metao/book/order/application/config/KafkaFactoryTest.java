@@ -4,12 +4,12 @@ import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-import com.metao.book.shared.application.kafka.KafkaFactory;
+import com.metao.kafka.KafkaFactory;
+import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
-import java.time.Duration;
 
 @ExtendWith(MockitoExtension.class)
 class KafkaFactoryTest {

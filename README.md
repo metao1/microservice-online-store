@@ -33,9 +33,14 @@ Responsible to manage orders
 
 Responsible to managing our products in inventory.
 
-#### 3. Payment Microservice: [work in progress]
+#### 3. Payment Microservice: [Implemented - Mocked Processing]
 
-Responsible to manage payments related to orders with communication with the payment gateway.
+Responsible for processing payments related to orders. 
+- It consumes `OrderCreatedEvent` from a Kafka topic (when an order is initiated in the `order-microservice`).
+- It currently simulates payment processing (mocked logic with random success/failure).
+- After processing, it produces an `OrderPaymentEvent` (with status `SUCCESSFUL` or `FAILED`) to another Kafka topic.
+- The `order-microservice` consumes this `OrderPaymentEvent` to update the order's status to `PAID` or `PAYMENT_FAILED`.
+- This service is designed to be replaced with a real payment gateway integration in the future.
 
 #### 4. User Microservice: [work in progress]
 

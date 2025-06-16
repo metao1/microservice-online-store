@@ -1,6 +1,7 @@
 package com.metao.book.order.domain.service;
 
-import com.metao.book.order.OrderCreatedEvent;
+import com.metao.book.shared.OrderCreatedEvent;
+import com.metao.kafka.KafkaEventHandler;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -8,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 public class OrderGenerator {
 
     private static final String ACCOUNT_ID = "ACCOUNT_ID";
-    private final KafkaTemplate<String, OrderCreatedEvent> orderTemplate;
+    private final KafkaEventHandler eventHandler;
     private final AtomicInteger atomicInteger = new AtomicInteger(1);
     private final Queue<String> products = new LinkedBlockingQueue<>();
 
@@ -33,7 +33,7 @@ public class OrderGenerator {
             .setId(OrderCreatedEvent.UUID.getDefaultInstance().toString()).setProductId(products.poll())
             .setCustomerId(ACCOUNT_ID).setQuantity(randomNumber).setPrice(100).setCurrency("USD").build();
 
-        orderTemplate.send(orderTopic, orderEvent.getCustomerId(), orderEvent);
+        eventHandler.handle(orderEvent.getCustomerId(), orderEvent);
     }
 
 }

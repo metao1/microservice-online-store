@@ -14,13 +14,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4.2.2
       - name: Set up JDK 21
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v4.7.1
         with:
           java-version: '21'
           distribution: 'temurin'
-      - name: Publish the shared-kernel to maven
+      - name: Publish the libraries to maven
         run: gradle publishToMavenLocal
       - name: Build microservices and run tests with Gradle
         run: gradle clean build
