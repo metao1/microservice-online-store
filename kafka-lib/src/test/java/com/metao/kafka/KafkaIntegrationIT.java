@@ -22,7 +22,7 @@ import org.springframework.test.context.TestPropertySource;
 @TestInstance(Lifecycle.PER_CLASS)
 @TestPropertySource(properties = "kafka.enabled=true")
 @SpringBootTest(webEnvironment = WebEnvironment.NONE,
-    classes = {KafkaEventConfiguration.class, KafkaConsumerConfig.class, KafkaEventHandler.class}
+    classes = {KafkaEventConfiguration.class, KafkaEventHandler.class}
 )
 public class KafkaIntegrationIT extends BaseKafkaTest {
 

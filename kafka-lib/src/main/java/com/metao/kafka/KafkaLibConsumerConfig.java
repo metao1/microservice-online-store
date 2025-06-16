@@ -11,7 +11,7 @@ import org.springframework.kafka.annotation.EnableKafka;
 @Configuration
 @EnableAutoConfiguration
 @RequiredArgsConstructor
-public class KafkaConsumerConfig {
+public class KafkaLibConsumerConfig {
 
     private final KafkaProperties kafkaProperties;
 

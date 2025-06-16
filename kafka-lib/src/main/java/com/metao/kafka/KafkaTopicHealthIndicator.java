@@ -21,6 +21,7 @@ import org.apache.kafka.common.acl.AclOperation;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.Health.Builder;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.availability.AvailabilityChangeEvent;
 import org.springframework.boot.availability.LivenessState;
@@ -30,6 +31,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component("kafkaTopics")
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "kafka.enabled", havingValue = "true", matchIfMissing = true)
 public class KafkaTopicHealthIndicator extends AbstractHealthIndicator {
     private final KafkaProperties kafkaProperties;
     private final ApplicationEventPublisher eventPublisher;

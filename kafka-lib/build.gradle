@@ -14,7 +14,6 @@ version = commitRefName
 group = "com.metao.kafka"
 
 dependencies {
-  implementation "com.metao.book.shared:shared-test:1.0"
 
   implementation "org.springframework.kafka:spring-kafka"
 
@@ -24,6 +23,8 @@ dependencies {
 
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.springframework.boot:spring-boot-test"
+
+  testImplementation "com.metao.book.shared:shared-test:1.0"
 }
 
 publishing {
