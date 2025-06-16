@@ -2,6 +2,7 @@ package com.metao.book.payment.domain.model.valueobject;
 
 import com.metao.book.shared.domain.base.ValueObject;
 import java.util.UUID;
+import javax.annotation.Nonnull;
 import lombok.NonNull;
 
 /**
@@ -24,6 +25,7 @@ public record PaymentId(String value) implements ValueObject {
         return new PaymentId(value);
     }
 
+    @Nonnull
     @Override
     public String toString() {
         return value;

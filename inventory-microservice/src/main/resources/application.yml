@@ -67,7 +67,10 @@ spring:
         cache:
           use_query_cache: true
           use_second_level_cache: true
-          region.factory_class: org.hibernate.cache.ehcache.EhCacheRegionFactory
+          region.factory_class: org.hibernate.cache.jcache.JCacheRegionFactory
+          jcache:
+            provider: com.github.benmanes.caffeine.jcache.spi.CaffeineCachingProvider
+            configuration_resource_name: ehcache.xml
         connection:
           provider_disables_autocommit: true
         temp:

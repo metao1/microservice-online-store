@@ -33,7 +33,7 @@ public class PaymentRepositoryImpl implements PaymentRepository {
 
     @Override
     public Optional<Payment> findById(PaymentId paymentId) {
-        return jpaPaymentRepository.findById(paymentId.value())
+        return jpaPaymentRepository.findById(paymentId)
             .map(paymentEntityMapper::toDomain);
     }
 
@@ -68,7 +68,7 @@ public class PaymentRepositoryImpl implements PaymentRepository {
 
     @Override
     public void delete(Payment payment) {
-        jpaPaymentRepository.deleteById(payment.getId().value());
+        jpaPaymentRepository.deleteById(payment.getId());
     }
 
     @Override

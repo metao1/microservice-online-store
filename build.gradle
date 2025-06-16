@@ -108,8 +108,8 @@ tasks.register('buildDependencies') {
   dependsOn ':kafka-lib:publishAllPublicationsToLocalRepository'
   dependsOn ':shared-test:publishAllPublicationsToLocalRepository'
   dependsOn ':inventory-microservice:build'
-  dependsOn ':order-microservice:build'
   dependsOn ':payment-microservice:build'
+  dependsOn ':order-microservice:build'
 }
 
 tasks.named('build') {
