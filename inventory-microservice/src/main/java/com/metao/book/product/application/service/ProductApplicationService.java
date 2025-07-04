@@ -43,6 +43,10 @@ public class ProductApplicationService {
      * Create a new product
      */
     public ProductDTO createProduct(CreateProductCommand command) {
+        if (command == null || command.asin() == null || command.title() == null) {
+            throw new IllegalArgumentException("Product command, ASIN, and title must not be null");
+        }
+
         log.info("Creating product with ASIN: {}", command.asin());
 
         // Use domain service to check uniqueness
@@ -61,9 +65,9 @@ public class ProductApplicationService {
         // Create product aggregate
         Product product = new Product(productId, title, description, volume, price, imageUrl);
 
-        // Add categories
         if (command.categoryNames() != null) {
             for (String categoryName : command.categoryNames()) {
+                if (categoryName == null) continue;
                 CategoryName catName = CategoryName.of(categoryName);
 
                 // Ensure category exists
@@ -75,14 +79,11 @@ public class ProductApplicationService {
                         );
                         return categoryRepository.save(newCategory);
                     });
-
                 product.addCategory(category);
             }
         }
 
-        // Save product
         Product savedProduct = productRepository.save(product);
-
         log.info("Product created successfully with ID: {}", savedProduct.getId());
         return productMapper.toDTO(savedProduct);
     }
@@ -91,21 +92,22 @@ public class ProductApplicationService {
      * Update an existing product
      */
     public ProductDTO updateProduct(UpdateProductCommand command) {
+        if (command == null || command.asin() == null) {
+            throw new IllegalArgumentException("Update command and ASIN must not be null");
+        }
+
         log.info("Updating product with ASIN: {}", command.asin());
 
         ProductId productId = ProductId.of(command.asin());
         Product product = productRepository.findById(productId)
             .orElseThrow(() -> new ProductNotFoundException(productId));
 
-        // Update product using domain methods
         if (command.title() != null) {
             product.updateTitle(ProductTitle.of(command.title()));
         }
-
         if (command.description() != null) {
             product.updateDescription(ProductDescription.of(command.description()));
         }
-
         if (command.price() != null && command.currency() != null) {
             Money newPrice = new Money(command.currency(), command.price());
             product.updatePrice(newPrice);
@@ -122,6 +124,7 @@ public class ProductApplicationService {
      */
     @Transactional(readOnly = true)
     public Optional<ProductDTO> getProductByAsin(String asin) {
+        if (asin == null) return Optional.empty();
         log.debug("Getting product by ASIN: {}", asin);
 
         return productRepository.findByAsin(asin)
@@ -133,6 +136,7 @@ public class ProductApplicationService {
      */
     @Transactional(readOnly = true)
     public List<ProductDTO> searchProducts(String keyword, int offset, int limit) {
+        if (keyword == null) return List.of();
         log.debug("Searching products with keyword: {}", keyword);
 
         List<Product> products = productRepository.searchByKeyword(keyword, offset, limit);
@@ -146,6 +150,7 @@ public class ProductApplicationService {
      */
     @Transactional(readOnly = true)
     public List<ProductDTO> getProductsByCategory(String categoryName, int offset, int limit) {
+        if (categoryName == null) return List.of();
         log.debug("Getting products by category: {}", categoryName);
 
         CategoryName catName = CategoryName.of(categoryName);
@@ -160,6 +165,7 @@ public class ProductApplicationService {
      */
     @Transactional(readOnly = true)
     public List<ProductDTO> getRelatedProducts(String asin, int limit) {
+        if (asin == null) return List.of();
         log.debug("Getting related products for ASIN: {}", asin);
 
         ProductId productId = ProductId.of(asin);
@@ -173,12 +179,13 @@ public class ProductApplicationService {
      * Assign product to category using domain service
      */
     public void assignProductToCategory(String asin, String categoryName) {
+        if (asin == null || categoryName == null) return;
         log.info("Assigning product {} to category {}", asin, categoryName);
 
         ProductId productId = ProductId.of(asin);
         CategoryName catName = CategoryName.of(categoryName);
 
-        // Use domain service for business rule validation
+        // Business rule validation and assignment
         productDomainService.assignProductToCategory(productId, catName);
 
         log.info("Product {} assigned to category {} successfully", asin, categoryName);
@@ -188,6 +195,7 @@ public class ProductApplicationService {
      * Reduce product volume (for order processing)
      */
     public void reduceProductVolume(String asin, java.math.BigDecimal quantity) {
+        if (asin == null || quantity == null) return;
         log.info("Reducing volume for product {} by {}", asin, quantity);
 
         ProductId productId = ProductId.of(asin);
@@ -196,7 +204,6 @@ public class ProductApplicationService {
 
         ProductVolume reduction = ProductVolume.of(quantity);
         product.reduceVolume(reduction);
-
         productRepository.save(product);
 
         log.info("Product volume reduced successfully for {}", asin);
@@ -206,6 +213,7 @@ public class ProductApplicationService {
      * Increase product volume (for restocking)
      */
     public void increaseProductVolume(String asin, java.math.BigDecimal quantity) {
+        if (asin == null || quantity == null) return;
         log.info("Increasing volume for product {} by {}", asin, quantity);
 
         ProductId productId = ProductId.of(asin);
@@ -214,7 +222,6 @@ public class ProductApplicationService {
 
         ProductVolume increase = ProductVolume.of(quantity);
         product.increaseVolume(increase);
-
         productRepository.save(product);
 
         log.info("Product volume increased successfully for {}", asin);

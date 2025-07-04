@@ -113,6 +113,9 @@ tasks.register('buildDependencies') {
   dependsOn ':payment-microservice:build'
 }
 
+
 tasks.named('build') {
   dependsOn ':buildDependencies'
+  dependsOn ':shared-kernel:build'
+  dependsOn ':shared-test:build'
 }
