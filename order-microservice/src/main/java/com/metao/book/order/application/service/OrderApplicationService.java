@@ -51,8 +51,8 @@ public class OrderApplicationService {
         // Add items from cart to order
         for (ShoppingCart cartItem : cartItems) {
             order.addItem(
-                new ProductId(cartItem.getAsin()),
-                cartItem.getAsin(), // Using SKU as product name for now
+                new ProductId(cartItem.getSku()),
+                cartItem.getSku(), // Using SKU as product name for now
                 new Quantity(cartItem.getQuantity().intValue()),
                 new Money(cartItem.getCurrency(), cartItem.getSellPrice())
             );

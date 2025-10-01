@@ -23,4 +23,4 @@ jobs:
       - name: Publish the libraries to maven
         run: gradle publishToMavenLocal
       - name: Build microservices and run tests with Gradle
-        run: gradle clean build
+        run: gradle build

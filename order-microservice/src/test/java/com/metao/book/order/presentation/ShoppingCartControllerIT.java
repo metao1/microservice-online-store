@@ -115,7 +115,7 @@ class ShoppingCartControllerIT extends KafkaContainer {
             .body("shopping_cart_items[0].currency", equalTo(currency.toString()));
         
         // Verify in DB
-        ShoppingCart dbItem = shoppingCartRepository.findByUserIdAndAsin(userId1, sku2).orElse(null);
+        ShoppingCart dbItem = shoppingCartRepository.findByUserIdAndSku(userId1, sku2).orElse(null);
         assertThat(dbItem).isNotNull();
         assertThat(dbItem.getQuantity()).isEqualByComparingTo(BigDecimal.valueOf(2));
     }
@@ -138,7 +138,7 @@ class ShoppingCartControllerIT extends KafkaContainer {
             .body("shopping_cart_items[0].currency", equalTo(currency.toString()));
 
         // Verify in DB
-        ShoppingCart dbItem = shoppingCartRepository.findByUserIdAndAsin(userId1, sku1).orElse(null);
+        ShoppingCart dbItem = shoppingCartRepository.findByUserIdAndSku(userId1, sku1).orElse(null);
         assertThat(dbItem).isNotNull();
         assertThat(dbItem.getQuantity()).isEqualByComparingTo(BigDecimal.valueOf(3));
     }
@@ -156,7 +156,7 @@ class ShoppingCartControllerIT extends KafkaContainer {
             .statusCode(HttpStatus.NO_CONTENT.value()); 
 
         // Verify in DB
-        assertThat(shoppingCartRepository.findByUserIdAndAsin(userId1, sku1)).isEmpty();
+        assertThat(shoppingCartRepository.findByUserIdAndSku(userId1, sku1)).isEmpty();
     }
 
 
@@ -170,7 +170,7 @@ class ShoppingCartControllerIT extends KafkaContainer {
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         // Verify in DB
-        assertThat(shoppingCartRepository.findByUserIdAndAsin(userId1, sku1)).isEmpty();
+        assertThat(shoppingCartRepository.findByUserIdAndSku(userId1, sku1)).isEmpty();
     }
     
     // Test for clearing the whole cart for a user
@@ -197,13 +197,13 @@ class ShoppingCartControllerIT extends KafkaContainer {
     @Test
     void updateItemQuantity_itemNotFound_returnsNotFound() {
         UpdateCartItemQtyDTO updateDto = new UpdateCartItemQtyDTO(BigDecimal.valueOf(5));
-        String nonExistentAsin = "SKUNONEXIST";
+        String nonExistentSku = "SKUNONEXIST";
 
         given()
             .contentType(ContentType.JSON)
             .body(updateDto)
         .when()
-            .put("/{userId}/{sku}", userId1, nonExistentAsin)
+            .put("/{userId}/{sku}", userId1, nonExistentSku)
         .then()
             .statusCode(HttpStatus.NOT_FOUND.value()); // Assuming OrderNotFoundException leads to 404
     }
@@ -211,12 +211,12 @@ class ShoppingCartControllerIT extends KafkaContainer {
     // Test case for removing a non-existent item (should result in 404)
     @Test
     void removeItemFromCart_itemNotFound_returnsNotFound() {
-        String nonExistentAsin = "SKUNONEXIST";
+        String nonExistentSku = "SKUNONEXIST";
         
         given()
             .contentType(ContentType.JSON)
         .when()
-            .delete("/{userId}/{sku}", userId1, nonExistentAsin)
+            .delete("/{userId}/{sku}", userId1, nonExistentSku)
         .then()
             .statusCode(HttpStatus.NOT_FOUND.value()); // Assuming OrderNotFoundException leads to 404
     }
