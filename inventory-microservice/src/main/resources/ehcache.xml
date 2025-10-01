@@ -66,7 +66,7 @@
         </resources>
     </cache>
 
-    <!-- Natural ID cache for products (ASIN lookups) -->
+    <!-- Natural ID cache for products (SKU lookups) -->
     <cache alias="com.metao.book.product.infrastructure.persistence.entity.ProductEntity##NaturalId" uses-template="default">
         <expiry>
             <ttl unit="hours">2</ttl>

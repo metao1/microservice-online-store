@@ -29,8 +29,8 @@ public class ShoppingCart {
     private String userId;
 
     @Id
-    @Column(name = "asin")
-    private String asin;
+    @Column(name = "sku")
+    private String sku;
 
     @Column(name = "quantity")
     private BigDecimal quantity;
@@ -52,14 +52,14 @@ public class ShoppingCart {
 
     public ShoppingCart(
         String userId,
-        String asin,
+        String sku,
         BigDecimal buyPrice,
         BigDecimal sellPrice,
         BigDecimal quantity,
         Currency currency
     ) {
         this.createdOn = Instant.now().toEpochMilli();
-        this.asin = asin;
+        this.sku = sku;
         this.userId = userId;
         this.quantity = quantity;
         this.sellPrice = sellPrice;
@@ -69,7 +69,7 @@ public class ShoppingCart {
 
     @Override
     public int hashCode() {
-        return Objects.hash(userId, asin);
+        return Objects.hash(userId, sku);
     }
 
     @Override
@@ -81,7 +81,7 @@ public class ShoppingCart {
             return false;
         }
         return userId != null && Objects.equals(userId, that.userId)
-            && asin != null && Objects.equals(asin, that.asin);
+            && sku != null && Objects.equals(sku, that.sku);
     }
 
 }

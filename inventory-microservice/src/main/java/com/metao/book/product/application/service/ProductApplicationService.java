@@ -1,9 +1,7 @@
 package com.metao.book.product.application.service;
 
 import com.metao.book.product.application.dto.CreateProductCommand;
-import com.metao.book.product.application.dto.ProductDTO;
 import com.metao.book.product.application.dto.UpdateProductCommand;
-import com.metao.book.product.application.mapper.ProductApplicationMapper;
 import com.metao.book.product.domain.exception.ProductNotFoundException;
 import com.metao.book.product.domain.model.aggregate.Product;
 import com.metao.book.product.domain.model.entity.ProductCategory;
@@ -11,25 +9,27 @@ import com.metao.book.product.domain.model.valueobject.CategoryId;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.product.domain.model.valueobject.ImageUrl;
 import com.metao.book.product.domain.model.valueobject.ProductDescription;
-import com.metao.book.product.domain.model.valueobject.ProductId;
+import com.metao.book.product.domain.model.valueobject.ProductSku;
 import com.metao.book.product.domain.model.valueobject.ProductTitle;
 import com.metao.book.product.domain.model.valueobject.ProductVolume;
 import com.metao.book.product.domain.repository.CategoryRepository;
 import com.metao.book.product.domain.repository.ProductRepository;
 import com.metao.book.product.domain.service.ProductDomainService;
 import com.metao.book.shared.domain.financial.Money;
+import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * Application service for Product operations - orchestrates domain services and repositories
  */
 @Slf4j
 @Service
+@Validated
 @Transactional
 @RequiredArgsConstructor
 public class ProductApplicationService {
@@ -37,33 +37,28 @@ public class ProductApplicationService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductDomainService productDomainService;
-    private final ProductApplicationMapper productMapper;
 
     /**
      * Create a new product
      */
-    public ProductDTO createProduct(CreateProductCommand command) {
-        if (command == null || command.asin() == null || command.title() == null) {
-            throw new IllegalArgumentException("Product command, ASIN, and title must not be null");
-        }
-
-        log.info("Creating product with ASIN: {}", command.asin());
+    public void createProduct(@Valid CreateProductCommand command) {
+        log.info("Creating product with SKU: {}", command.sku());
 
         // Use domain service to check uniqueness
-        if (!productDomainService.isProductUnique(command.asin())) {
-            throw new IllegalArgumentException("Product with ASIN " + command.asin() + " already exists");
+        if (!productDomainService.isProductUnique(command.sku())) {
+            throw new IllegalArgumentException("Product with SKU " + command.sku() + " already exists");
         }
 
         // Create domain objects
-        ProductId productId = ProductId.of(command.asin());
-        ProductTitle title = ProductTitle.of(command.title());
-        ProductDescription description = ProductDescription.of(command.description());
-        ProductVolume volume = ProductVolume.of(command.volume());
-        Money price = new Money(command.currency(), command.price());
-        ImageUrl imageUrl = ImageUrl.of(command.imageUrl());
+        var productId = ProductSku.of(command.sku());
+        var title = ProductTitle.of(command.title());
+        var description = ProductDescription.of(command.description());
+        var volume = ProductVolume.of(command.volume());
+        var price = new Money(command.currency(), command.price());
+        var imageUrl = ImageUrl.of(command.imageUrl());
 
         // Create product aggregate
-        Product product = new Product(productId, title, description, volume, price, imageUrl);
+        var product = new Product(productId, title, description, volume, price, imageUrl);
 
         if (command.categoryNames() != null) {
             for (String categoryName : command.categoryNames()) {
@@ -72,35 +67,30 @@ public class ProductApplicationService {
 
                 // Ensure category exists
                 ProductCategory category = categoryRepository.findByName(catName)
-                    .orElseGet(() -> {
-                        ProductCategory newCategory = new ProductCategory(
-                            CategoryId.of(System.currentTimeMillis()), // Simple ID generation
-                            catName
-                        );
-                        return categoryRepository.save(newCategory);
-                    });
+                    .orElseGet(() -> ProductCategory.of(
+                        CategoryId.of(System.currentTimeMillis()), // Simple ID generation
+                        catName
+                    ));
                 product.addCategory(category);
             }
         }
 
-        Product savedProduct = productRepository.save(product);
-        log.info("Product created successfully with ID: {}", savedProduct.getId());
-        return productMapper.toDTO(savedProduct);
+        productRepository.save(product);
     }
 
     /**
      * Update an existing product
      */
-    public ProductDTO updateProduct(UpdateProductCommand command) {
-        if (command == null || command.asin() == null) {
-            throw new IllegalArgumentException("Update command and ASIN must not be null");
+    public Product updateProduct(UpdateProductCommand command) {
+        if (command == null || command.sku() == null) {
+            throw new IllegalArgumentException("Update command and SKU must not be null");
         }
 
-        log.info("Updating product with ASIN: {}", command.asin());
+        log.info("Updating product with SKU: {}", command.sku());
 
-        ProductId productId = ProductId.of(command.asin());
-        Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new ProductNotFoundException(productId));
+        ProductSku productSku = ProductSku.of(command.sku());
+        Product product = productRepository.findBySku(productSku)
+            .orElseThrow(() -> new ProductNotFoundException(productSku));
 
         if (command.title() != null) {
             product.updateTitle(ProductTitle.of(command.title()));
@@ -113,35 +103,37 @@ public class ProductApplicationService {
             product.updatePrice(newPrice);
         }
 
-        Product savedProduct = productRepository.save(product);
+        productRepository.save(product);
 
-        log.info("Product updated successfully with ID: {}", savedProduct.getId());
-        return productMapper.toDTO(savedProduct);
+        log.info("Product updated successfully with ID: {}", product.getId());
+
+        return product;
     }
 
     /**
-     * Get product by ASIN
+     * Get product by SKU
      */
     @Transactional(readOnly = true)
-    public Optional<ProductDTO> getProductByAsin(String asin) {
-        if (asin == null) return Optional.empty();
-        log.debug("Getting product by ASIN: {}", asin);
-
-        return productRepository.findByAsin(asin)
-            .map(productMapper::toDTO);
+    public Product getProductBySku(String sku) {
+        if (sku == null || sku.isBlank()) {
+            throw new IllegalArgumentException("SKU cannot be null or empty.");
+        }
+        log.debug("Getting product by SKU: {}", sku);
+        ProductSku productSku = ProductSku.of(sku);
+        return productRepository.findBySku(productSku)
+            .orElseThrow(() -> new ProductNotFoundException(productSku));
     }
 
     /**
      * Search products by keyword
      */
     @Transactional(readOnly = true)
-    public List<ProductDTO> searchProducts(String keyword, int offset, int limit) {
+    public List<Product> searchProducts(String keyword, int offset, int limit) {
         if (keyword == null) return List.of();
         log.debug("Searching products with keyword: {}", keyword);
 
         List<Product> products = productRepository.searchByKeyword(keyword, offset, limit);
         return products.stream()
-            .map(productMapper::toDTO)
             .toList();
     }
 
@@ -149,14 +141,13 @@ public class ProductApplicationService {
      * Get products by category
      */
     @Transactional(readOnly = true)
-    public List<ProductDTO> getProductsByCategory(String categoryName, int offset, int limit) {
+    public List<Product> getProductsByCategory(String categoryName, int offset, int limit) {
         if (categoryName == null) return List.of();
         log.debug("Getting products by category: {}", categoryName);
 
         CategoryName catName = CategoryName.of(categoryName);
         List<Product> products = productRepository.findByCategory(catName, offset, limit);
         return products.stream()
-            .map(productMapper::toDTO)
             .toList();
     }
 
@@ -164,66 +155,73 @@ public class ProductApplicationService {
      * Get related products using domain service
      */
     @Transactional(readOnly = true)
-    public List<ProductDTO> getRelatedProducts(String asin, int limit) {
-        if (asin == null) return List.of();
-        log.debug("Getting related products for ASIN: {}", asin);
+    public List<Product> getRelatedProducts(String sku, int limit) {
+        if (sku == null) {
+            return List.of();
+        }
+        log.debug("Getting related products for SKU: {}", sku);
 
-        ProductId productId = ProductId.of(asin);
-        List<Product> relatedProducts = productDomainService.findRelatedProducts(productId, limit);
+        ProductSku productSku = ProductSku.of(sku);
+        List<Product> relatedProducts = productDomainService.findRelatedProducts(productSku, limit);
         return relatedProducts.stream()
-            .map(productMapper::toDTO)
             .toList();
     }
 
     /**
      * Assign product to category using domain service
      */
-    public void assignProductToCategory(String asin, String categoryName) {
-        if (asin == null || categoryName == null) return;
-        log.info("Assigning product {} to category {}", asin, categoryName);
+    public void assignProductToCategory(String sku, String categoryName) {
+        if (sku == null || categoryName == null) {
+            return;
+        }
+        log.info("Assigning product {} to category {}", sku, categoryName);
 
-        ProductId productId = ProductId.of(asin);
+        ProductSku productSku = ProductSku.of(sku);
         CategoryName catName = CategoryName.of(categoryName);
 
         // Business rule validation and assignment
-        productDomainService.assignProductToCategory(productId, catName);
+        productDomainService.assignProductToCategory(productSku, catName);
 
-        log.info("Product {} assigned to category {} successfully", asin, categoryName);
+        log.info("Product {} assigned to category {} successfully", sku, categoryName);
     }
 
     /**
      * Reduce product volume (for order processing)
      */
-    public void reduceProductVolume(String asin, java.math.BigDecimal quantity) {
-        if (asin == null || quantity == null) return;
-        log.info("Reducing volume for product {} by {}", asin, quantity);
+    public void reduceProductVolume(String sku, java.math.BigDecimal quantity) {
+        if (sku == null || quantity == null) {
+            return;
+        }
+        log.info("Reducing volume for product {} by {}", sku, quantity);
 
-        ProductId productId = ProductId.of(asin);
-        Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new ProductNotFoundException(productId));
+        ProductSku productSku = ProductSku.of(sku);
+        Product product = productRepository.findBySku(productSku)
+            .orElseThrow(() -> new ProductNotFoundException(productSku));
 
         ProductVolume reduction = ProductVolume.of(quantity);
         product.reduceVolume(reduction);
         productRepository.save(product);
 
-        log.info("Product volume reduced successfully for {}", asin);
+        log.info("Product volume reduced successfully for {}", sku);
     }
 
     /**
      * Increase product volume (for restocking)
      */
-    public void increaseProductVolume(String asin, java.math.BigDecimal quantity) {
-        if (asin == null || quantity == null) return;
-        log.info("Increasing volume for product {} by {}", asin, quantity);
+    public void increaseProductVolume(String sku, java.math.BigDecimal quantity) {
+        if (sku == null || quantity == null) {
+            return;
+        }
+        log.info("Increskug volume for product {} by {}", sku, quantity);
 
-        ProductId productId = ProductId.of(asin);
-        Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new ProductNotFoundException(productId));
+        ProductSku productSKU = ProductSku.of(sku);
+        Product product = productRepository.findBySku(productSKU)
+            .orElseThrow(() -> new ProductNotFoundException(productSKU));
 
         ProductVolume increase = ProductVolume.of(quantity);
         product.increaseVolume(increase);
         productRepository.save(product);
 
-        log.info("Product volume increased successfully for {}", asin);
+        log.info("Product volume increased successfully for {}", sku);
     }
 }

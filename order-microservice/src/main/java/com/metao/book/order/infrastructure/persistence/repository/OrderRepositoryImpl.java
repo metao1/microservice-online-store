@@ -1,6 +1,6 @@
 package com.metao.book.order.infrastructure.persistence.repository;
 
-import com.metao.book.order.domain.model.aggregate.Order;
+import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.model.valueobject.CustomerId;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.repository.OrderRepository;
@@ -18,20 +18,20 @@ public class OrderRepositoryImpl implements OrderRepository {
     private final JpaOrderRepository jpaOrderRepository;
 
     @Override
-    public Order save(Order order) {
+    public OrderAggregate save(OrderAggregate order) {
         OrderEntity entity = OrderEntityMapper.toEntity(order);
         OrderEntity savedEntity = jpaOrderRepository.save(entity);
         return OrderEntityMapper.toDomain(savedEntity);
     }
 
     @Override
-    public Optional<Order> findById(OrderId orderId) {
+    public Optional<OrderAggregate> findById(OrderId orderId) {
         return jpaOrderRepository.findById(orderId.value())
             .map(OrderEntityMapper::toDomain);
     }
 
     @Override
-    public List<Order> findByCustomerId(CustomerId customerId) {
+    public List<OrderAggregate> findByCustomerId(CustomerId customerId) {
         return jpaOrderRepository.findByCustomerId(customerId).stream()
             .map(OrderEntityMapper::toDomain)
             .toList();

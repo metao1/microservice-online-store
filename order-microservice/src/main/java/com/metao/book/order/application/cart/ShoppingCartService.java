@@ -31,15 +31,15 @@ public class ShoppingCartService {
     }
 
     @Transactional
-    public ShoppingCart addItemToCart(String userId, String asin, BigDecimal quantity, BigDecimal price, Currency currency) {
-        ShoppingCart item = shoppingCartRepository.findByUserIdAndAsin(userId, asin)
+    public ShoppingCart addItemToCart(String userId, String sku, BigDecimal quantity, BigDecimal price, Currency currency) {
+        ShoppingCart item = shoppingCartRepository.findByUserIdAndAsin(userId, sku)
                 .map(existingItem -> {
                     existingItem.setQuantity(existingItem.getQuantity().add(quantity));
                     existingItem.setUpdatedOn(OffsetDateTime.now().toInstant().toEpochMilli()); // Corrected timestamp
                     return existingItem;
                 })
                 .orElseGet(() -> {
-                    ShoppingCart newItem = new ShoppingCart(userId, asin, price, price, quantity, currency);
+                    ShoppingCart newItem = new ShoppingCart(userId, sku, price, price, quantity, currency);
                     newItem.setUpdatedOn(newItem.getCreatedOn()); // Set updatedOn to createdOn for new items
                     return newItem;
                 });
@@ -47,13 +47,13 @@ public class ShoppingCartService {
     }
 
     @Transactional
-    public ShoppingCart updateItemQuantity(String userId, String asin, BigDecimal newQuantity) {
-        ShoppingCart item = shoppingCartRepository.findByUserIdAndAsin(userId, asin)
+    public ShoppingCart updateItemQuantity(String userId, String sku, BigDecimal newQuantity) {
+        ShoppingCart item = shoppingCartRepository.findByUserIdAndAsin(userId, sku)
             .orElseThrow(() -> new OrderNotFoundException(
-                String.format("Cart item not found for user %s and asin %s", userId, asin)));
+                String.format("Cart item not found for user %s and sku %s", userId, sku)));
 
         if (newQuantity.compareTo(BigDecimal.ZERO) <= 0) {
-            shoppingCartRepository.deleteByUserIdAndAsin(userId, asin);
+            shoppingCartRepository.deleteByUserIdAndAsin(userId, sku);
             return null;
         } else {
             item.setQuantity(newQuantity);
@@ -63,11 +63,11 @@ public class ShoppingCartService {
     }
 
     @Transactional
-    public void removeItemFromCart(String userId, String asin) {
+    public void removeItemFromCart(String userId, String sku) {
         // Ensure item exists before attempting delete to provide a clear exception if not.
-        shoppingCartRepository.findByUserIdAndAsin(userId, asin)
-                .orElseThrow(() -> new OrderNotFoundException("Cart item not found for user " + userId + " and asin " + asin + " when attempting to remove."));
-        shoppingCartRepository.deleteByUserIdAndAsin(userId, asin);
+        shoppingCartRepository.findByUserIdAndAsin(userId, sku)
+                .orElseThrow(() -> new OrderNotFoundException("Cart item not found for user " + userId + " and sku " + sku + " when attempting to remove."));
+        shoppingCartRepository.deleteByUserIdAndAsin(userId, sku);
     }
 
     @Transactional

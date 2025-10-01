@@ -3,7 +3,6 @@ package com.metao.book.product.domain.repository;
 import com.metao.book.product.domain.model.entity.ProductCategory;
 import com.metao.book.product.domain.model.valueobject.CategoryId;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -25,11 +24,6 @@ public interface CategoryRepository {
      * Find category by name
      */
     Optional<ProductCategory> findByName(CategoryName categoryName);
-
-    /**
-     * Find all categories
-     */
-    List<ProductCategory> findAll();
 
     /**
      * Check if category exists by name

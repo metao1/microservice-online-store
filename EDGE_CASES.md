@@ -13,10 +13,10 @@ This document outlines potential edge cases and exception flows for the implemen
 
 ## Product Browse/Search (Inventory Microservice)
 
-*   **Get Product by ASIN (`GET /products/{asin}`):**
-    *   **Edge Case**: ASIN exists but product has missing critical fields (e.g., null price, though DB constraints might prevent this).
+*   **Get Product by SKU (`GET /products/{sku}`):**
+    *   **Edge Case**: SKU exists but product has missing critical fields (e.g., null price, though DB constraints might prevent this).
         *   **Expected**: Service should handle gracefully; ideally, data validation at creation prevents this.
-    *   **Exception Flow**: Product with given ASIN not found.
+    *   **Exception Flow**: Product with given SKU not found.
         *   **Handled**: Returns HTTP 404 Not Found (as tested in `ProductControllerIT` and `ProductServiceTest` expecting `ProductNotFoundException`).
 *   **Get Products by Category (`GET /products/category/{name}`):**
     *   **Edge Case**: Category name with special characters or very long names.
@@ -33,24 +33,24 @@ This document outlines potential edge cases and exception flows for the implemen
 ## Shopping Cart (Order Microservice)
 
 *   **General:**
-    *   **Edge Case**: `userId` or `asin` contains special characters or is excessively long.
+    *   **Edge Case**: `userId` or `sku` contains special characters or is excessively long.
         *   **Expected**: Appropriate validation or encoding should be in place. Current implementation relies on String.
-*   **Add Item to Cart (`POST /cart/{userId}/{asin}`):**
+*   **Add Item to Cart (`POST /cart/{userId}/{sku}`):**
     *   **Edge Case**: Adding a product with quantity zero or negative.
         *   **Expected**: Service should reject (e.g., return HTTP 400 Bad Request). Current `AddItemRequestDTO` doesn't have validation constraints on quantity, `ShoppingCartService` might need to add this.
     *   **Edge Case**: `price` or `currency` in `AddItemRequestDTO` is invalid (e.g., negative price, unsupported currency).
         *   **Expected**: Validation should catch this. `Currency` type handles valid currencies. Price validation might be needed.
-    *   **Edge Case (Future - Inventory Check)**: Product ASIN does not exist in inventory, or product is out of stock.
+    *   **Edge Case (Future - Inventory Check)**: Product SKU does not exist in inventory, or product is out of stock.
         *   **Expected**: Service should reject addition or inform user. *Currently not implemented.*
 *   **View Cart (`GET /cart/{userId}`):**
     *   **Edge Case**: User exists but has an empty cart.
         *   **Handled**: Returns `ShoppingCartDto` with an empty item list.
-*   **Update Item Quantity (`PUT /cart/{userId}/{asin}`):**
+*   **Update Item Quantity (`PUT /cart/{userId}/{sku}`):**
     *   **Edge Case**: `UpdateCartItemQtyDTO` has non-numeric or excessively large quantity.
         *   **Expected**: Should be caught by deserialization or validation.
-    *   **Exception Flow**: Item not found in cart for the given `userId` and `asin`.
+    *   **Exception Flow**: Item not found in cart for the given `userId` and `sku`.
         *   **Handled**: Service throws `OrderNotFoundException`, controller returns HTTP 404 (as tested).
-*   **Remove Item from Cart (`DELETE /cart/{userId}/{asin}`):**
+*   **Remove Item from Cart (`DELETE /cart/{userId}/{sku}`):**
     *   **Exception Flow**: Item not found in cart.
         *   **Handled**: Service throws `OrderNotFoundException` (as per worker report for controller tests), controller returns HTTP 404.
 *   **Clear Cart (`DELETE /cart/{userId}` - if implemented in controller):**

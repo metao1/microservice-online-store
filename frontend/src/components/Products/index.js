@@ -131,11 +131,11 @@ class Products extends Component {
                                 }
                                 return (
                                     <Col lg={3} md={6} xs={12}
-                                         key={product.asin.asin
-                                             || product.asin}>
+                                         key={product.sku.sku
+                                             || product.sku}>
                                         <div className="item">
                                             <Link
-                                                to={`/products/${product.asin}`}>
+                                                to={`/products/${product.sku}`}>
                                                 <div className="product-img"
                                                      style={{backgroundImage: `url(${product.imageUrl})`}}>
                                                 </div>

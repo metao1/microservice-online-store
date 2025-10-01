@@ -4,6 +4,7 @@ import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.shared.domain.base.DomainEvent;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 @Getter
 public class OrderStatusChangedEvent extends DomainEvent {
@@ -19,6 +20,7 @@ public class OrderStatusChangedEvent extends DomainEvent {
         this.newStatus = newStatus;
     }
 
+    @NotNull
     @Override
     public String getEventType() {
         return "OrderStatusChanged";

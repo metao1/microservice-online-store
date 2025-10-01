@@ -5,16 +5,18 @@ import com.metao.book.product.domain.exception.ProductNotFoundException;
 import com.metao.book.product.domain.model.aggregate.Product;
 import com.metao.book.product.domain.model.entity.ProductCategory;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
-import com.metao.book.product.domain.model.valueobject.ProductId;
+import com.metao.book.product.domain.model.valueobject.ProductSku;
 import com.metao.book.product.domain.repository.CategoryRepository;
 import com.metao.book.product.domain.repository.ProductRepository;
 import java.util.List;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 /**
  * Domain service for complex business operations involving products
  */
+@Service
 @RequiredArgsConstructor
 public class ProductDomainService {
 
@@ -24,9 +26,9 @@ public class ProductDomainService {
     /**
      * Check if a product can be assigned to a category
      */
-    public boolean canAssignToCategory(@NonNull ProductId productId, @NonNull CategoryName categoryName) {
-        Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new ProductNotFoundException(productId));
+    public boolean canAssignToCategory(@NonNull ProductSku productSku, @NonNull CategoryName categoryName) {
+        Product product = productRepository.findBySku(productSku)
+            .orElseThrow(() -> new ProductNotFoundException(productSku));
 
         // Verify category exists and check if product can have more categories
         categoryRepository.findByName(categoryName)
@@ -39,13 +41,13 @@ public class ProductDomainService {
     /**
      * Assign product to category with business rules validation
      */
-    public void assignProductToCategory(@NonNull ProductId productId, @NonNull CategoryName categoryName) {
-        if (!canAssignToCategory(productId, categoryName)) {
+    public void assignProductToCategory(@NonNull ProductSku productSku, @NonNull CategoryName categoryName) {
+        if (!canAssignToCategory(productSku, categoryName)) {
             throw new IllegalStateException("Product cannot be assigned to more than 5 categories");
         }
 
-        Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new ProductNotFoundException(productId));
+        Product product = productRepository.findBySku(productSku)
+            .orElseThrow(() -> new ProductNotFoundException(productSku));
 
         ProductCategory category = categoryRepository.findByName(categoryName)
             .orElseThrow(() -> new CategoryNotFoundException(categoryName));
@@ -55,18 +57,22 @@ public class ProductDomainService {
     }
 
     /**
-     * Check if a product is unique by ASIN
+     * Check if a product is unique by SKU
      */
-    public boolean isProductUnique(@NonNull String asin) {
-        return productRepository.findByAsin(asin).isEmpty();
+    public Boolean isProductUnique(@NonNull String sku) {
+        if (sku.isBlank()) {
+            return false;
+        }
+        ProductSku productSku = ProductSku.of(sku);
+        return productRepository.findBySku(productSku).isEmpty();
     }
 
     /**
      * Find related products by shared categories
      */
-    public List<Product> findRelatedProducts(@NonNull ProductId productId, int limit) {
-        Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new ProductNotFoundException(productId));
+    public List<Product> findRelatedProducts(@NonNull ProductSku productSku, int limit) {
+        Product product = productRepository.findBySku(productSku)
+            .orElseThrow(() -> new ProductNotFoundException(productSku));
 
         if (product.getCategories().isEmpty()) {
             return List.of();
@@ -80,15 +86,7 @@ public class ProductDomainService {
         // Find products in same categories, excluding the original product
         return productRepository.findByCategories(categoryNames, 0, limit)
             .stream()
-            .filter(p -> !p.getId().equals(productId))
+            .filter(p -> !p.getId().equals(productSku))
             .toList();
-    }
-
-    /**
-     * Check if a category can be deleted (no products assigned)
-     */
-    public boolean canDeleteCategory(@NonNull CategoryName categoryName) {
-        List<Product> productsInCategory = productRepository.findByCategory(categoryName, 0, 1);
-        return productsInCategory.isEmpty();
     }
 }

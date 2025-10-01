@@ -8,18 +8,21 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 
 @Getter
 @Setter
 @Configuration
-@EnableAutoConfiguration
+@EnableConfigurationProperties
 @ConfigurationProperties("kafka")
 @ConditionalOnProperty(value = "kafka.enabled", havingValue = "true")
 public class KafkaEventConfiguration {
@@ -31,8 +34,9 @@ public class KafkaEventConfiguration {
     public Map<Class<?>, KafkaFactory<?>> kafkaFactoryMap(
         final Map<String, KafkaFactory<?>> kafkaFactories
     ) {
-        return topic.values().stream().map(
-                kafkaPropertyTopic -> kafkaFactories.computeIfPresent(kafkaPropertyTopic.id(), (k, kafkaFactory) -> {
+        return topic.values()
+            .stream()
+            .map(kafkaPropertyTopic -> kafkaFactories.computeIfPresent(kafkaPropertyTopic.id(), (k, kafkaFactory) -> {
                     kafkaFactory.setTopic(kafkaPropertyTopic.name());
                     return kafkaFactory;
                 })
@@ -62,8 +66,25 @@ public class KafkaEventConfiguration {
 
     }
 
+    @Bean
+    ProducerFactory<String, Object> producerFactory(
+        @Value("${spring.kafka.bootstrap-servers}") String bootstrapServers,
+        @Value("${spring.kafka.properties.schema.registry.url}") String schemaRegistryUrl
+    ) {
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+            org.apache.kafka.common.serialization.StringSerializer.class);
+        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+            io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer.class);
+        configProps.put("schema.registry.url", schemaRegistryUrl);
+
+        return new DefaultKafkaProducerFactory<>(configProps);
+    }
+
+
     @RequiredArgsConstructor
-    static class KafkaFactoryBuilder {
+    static final class KafkaFactoryBuilder {
 
         private final ProducerFactory<String, Object> producerFactory;
 

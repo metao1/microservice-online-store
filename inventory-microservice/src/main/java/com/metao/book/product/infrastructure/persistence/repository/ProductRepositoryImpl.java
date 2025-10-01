@@ -2,7 +2,7 @@ package com.metao.book.product.infrastructure.persistence.repository;
 
 import com.metao.book.product.domain.model.aggregate.Product;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
-import com.metao.book.product.domain.model.valueobject.ProductId;
+import com.metao.book.product.domain.model.valueobject.ProductSku;
 import com.metao.book.product.domain.repository.ProductRepository;
 import com.metao.book.product.infrastructure.persistence.entity.ProductEntity;
 import com.metao.book.product.infrastructure.persistence.mapper.ProductEntityMapper;
@@ -24,28 +24,21 @@ public class ProductRepositoryImpl implements ProductRepository {
     private final ProductEntityMapper productEntityMapper;
 
     @Override
-    public Product save(Product product) {
+    public void save(Product product) {
         ProductEntity entity = productEntityMapper.toEntity(product);
-        ProductEntity savedEntity = jpaProductRepository.save(entity);
-        return productEntityMapper.toDomain(savedEntity);
+        jpaProductRepository.save(entity);
     }
 
     @Override
-    public Optional<Product> findById(ProductId productId) {
-        return jpaProductRepository.findByAsin(productId.value())
-            .map(productEntityMapper::toDomain);
-    }
-
-    @Override
-    public Optional<Product> findByAsin(String asin) {
-        return jpaProductRepository.findByAsin(asin)
+    public Optional<Product> findBySku(ProductSku productSku) {
+        return jpaProductRepository.findBySku(productSku)
             .map(productEntityMapper::toDomain);
     }
 
     @Override
     public List<Product> findByCategory(CategoryName categoryName, int offset, int limit) {
         Pageable pageable = PageRequest.of(offset / limit, limit);
-        return jpaProductRepository.findByCategory(categoryName.getValue(), pageable)
+        return jpaProductRepository.findByCategory(categoryName.value(), pageable)
             .stream()
             .map(productEntityMapper::toDomain)
             .toList();
@@ -54,7 +47,7 @@ public class ProductRepositoryImpl implements ProductRepository {
     @Override
     public List<Product> findByCategories(List<CategoryName> categoryNames, int offset, int limit) {
         List<String> names = categoryNames.stream()
-            .map(CategoryName::getValue)
+            .map(CategoryName::value)
             .toList();
         Pageable pageable = PageRequest.of(offset / limit, limit);
         return jpaProductRepository.findByCategories(names, pageable)
@@ -73,14 +66,13 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
-    public boolean existsById(ProductId productId) {
-        return jpaProductRepository.existsByAsin(productId.value());
+    public boolean existsById(ProductSku productSku) {
+        return jpaProductRepository.existsBySku(productSku);
     }
 
     @Override
     public void delete(Product product) {
-        jpaProductRepository.findByAsin(product.getId().value())
-            .ifPresent(jpaProductRepository::delete);
+        // TODO to be implemented
     }
 
     @Override
@@ -92,8 +84,4 @@ public class ProductRepositoryImpl implements ProductRepository {
             .toList();
     }
 
-    @Override
-    public long count() {
-        return jpaProductRepository.count();
-    }
 }

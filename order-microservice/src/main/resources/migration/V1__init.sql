@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS shopping_cart
 (
   255
 ) NOT NULL,
-  asin VARCHAR
+  sku VARCHAR
 (
   255
 ) NOT NULL,
@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS shopping_cart
   CONSTRAINT pk_shopping_cart PRIMARY KEY
 (
   user_id,
-  asin
+  sku
 )
 );
 

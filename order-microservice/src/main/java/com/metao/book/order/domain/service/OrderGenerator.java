@@ -33,7 +33,7 @@ public class OrderGenerator {
             .setId(OrderCreatedEvent.UUID.getDefaultInstance().toString()).setProductId(products.poll())
             .setCustomerId(ACCOUNT_ID).setQuantity(randomNumber).setPrice(100).setCurrency("USD").build();
 
-        eventHandler.handle(orderEvent.getCustomerId(), orderEvent);
+        eventHandler.send(orderEvent.getCustomerId(), orderEvent);
     }
 
 }

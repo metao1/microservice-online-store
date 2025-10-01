@@ -1,3 +1,4 @@
+/*
 package com.metao.book.order.application.config;
 
 import com.metao.book.shared.OrderPaymentEvent;
@@ -23,4 +24,4 @@ public class SerdeConfiguration {
         log.debug("Created serde for {}", OrderPaymentEvent.class);
         return serde;
     }
-}
+}*/

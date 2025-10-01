@@ -2,6 +2,7 @@ package com.metao.book.product.infrastructure.persistence.entity;
 
 import static jakarta.persistence.FetchType.LAZY;
 
+import com.metao.book.shared.domain.financial.Money;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Cacheable;
 import jakarta.persistence.CascadeType;
@@ -12,6 +13,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
@@ -54,8 +56,8 @@ public class ProductEntity implements Serializable {
 
     @NotNull
     @NaturalId
-    @Column(name = "asin", nullable = false, unique = true, length = 10)
-    private String asin;
+    @Column(name = "sku", nullable = false, unique = true, length = 10)
+    private String sku;
 
     @Version
     @Column(name = "version")
@@ -95,23 +97,31 @@ public class ProductEntity implements Serializable {
     private Set<CategoryEntity> categories = new HashSet<>();
 
     public ProductEntity(
-        String asin,
+        String sku,
         String title,
         String description,
         BigDecimal volume,
-        BigDecimal priceValue,
-        Currency priceCurrency,
+        Money price,
         String imageUrl
     ) {
-        this.asin = asin;
+        this.sku = sku;
         this.title = title;
         this.description = description;
         this.volume = volume;
-        this.priceValue = priceValue;
-        this.priceCurrency = priceCurrency;
+        this.priceValue = price.doubleAmount();
+        this.priceCurrency = price.currency();
         this.imageUrl = imageUrl;
         this.createdTime = LocalDateTime.now();
         this.updateTime = this.createdTime;
         this.categories = new HashSet<>();
+    }
+
+    public void addCategory(CategoryEntity productCategory) {
+        categories.add(productCategory);
+    }
+
+    @PreUpdate
+    public void onPreUpdate() {
+        updateTime = LocalDateTime.now();
     }
 }

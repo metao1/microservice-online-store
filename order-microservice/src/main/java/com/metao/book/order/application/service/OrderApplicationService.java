@@ -3,8 +3,8 @@ package com.metao.book.order.application.service;
 import com.metao.book.order.application.cart.ShoppingCart;
 import com.metao.book.order.application.cart.ShoppingCartService;
 
-import com.metao.book.order.domain.event.DomainEventPublisher;
-import com.metao.book.order.domain.model.aggregate.Order;
+import com.metao.book.shared.domain.base.DomainEventPublisher;
+import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.model.valueobject.CustomerId;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
@@ -36,7 +36,7 @@ public class OrderApplicationService {
             .map(item -> {
                 // Convert ShoppingCartItem back to ShoppingCart for processing
                 // This is a bit awkward, but we need the full cart data
-                return new ShoppingCart(customerId.getValue(), item.asin(),
+                return new ShoppingCart(customerId.getValue(), item.sku(),
                     item.price(), item.price(), item.quantity(), item.currency());
             })
             .toList();
@@ -46,20 +46,20 @@ public class OrderApplicationService {
         }
 
         // Create order
-        Order order = new Order(OrderId.generate(), customerId);
+        OrderAggregate order = new OrderAggregate(OrderId.generate(), customerId);
 
         // Add items from cart to order
         for (ShoppingCart cartItem : cartItems) {
             order.addItem(
                 new ProductId(cartItem.getAsin()),
-                cartItem.getAsin(), // Using ASIN as product name for now
+                cartItem.getAsin(), // Using SKU as product name for now
                 new Quantity(cartItem.getQuantity().intValue()),
                 new Money(cartItem.getCurrency(), cartItem.getSellPrice())
             );
         }
 
         // Save order
-        Order savedOrder = orderRepository.save(order);
+        OrderAggregate savedOrder = orderRepository.save(order);
 
         // Clear shopping cart
         shoppingCartService.clearCart(customerId.getValue());
@@ -74,50 +74,50 @@ public class OrderApplicationService {
         OrderId orderId, ProductId productId, String productName, Quantity quantity,
         Money unitPrice
     ) {
-        Order order = orderRepository.findById(orderId)
+        OrderAggregate order = orderRepository.findById(orderId)
             .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND));
 
         order.addItem(productId, productName, quantity, unitPrice);
-        Order savedOrder = orderRepository.save(order);
+        OrderAggregate savedOrder = orderRepository.save(order);
         publishEvents(savedOrder);
     }
 
     @Transactional
     public void updateItemQuantity(OrderId orderId, ProductId productId, Quantity newQuantity) {
-        Order order = orderRepository.findById(orderId)
+        OrderAggregate order = orderRepository.findById(orderId)
             .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND));
 
         order.updateItemQuantity(productId, newQuantity);
-        Order savedOrder = orderRepository.save(order);
+        OrderAggregate savedOrder = orderRepository.save(order);
         publishEvents(savedOrder);
     }
 
     @Transactional
     public void removeItem(OrderId orderId, ProductId productId) {
-        Order order = orderRepository.findById(orderId)
+        OrderAggregate order = orderRepository.findById(orderId)
             .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND));
 
         order.removeItem(productId);
-        Order savedOrder = orderRepository.save(order);
+        OrderAggregate savedOrder = orderRepository.save(order);
         publishEvents(savedOrder);
     }
 
     @Transactional
     public void updateOrderStatus(OrderId orderId, String status) {
-        Order order = orderRepository.findById(orderId)
+        OrderAggregate order = orderRepository.findById(orderId)
             .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND));
 
         order.updateStatus(OrderStatus.valueOf(status));
-        Order savedOrder = orderRepository.save(order);
+        OrderAggregate savedOrder = orderRepository.save(order);
         publishEvents(savedOrder);
     }
 
     @Transactional(readOnly = true)
-    public List<Order> getCustomerOrders(CustomerId customerId) {
+    public List<OrderAggregate> getCustomerOrders(CustomerId customerId) {
         return orderRepository.findByCustomerId(customerId);
     }
 
-    private void publishEvents(Order order) {
+    private void publishEvents(OrderAggregate order) {
         List<DomainEvent> events = order.getDomainEvents();
         events.forEach(eventPublisher::publish);
         order.clearDomainEvents();

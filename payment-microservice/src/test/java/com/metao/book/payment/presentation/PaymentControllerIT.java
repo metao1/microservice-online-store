@@ -7,7 +7,7 @@ import static org.hamcrest.Matchers.anyOf;
 
 import com.metao.book.payment.domain.model.valueobject.PaymentMethod;
 
-import com.metao.shared.test.BaseKafkaTest;
+import com.metao.shared.test.KafkaContainer;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import java.math.BigDecimal;
@@ -23,7 +23,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class PaymentControllerIT extends BaseKafkaTest {
+class PaymentControllerIT extends KafkaContainer {
 
     @LocalServerPort
     private Integer port;

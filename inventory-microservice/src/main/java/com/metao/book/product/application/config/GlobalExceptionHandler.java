@@ -21,8 +21,19 @@ public class GlobalExceptionHandler {
             .body(ApiError.builder()
                 .status(HttpStatus.BAD_REQUEST)
                 .message(ex.getMessage())
-                .errorCode("400")
                 .build());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiError> handleException(IllegalArgumentException ex) {
+        log.error(ex.getMessage(), ex);
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(ApiError.builder()
+                .status(HttpStatus.BAD_REQUEST)
+                .message(ex.getMessage())
+                .build()
+            );
     }
 
     @ExceptionHandler(ProductNotFoundException.class)
@@ -33,7 +44,7 @@ public class GlobalExceptionHandler {
             .body(ApiError.builder()
                 .status(HttpStatus.NOT_FOUND)
                 .message(ex.getMessage())
-                .errorCode("404")
-                .build());
+                .build()
+            );
     }
 }

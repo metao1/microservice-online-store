@@ -13,8 +13,8 @@ import org.hibernate.validator.constraints.Length;
  */
 public record CreateProductCommand(
     @NotNull
-    @Pattern(regexp = "^\\w{10}$", message = "ASIN must be exactly 10 characters")
-    String asin,
+    @Pattern(regexp = "^\\w{10}$", message = "SKU must be exactly 10 characters")
+    String sku,
 
     @NotNull
     @Length(min = 3, max = 2500, message = "Title must be between 3 and 2500 characters")

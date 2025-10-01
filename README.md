@@ -74,7 +74,7 @@ npm start
 
 The application is open in browser on http://localhost:3000
 
-You can now start browsing products and purchasing some of them. If you like you can add new product as
+You can now start browsing products and purchskug some of them. If you like you can add new product as
 from 1500 categories. Then in checkout you can finish your orders and get a confirmation number to track your purchases.
 
 ### Online Store after frontend runs, screenshot

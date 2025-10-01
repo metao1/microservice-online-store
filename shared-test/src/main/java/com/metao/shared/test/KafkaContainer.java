@@ -10,7 +10,7 @@ import org.testcontainers.utility.DockerImageName;
 
 @Slf4j
 @Testcontainers
-public class BaseKafkaTest {
+public class KafkaContainer {
 
     @Container
     static final ConfluentKafkaContainer kafka = new ConfluentKafkaContainer(

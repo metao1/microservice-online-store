@@ -26,14 +26,6 @@ kafka:
       name: "order-payment"
       group-id: "order-payment-group"
       class-path: "com.metao.book.shared.OrderPaymentEvent"
-  jpa:
-    generate-ddl: true
-    properties:
-      hibernate:
-        show_sql: true
-    show-sql: true
-  flyway:
-    enabled: false
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%t]){yellow} %clr([%c{1.}]){green} %clr(:){red} %clr(%m){faint}%n"
   level:

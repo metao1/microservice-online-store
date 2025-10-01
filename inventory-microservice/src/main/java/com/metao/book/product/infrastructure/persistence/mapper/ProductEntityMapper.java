@@ -4,7 +4,7 @@ import com.metao.book.product.domain.model.aggregate.Product;
 import com.metao.book.product.domain.model.entity.ProductCategory;
 import com.metao.book.product.domain.model.valueobject.ImageUrl;
 import com.metao.book.product.domain.model.valueobject.ProductDescription;
-import com.metao.book.product.domain.model.valueobject.ProductId;
+import com.metao.book.product.domain.model.valueobject.ProductSku;
 import com.metao.book.product.domain.model.valueobject.ProductTitle;
 import com.metao.book.product.domain.model.valueobject.ProductVolume;
 import com.metao.book.product.infrastructure.persistence.entity.CategoryEntity;
@@ -33,8 +33,7 @@ public class ProductEntityMapper {
             product.getTitle().value(),
             product.getDescription().value(),
             product.getVolume().value(),
-            product.getPrice().fixedPointAmount(),
-            product.getPrice().currency(),
+            new Money(product.getPrice().currency(),product.getPrice().doubleAmount()),
             product.getImageUrl().value()
         );
 
@@ -54,7 +53,7 @@ public class ProductEntityMapper {
      * Convert ProductEntity to domain Product
      */
     public Product toDomain(ProductEntity entity) {
-        ProductId productId = ProductId.of(entity.getAsin());
+        ProductSku productSku = ProductSku.of(entity.getSku());
         ProductTitle title = ProductTitle.of(entity.getTitle());
         ProductDescription description = ProductDescription.of(entity.getDescription());
         ProductVolume volume = ProductVolume.of(entity.getVolume());
@@ -67,7 +66,7 @@ public class ProductEntityMapper {
             .collect(Collectors.toSet());
 
         return Product.reconstruct(
-            productId,
+            productSku,
             title,
             description,
             volume,

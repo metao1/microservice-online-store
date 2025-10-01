@@ -6,6 +6,7 @@ import com.metao.book.order.domain.model.valueobject.Quantity;
 import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.domain.financial.Money;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 @Getter
 public class OrderItemAddedEvent extends DomainEvent {
@@ -28,6 +29,7 @@ public class OrderItemAddedEvent extends DomainEvent {
         this.unitPrice = unitPrice;
     }
 
+    @NotNull
     @Override
     public String getEventType() {
         return "OrderItemAdded";

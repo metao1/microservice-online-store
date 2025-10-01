@@ -14,8 +14,8 @@ import lombok.Builder;
  */
 @Builder
 public record ProductDTO(
-    @JsonProperty("asin")
-    String asin,
+    @JsonProperty("sku")
+    String sku,
 
     @JsonProperty("title")
     String title,

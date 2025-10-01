@@ -43,7 +43,7 @@ class OrderTest {
             CustomerId customerId = new CustomerId("customer123");
 
             // When
-            Order order = new Order(orderId, customerId);
+            OrderAggregate order = new OrderAggregate(orderId, customerId);
 
             // Then
             assertThat(order.getId()).isEqualTo(orderId);
@@ -66,7 +66,7 @@ class OrderTest {
         @ParameterizedTest
         @MethodSource("orderConstructorNullTestData")
         void shouldThrowExceptionForNullParameters(OrderId orderId, CustomerId customerId, String expectedMessage) {
-            assertThatThrownBy(() -> new Order(orderId, customerId))
+            assertThatThrownBy(() -> new OrderAggregate(orderId, customerId))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage(expectedMessage);
         }
@@ -78,7 +78,7 @@ class OrderTest {
         @Test
         void shouldAddItemToOrder() {
             // Given
-            Order order = new Order(OrderId.generate(), new CustomerId("customer123"));
+            OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
             order.clearDomainEvents(); // Clear initial creation event
 
             ProductId productId = new ProductId("product123");
@@ -109,7 +109,7 @@ class OrderTest {
 
         @Test
         void shouldThrowExceptionForNullProductId() {
-            Order order = new Order(OrderId.generate(), new CustomerId("customer123"));
+            OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
             assertThatThrownBy(() -> order.addItem(null, "Test Product", new Quantity(1),
                 new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10.0))))
                 .isInstanceOf(NullPointerException.class)
@@ -141,7 +141,7 @@ class OrderTest {
         @Test
         void shouldUpdateOrderStatus() {
             // Given
-            Order order = new Order(OrderId.generate(), new CustomerId("customer123"));
+            OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
             order.clearDomainEvents(); // Clear initial creation event
 
             OrderStatus newStatus = OrderStatus.PAID;
@@ -164,7 +164,7 @@ class OrderTest {
 
         @Test
         void shouldThrowExceptionForNullStatus() {
-            Order order = new Order(OrderId.generate(), new CustomerId("customer123"));
+            OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
             assertThatThrownBy(() -> order.updateStatus(null))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("New status cannot be null");
@@ -173,7 +173,7 @@ class OrderTest {
         @ParameterizedTest
         @EnumSource(value = OrderStatus.class, names = {"PAID", "CANCELLED"})
         void shouldAllowValidStatusTransitionsFromCreated(OrderStatus targetStatus) {
-            Order order = new Order(OrderId.generate(), new CustomerId("customer123"));
+            OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
 
             order.updateStatus(targetStatus);
             assertThat(order.getStatus()).isEqualTo(targetStatus);
@@ -186,7 +186,7 @@ class OrderTest {
             OrderStatus toStatus,
             String expectedMessage
         ) {
-            Order order = new Order(OrderId.generate(), new CustomerId("customer123"));
+            OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
 
             // Set initial status if not CREATED
             if (fromStatus != OrderStatus.CREATED) {
@@ -237,7 +237,7 @@ class OrderTest {
             String testDescription
         ) {
             // Given
-            Order order = new Order(OrderId.generate(), new CustomerId("customer123"));
+            OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
 
             // When
             for (OrderItemData item : items) {
@@ -255,9 +255,9 @@ class OrderTest {
         }
 
         @Test
-        void shouldReturnZeroTotalForEmptyOrder() {
-            Order order = new Order(OrderId.generate(), new CustomerId("customer123"));
-            assertThat(order.getTotal()).isEqualTo(new Money(Currency.getInstance("USD"), BigDecimal.ZERO));
+        void shouldReturnNullTotalForEmptyOrder() {
+            OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
+            assertThat(order.getTotal()).isNull();
         }
 
         record OrderItemData(String productId, String productName, int quantity, BigDecimal unitPrice) {}
@@ -269,7 +269,7 @@ class OrderTest {
         @Test
         void shouldClearDomainEvents() {
             // Given
-            Order order = new Order(OrderId.generate(), new CustomerId("customer123"));
+            OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
             order.addItem(new ProductId("product1"), "Product 1", new Quantity(1),
                 new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10.0)));
             order.updateStatus(OrderStatus.PAID);
@@ -283,7 +283,7 @@ class OrderTest {
 
         @Test
         void shouldReturnImmutableEventList() {
-            Order order = new Order(OrderId.generate(), new CustomerId("customer123"));
+            OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
             List<DomainEvent> events = order.getDomainEvents();
             assertThatThrownBy(
                 () -> events.add(new DomainOrderCreatedEvent(OrderId.generate(), new CustomerId("customer123"))))
@@ -292,7 +292,7 @@ class OrderTest {
 
         @Test
         void shouldAccumulateEventsForMultipleOperations() {
-            Order order = new Order(OrderId.generate(), new CustomerId("customer123"));
+            OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
             order.addItem(new ProductId("product1"), "Product 1", new Quantity(1),
                 new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10.0)));
             order.updateStatus(OrderStatus.PAID);

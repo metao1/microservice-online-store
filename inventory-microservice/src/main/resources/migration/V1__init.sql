@@ -1,6 +1,6 @@
 CREATE TABLE product_table (
   id             BIGINT        PRIMARY KEY,
-  asin           VARCHAR(10)   UNIQUE NOT NULL,
+  sku           VARCHAR(10)   UNIQUE NOT NULL,
   version        BIGINT        NOT NULL,
   volume         DECIMAL,
   title          TEXT          NOT NULL,
@@ -22,15 +22,15 @@ CREATE TABLE product_category
 CREATE TABLE product_category_map
 (
   product_category_id BIGINT       NOT NULL,
-  product_asin        VARCHAR(10)  NOT NULL,
+  product_sku        VARCHAR(10)  NOT NULL,
 
-  PRIMARY KEY (product_category_id, product_asin),
+  PRIMARY KEY (product_category_id, product_sku),
 
   CONSTRAINT fk_procatmap_category
     FOREIGN KEY (product_category_id)
       REFERENCES product_category (id),
 
   CONSTRAINT fk_procatmap_product
-    FOREIGN KEY (product_asin)
-      REFERENCES product_table (asin)
+    FOREIGN KEY (product_sku)
+      REFERENCES product_table (sku)
 );

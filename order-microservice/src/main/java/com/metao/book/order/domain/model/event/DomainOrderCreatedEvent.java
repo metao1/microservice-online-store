@@ -17,8 +17,11 @@ public class DomainOrderCreatedEvent extends DomainEvent {
         this.customerId = customerId;
     }
 
+    /**
+     * Get the type of this event (for serialization/routing)
+     */
     @Override
     public String getEventType() {
-        return "OrderCreated";
+        return "DomainOrderCreatedEvent";
     }
 }

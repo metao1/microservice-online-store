@@ -201,7 +201,7 @@ public class PaymentApplicationService {
         payment.getDomainEvents().forEach(event -> {
             try {
                 // Use KafkaEventHandler to publish domain events
-                kafkaEventHandler.handle(payment.getId().value(), event);
+                kafkaEventHandler.send(payment.getId().value(), event);
                 log.debug("Published domain event: {} for payment: {}",
                     event.getEventType(), payment.getId().value());
             } catch (Exception e) {

@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.metao.book.shared.OrderCreatedEvent;
 import com.metao.kafka.KafkaFactory;
-import com.metao.shared.test.BaseKafkaTest;
+import com.metao.shared.test.KafkaContainer;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -27,7 +27,7 @@ import org.springframework.kafka.annotation.RetryableTopic;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class KafkaFactoryIT extends BaseKafkaTest {
+class KafkaFactoryIT extends KafkaContainer {
 
     private final CountDownLatch latch = new CountDownLatch(10);
 
@@ -60,7 +60,7 @@ class KafkaFactoryIT extends BaseKafkaTest {
             kafkaFactoryMap.get(OrderCreatedEvent.class);
 
         IntStream.range(0, 10).boxed()
-            .forEach(i -> kafkaFactory.submit("order-created", getCreatedEvent()));
+            .forEach(i -> kafkaFactory.addEvent("order-created", getCreatedEvent()));
 
         kafkaFactory.subscribe();
         kafkaFactory.publish();

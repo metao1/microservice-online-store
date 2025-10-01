@@ -2,9 +2,9 @@ package com.metao.kafka;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.metao.shared.test.BaseKafkaTest;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import com.metao.shared.test.KafkaContainer;
 import lombok.SneakyThrows;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
@@ -22,9 +22,9 @@ import org.springframework.test.context.TestPropertySource;
 @TestInstance(Lifecycle.PER_CLASS)
 @TestPropertySource(properties = "kafka.enabled=true")
 @SpringBootTest(webEnvironment = WebEnvironment.NONE,
-    classes = {KafkaEventConfiguration.class, KafkaEventHandler.class}
+    classes = {KafkaEventConfiguration.class, KafkaEventHandler.class, KafkaLibConsumerConfig.class}
 )
-public class KafkaIntegrationIT extends BaseKafkaTest {
+public class KafkaIntegrationIT extends KafkaContainer {
 
     private final CountDownLatch latch = new CountDownLatch(1);
 
@@ -45,13 +45,13 @@ public class KafkaIntegrationIT extends BaseKafkaTest {
             .setStatus(CreatedEventTest.Status.NEW)
             .build();
 
-        eventHandler.handle(orderId, orderCreated);
+        eventHandler.send(orderId, orderCreated);
         latch.await(10, TimeUnit.SECONDS);
         assertThat(latch.getCount()).isZero();
     }
 
     @RetryableTopic
-    @KafkaListener(id = "create-event-test-id", topics = "${kafka.topic.created-event-test.name}")
+    @KafkaListener(id = "${kafka.topic.created-event-test.id}", topics = "${kafka.topic.created-event-test.name}")
     public void onOrderUpdatedEvent(ConsumerRecord<String, CreatedEventTest> consumerRecord) {
         latch.countDown();
     }

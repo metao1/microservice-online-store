@@ -11,28 +11,26 @@ import com.metao.book.order.domain.model.valueobject.ProductId;
 import com.metao.book.order.domain.model.valueobject.Quantity;
 import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.domain.financial.Money;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Currency;
 import java.util.List;
 import java.util.Objects;
 import lombok.Getter;
 
 @Getter
-public class Order {
+public class OrderAggregate {
 
     private final OrderId id;
     private final CustomerId customerId;
     private final List<OrderItem> items;
     private final Instant createdAt;
     private final List<DomainEvent> domainEvents = new ArrayList<>();
+    private Money total;
     private OrderStatus status;
     private Instant updatedAt;
-    private Money total;
 
-    public Order(OrderId id, CustomerId customerId) {
+    public OrderAggregate(OrderId id, CustomerId customerId) {
         Objects.requireNonNull(id, "Order ID cannot be null");
         Objects.requireNonNull(customerId, "Customer ID cannot be null");
 
@@ -42,7 +40,7 @@ public class Order {
         this.status = OrderStatus.CREATED;
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
-        this.total = new Money(Currency.getInstance("USD"), BigDecimal.ZERO);
+        this.total = calculateTotal();
 
         // Raise OrderCreatedEvent
         domainEvents.add(new DomainOrderCreatedEvent(id, customerId));
@@ -78,7 +76,7 @@ public class Order {
             unitPrice));
     }
 
-    public void updateStatus(OrderStatus newStatus) {
+    public synchronized void updateStatus(OrderStatus newStatus) {
         Objects.requireNonNull(newStatus, "New status cannot be null");
 
         // Validate status transition
@@ -92,7 +90,7 @@ public class Order {
         domainEvents.add(new OrderStatusChangedEvent(id, oldStatus, newStatus));
     }
 
-    public void removeItem(ProductId productId) {
+    public synchronized void removeItem(ProductId productId) {
         Objects.requireNonNull(productId, "Product ID cannot be null");
 
         // Validate order state
@@ -107,7 +105,19 @@ public class Order {
         }
     }
 
-    public void updateItemQuantity(ProductId productId, Quantity newQuantity) {
+    private Money calculateTotal() {
+        return items.stream()
+            .map(OrderItem::getTotalPrice)
+            .reduce((m1, m2) -> {
+                if (!m1.currency().equals(m2.currency())) {
+                    throw new IllegalStateException("Cannot calculate total with different currencies");
+                } else {
+                    return m1.add(m2);
+                }
+            }).orElse(null);
+    }
+
+    public synchronized void updateItemQuantity(ProductId productId, Quantity newQuantity) {
         Objects.requireNonNull(productId, "Product ID cannot be null");
         Objects.requireNonNull(newQuantity, "New quantity cannot be null");
 
@@ -126,17 +136,11 @@ public class Order {
             });
     }
 
-    public Money getTotal() {
-        return calculateTotal();
+    public synchronized Money getTotal() {
+        return total;
     }
 
-    private Money calculateTotal() {
-        return items.stream()
-            .map(OrderItem::getTotalPrice)
-            .reduce(new Money(Currency.getInstance("USD"), BigDecimal.ZERO), Money::add);
-    }
-
-    private void validateStatusTransition(OrderStatus newStatus) {
+    private synchronized void validateStatusTransition(OrderStatus newStatus) {
         if (status == OrderStatus.CREATED && newStatus != OrderStatus.PAID && newStatus != OrderStatus.CANCELLED) {
             throw new IllegalStateException("Cannot transition from CREATED to " + newStatus);
         } else if (status == OrderStatus.PAID && newStatus != OrderStatus.CANCELLED) {

@@ -32,14 +32,14 @@ public class ShoppingCartController {
         return ResponseEntity.ok(cartDto);
     }
 
-    @PostMapping("/{userId}/{asin}")
+    @PostMapping("/{userId}/{sku}")
     public ResponseEntity<ShoppingCartDto> addItemToCart(
             @PathVariable String userId,
-            @PathVariable String asin,
+            @PathVariable String sku,
             @RequestBody AddItemRequestDTO addItemRequestDTO) {
         ShoppingCart cartItem = shoppingCartService.addItemToCart(
                 userId,
-                asin,
+                sku,
             addItemRequestDTO.quantity(),
             addItemRequestDTO.price(),
             addItemRequestDTO.currency());
@@ -47,14 +47,14 @@ public class ShoppingCartController {
         return ResponseEntity.ok(shoppingCardDto);
     }
 
-    @PutMapping("/{userId}/{asin}")
+    @PutMapping("/{userId}/{sku}")
     public ResponseEntity<ShoppingCart> updateItemQuantity(
             @PathVariable String userId,
-            @PathVariable String asin,
+            @PathVariable String sku,
             @RequestBody UpdateCartItemQtyDTO updateCartItemQtyDTO) {
         ShoppingCart cartItem = shoppingCartService.updateItemQuantity(
                 userId,
-                asin,
+                sku,
             updateCartItemQtyDTO.quantity());
         if (cartItem == null) {
             // This case handles when quantity is set to 0 or less, and item is removed.
@@ -63,11 +63,11 @@ public class ShoppingCartController {
         return ResponseEntity.ok(cartItem);
     }
 
-    @DeleteMapping("/{userId}/{asin}")
+    @DeleteMapping("/{userId}/{sku}")
     public ResponseEntity<Void> removeItemFromCart(
             @PathVariable String userId,
-            @PathVariable String asin) {
-        shoppingCartService.removeItemFromCart(userId, asin);
+            @PathVariable String sku) {
+        shoppingCartService.removeItemFromCart(userId, sku);
         return ResponseEntity.noContent().build();
     }
 
