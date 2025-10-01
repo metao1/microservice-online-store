@@ -3,26 +3,26 @@ package com.metao.book.product.infrastructure.persistence.entity;
 import static jakarta.persistence.FetchType.LAZY;
 
 import com.metao.book.shared.domain.financial.Money;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Cacheable;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.PreUpdate;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Currency;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
@@ -38,11 +38,11 @@ import org.hibernate.validator.constraints.Length;
  * JPA entity for Product persistence
  */
 @Getter
-@NoArgsConstructor
 @Cacheable
 @NaturalIdCache
-@Entity(name = "product")
+@NoArgsConstructor
 @Table(name = "product")
+@Entity(name = "product")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class ProductEntity implements Serializable {
 
@@ -76,12 +76,12 @@ public class ProductEntity implements Serializable {
     @Column(name = "image_url", nullable = false)
     private String imageUrl;
 
-    @Column(name = "price_value", nullable = false, precision = 10, scale = 2)
-    private BigDecimal priceValue;
-
-    @Valid
-    @Column(name = "price_currency", nullable = false)
-    private Currency priceCurrency;
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "amount", column = @Column(name = "unit_price")),
+        @AttributeOverride(name = "currency", column = @Column(name = "currency"))
+    })
+    private Money unitPrice;
 
     @Column(name = "created_time", nullable = false)
     private LocalDateTime createdTime;
@@ -92,7 +92,7 @@ public class ProductEntity implements Serializable {
     @BatchSize(size = 50)
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-    private Set<CategoryEntity> categories = new HashSet<>();
+    private final Set<CategoryEntity> categories = new HashSet<>();
 
     public ProductEntity(
         String sku,
@@ -100,26 +100,25 @@ public class ProductEntity implements Serializable {
         String description,
         BigDecimal volume,
         Money price,
-        String imageUrl
+        String imageUrl,
+        LocalDateTime createdTime,
+        LocalDateTime updateTime
     ) {
         this.sku = sku;
         this.title = title;
         this.description = description;
         this.volume = volume;
-        this.priceValue = price.doubleAmount();
-        this.priceCurrency = price.currency();
+        this.unitPrice = price;
         this.imageUrl = imageUrl;
-        this.createdTime = LocalDateTime.now();
-        this.updateTime = this.createdTime;
-        this.categories = new HashSet<>();
+        this.createdTime = createdTime;
+        this.updateTime = updateTime;
     }
 
-    public void addCategory(CategoryEntity productCategory) {
-        categories.add(productCategory);
+    public void addCategory(CategoryEntity categoryEntity) {
+        categories.add(categoryEntity);
     }
 
-    @PreUpdate
-    public void onPreUpdate() {
-        updateTime = LocalDateTime.now();
+    public void removeCategory(CategoryEntity categoryEntity) {
+        categories.remove(categoryEntity);
     }
 }
