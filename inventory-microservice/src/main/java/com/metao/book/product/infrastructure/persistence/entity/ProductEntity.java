@@ -27,7 +27,6 @@ import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -39,7 +38,6 @@ import org.hibernate.validator.constraints.Length;
  * JPA entity for Product persistence
  */
 @Getter
-@Setter
 @NoArgsConstructor
 @Cacheable
 @NaturalIdCache
