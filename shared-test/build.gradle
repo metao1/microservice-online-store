@@ -16,8 +16,9 @@ ext {
 dependencies {
   implementation "org.testcontainers:testcontainers"
   implementation "org.testcontainers:kafka"
-  implementation "org.testcontainers:junit-jupiter"
   implementation "org.springframework.boot:spring-boot-starter-test"
+  implementation "org.testcontainers:junit-jupiter"
+  implementation "org.testcontainers:testcontainers"
   implementation platform("org.testcontainers:testcontainers-bom:${testcontainersVersion}")
 }
 

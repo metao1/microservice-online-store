@@ -11,6 +11,7 @@ plugins {
 ext {
   micrometerVersion = "1.12.3"
   testcontainersVersion = "1.20.6"
+  springBootDependenciesVersion = "3.4.4"
 }
 
 subprojects {
@@ -91,6 +92,7 @@ subprojects {
       imports {
         mavenBom "io.micrometer:micrometer-bom:$micrometerVersion"
         mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
+        mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootDependenciesVersion}"
       }
     }
   }
