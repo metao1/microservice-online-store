@@ -6,7 +6,7 @@ import lombok.Builder;
 
 @Builder
 public record ShoppingCartItem(
-    String asin,
+    String sku,
     BigDecimal quantity,
     BigDecimal price,
     Currency currency

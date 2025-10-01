@@ -9,7 +9,7 @@ import lombok.Getter;
  * Base class for domain events in DDD
  */
 @Getter
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = false)
 public abstract class DomainEvent {
 
     private final String eventId;

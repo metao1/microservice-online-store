@@ -92,13 +92,13 @@ export default class App extends Component {
 
     addItemToCart = (product) => {
         if (product) {
-            console.log("Added to Cart " + product.asin);
+            console.log("Added to Cart " + product.sku);
             const self = this;
-            const url = '/api/cart/addProduct?asin=' + (product.asin.asin
-                    || product.asin) +
+            const url = '/api/cart/addProduct?sku=' + (product.sku.sku
+                    || product.sku) +
                 "&userid=" + this.userId;
             let requestData = new FormData();
-            requestData.append("json", JSON.stringify({asin: product.asin}));
+            requestData.append("json", JSON.stringify({sku: product.sku}));
 
             fetch(url, {
                 method: 'POST',
@@ -133,12 +133,12 @@ export default class App extends Component {
 
     removeItemFromCart = (product) => {
         if (product) {
-            console.log("Removed from Cart " + product.asin);
+            console.log("Removed from Cart " + product.sku);
             const self = this;
-            const url = '/api/cart/removeProduct/?asin=' + product.asin
+            const url = '/api/cart/removeProduct/?sku=' + product.sku
                 + '&userid=' + this.userId;
             let requestData = new FormData();
-            requestData.append("json", JSON.stringify({asin: product.asin}));
+            requestData.append("json", JSON.stringify({sku: product.sku}));
 
             fetch(url, {
                 method: 'DELETE',
@@ -152,7 +152,7 @@ export default class App extends Component {
             .then(data => {
                 // const dataMerged = {};
                 // const data = self.state.cart.data;
-                // dataMerged[product.asin.asin || product.asin] = data[product.asin.asin || product.asin] ? data[product.asin.asin || product.asin] + 1 : 1;
+                // dataMerged[product.sku.sku || product.sku] = data[product.sku.sku || product.sku] ? data[product.sku.sku || product.sku] + 1 : 1;
 
                 self.setState({
                     cart: {

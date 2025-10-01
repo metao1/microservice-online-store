@@ -1,12 +1,11 @@
 package com.metao.kafka;
 
-import jakarta.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.DelayQueue;
-import java.util.concurrent.Delayed;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Flow.Subscriber;
 import java.util.concurrent.Flow.Subscription;
-import java.util.concurrent.TimeUnit;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -24,7 +23,7 @@ import org.springframework.kafka.support.SendResult;
 @RequiredArgsConstructor
 public class KafkaFactory<V> extends EventHandler<CompletableFuture<SendResult<String, V>>> {
 
-    private final DelayQueue<Message<String, V>> ongoingQueue = new DelayQueue<>();
+    private final ConcurrentLinkedQueue<Message<String, V>> ongoingQueue = new ConcurrentLinkedQueue<>();
 
     @Setter
     private String topic;
@@ -56,22 +55,37 @@ public class KafkaFactory<V> extends EventHandler<CompletableFuture<SendResult<S
         });
     }
 
-    public void submit(String key, V event) {
-        ongoingQueue.add(new Message<>(topic, key, event, 2000));
+    public void addEvent(String key, V event) {
+        ongoingQueue.add(new Message<>(topic, key, event));
     }
 
     public void publish() {
-        publish(ongoingQueue.size());
+        List<Message<String, V>> messagesToPublish = new ArrayList<>();
+        while (!ongoingQueue.isEmpty()) {
+            Message<String, V> message = ongoingQueue.poll();
+            if (message != null) {
+                messagesToPublish.add(message);
+            }
+        }
+        for (Message<String, V> message : messagesToPublish) {
+            CompletableFuture<SendResult<String, V>> future = kafkaTemplate.send(message.topic, message.key, message.message);
+            // The call to 'this.submit(future)' is incorrect because the parent 'EventHandler'
+            // is a custom class and not a standard SubmissionPublisher.
+            // Since the only subscriber is a logger, we can achieve the same outcome
+            // by handling the future directly here.
+            future.whenComplete((result, ex) -> {
+                if (ex != null) {
+                    log.error("Error sending message to Kafka topic '{}': {}", message.topic(), ex.getMessage(), ex);
+                } else {
+                    log.debug("Message sent successfully to topic '{}': {}", message.topic(), result);
+                }
+            });
+        }
     }
 
     @Override
     public CompletableFuture<SendResult<String, V>> getEvent() {
-        CompletableFuture<SendResult<String, V>> send = null;
-        if (!ongoingQueue.isEmpty()) {
-            final Message<String, V> message = ongoingQueue.remove();
-            send = kafkaTemplate.send(message.topic, message.key, message.message);
-        }
-        return send;
+        throw new UnsupportedOperationException("getEvent should not be called directly in this implementation.");
     }
 
     @EventListener
@@ -79,16 +93,6 @@ public class KafkaFactory<V> extends EventHandler<CompletableFuture<SendResult<S
         cancel();
     }
 
-    private record Message<K, V>(String topic, K key, V message, long delay) implements Delayed {
-
-        @Override
-        public int compareTo(@Nonnull Delayed o) {
-            return 0;
-        }
-
-        @Override
-        public long getDelay(@Nonnull TimeUnit unit) {
-            return unit.toMillis(delay);
-        }
+    private record Message<K, V>(String topic, K key, V message) {
     }
 }

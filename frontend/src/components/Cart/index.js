@@ -42,7 +42,7 @@ class CartProducts extends Component {
     costReducer = (accumulator, currentValue) => {
         const self = this;
         return accumulator + currentValue.price * parseInt(
-            self.props.cart.data[currentValue.asin] || 1);
+            self.props.cart.data[currentValue.sku] || 1);
     };
 
     fetchProductDetails(product_id) {
@@ -73,21 +73,21 @@ class CartProducts extends Component {
                             className="total-in-cart">({this.props.cart.total})</span>}</h5>
                     {this.state.products && <div className="items">
                         {this.state.products.filter(
-                            (product) => this.props.cart.data[product.asin]).map(
+                            (product) => this.props.cart.data[product.sku]).map(
                             product => (
-                                <div key={product.asin} className="cart-item">
+                                <div key={product.sku} className="cart-item">
                                     <div className="product-image">
                                         <img src={product.imageUrl}
                                              alt="product"/>
                                     </div>
                                     <div className="details">
-                                        <Link to={`/products/${product.asin.asin
-                                        || product.asin}`}>{product.title}</Link>
+                                        <Link to={`/products/${product.sku.sku
+                                        || product.sku}`}>{product.title}</Link>
                                     </div>
 
                                     <div className="pricing">
                                         <h6>${product.price.toFixed(
-                                            2)}</h6> x {this.props.cart.data[product.asin]}
+                                            2)}</h6> x {this.props.cart.data[product.sku]}
                                     </div>
                                     <div className="actions">
                                         <Button className="btn-cart-remove"

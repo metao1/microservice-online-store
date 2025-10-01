@@ -45,7 +45,7 @@ class OrderCreatedEventListenerTest {
 
         verify(paymentProcessingService).processPayment(orderEvent);
         // Verify that eventHandler.handle is called with the correct key and payload
-        verify(eventHandler).handle(paymentEvent.getOrderId(), paymentEvent);
+        verify(eventHandler).send(paymentEvent.getOrderId(), paymentEvent);
     }
 }
 

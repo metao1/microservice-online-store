@@ -19,12 +19,9 @@ public class Money implements ValueObject {
     @JsonProperty("amount")
     private BigDecimal amount;
 
-    /**
-     * Default constructor for JPA/Hibernate.
-     */
-    protected Money() {
-        this.currency = Currency.getInstance("USD"); // Default currency
-        this.amount = BigDecimal.ZERO;
+    // Default constructor for Hibernate
+    public Money() {
+        // ignore
     }
 
     /**
@@ -37,21 +34,6 @@ public class Money implements ValueObject {
     public Money(@NonNull @JsonProperty("currency") Currency currency, @JsonProperty("amount") BigDecimal amount) {
         this.currency = Objects.requireNonNull(currency, "currency must not be null");
         this.amount = amount;
-    }
-
-    /**
-     * Creates a new {@code Money} object if both of the parameters are non-{@code null}.
-     *
-     * @param currency the currency.
-     * @param value    fixed-point integer where the last two digits represent decimals.
-     * @return a new {@code Money} object or {@code null} if any of the parameters are {@code null}.
-     */
-    public static Money valueOf(Currency currency, BigDecimal value) {
-        if (currency == null || value == null) {
-            return null;
-        } else {
-            return new Money(currency, value);
-        }
     }
 
     /**
@@ -107,13 +89,6 @@ public class Money implements ValueObject {
     @NonNull
     public Money divide(BigDecimal divisor) {
         return new Money(currency, amount.divide(divisor, BigDecimal.ROUND_HALF_UP));
-    }
-
-    /**
-     * Returns a zero money amount in USD currency.
-     */
-    public static Money zero() {
-        return new Money(Currency.getInstance("USD"), BigDecimal.ZERO);
     }
 
     /**

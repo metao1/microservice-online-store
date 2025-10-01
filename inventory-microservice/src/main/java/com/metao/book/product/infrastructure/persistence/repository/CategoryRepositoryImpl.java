@@ -6,7 +6,6 @@ import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.product.domain.repository.CategoryRepository;
 import com.metao.book.product.infrastructure.persistence.entity.CategoryEntity;
 import com.metao.book.product.infrastructure.persistence.mapper.CategoryEntityMapper;
-import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -36,21 +35,13 @@ public class CategoryRepositoryImpl implements CategoryRepository {
 
     @Override
     public Optional<ProductCategory> findByName(CategoryName categoryName) {
-        return jpaCategoryRepository.findByCategory(categoryName.getValue())
+        return jpaCategoryRepository.findByCategory(categoryName.value())
             .map(categoryEntityMapper::toDomain);
     }
 
     @Override
-    public List<ProductCategory> findAll() {
-        return jpaCategoryRepository.findAll()
-            .stream()
-            .map(categoryEntityMapper::toDomain)
-            .toList();
-    }
-
-    @Override
     public boolean existsByName(CategoryName categoryName) {
-        return jpaCategoryRepository.existsByCategory(categoryName.getValue());
+        return jpaCategoryRepository.existsByCategory(categoryName.value());
     }
 
     @Override

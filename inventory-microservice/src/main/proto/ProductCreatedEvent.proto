@@ -8,7 +8,7 @@ option java_multiple_files = true;
 option java_package = "com.metao.book.product";
 
 message ProductCreatedEvent {
-  string asin = 1;
+  string sku = 1;
   // Created updated date.
   google.protobuf.Timestamp create_time = 2;
   optional string title = 3;

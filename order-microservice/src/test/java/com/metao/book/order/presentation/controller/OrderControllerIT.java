@@ -14,14 +14,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.metao.book.order.application.cart.ShoppingCartService;
 import com.metao.book.order.application.service.OrderApplicationService;
-import com.metao.book.order.domain.event.DomainEventPublisher;
+import com.metao.book.shared.domain.base.DomainEventPublisher;
 import com.metao.book.order.domain.model.valueobject.CustomerId;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.repository.OrderRepository;
 import com.metao.book.order.presentation.dto.AddItemRequest;
 import com.metao.book.order.presentation.dto.CreateOrderRequest;
 import com.metao.book.order.presentation.dto.UpdateStatusRequest;
-import com.metao.shared.test.BaseKafkaTest;
+import com.metao.shared.test.KafkaContainer;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -45,7 +45,7 @@ import org.springframework.test.web.servlet.MockMvc;
 )
 @ActiveProfiles("test")
 @DisplayName("OrderController Integration Tests")
-class OrderControllerIT extends BaseKafkaTest {
+class OrderControllerIT extends KafkaContainer {
 
     @Autowired
     private MockMvc mockMvc;

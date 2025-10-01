@@ -1,5 +1,6 @@
 package com.metao.book.product.infrastructure.persistence.repository;
 
+import com.metao.book.product.domain.model.valueobject.ProductSku;
 import com.metao.book.product.infrastructure.persistence.entity.ProductEntity;
 import java.util.List;
 import java.util.Optional;
@@ -13,9 +14,9 @@ import org.springframework.stereotype.Repository;
  * JPA repository for ProductEntity
  */
 @Repository
-public interface JpaProductRepository extends JpaRepository<ProductEntity, Long> {
+public interface JpaProductRepository extends JpaRepository<ProductEntity, ProductSku> {
 
-    Optional<ProductEntity> findByAsin(String asin);
+    Optional<ProductEntity> findBySku(ProductSku sku);
 
     @Query("SELECT p FROM product p JOIN p.categories c WHERE c.category = :categoryName")
     List<ProductEntity> findByCategory(@Param("categoryName") String categoryName, Pageable pageable);
@@ -28,5 +29,5 @@ public interface JpaProductRepository extends JpaRepository<ProductEntity, Long>
         "LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     List<ProductEntity> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
-    boolean existsByAsin(String asin);
+    boolean existsBySku(ProductSku sku);
 }

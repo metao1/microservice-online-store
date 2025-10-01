@@ -5,7 +5,6 @@ import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.shared.domain.base.Entity;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NonNull;
 
 /**
  * Product category domain entity
@@ -21,23 +20,12 @@ public class ProductCategory extends Entity<CategoryId> {
         super();
     }
 
-    public ProductCategory(@NonNull CategoryId categoryId, @NonNull CategoryName name) {
-        super(categoryId);
-        this.name = name;
-    }
-
     // For reconstruction from persistence
-    public static ProductCategory reconstruct(CategoryId categoryId, CategoryName name) {
-        ProductCategory category = new ProductCategory();
+    public static ProductCategory of(CategoryId categoryId, CategoryName name) {
+        var category = new ProductCategory();
         category.setId(categoryId);
         category.name = name;
         return category;
-    }
-
-    public void updateName(@NonNull CategoryName newName) {
-        if (!this.name.equals(newName)) {
-            this.name = newName;
-        }
     }
 
     @Override

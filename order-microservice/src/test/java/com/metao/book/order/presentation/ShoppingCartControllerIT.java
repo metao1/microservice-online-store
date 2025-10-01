@@ -11,7 +11,7 @@ import com.metao.book.order.application.cart.ShoppingCart;
 import com.metao.book.order.application.cart.ShoppingCartRepository;
 import com.metao.book.order.application.cart.UpdateCartItemQtyDTO;
 import com.metao.book.order.presentation.dto.AddItemRequestDTO;
-import com.metao.shared.test.BaseKafkaTest;
+import com.metao.shared.test.KafkaContainer;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import java.math.BigDecimal;
@@ -27,7 +27,7 @@ import org.springframework.http.HttpStatus;
 
 @Profile("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class ShoppingCartControllerIT extends BaseKafkaTest {
+class ShoppingCartControllerIT extends KafkaContainer {
 
     @LocalServerPort
     private Integer port;
@@ -36,8 +36,8 @@ class ShoppingCartControllerIT extends BaseKafkaTest {
     private ShoppingCartRepository shoppingCartRepository;
 
     private String userId1;
-    private String asin1;
-    private String asin2;
+    private String sku1;
+    private String sku2;
     private Currency currency;
 
     @BeforeEach
@@ -48,13 +48,13 @@ class ShoppingCartControllerIT extends BaseKafkaTest {
         shoppingCartRepository.deleteAll(); // Clean up before each test
 
         userId1 = "user123";
-        asin1 = "ASIN001";
-        asin2 = "ASIN002";
+        sku1 = "SKU001";
+        sku2 = "SKU002";
         currency = Currency.getInstance("USD");
 
         // Initial item for user1
-        // Constructor: public ShoppingCart(String userId, String asin, BigDecimal buyPrice, BigDecimal sellPrice, BigDecimal quantity, Currency currency)
-        ShoppingCart cartItem1User1 = new ShoppingCart(userId1, asin1, BigDecimal.TEN, BigDecimal.TEN, BigDecimal.ONE,
+        // Constructor: public ShoppingCart(String userId, String sku, BigDecimal buyPrice, BigDecimal sellPrice, BigDecimal quantity, Currency currency)
+        ShoppingCart cartItem1User1 = new ShoppingCart(userId1, sku1, BigDecimal.TEN, BigDecimal.TEN, BigDecimal.ONE,
             currency);
         // Need to set createdOn and updatedOn as the entity might expect them (e.g. non-null db constraints if any, or for DTO mapping)
         // The constructor ShoppingCart(...) sets createdOn. Let's assume updatedOn is also set or can be null initially.
@@ -78,7 +78,7 @@ class ShoppingCartControllerIT extends BaseKafkaTest {
             .statusCode(HttpStatus.OK.value())
             .body("user_id", equalTo(userId1)) // Matches ShoppingCartDto's @JsonProperty
             .body("shopping_cart_items", hasSize(1))
-            .body("shopping_cart_items[0].asin", equalTo(asin1))
+            .body("shopping_cart_items[0].sku", equalTo(sku1))
             // Using closeTo for BigDecimal comparisons with Hamcrest for robustness
             .body("shopping_cart_items[0].quantity", is(1))
             .body("shopping_cart_items[0].price", is(10));
@@ -105,17 +105,17 @@ class ShoppingCartControllerIT extends BaseKafkaTest {
             .contentType(ContentType.JSON)
             .body(newItemDto)
         .when()
-            .post("/{userId}/{asin}", userId1, asin2) // New ASIN for user1
+            .post("/{userId}/{sku}", userId1, sku2) // New SKU for user1
         .then()
             .statusCode(HttpStatus.OK.value())
             .body("user_id", equalTo(userId1))
-            .body("shopping_cart_items[0].asin", equalTo(asin2))
+            .body("shopping_cart_items[0].sku", equalTo(sku2))
             .body("shopping_cart_items[0].quantity", equalTo(2))
             .body("shopping_cart_items[0].price", equalTo(20.0F))
             .body("shopping_cart_items[0].currency", equalTo(currency.toString()));
         
         // Verify in DB
-        ShoppingCart dbItem = shoppingCartRepository.findByUserIdAndAsin(userId1, asin2).orElse(null);
+        ShoppingCart dbItem = shoppingCartRepository.findByUserIdAndAsin(userId1, sku2).orElse(null);
         assertThat(dbItem).isNotNull();
         assertThat(dbItem.getQuantity()).isEqualByComparingTo(BigDecimal.valueOf(2));
     }
@@ -128,17 +128,17 @@ class ShoppingCartControllerIT extends BaseKafkaTest {
             .contentType(ContentType.JSON)
             .body(existingItemDto)
         .when()
-            .post("/{userId}/{asin}", userId1, asin1) // Existing ASIN for user1
+            .post("/{userId}/{sku}", userId1, sku1) // Existing SKU for user1
         .then()
             .statusCode(HttpStatus.OK.value())
             .body("user_id", equalTo(userId1))
-            .body("shopping_cart_items[0].asin", equalTo(asin1))
+            .body("shopping_cart_items[0].sku", equalTo(sku1))
             .body("shopping_cart_items[0].quantity", equalTo(3))
             .body("shopping_cart_items[0].price", equalTo(10))
             .body("shopping_cart_items[0].currency", equalTo(currency.toString()));
 
         // Verify in DB
-        ShoppingCart dbItem = shoppingCartRepository.findByUserIdAndAsin(userId1, asin1).orElse(null);
+        ShoppingCart dbItem = shoppingCartRepository.findByUserIdAndAsin(userId1, sku1).orElse(null);
         assertThat(dbItem).isNotNull();
         assertThat(dbItem.getQuantity()).isEqualByComparingTo(BigDecimal.valueOf(3));
     }
@@ -151,12 +151,12 @@ class ShoppingCartControllerIT extends BaseKafkaTest {
             .contentType(ContentType.JSON)
             .body(updateDto)
         .when()
-            .put("/{userId}/{asin}", userId1, asin1)
+            .put("/{userId}/{sku}", userId1, sku1)
         .then()
             .statusCode(HttpStatus.NO_CONTENT.value()); 
 
         // Verify in DB
-        assertThat(shoppingCartRepository.findByUserIdAndAsin(userId1, asin1)).isEmpty();
+        assertThat(shoppingCartRepository.findByUserIdAndAsin(userId1, sku1)).isEmpty();
     }
 
 
@@ -165,19 +165,19 @@ class ShoppingCartControllerIT extends BaseKafkaTest {
         given()
             .contentType(ContentType.JSON)
         .when()
-            .delete("/{userId}/{asin}", userId1, asin1)
+            .delete("/{userId}/{sku}", userId1, sku1)
         .then()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         // Verify in DB
-        assertThat(shoppingCartRepository.findByUserIdAndAsin(userId1, asin1)).isEmpty();
+        assertThat(shoppingCartRepository.findByUserIdAndAsin(userId1, sku1)).isEmpty();
     }
     
     // Test for clearing the whole cart for a user
     @Test
     void clearCart_removesAllItemsForUserAndReturnsNoContent() {
         // Add another item to the cart for user1 to ensure clearCart works for multiple items
-        ShoppingCart cartItem2User1 = new ShoppingCart(userId1, asin2, BigDecimal.valueOf(5), BigDecimal.valueOf(5), BigDecimal.ONE, currency);
+        ShoppingCart cartItem2User1 = new ShoppingCart(userId1, sku2, BigDecimal.valueOf(5), BigDecimal.valueOf(5), BigDecimal.ONE, currency);
         shoppingCartRepository.save(cartItem2User1);
         
         assertThat(shoppingCartRepository.findByUserId(userId1)).hasSize(2); // Verify two items exist
@@ -197,13 +197,13 @@ class ShoppingCartControllerIT extends BaseKafkaTest {
     @Test
     void updateItemQuantity_itemNotFound_returnsNotFound() {
         UpdateCartItemQtyDTO updateDto = new UpdateCartItemQtyDTO(BigDecimal.valueOf(5));
-        String nonExistentAsin = "ASINNONEXIST";
+        String nonExistentAsin = "SKUNONEXIST";
 
         given()
             .contentType(ContentType.JSON)
             .body(updateDto)
         .when()
-            .put("/{userId}/{asin}", userId1, nonExistentAsin)
+            .put("/{userId}/{sku}", userId1, nonExistentAsin)
         .then()
             .statusCode(HttpStatus.NOT_FOUND.value()); // Assuming OrderNotFoundException leads to 404
     }
@@ -211,12 +211,12 @@ class ShoppingCartControllerIT extends BaseKafkaTest {
     // Test case for removing a non-existent item (should result in 404)
     @Test
     void removeItemFromCart_itemNotFound_returnsNotFound() {
-        String nonExistentAsin = "ASINNONEXIST";
+        String nonExistentAsin = "SKUNONEXIST";
         
         given()
             .contentType(ContentType.JSON)
         .when()
-            .delete("/{userId}/{asin}", userId1, nonExistentAsin)
+            .delete("/{userId}/{sku}", userId1, nonExistentAsin)
         .then()
             .statusCode(HttpStatus.NOT_FOUND.value()); // Assuming OrderNotFoundException leads to 404
     }

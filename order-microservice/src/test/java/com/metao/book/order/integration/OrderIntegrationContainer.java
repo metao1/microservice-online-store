@@ -14,7 +14,7 @@ import com.metao.book.order.infrastructure.persistence.mapper.OrderEntityMapper;
 import com.metao.book.order.infrastructure.persistence.repository.JpaOrderRepository;
 import com.metao.book.order.presentation.dto.OrderResponse;
 import com.metao.book.shared.domain.financial.Money;
-import com.metao.shared.test.BaseKafkaTest;
+import com.metao.shared.test.KafkaContainer;
 import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.List;
@@ -33,7 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @ActiveProfiles("test")
-class OrderIntegrationTest extends BaseKafkaTest {
+class OrderIntegrationContainer extends KafkaContainer {
 
     @Autowired
     private OrderApplicationService orderService;
@@ -306,7 +306,7 @@ class OrderIntegrationTest extends BaseKafkaTest {
             // Then
             var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
             assertThat(order.getItems()).isEmpty();
-            assertThat(order.getTotal().fixedPointAmount()).isEqualByComparingTo(BigDecimal.ZERO);
+            assertThat(order.getTotal()).isNull();
         }
     }
 

@@ -5,9 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.metao.book.shared.OrderCreatedEvent;
 import com.metao.book.shared.OrderUpdatedEvent;
 import com.metao.book.shared.OrderUpdatedEvent.Status;
-import com.metao.kafka.KafkaEventConfiguration;
 import com.metao.kafka.KafkaEventHandler;
-import com.metao.shared.test.BaseKafkaTest;
+import com.metao.shared.test.KafkaContainer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import lombok.SneakyThrows;
@@ -27,8 +26,8 @@ import org.springframework.test.context.ActiveProfiles;
 @Slf4j
 @ActiveProfiles("test")
 @TestInstance(Lifecycle.PER_CLASS)
-@SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = {KafkaEventConfiguration.class, KafkaEventHandler.class})
-class OrderEventHandlerTest extends BaseKafkaTest {
+@SpringBootTest(webEnvironment = WebEnvironment.NONE)
+class OrderEventHandlerContainerIT extends KafkaContainer {
 
     private final CountDownLatch latch1 = new CountDownLatch(1);
     private final CountDownLatch latch2 = new CountDownLatch(1);
@@ -50,7 +49,7 @@ class OrderEventHandlerTest extends BaseKafkaTest {
             .setCurrency("USD")
             .build();
 
-        eventHandler.handle(event.getId(), event);
+        eventHandler.send(event.getId(), event);
         latch1.await(10, TimeUnit.SECONDS);
         assertThat(latch1.getCount()).isZero();
     }
@@ -77,8 +76,8 @@ class OrderEventHandlerTest extends BaseKafkaTest {
             .setStatus(Status.CONFIRMED)
             .build();
 
-        eventHandler.handle(event1.getId(), event1);
-        eventHandler.handle(event2.getId(), event2);
+        eventHandler.send(event1.getId(), event1);
+        eventHandler.send(event2.getId(), event2);
         latch1.await(10, TimeUnit.SECONDS);
         latch2.await(10, TimeUnit.SECONDS);
 

@@ -8,13 +8,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @EnableScheduling
 @SpringBootApplication
-@ComponentScan(
-    basePackages = {"com.metao.book.order", "com.metao.kafka"},
-    excludeFilters = @ComponentScan.Filter(
-        type = FilterType.ASSIGNABLE_TYPE,
-        classes = {com.metao.kafka.KafkaEventConfiguration.class}
-    )
-)
+@ComponentScan(basePackages = {"com.metao.book.order", "com.metao.kafka"})
 public class OrderApplication {
 
     public static void main(String[] args) {

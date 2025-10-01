@@ -1,12 +1,15 @@
 package com.metao.book.product.presentation;
 
 import com.metao.book.product.application.dto.CreateProductCommand;
+import com.metao.book.product.application.dto.CreateProductDto;
 import com.metao.book.product.application.dto.ProductDTO;
 import com.metao.book.product.application.dto.UpdateProductCommand;
+import com.metao.book.product.application.mapper.ProductApplicationMapper;
 import com.metao.book.product.application.service.ProductApplicationService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @Slf4j
 @RestController
@@ -28,34 +32,52 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProductController {
 
     private final ProductApplicationService productApplicationService;
+    private final ProductApplicationMapper productMapper;
 
-    @GetMapping(value = "/{asin}")
-    public ResponseEntity<ProductDTO> getProduct(@PathVariable String asin) {
-        log.info("Getting product with ASIN: {}", asin);
-
-        Optional<ProductDTO> product = productApplicationService.getProductByAsin(asin);
-        return product.map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
+    @GetMapping(value = "/{sku}")
+    public ResponseEntity<ProductDTO> getProduct(@PathVariable @Valid @NotBlank String sku) {
+        log.info("Getting product with SKU: {}", sku);
+        var product = productApplicationService.getProductBySku(sku);
+        ProductDTO productDTO = productMapper.toDTO(product);
+        return ResponseEntity.ok(productDTO);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ProductDTO createProduct(@Valid @RequestBody CreateProductCommand command) {
-        log.info("Creating product with ASIN: {}", command.asin());
-        return productApplicationService.createProduct(command);
+    public ResponseEntity<String> createProduct(@Valid @RequestBody CreateProductDto dto) {
+        log.debug("Creating product: {}", dto);
+        var command = new CreateProductCommand(
+            dto.sku(),
+            dto.title(),
+            dto.description(),
+            dto.imageUrl(),
+            dto.price(),
+            dto.currency(),
+            dto.volume(),
+            dto.categories()
+        );
+        productApplicationService.createProduct(command);
+        URI location = ServletUriComponentsBuilder
+            .fromCurrentRequest()
+            .path("/{sku}")
+            .buildAndExpand(dto.sku())
+            .toUri();
+
+        return ResponseEntity.created(location).build();
     }
 
-    @PutMapping("/{asin}")
+    @PutMapping("/{sku}")
     public ProductDTO updateProduct(
-        @PathVariable String asin,
+        @PathVariable String sku,
         @Valid @RequestBody UpdateProductCommand command
     ) {
-        log.info("Updating product with ASIN: {}", asin);
-        // Ensure ASIN in path matches command
-        UpdateProductCommand updatedCommand = new UpdateProductCommand(
-            asin, command.title(), command.description(), command.price(), command.currency()
+        log.info("Updating product with SKU: {}", sku);
+        // Ensure SKU in path matches command
+        var updatedCommand = new UpdateProductCommand(
+            sku, command.title(), command.description(), command.price(), command.currency()
         );
-        return productApplicationService.updateProduct(updatedCommand);
+        var product = productApplicationService.updateProduct(updatedCommand);
+        return productMapper.toDTO(product);
     }
 
     @GetMapping("/category/{categoryName}")
@@ -65,7 +87,10 @@ public class ProductController {
         @RequestParam(value = "limit", defaultValue = "10") int limit
     ) {
         log.info("Getting products by category: {}", categoryName);
-        return productApplicationService.getProductsByCategory(categoryName, offset, limit);
+        var productsByCategory = productApplicationService.getProductsByCategory(categoryName, offset, limit);
+        return productsByCategory.stream()
+            .map(productMapper::toDTO)
+            .toList();
     }
 
     @GetMapping("/search")
@@ -75,45 +100,51 @@ public class ProductController {
         @RequestParam(value = "limit", defaultValue = "10") int limit
     ) {
         log.info("Searching products with keyword: {}", keyword);
-        return productApplicationService.searchProducts(keyword, offset, limit);
+        var products = productApplicationService.searchProducts(keyword, offset, limit);
+        return products.stream()
+            .map(productMapper::toDTO)
+            .toList();
     }
 
-    @GetMapping("/{asin}/related")
+    @GetMapping("/{sku}/related")
     public List<ProductDTO> getRelatedProducts(
-        @PathVariable String asin,
+        @PathVariable String sku,
         @RequestParam(value = "limit", defaultValue = "5") int limit
     ) {
-        log.info("Getting related products for ASIN: {}", asin);
-        return productApplicationService.getRelatedProducts(asin, limit);
+        log.info("Getting related products for SKU: {}", sku);
+        var relatedProducts = productApplicationService.getRelatedProducts(sku, limit);
+        return relatedProducts.stream()
+            .map(productMapper::toDTO)
+            .toList();
     }
 
-    @PostMapping("/{asin}/categories/{categoryName}")
+    @PostMapping("/{sku}/categories/{categoryName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void assignProductToCategory(
-        @PathVariable String asin,
+        @PathVariable String sku,
         @PathVariable String categoryName
     ) {
-        log.info("Assigning product {} to category {}", asin, categoryName);
-        productApplicationService.assignProductToCategory(asin, categoryName);
+        log.info("Assigning product {} to category {}", sku, categoryName);
+        productApplicationService.assignProductToCategory(sku, categoryName);
     }
 
-    @PostMapping("/{asin}/volume/reduce")
+    @PostMapping("/{sku}/volume/reduce")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void reduceProductVolume(
-        @PathVariable String asin,
+        @PathVariable String sku,
         @RequestParam java.math.BigDecimal quantity
     ) {
-        log.info("Reducing volume for product {} by {}", asin, quantity);
-        productApplicationService.reduceProductVolume(asin, quantity);
+        log.info("Reducing volume for product {} by {}", sku, quantity);
+        productApplicationService.reduceProductVolume(sku, quantity);
     }
 
-    @PostMapping("/{asin}/volume/increase")
+    @PostMapping("/{sku}/volume/increase")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void increaseProductVolume(
-        @PathVariable String asin,
+        @PathVariable String sku,
         @RequestParam java.math.BigDecimal quantity
     ) {
-        log.info("Increasing volume for product {} by {}", asin, quantity);
-        productApplicationService.increaseProductVolume(asin, quantity);
+        log.info("Increasing volume for product {} by {}", sku, quantity);
+        productApplicationService.increaseProductVolume(sku, quantity);
     }
 }

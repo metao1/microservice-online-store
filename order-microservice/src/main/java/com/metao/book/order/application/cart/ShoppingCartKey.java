@@ -11,10 +11,10 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(of = {"userId", "asin"})
+@EqualsAndHashCode(of = {"userId", "sku"})
 public class ShoppingCartKey implements Serializable {
 
     private String userId;
 
-    private String asin;
+    private String sku;
 }

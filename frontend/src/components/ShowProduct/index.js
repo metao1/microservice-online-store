@@ -44,7 +44,7 @@ class ShowProduct extends Component {
             })
             .then(res => res.json())
             .then(product => {
-                if (product.asin) {
+                if (product.sku) {
                     this.setState({
                         productAlsoBought: [...this.state.productAlsoBought,
                             product]
@@ -179,10 +179,10 @@ class ShowProduct extends Component {
                                                 }
                                                 return (
                                                     <Col lg={3} md={6} xs={12}
-                                                         key={product.asin}>
+                                                         key={product.sku}>
                                                         <div className="item">
                                                             <Link
-                                                                to={`/products/${product.asin}`}>
+                                                                to={`/products/${product.sku}`}>
                                                                 <div
                                                                     className="product-img"
                                                                     style={{backgroundImage: `url(${product.imageUrl})`}}></div>

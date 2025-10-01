@@ -5,7 +5,7 @@ import com.metao.book.product.domain.model.event.ProductCreatedEvent;
 import com.metao.book.product.domain.model.event.ProductUpdatedEvent;
 import com.metao.book.product.domain.model.valueobject.ImageUrl;
 import com.metao.book.product.domain.model.valueobject.ProductDescription;
-import com.metao.book.product.domain.model.valueobject.ProductId;
+import com.metao.book.product.domain.model.valueobject.ProductSku;
 import com.metao.book.product.domain.model.valueobject.ProductTitle;
 import com.metao.book.product.domain.model.valueobject.ProductVolume;
 import com.metao.book.shared.domain.base.AggregateRoot;
@@ -21,7 +21,7 @@ import lombok.NonNull;
  * Product aggregate root - contains all business logic for product management
  */
 @Getter
-public class Product extends AggregateRoot<ProductId> {
+public class Product extends AggregateRoot<ProductSku> {
 
     private ProductTitle title;
     private ProductDescription description;
@@ -40,14 +40,14 @@ public class Product extends AggregateRoot<ProductId> {
 
     // Constructor for new products
     public Product(
-        @NonNull ProductId productId,
+        @NonNull ProductSku productSku,
         @NonNull ProductTitle title,
         @NonNull ProductDescription description,
         @NonNull ProductVolume volume,
         @NonNull Money price,
         @NonNull ImageUrl imageUrl
     ) {
-        super(productId);
+        super(productSku);
         this.title = title;
         this.description = description;
         this.volume = volume;
@@ -63,7 +63,7 @@ public class Product extends AggregateRoot<ProductId> {
 
     // For reconstruction from persistence
     public static Product reconstruct(
-        ProductId productId,
+        ProductSku productSku,
         ProductTitle title,
         ProductDescription description,
         ProductVolume volume,
@@ -74,7 +74,7 @@ public class Product extends AggregateRoot<ProductId> {
         Set<ProductCategory> categories
     ) {
         Product product = new Product();
-        product.setId(productId);
+        product.setId(productSku);
         product.title = title;
         product.description = description;
         product.volume = volume;

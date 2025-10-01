@@ -7,12 +7,10 @@ import com.metao.kafka.KafkaEventHandler;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Import;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 @Component
-@Import(KafkaEventHandler.class)
 @RequiredArgsConstructor
 public class OrderCreatedEventListener {
 
@@ -30,7 +28,7 @@ public class OrderCreatedEventListener {
             OrderPaymentEvent orderPaymentEvent = paymentProcessingService.processPayment(orderEvent);
             // Key for payment event could be orderId (which is orderEvent.getId()) or paymentId
 
-            eventHandler.handle(orderEvent.getId(), orderPaymentEvent);
+            eventHandler.send(orderEvent.getId(), orderPaymentEvent);
             log.info("Sent OrderPaymentEvent for order item: {}, status: {}", orderPaymentEvent.getOrderId(), orderPaymentEvent.getStatus());
         } catch (Exception e) {
             log.error("Error processing payment for order item {} or sending OrderPaymentEvent", orderEvent.getId(), e);

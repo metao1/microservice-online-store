@@ -2,7 +2,7 @@ package com.metao.book.product.domain.repository;
 
 import com.metao.book.product.domain.model.aggregate.Product;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
-import com.metao.book.product.domain.model.valueobject.ProductId;
+import com.metao.book.product.domain.model.valueobject.ProductSku;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,17 +14,12 @@ public interface ProductRepository {
     /**
      * Save a product
      */
-    Product save(Product product);
+    void save(Product product);
 
     /**
-     * Find product by ID
+     * Find product by SKU
      */
-    Optional<Product> findById(ProductId productId);
-
-    /**
-     * Find product by ASIN (ProductId value)
-     */
-    Optional<Product> findByAsin(String asin);
+    Optional<Product> findBySku(ProductSku productSku);
 
     /**
      * Find products by category
@@ -44,7 +39,7 @@ public interface ProductRepository {
     /**
      * Check if product exists
      */
-    boolean existsById(ProductId productId);
+    boolean existsById(ProductSku productSku);
 
     /**
      * Delete product
@@ -55,9 +50,4 @@ public interface ProductRepository {
      * Find all products with pagination
      */
     List<Product> findAll(int offset, int limit);
-
-    /**
-     * Count total products
-     */
-    long count();
 }

@@ -16,7 +16,7 @@ public class CategoryEntityMapper {
      * Convert domain ProductCategory to CategoryEntity
      */
     public CategoryEntity toEntity(ProductCategory category) {
-        CategoryEntity entity = new CategoryEntity(category.getName().getValue());
+        CategoryEntity entity = new CategoryEntity(category.getName().value());
         if (category.getId() != null) {
             entity.setId(category.getId().value());
         }
@@ -27,9 +27,9 @@ public class CategoryEntityMapper {
      * Convert CategoryEntity to domain ProductCategory
      */
     public ProductCategory toDomain(CategoryEntity entity) {
-        CategoryId categoryId = CategoryId.of(entity.getId());
-        CategoryName categoryName = CategoryName.of(entity.getCategory());
+        var categoryId = CategoryId.of(entity.getId());
+        var categoryName = CategoryName.of(entity.getCategory());
 
-        return ProductCategory.reconstruct(categoryId, categoryName);
+        return ProductCategory.of(categoryId, categoryName);
     }
 }

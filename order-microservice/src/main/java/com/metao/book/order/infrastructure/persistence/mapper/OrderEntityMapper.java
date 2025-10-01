@@ -1,6 +1,6 @@
 package com.metao.book.order.infrastructure.persistence.mapper;
 
-import com.metao.book.order.domain.model.aggregate.Order;
+import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.infrastructure.persistence.entity.OrderEntity;
@@ -17,7 +17,7 @@ public class OrderEntityMapper {
     /**
      * Convert domain Order to OrderEntity
      */
-    public static OrderEntity toEntity(Order order) {
+    public static OrderEntity toEntity(OrderAggregate order) {
         OrderEntity entity = new OrderEntity();
         entity.setId(order.getId().value());
         entity.setCustomerId(order.getCustomerId());
@@ -44,8 +44,8 @@ public class OrderEntityMapper {
     /**
      * Convert OrderEntity to domain Order
      */
-    public static Order toDomain(OrderEntity entity) {
-        Order order = new Order(OrderId.of(entity.getId()), entity.getCustomerId());
+    public static OrderAggregate toDomain(OrderEntity entity) {
+        OrderAggregate order = new OrderAggregate(OrderId.of(entity.getId()), entity.getCustomerId());
         // Only update status if it's different from the default CREATED status
         if (entity.getStatus() != OrderStatus.CREATED) {
             order.updateStatus(entity.getStatus());
