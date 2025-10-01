@@ -64,8 +64,9 @@ subprojects {
     testImplementation "org.testcontainers:junit-jupiter"
     testImplementation "org.testcontainers:postgresql:1.17.6"
     testImplementation "org.testcontainers:testcontainers"
-
     testImplementation platform("org.testcontainers:testcontainers-bom:${testcontainersVersion}")
+
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     implementation "org.springframework.boot:spring-boot-starter-test"
 
