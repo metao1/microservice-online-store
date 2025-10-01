@@ -5,8 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.metao.book.shared.application.service.StageProcessor;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -68,33 +66,28 @@ class StageProcessorTest {
     @Test
     void applyExceptionallyWithNullInputIsFailed() {
 
-        @Getter
-        @RequiredArgsConstructor
-        class ProcessorInput {
+        record ProcessorInput(String input) {
 
-            private final String input;
         }
 
-        @Getter
-        @RequiredArgsConstructor
-        class ProcessorOutput {
+        record ProcessorOutput(String output) {
 
-            private final String output;
         }
 
         class Mapper {
 
             public ProcessorOutput convert(ProcessorInput input) {
-                return new ProcessorOutput(input.getInput().toUpperCase());
+                return new ProcessorOutput(input.input().toUpperCase());
             }
         }
+
         StageProcessor
             .accept(new ProcessorInput("test"))
             .map(input -> new Mapper().convert(input))
             .acceptExceptionally((output, exp) -> {
                     assertThat(exp).isNull();
                     assertThat(output).isInstanceOf(ProcessorOutput.class);
-                    assertThat(output.getOutput()).isEqualTo("TEST");
+                    assertThat(output.output()).isEqualTo("TEST");
                 }
             );
     }
