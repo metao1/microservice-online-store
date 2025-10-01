@@ -1,5 +1,7 @@
 package com.metao.kafka;
 
+import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
+import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -8,26 +10,33 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.annotation.EnableKafka;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 
 @Getter
 @Setter
+@EnableKafka
 @Configuration
-@EnableConfigurationProperties
 @ConfigurationProperties("kafka")
-@ConditionalOnProperty(value = "kafka.enabled", havingValue = "true")
+@EnableConfigurationProperties(KafkaProperties.class)
+@ConditionalOnProperty(value = "kafka.enabled", havingValue = "true", matchIfMissing = true)
 public class KafkaEventConfiguration {
 
-    private boolean enabled;
     private Map<String, KafkaPropertyTopic> topic;
 
     @Bean
@@ -80,6 +89,37 @@ public class KafkaEventConfiguration {
         configProps.put("schema.registry.url", schemaRegistryUrl);
 
         return new DefaultKafkaProducerFactory<>(configProps);
+    }
+
+    private <T> ConsumerFactory<String, T> createConsumerFactory(
+        @Value("${spring.kafka.bootstrap-servers}") String bootstrapServers,
+        KafkaProperties kafkaProperties
+    ) {
+        var ps = kafkaProperties.getProperties();
+        var props = new HashMap<String, Object>();
+
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaProtobufDeserializer.class.getName());
+        props.put(KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_VALUE_TYPE, CreatedEventTest.class.getName());
+        props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 300000); // Increase poll interval
+        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 10); // Reduce poll records
+
+        props.putAll(ps);
+
+        return new DefaultKafkaConsumerFactory<>(props);
+    }
+
+    @Bean
+    public <T> ConcurrentKafkaListenerContainerFactory<String, T> kafkaListenerContainerFactory(
+        @Value("${spring.kafka.bootstrap-servers}") String bootstrapServers,
+        KafkaProperties kafkaProperties
+    ) {
+        ConcurrentKafkaListenerContainerFactory<String, T> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(createConsumerFactory(bootstrapServers, kafkaProperties));
+        factory.setConcurrency(1);
+
+        return factory;
     }
 
 
