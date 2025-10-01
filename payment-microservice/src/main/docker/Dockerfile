@@ -7,7 +7,7 @@ COPY --chown=user:user build/libs/payment-microservice.jar app.jar
 FROM jdk AS payment-microservice
 
 # Set environment variables
-ENV JAVA_OPTS="-Xms256m -Xmx1024m" # Adjusted memory for a potentially smaller service
+ENV JAVA_OPTS="-Xms256m -Xmx1024m"
 
 # Run as non-root user
 USER 1001

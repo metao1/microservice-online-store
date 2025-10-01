@@ -12,15 +12,11 @@ import com.metao.book.shared.domain.financial.Money;
 import java.math.BigDecimal;
 import java.util.List;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
 /**
  * Domain service for complex business operations involving payments
  */
-@RequiredArgsConstructor
-public class PaymentDomainService {
-
-    private final PaymentRepository paymentRepository;
+public record PaymentDomainService(PaymentRepository paymentRepository) {
 
     /**
      * Check if a payment can be created for an order
