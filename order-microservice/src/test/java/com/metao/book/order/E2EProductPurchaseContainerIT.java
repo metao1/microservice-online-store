@@ -109,7 +109,7 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
             .then()
             .statusCode(HttpStatus.OK.value());
 
-        assertThat(shoppingCartRepository.findByUserIdAndAsin(userId, sku1)).isPresent();
+        assertThat(shoppingCartRepository.findByUserIdAndSku(userId, sku1)).isPresent();
     }
 
     @Test
@@ -117,7 +117,7 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
     void step2_viewCart() {
         // Ensure item from step 1 is in cart for this ordered test
         // If step1 failed or tests were run out of order, this might fail without this setup.
-        if (shoppingCartRepository.findByUserIdAndAsin(userId, sku1).isEmpty()) {
+        if (shoppingCartRepository.findByUserIdAndSku(userId, sku1).isEmpty()) {
             shoppingCartRepository.save(new ShoppingCart(userId, sku1, price1, price1, BigDecimal.ONE, currency));
         }
 
@@ -136,7 +136,7 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
     @Order(3)
     void step3_checkoutAndVerifyOrder() {
         // Ensure item from step 1 is in cart
-        if (shoppingCartRepository.findByUserIdAndAsin(userId, sku1).isEmpty()) {
+        if (shoppingCartRepository.findByUserIdAndSku(userId, sku1).isEmpty()) {
             shoppingCartRepository.save(new ShoppingCart(userId, sku1, price1, price1, BigDecimal.ONE, currency));
         }
 

@@ -8,11 +8,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ShoppingCartRepository extends JpaRepository<ShoppingCart, ShoppingCartKey> {
 
-    Optional<ShoppingCart> findByUserIdAndAsin(String userId, String sku);
+    Optional<ShoppingCart> findByUserIdAndSku(String userId, String sku);
 
     List<ShoppingCart> findByUserId(String userId);
 
-    void deleteByUserIdAndAsin(String userId, String sku);
+    void deleteByUserIdAndSku(String userId, String sku);
 
     void deleteByUserId(String userId);
 }

@@ -13,7 +13,7 @@ public class ShoppingCartMapper {
             cartItem.getCreatedOn(),
             cartItem.getUserId(),
             Set.of(new ShoppingCartItem(
-                cartItem.getAsin(),
+                cartItem.getSku(),
                 cartItem.getQuantity(),
                 cartItem.getBuyPrice(),
                 cartItem.getCurrency())

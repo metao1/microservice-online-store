@@ -59,6 +59,6 @@ public class ProductKafkaListenerComponent {
         log.debug("Consumed {}", productUpdatedEvent);
         // TODO: Implement product update from Kafka event using ProductApplicationService
         // This would require mapping from ProductUpdatedEvent to UpdateProductCommand
-        log.info("Product updated event received for SKU: {}", productUpdatedEvent.getAsin());
+        log.info("Product updated event received for SKU: {}", productUpdatedEvent.getSku());
     }
 }

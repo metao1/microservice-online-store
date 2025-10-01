@@ -81,13 +81,13 @@ class ShoppingCartServiceTest {
     @Test
     void addItemToCart_whenItemIsNew_createsAndSavesItem() {
         // The service will create a new ShoppingCart object. We mock the save to return our reference cartItem or a similar one.
-        when(shoppingCartRepository.findByUserIdAndAsin(userId, sku)).thenReturn(Optional.empty());
+        when(shoppingCartRepository.findByUserIdAndSku(userId, sku)).thenReturn(Optional.empty());
         // Return the object that would be created by the service, or a similar one for assertions
         when(shoppingCartRepository.save(any(ShoppingCart.class))).thenAnswer(invocation -> {
             ShoppingCart savedItem = invocation.getArgument(0);
             // Ensure the saved item has the correct properties set by the service
             assertThat(savedItem.getUserId()).isEqualTo(userId);
-            assertThat(savedItem.getAsin()).isEqualTo(sku);
+            assertThat(savedItem.getSku()).isEqualTo(sku);
             assertThat(savedItem.getQuantity()).isEqualByComparingTo(BigDecimal.ONE);
             assertThat(savedItem.getBuyPrice()).isEqualByComparingTo(BigDecimal.valueOf(10.00));
             assertThat(savedItem.getSellPrice()).isEqualByComparingTo(BigDecimal.valueOf(10.00));
@@ -110,7 +110,7 @@ class ShoppingCartServiceTest {
         long originalUpdatedOn = System.currentTimeMillis() - 1000; // ensure updatedOn changes
         existingItem.setUpdatedOn(originalUpdatedOn);
 
-        when(shoppingCartRepository.findByUserIdAndAsin(userId, sku)).thenReturn(Optional.of(existingItem));
+        when(shoppingCartRepository.findByUserIdAndSku(userId, sku)).thenReturn(Optional.of(existingItem));
         when(shoppingCartRepository.save(any(ShoppingCart.class))).thenReturn(existingItem); // save returns the modified existingItem
 
         ShoppingCart result = shoppingCartService.addItemToCart(userId, sku, BigDecimal.valueOf(2), BigDecimal.valueOf(10.00), currency); // Adding 2 more
@@ -124,7 +124,7 @@ class ShoppingCartServiceTest {
     // --- Tests for updateItemQuantity ---
     @Test
     void updateItemQuantity_whenItemExistsAndQuantityPositive_updatesAndSaves() {
-        when(shoppingCartRepository.findByUserIdAndAsin(userId, sku)).thenReturn(Optional.of(cartItem));
+        when(shoppingCartRepository.findByUserIdAndSku(userId, sku)).thenReturn(Optional.of(cartItem));
         when(shoppingCartRepository.save(any(ShoppingCart.class))).thenReturn(cartItem);
         BigDecimal newQuantity = BigDecimal.valueOf(5);
         long originalUpdatedOn = cartItem.getUpdatedOn();
@@ -139,29 +139,29 @@ class ShoppingCartServiceTest {
 
     @Test
     void updateItemQuantity_whenQuantityIsZero_removesItem() {
-        when(shoppingCartRepository.findByUserIdAndAsin(userId, sku)).thenReturn(Optional.of(cartItem));
-        doNothing().when(shoppingCartRepository).deleteByUserIdAndAsin(userId, sku);
+        when(shoppingCartRepository.findByUserIdAndSku(userId, sku)).thenReturn(Optional.of(cartItem));
+        doNothing().when(shoppingCartRepository).deleteByUserIdAndSku(userId, sku);
 
         ShoppingCart result = shoppingCartService.updateItemQuantity(userId, sku, BigDecimal.ZERO);
         
         assertThat(result).isNull(); 
-        verify(shoppingCartRepository).deleteByUserIdAndAsin(userId, sku);
+        verify(shoppingCartRepository).deleteByUserIdAndSku(userId, sku);
     }
     
     @Test
     void updateItemQuantity_whenQuantityIsNegative_removesItem() {
-        when(shoppingCartRepository.findByUserIdAndAsin(userId, sku)).thenReturn(Optional.of(cartItem));
-        doNothing().when(shoppingCartRepository).deleteByUserIdAndAsin(userId, sku);
+        when(shoppingCartRepository.findByUserIdAndSku(userId, sku)).thenReturn(Optional.of(cartItem));
+        doNothing().when(shoppingCartRepository).deleteByUserIdAndSku(userId, sku);
 
         ShoppingCart result = shoppingCartService.updateItemQuantity(userId, sku, BigDecimal.valueOf(-1));
 
         assertThat(result).isNull();
-        verify(shoppingCartRepository).deleteByUserIdAndAsin(userId, sku);
+        verify(shoppingCartRepository).deleteByUserIdAndSku(userId, sku);
     }
 
     @Test
     void updateItemQuantity_whenItemNotFound_throwsException() {
-        when(shoppingCartRepository.findByUserIdAndAsin(userId, sku)).thenReturn(Optional.empty());
+        when(shoppingCartRepository.findByUserIdAndSku(userId, sku)).thenReturn(Optional.empty());
         BigDecimal newQuantity = BigDecimal.valueOf(5);
 
         assertThrows(OrderNotFoundException.class,
@@ -171,20 +171,20 @@ class ShoppingCartServiceTest {
     // --- Tests for removeItemFromCart ---
     @Test
     void removeItemFromCart_whenItemExists_removesItem() {
-        when(shoppingCartRepository.findByUserIdAndAsin(userId, sku)).thenReturn(Optional.of(cartItem)); // Item exists
-        doNothing().when(shoppingCartRepository).deleteByUserIdAndAsin(userId, sku);
+        when(shoppingCartRepository.findByUserIdAndSku(userId, sku)).thenReturn(Optional.of(cartItem)); // Item exists
+        doNothing().when(shoppingCartRepository).deleteByUserIdAndSku(userId, sku);
         
         shoppingCartService.removeItemFromCart(userId, sku);
 
-        verify(shoppingCartRepository).deleteByUserIdAndAsin(userId, sku);
+        verify(shoppingCartRepository).deleteByUserIdAndSku(userId, sku);
     }
 
     @Test
     void removeItemFromCart_whenItemNotFound_throwsException() {
-        when(shoppingCartRepository.findByUserIdAndAsin(userId, sku)).thenReturn(Optional.empty()); // Item does not exist
+        when(shoppingCartRepository.findByUserIdAndSku(userId, sku)).thenReturn(Optional.empty()); // Item does not exist
 
         assertThrows(OrderNotFoundException.class, () -> shoppingCartService.removeItemFromCart(userId, sku));
-        verify(shoppingCartRepository, never()).deleteByUserIdAndAsin(anyString(), anyString());
+        verify(shoppingCartRepository, never()).deleteByUserIdAndSku(anyString(), anyString());
     }
     
     // --- Tests for clearCart ---
