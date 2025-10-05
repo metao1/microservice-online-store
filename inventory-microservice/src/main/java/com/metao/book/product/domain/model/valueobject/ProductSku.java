@@ -2,12 +2,14 @@ package com.metao.book.product.domain.model.valueobject;
 
 import com.metao.book.shared.domain.base.ValueObject;
 import java.util.UUID;
+import jakarta.persistence.Embeddable;
 import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Product identifier value object
  */
+@Embeddable
 public record ProductSku(String value) implements ValueObject {
 
     public ProductSku(@NonNull String value) {

@@ -8,9 +8,10 @@ import static com.metao.book.order.OrderTestConstant.QUANTITY;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.metao.book.shared.OrderCreatedEvent;
+import com.metao.kafka.KafkaEventConfiguration;
+import com.metao.kafka.KafkaEventHandler;
 import com.metao.kafka.KafkaFactory;
 import com.metao.shared.test.KafkaContainer;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
@@ -22,17 +23,20 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
 
 @Slf4j
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = WebEnvironment.NONE,
+    classes = {KafkaEventConfiguration.class, KafkaEventHandler.class}
+)
 class KafkaFactoryIT extends KafkaContainer {
 
     private final CountDownLatch latch = new CountDownLatch(10);
 
     @Autowired
-    Map<Class<?>, KafkaFactory<?>> kafkaFactoryMap;
+    KafkaFactory<OrderCreatedEvent> kafkaFactory;
 
     @RetryableTopic
     @KafkaListener(id = "order-listener-test",
@@ -56,7 +60,7 @@ class KafkaFactoryIT extends KafkaContainer {
     @Disabled("Flaky integration test - depends on Kafka timing in CI environments")
     @DisplayName("When sending Kafka multiple messages then all messages sent successfully")
     void testWhenSendingMultipleKafkaMessagesThenSentSuccessfully() {
-        KafkaFactory<OrderCreatedEvent> kafkaFactory = (KafkaFactory<OrderCreatedEvent>)
+        var kafkaFactory = (KafkaFactory<OrderCreatedEvent>)
             kafkaFactoryMap.get(OrderCreatedEvent.class);
 
         IntStream.range(0, 10).boxed()

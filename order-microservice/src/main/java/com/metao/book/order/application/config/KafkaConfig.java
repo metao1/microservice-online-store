@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.TopicBuilder;
 
 @Configuration
-@EnableConfigurationProperties({KafkaProperties.class})
+@EnableConfigurationProperties(KafkaProperties.class)
 public class KafkaConfig {
 
     @Bean

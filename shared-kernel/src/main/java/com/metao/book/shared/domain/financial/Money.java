@@ -3,6 +3,7 @@ package com.metao.book.shared.domain.financial;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.metao.book.shared.domain.base.ValueObject;
+import jakarta.persistence.Embeddable;
 import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.Objects;
@@ -12,6 +13,7 @@ import org.springframework.lang.NonNull;
  * Value object representing an amount of money. The amount is stored as a fixed-point integer where the last two digits
  * represent the decimals.
  */
+@Embeddable
 public class Money implements ValueObject {
 
     @JsonProperty("currency")

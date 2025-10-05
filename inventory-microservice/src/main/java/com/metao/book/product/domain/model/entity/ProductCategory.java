@@ -28,6 +28,14 @@ public class ProductCategory extends Entity<CategoryId> {
         return category;
     }
 
+    public static ProductCategory of(CategoryName name) {
+        return new ProductCategory(name);
+    }
+
+    private ProductCategory(CategoryName name) {
+        this.name = name;
+    }
+
     @Override
     public String toString() {
         return name.toString();

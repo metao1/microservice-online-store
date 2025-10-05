@@ -8,6 +8,7 @@ import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.product.domain.model.valueobject.ProductSku;
 import com.metao.book.product.domain.repository.CategoryRepository;
 import com.metao.book.product.domain.repository.ProductRepository;
+import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -59,10 +60,7 @@ public class ProductDomainService {
     /**
      * Check if a product is unique by SKU
      */
-    public Boolean isProductUnique(@NonNull String sku) {
-        if (sku.isBlank()) {
-            return false;
-        }
+    public Boolean isProductUnique(@NotEmpty String sku) {
         ProductSku productSku = ProductSku.of(sku);
         return productRepository.findBySku(productSku).isEmpty();
     }

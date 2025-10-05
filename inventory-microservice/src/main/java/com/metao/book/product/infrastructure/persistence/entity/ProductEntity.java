@@ -1,27 +1,24 @@
 package com.metao.book.product.infrastructure.persistence.entity;
 
-import static jakarta.persistence.FetchType.LAZY;
-
+import com.metao.book.product.domain.model.valueobject.ImageUrl;
+import com.metao.book.product.domain.model.valueobject.ProductDescription;
+import com.metao.book.product.domain.model.valueobject.ProductSku;
+import com.metao.book.product.domain.model.valueobject.ProductTitle;
+import com.metao.book.product.domain.model.valueobject.ProductVolume;
 import com.metao.book.shared.domain.financial.Money;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
-import jakarta.persistence.Basic;
 import jakarta.persistence.Cacheable;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
+import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -30,7 +27,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.NaturalId;
 import org.hibernate.annotations.NaturalIdCache;
 import org.hibernate.validator.constraints.Length;
 
@@ -46,42 +42,34 @@ import org.hibernate.validator.constraints.Length;
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class ProductEntity implements Serializable {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "product_sequence")
-    @SequenceGenerator(name = "product_sequence")
-    @Column(name = "id", updatable = false, nullable = false)
-    private Long id;
-
     @NotNull
-    @NaturalId
+    @EmbeddedId
     @Column(name = "sku", nullable = false, unique = true, length = 10)
-    private String sku;
+    private ProductSku sku;
 
     @Version
     @Column(name = "version")
     private Long version;
 
     @Column(nullable = false)
-    private BigDecimal volume;
+    private ProductVolume volume;
 
     @Length(min = 3)
     @Column(name = "title", nullable = false)
-    private String title;
+    private ProductTitle title;
 
-    @Lob
-    @Basic(fetch = LAZY)
     @Column(name = "description", columnDefinition = "TEXT")
-    private String description;
+    private ProductDescription description;
 
     @Column(name = "image_url", nullable = false)
-    private String imageUrl;
+    private ImageUrl imageUrl;
 
     @Embedded
     @AttributeOverrides({
         @AttributeOverride(name = "amount", column = @Column(name = "unit_price")),
         @AttributeOverride(name = "currency", column = @Column(name = "currency"))
     })
-    private Money unitPrice;
+    private Money price;
 
     @Column(name = "created_time", nullable = false)
     private LocalDateTime createdTime;
@@ -95,12 +83,12 @@ public class ProductEntity implements Serializable {
     private final Set<CategoryEntity> categories = new HashSet<>();
 
     public ProductEntity(
-        String sku,
-        String title,
-        String description,
-        BigDecimal volume,
+        ProductSku sku,
+        ProductTitle title,
+        ProductDescription description,
+        ProductVolume volume,
         Money price,
-        String imageUrl,
+        ImageUrl imageUrl,
         LocalDateTime createdTime,
         LocalDateTime updateTime
     ) {
@@ -108,7 +96,7 @@ public class ProductEntity implements Serializable {
         this.title = title;
         this.description = description;
         this.volume = volume;
-        this.unitPrice = price;
+        this.price = price;
         this.imageUrl = imageUrl;
         this.createdTime = createdTime;
         this.updateTime = updateTime;

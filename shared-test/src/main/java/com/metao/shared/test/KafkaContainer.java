@@ -20,5 +20,4 @@ public class KafkaContainer {
         registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
         kafka.start();
     }
-
 }
