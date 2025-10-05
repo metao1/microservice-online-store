@@ -1,9 +1,10 @@
 package com.metao.book.order.domain.model.valueobject;
 
+import com.metao.book.shared.domain.base.ValueObject;
 import lombok.Value;
 
 @Value
-public class ProductId {
+public class ProductId implements ValueObject {
 
     String value;
 

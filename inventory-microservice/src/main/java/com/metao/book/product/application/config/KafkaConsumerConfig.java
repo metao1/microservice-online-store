@@ -9,17 +9,17 @@ import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 
 @EnableKafka
-@Configuration
+@EnableAutoConfiguration
 @RequiredArgsConstructor
 @ConditionalOnProperty(value = "kafka.enabled", havingValue = "true", matchIfMissing = true)
 public class KafkaConsumerConfig {
@@ -39,18 +39,22 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, ProductCreatedEvent> productCreatedEventKafkaListenerContainerFactory() {
+    public ConcurrentKafkaListenerContainerFactory<String, ProductCreatedEvent> productCreatedEventKafkaListenerContainerFactory(
+        ConsumerFactory<String, ProductCreatedEvent> productPaymentEventConsumerFactory
+    ) {
         ConcurrentKafkaListenerContainerFactory<String, ProductCreatedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(productPaymentEventConsumerFactory());
+        factory.setConsumerFactory(productPaymentEventConsumerFactory);
         factory.setConcurrency(1);
 
         return factory;
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, ProductUpdatedEvent> productUpdatedEventKafkaListenerContainerFactory() {
+    public ConcurrentKafkaListenerContainerFactory<String, ProductUpdatedEvent> productUpdatedEventKafkaListenerContainerFactory(
+        ConsumerFactory<String, ProductUpdatedEvent> productUpdatedEventConsumerFactory
+    ) {
         ConcurrentKafkaListenerContainerFactory<String, ProductUpdatedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(productUpdatedEventConsumerFactory());
+        factory.setConsumerFactory(productUpdatedEventConsumerFactory);
         factory.setConcurrency(1);
 
         return factory;

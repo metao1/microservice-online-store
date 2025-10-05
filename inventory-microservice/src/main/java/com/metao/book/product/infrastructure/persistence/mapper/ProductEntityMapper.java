@@ -2,12 +2,6 @@ package com.metao.book.product.infrastructure.persistence.mapper;
 
 import com.metao.book.product.domain.model.aggregate.Product;
 import com.metao.book.product.domain.model.entity.ProductCategory;
-import com.metao.book.product.domain.model.valueobject.ImageUrl;
-import com.metao.book.product.domain.model.valueobject.ProductDescription;
-import com.metao.book.product.domain.model.valueobject.ProductSku;
-import com.metao.book.product.domain.model.valueobject.ProductTitle;
-import com.metao.book.product.domain.model.valueobject.ProductVolume;
-import com.metao.book.product.infrastructure.persistence.entity.CategoryEntity;
 import com.metao.book.product.infrastructure.persistence.entity.ProductEntity;
 import com.metao.book.shared.domain.financial.Money;
 import java.util.Set;
@@ -29,22 +23,20 @@ public class ProductEntityMapper {
      */
     public ProductEntity toEntity(Product product) {
         ProductEntity entity = new ProductEntity(
-            product.getId().value(),
-            product.getTitle().value(),
-            product.getDescription().value(),
-            product.getVolume().value(),
+            product.getId(),
+            product.getTitle(),
+            product.getDescription(),
+            product.getVolume(),
             new Money(product.getPrice().currency(),product.getPrice().doubleAmount()),
-            product.getImageUrl().value()
+            product.getImageUrl(),
+            product.getCreatedTime(),
+            product.getUpdatedTime()
         );
 
-        entity.setCreatedTime(product.getCreatedTime());
-        entity.setUpdateTime(product.getUpdatedTime());
-
         // Map categories
-        Set<CategoryEntity> categoryEntities = product.getCategories().stream()
+        product.getCategories().stream()
             .map(categoryEntityMapper::toEntity)
-            .collect(Collectors.toSet());
-        entity.setCategories(categoryEntities);
+            .forEach(entity::addCategory);
 
         return entity;
     }
@@ -53,12 +45,6 @@ public class ProductEntityMapper {
      * Convert ProductEntity to domain Product
      */
     public Product toDomain(ProductEntity entity) {
-        ProductSku productSku = ProductSku.of(entity.getSku());
-        ProductTitle title = ProductTitle.of(entity.getTitle());
-        ProductDescription description = ProductDescription.of(entity.getDescription());
-        ProductVolume volume = ProductVolume.of(entity.getVolume());
-        Money price = new Money(entity.getPriceCurrency(), entity.getPriceValue());
-        ImageUrl imageUrl = ImageUrl.of(entity.getImageUrl());
 
         // Map categories
         Set<ProductCategory> categories = entity.getCategories().stream()
@@ -66,12 +52,12 @@ public class ProductEntityMapper {
             .collect(Collectors.toSet());
 
         return Product.reconstruct(
-            productSku,
-            title,
-            description,
-            volume,
-            price,
-            imageUrl,
+            entity.getSku(),
+            entity.getTitle(),
+            entity.getDescription(),
+            entity.getVolume(),
+            new Money(entity.getPrice().currency(), entity.getPrice().doubleAmount()),
+            entity.getImageUrl(),
             entity.getCreatedTime(),
             entity.getUpdateTime(),
             categories

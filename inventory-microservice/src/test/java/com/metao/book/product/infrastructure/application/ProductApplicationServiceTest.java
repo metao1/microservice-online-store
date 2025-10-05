@@ -11,11 +11,15 @@ import static org.mockito.Mockito.when;
 
 import com.metao.book.product.application.dto.CreateProductCommand;
 import com.metao.book.product.application.dto.CreateProductDto;
+import com.metao.book.product.application.dto.UpdateProductCommand;
 import com.metao.book.product.application.mapper.ProductApplicationMapper;
 import com.metao.book.product.application.service.ProductApplicationService;
 import com.metao.book.product.domain.exception.ProductNotFoundException;
+import com.metao.book.product.domain.model.aggregate.Product;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
+import com.metao.book.product.domain.model.valueobject.ProductDescription;
 import com.metao.book.product.domain.model.valueobject.ProductSku;
+import com.metao.book.product.domain.model.valueobject.ProductTitle;
 import com.metao.book.product.domain.repository.CategoryRepository;
 import com.metao.book.product.domain.repository.ProductRepository;
 import com.metao.book.product.domain.service.ProductDomainService;
@@ -23,6 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -120,7 +125,56 @@ class ProductApplicationServiceTest {
         );
 
         // THEN
-        verify(productRepository, never()).save(any(com.metao.book.product.domain.model.aggregate.Product.class));
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
+    void updateProduct_whenProductExists_shouldUpdateProduct() {
+        // GIVEN
+        CreateProductDto originalProductDto = ProductDtoGeneratorUtils.buildOneProduct();
+        var existingProduct = ProductApplicationMapper.toDomain(originalProductDto);
+        when(productRepository.findBySku(ProductSku.of(SKU))).thenReturn(Optional.of(existingProduct));
+
+        CreateProductDto updatedProductDto = ProductDtoGeneratorUtils.buildOneProduct(
+            SKU,
+            "updated title",
+            "updated description",
+            CATEGORY
+        );
+
+        // WHEN
+        productService.updateProduct(updateProductCommand(updatedProductDto));
+
+        // THEN
+        ArgumentCaptor<Product> productCaptor = ArgumentCaptor.forClass(Product.class);
+        verify(productRepository).save(productCaptor.capture());
+        Product savedProduct = productCaptor.getValue();
+
+        assertThat(savedProduct.getId())
+            .isSameAs(existingProduct.getId());
+
+        assertThat(savedProduct.getTitle())
+            .isEqualTo(ProductTitle.of("updated title"));
+
+        assertThat(savedProduct.getDescription())
+            .isEqualTo(ProductDescription.of("updated description"));
+
+        // This part of your test was already correct!
+        assertThat(savedProduct.getCategories())
+            .hasSize(1)
+            .first()
+            .satisfies(category -> assertThat(category.getName().value()).isEqualTo(CATEGORY));
+
+    }
+
+    private UpdateProductCommand updateProductCommand(CreateProductDto dto) {
+        return new UpdateProductCommand(
+            dto.sku(),
+            dto.title(),
+            dto.description(),
+            dto.price(),
+            dto.currency()
+        );
     }
 
     private CreateProductCommand createProductCommand(CreateProductDto dto) {

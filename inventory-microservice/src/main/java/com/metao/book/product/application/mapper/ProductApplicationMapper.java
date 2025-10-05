@@ -4,7 +4,6 @@ import com.metao.book.product.application.dto.CreateProductDto;
 import com.metao.book.product.application.dto.ProductDTO;
 import com.metao.book.product.domain.model.aggregate.Product;
 import com.metao.book.product.domain.model.entity.ProductCategory;
-import com.metao.book.product.domain.model.valueobject.CategoryId;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.product.domain.model.valueobject.ImageUrl;
 import com.metao.book.product.domain.model.valueobject.ProductDescription;
@@ -54,7 +53,7 @@ public class ProductApplicationMapper {
             LocalDateTime.now(),
             createProductDto.categories().stream()
                 .map(CategoryName::of)
-                .map(category -> ProductCategory.of(CategoryId.of(System.currentTimeMillis()), category))
+                .map(ProductCategory::of)
                 .collect(Collectors.toSet())
         );
     }

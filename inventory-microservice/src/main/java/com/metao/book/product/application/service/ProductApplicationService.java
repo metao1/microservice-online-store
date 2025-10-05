@@ -5,7 +5,6 @@ import com.metao.book.product.application.dto.UpdateProductCommand;
 import com.metao.book.product.domain.exception.ProductNotFoundException;
 import com.metao.book.product.domain.model.aggregate.Product;
 import com.metao.book.product.domain.model.entity.ProductCategory;
-import com.metao.book.product.domain.model.valueobject.CategoryId;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.product.domain.model.valueobject.ImageUrl;
 import com.metao.book.product.domain.model.valueobject.ProductDescription;
@@ -67,10 +66,7 @@ public class ProductApplicationService {
 
                 // Ensure category exists
                 ProductCategory category = categoryRepository.findByName(catName)
-                    .orElseGet(() -> ProductCategory.of(
-                        CategoryId.of(System.currentTimeMillis()), // Simple ID generation
-                        catName
-                    ));
+                    .orElseGet(() -> ProductCategory.of(catName));
                 product.addCategory(category);
             }
         }
@@ -78,14 +74,11 @@ public class ProductApplicationService {
         productRepository.save(product);
     }
 
+    //TODO return DTO instead decouple controller's from internal aggregate logic
     /**
      * Update an existing product
      */
-    public Product updateProduct(UpdateProductCommand command) {
-        if (command == null || command.sku() == null) {
-            throw new IllegalArgumentException("Update command and SKU must not be null");
-        }
-
+    public Product updateProduct(@Valid UpdateProductCommand command) {
         log.info("Updating product with SKU: {}", command.sku());
 
         ProductSku productSku = ProductSku.of(command.sku());

@@ -31,7 +31,7 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public Optional<Product> findBySku(ProductSku productSku) {
-        return jpaProductRepository.findBySku(productSku)
+        return jpaProductRepository.findBySkuForUpdate(productSku)
             .map(productEntityMapper::toDomain);
     }
 
