@@ -2,29 +2,23 @@ package com.metao.kafka;
 
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.availability.AvailabilityChangeEvent;
-import org.springframework.boot.availability.ReadinessState;
-import org.springframework.context.event.EventListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class KafkaEventHandler {
 
-    private final Map<Class<?>, KafkaFactory<?>> kafkaFactoryMap;
+    private final Map<String, KafkaTemplate<?, Object>> kafkaFactoryMap;
 
-    @EventListener
-    public void run(AvailabilityChangeEvent<ReadinessState> event) {
-        if (event.getState().equals(ReadinessState.ACCEPTING_TRAFFIC)) {
-            kafkaFactoryMap.forEach((c, f) -> f.subscribe());
-        }
-    }
-
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public <V> String send(String key, V e) {
-        KafkaFactory<V> kafkaFactory = (KafkaFactory<V>) kafkaFactoryMap.get(e.getClass());
-        kafkaFactory.addEvent(key, e);
-        kafkaFactory.publish();
+        KafkaTemplate kafkaTemplate = kafkaFactoryMap.get(e.getClass().getName());
+
+        if (kafkaTemplate == null) {
+            throw new IllegalArgumentException("No KafkaTemplate configured for type: " + e.getClass().getName());
+        }
+        kafkaTemplate.sendDefault(key, e);
         return key;
     }
 }

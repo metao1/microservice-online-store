@@ -10,7 +10,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.metao.book.shared.OrderCreatedEvent;
 import com.metao.kafka.KafkaEventConfiguration;
 import com.metao.kafka.KafkaEventHandler;
-import com.metao.kafka.KafkaFactory;
 import com.metao.shared.test.KafkaContainer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -36,7 +35,7 @@ class KafkaFactoryIT extends KafkaContainer {
     private final CountDownLatch latch = new CountDownLatch(10);
 
     @Autowired
-    KafkaFactory<OrderCreatedEvent> kafkaFactory;
+    KafkaEventHandler kafkaEventHandler;
 
     @RetryableTopic
     @KafkaListener(id = "order-listener-test",
@@ -60,14 +59,9 @@ class KafkaFactoryIT extends KafkaContainer {
     @Disabled("Flaky integration test - depends on Kafka timing in CI environments")
     @DisplayName("When sending Kafka multiple messages then all messages sent successfully")
     void testWhenSendingMultipleKafkaMessagesThenSentSuccessfully() {
-        var kafkaFactory = (KafkaFactory<OrderCreatedEvent>)
-            kafkaFactoryMap.get(OrderCreatedEvent.class);
 
         IntStream.range(0, 10).boxed()
-            .forEach(i -> kafkaFactory.addEvent("order-created", getCreatedEvent()));
-
-        kafkaFactory.subscribe();
-        kafkaFactory.publish();
+            .forEach(i -> kafkaEventHandler.send(String.valueOf(i), getCreatedEvent()));
 
         // Wait for messages to be processed with multiple attempts
         boolean completed = false;
