@@ -7,7 +7,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -22,9 +21,6 @@ public class OrderGenerator {
     private final KafkaEventHandler eventHandler;
     private final AtomicInteger atomicInteger = new AtomicInteger(1);
     private final Queue<String> products = new LinkedBlockingQueue<>();
-
-    @Value("${kafka.topic.order-created.name}")
-    private String orderTopic;
 
     @Scheduled(fixedDelay = 30000, initialDelay = 10000)
     public void commandLineRunner() {

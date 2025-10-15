@@ -16,9 +16,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
+@EqualsAndHashCode(of = {"id"})
 public class OrderAggregate {
 
     private final OrderId id;

@@ -9,8 +9,6 @@ import java.util.concurrent.CountDownLatch;
 import lombok.SneakyThrows;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -19,12 +17,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
 @ActiveProfiles("test")
-@TestInstance(Lifecycle.PER_CLASS)
 @TestPropertySource(properties = "kafka.enabled=true")
-@SpringBootTest(webEnvironment = WebEnvironment.NONE,
-    classes = {KafkaEventConfiguration.class, KafkaEventHandler.class}
-)
-public class KafkaIntegrationIT extends KafkaContainer {
+@SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = {
+    KafkaEventHandler.class, KafkaEventConfiguration.class
+})
+class KafkaIntegrationIT extends KafkaContainer {
 
     private final CountDownLatch latch = new CountDownLatch(1);
 

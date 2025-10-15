@@ -10,7 +10,7 @@ import com.metao.book.payment.application.service.PaymentApplicationService;
 import com.metao.book.shared.OrderCreatedEvent;
 import com.metao.book.shared.OrderPaymentEvent;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Currency;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,7 +59,7 @@ class PaymentProcessingServiceTest {
             .status("SUCCESSFUL")
             .isSuccessful(true)
             .isCompleted(true)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
         when(paymentApplicationService.processOrderCreatedEvent(
@@ -99,7 +99,7 @@ class PaymentProcessingServiceTest {
             .failureReason("Insufficient funds")
             .isSuccessful(false)
             .isCompleted(true)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
         when(paymentApplicationService.processOrderCreatedEvent(

@@ -20,10 +20,13 @@ public class OrderCreatedEventListener {
 
     private final KafkaEventHandler eventHandler;
 
-    @KafkaListener(topics = "${kafka.topic.order-created.name}", groupId = "${spring.kafka.consumer.group-id}")
+    @KafkaListener(
+        id = "${kafka.topic.order-created.id}",
+        topics = "${kafka.topic.order-created.name}",
+        groupId = "${kafka.topic.order-created.group-id}"
+    )
     public void handleOrderCreatedEvent(OrderCreatedEvent orderEvent) {
         log.info("Received OrderCreatedEvent for order item: {}, product: {}", orderEvent.getId(), orderEvent.getProductId());
-        
         try {
             OrderPaymentEvent orderPaymentEvent = paymentProcessingService.processPayment(orderEvent);
             // Key for payment event could be orderId (which is orderEvent.getId()) or paymentId

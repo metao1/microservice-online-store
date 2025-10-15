@@ -18,9 +18,12 @@ public class PaymentEventListener {
     private final OrderApplicationService orderApplicationService;
 
     @Transactional
-    @KafkaListener(topics = "${kafka.topic.order-payment.name}", 
-                   groupId = "order-service-payment-group", 
-                   containerFactory = "orderPaymentEventKafkaListenerContainerFactory")
+    @KafkaListener(
+        id = "${kafka.topic.order-payment.id}",
+        topics = "${kafka.topic.order-payment.name}",
+        groupId = "${kafka.topic.order-payment.group-id}",
+        containerFactory = "orderPaymentEventKafkaListenerContainerFactory"
+    )
     public void handlePaymentEvent(OrderPaymentEvent paymentEvent) {
         log.info("Received OrderPaymentEvent for order ID: {}, status: {}",
                  paymentEvent.getOrderId(), paymentEvent.getStatus());

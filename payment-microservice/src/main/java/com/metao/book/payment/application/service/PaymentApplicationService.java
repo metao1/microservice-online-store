@@ -14,6 +14,7 @@ import com.metao.book.payment.domain.service.PaymentDomainService;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.kafka.KafkaEventHandler;
 import java.math.BigDecimal;
+import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +44,7 @@ public class PaymentApplicationService {
 
         // Use domain service to create payment with business rules
         OrderId orderId = OrderId.of(command.orderId());
-        Money amount = new Money(command.currency(), command.amount());
+        Money amount = new Money(Currency.getInstance(command.currency()), command.amount());
         PaymentMethod paymentMethod = createPaymentMethod(command);
 
         // Validate payment method for amount
@@ -164,7 +165,7 @@ public class PaymentApplicationService {
         CreatePaymentCommand command = new CreatePaymentCommand(
             orderId,
             amount,
-            java.util.Currency.getInstance(currency),
+            currency,
             PaymentMethod.Type.CREDIT_CARD,
             "****-****-****-1234"
         );

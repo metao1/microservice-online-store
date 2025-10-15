@@ -11,6 +11,8 @@ import com.metao.book.payment.domain.model.valueobject.PaymentMethod;
 import com.metao.book.payment.domain.model.valueobject.PaymentStatus;
 import com.metao.book.shared.domain.financial.Money;
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Currency;
 import org.junit.jupiter.api.Test;
 
@@ -158,8 +160,8 @@ class PaymentTest {
         PaymentMethod paymentMethod = PaymentMethod.paypal("test@example.com");
         PaymentStatus status = PaymentStatus.SUCCESSFUL;
         String failureReason = null;
-        var processedAt = java.time.LocalDateTime.now();
-        var createdAt = java.time.LocalDateTime.now().minusMinutes(5);
+        var processedAt = Instant.now();
+        var createdAt = processedAt.minus(5, ChronoUnit.MINUTES);
 
         // When
         Payment payment = Payment.reconstruct(

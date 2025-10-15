@@ -69,6 +69,7 @@ protobuf {
 }
 
 tasks.named('build') {
+  dependsOn ':shared-kernel:generateProto'
   dependsOn ':shared-kernel:publishAllPublicationsToLocalRepository'
   dependsOn ':shared-test:publishAllPublicationsToLocalRepository'
   dependsOn 'generateProto'

@@ -29,11 +29,13 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @ActiveProfiles("test")
-class OrderIntegrationContainer extends KafkaContainer {
+@TestPropertySource(properties = "kafka.enabled=true")
+class OrderIntegrationContainerIT extends KafkaContainer {
 
     @Autowired
     private OrderApplicationService orderService;

@@ -22,7 +22,7 @@ import com.metao.book.payment.domain.service.PaymentDomainService;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.kafka.KafkaEventHandler;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
@@ -68,7 +68,7 @@ class PaymentApplicationServiceTest {
         CreatePaymentCommand command = new CreatePaymentCommand(
             "order-123",
             BigDecimal.valueOf(100.00),
-            Currency.getInstance("USD"),
+            "USD",
             PaymentMethod.Type.CREDIT_CARD,
             "****-1234"
         );
@@ -97,7 +97,7 @@ class PaymentApplicationServiceTest {
         CreatePaymentCommand command = new CreatePaymentCommand(
             "order-123",
             BigDecimal.valueOf(100.00),
-            Currency.getInstance("USD"),
+            "USD",
             PaymentMethod.Type.CREDIT_CARD,
             "****-1234"
         );
@@ -255,7 +255,7 @@ class PaymentApplicationServiceTest {
             .status("SUCCESSFUL")
             .isSuccessful(true)
             .isCompleted(true)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
     }
 }

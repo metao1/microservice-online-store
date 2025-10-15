@@ -1,19 +1,13 @@
 package com.metao.book.payment.presentation;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.anyOf;
-
-import com.metao.book.payment.domain.model.valueobject.PaymentMethod;
 
 import com.metao.shared.test.KafkaContainer;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import java.math.BigDecimal;
-import java.util.Currency;
-import java.util.HashMap;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,25 +25,27 @@ class PaymentControllerIT extends KafkaContainer {
     @BeforeEach
     void setUp() {
         RestAssured.port = port;
-        RestAssured.basePath = "/payments";
     }
 
     @Test
     void shouldCreatePaymentSuccessfully() {
         // Given
-        Map<String, Object> createPaymentRequest = new HashMap<>();
-        createPaymentRequest.put("orderId", "order-123");
-        createPaymentRequest.put("amount", BigDecimal.valueOf(100.00));
-        createPaymentRequest.put("currency", Currency.getInstance("USD"));
-        createPaymentRequest.put("paymentMethodType", PaymentMethod.Type.CREDIT_CARD);
-        createPaymentRequest.put("paymentMethodDetails", "****-1234");
+        var requestBody = """
+        {
+            "orderId": "order-123",
+            "amount": 100.00,
+            "currency": "USD",
+            "paymentMethodType": "PAYPAL",
+            "paymentMethodDetails": "****-5678"
+        }
+        """;
 
         // When & Then
         given()
             .contentType(ContentType.JSON)
-            .body(createPaymentRequest)
+            .body(requestBody)
             .when()
-            .post()
+            .post("/payments")
             .then()
             .statusCode(HttpStatus.CREATED.value())
             .body("paymentId", notNullValue())
@@ -62,20 +58,24 @@ class PaymentControllerIT extends KafkaContainer {
     @Test
     void shouldProcessPaymentSuccessfully() {
         // Given - First create a payment
-        Map<String, Object> createPaymentRequest = new HashMap<>();
-        createPaymentRequest.put("orderId", "order-456");
-        createPaymentRequest.put("amount", BigDecimal.valueOf(200.00));
-        createPaymentRequest.put("currency", Currency.getInstance("USD"));
-        createPaymentRequest.put("paymentMethodType", PaymentMethod.Type.CREDIT_CARD);
-        createPaymentRequest.put("paymentMethodDetails", "****-5678");
+        var requestBody = """
+        {
+            "orderId": "order-456",
+            "amount": 100.00,
+            "currency": "USD",
+            "paymentMethodType": "PAYPAL",
+            "paymentMethodDetails": "****-5678"
+        }
+        """;
 
         String paymentId = given()
             .contentType(ContentType.JSON)
-            .body(createPaymentRequest)
+            .body(requestBody)
         .when()
-            .post()
+            .post("/payments")
         .then()
             .statusCode(HttpStatus.CREATED.value())
+            .body("orderId", equalTo("order-456"))
             .extract()
             .path("paymentId");
 
@@ -83,7 +83,7 @@ class PaymentControllerIT extends KafkaContainer {
         String processedStatus = given()
             .contentType(ContentType.JSON)
         .when()
-            .post("/{paymentId}/process", paymentId)
+            .post("/payments/{paymentId}/process", paymentId)
         .then()
             .statusCode(HttpStatus.OK.value())
             .body("paymentId", equalTo(paymentId))
@@ -95,7 +95,7 @@ class PaymentControllerIT extends KafkaContainer {
         given()
             .contentType(ContentType.JSON)
         .when()
-            .get("/{paymentId}", paymentId)
+            .get("/payments/{paymentId}", paymentId)
         .then()
             .statusCode(HttpStatus.OK.value())
             .body("paymentId", equalTo(paymentId))
