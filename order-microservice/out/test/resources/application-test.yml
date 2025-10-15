@@ -1,0 +1,45 @@
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:11.1:///integration-tests-db
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+  kafka:
+    properties:
+      security.protocol: PLAINTEXT
+      sasl.mechanism: PLAIN
+      schema.registry.url: mock://not-used
+
+kafka:
+  enabled: true
+  topic:
+    order-created:
+      id: "order-created-id"
+      name: "order-created"
+      group-id: "order-created-group"
+      class-path: "com.metao.book.shared.OrderCreatedEvent"
+    order-updated:
+      id: "order-updated-id"
+      name: "order-updated"
+      group-id: "order-updated-group"
+      class-path: "com.metao.book.shared.OrderUpdatedEvent"
+    order-payment:
+      id: "order-payment-id"
+      name: "order-payment"
+      group-id: "order-payment-group"
+      class-path: "com.metao.book.shared.OrderPaymentEvent"
+logging:
+  pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%t]){yellow} %clr([%c{1.}]){green} %clr(:){red} %clr(%m){faint}%n"
+  level:
+    org.springframework: ERROR
+    org.springframework.data: ERROR
+    org.springframework.boot: ERROR
+    org.springframework.context: ERROR
+    com.zaxxer.hikari: ERROR
+    org.testcontainers: ERROR
+    org.apache: ERROR
+    io.confluent: ERROR
+    org.flywaydb: DEBUG
+    org.postgresql: ERROR
+    org.apache.kafka: ERROR
+    com.metao.book: ERROR
+    org.hibernate: ERROR
+    io.grpc: ERROR

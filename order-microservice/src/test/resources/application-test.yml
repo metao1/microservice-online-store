@@ -7,25 +7,6 @@ spring:
       security.protocol: PLAINTEXT
       sasl.mechanism: PLAIN
       schema.registry.url: mock://not-used
-
-kafka:
-  enabled: true
-  topic:
-    order-created:
-      id: "order-created-id"
-      name: "order-created"
-      group-id: "order-created-group"
-      class-path: "com.metao.book.shared.OrderCreatedEvent"
-    order-updated:
-      id: "order-updated-id"
-      name: "order-updated"
-      group-id: "order-updated-group"
-      class-path: "com.metao.book.shared.OrderUpdatedEvent"
-    order-payment:
-      id: "order-payment-id"
-      name: "order-payment"
-      group-id: "order-payment-group"
-      class-path: "com.metao.book.shared.OrderPaymentEvent"
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%t]){yellow} %clr([%c{1.}]){green} %clr(:){red} %clr(%m){faint}%n"
   level:

@@ -4,7 +4,6 @@ import com.metao.book.payment.application.dto.CreatePaymentCommand;
 import com.metao.book.payment.application.dto.PaymentDTO;
 import com.metao.book.payment.application.service.PaymentApplicationService;
 import com.metao.book.payment.domain.service.PaymentDomainService;
-import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +34,7 @@ public class PaymentController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public PaymentDTO createPayment(@Valid @RequestBody CreatePaymentCommand command) {
+    public PaymentDTO createPayment(@RequestBody CreatePaymentCommand command) {
         log.info("Creating payment for order: {}", command.orderId());
         return paymentApplicationService.createPayment(command);
     }

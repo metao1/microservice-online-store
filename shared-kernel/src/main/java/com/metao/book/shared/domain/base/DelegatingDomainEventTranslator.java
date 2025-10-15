@@ -9,8 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class DelegatingDomainEventTranslator {
 
-    private final Map<Class<? extends DomainEvent>, ProtobufDomainTranslator<?>> translatorMap = new HashMap<>();
-
+    private final Map<Class<?>, ProtobufDomainTranslator<?>> translatorMap = new HashMap<>();
     public DelegatingDomainEventTranslator(List<ProtobufDomainTranslator<?>> translators) {
         translators.forEach(translator -> translatorMap.put(translator.supports(), translator));
     }

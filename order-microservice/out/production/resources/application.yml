@@ -1,0 +1,86 @@
+server:
+  error:
+    include-message: always
+    include-binding-errors: always
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: order-microservice
+  kafka:
+    bootstrap-servers: ${BOOTSTRAP_SERVERS}
+    # Required connection configs for Confluent Cloud Schema Registry
+    properties:
+      schema.registry.url: ${SCHEMA_REGISTRY_URL}
+      security.protocol: ${SECURITY_PROTOCOL}
+      sasl.mechanism: ${SASL_MECHANISM}
+    consumer:
+      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      isolation-level: read_committed
+      auto-offset-reset: none
+      enable-auto-commit: false
+      properties:
+        session.timeout.ms: 30000
+        max.poll.interval.ms: 300
+        heartbeat.interval.ms: 1000
+        auto.offset.reset: earliest
+        allow.auto.create.topics: "false"
+        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+        spring.deserializer.value.delegate.class: io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer
+      properties:
+        enable.idempotence: true
+  output.ansi.enabled: ALWAYS
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USER}
+    password: ${DATABASE_PASSWORD}
+    hikari:
+      auto-commit: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 0
+    outOfOrder: false
+    locations: classpath:migration
+    clean-disabled: true
+  jpa:
+    database: POSTGRESQL
+    generate-ddl: false
+    show-sql: true
+    properties:
+      open-in-view: false
+      hibernate:
+        connection:
+          provider_disables_autocommit: true
+        temp:
+          use_jdbc_metadata_defaults: false
+
+kafka:
+  enabled: ${KAFKA_ENABLED:true}
+  topic:
+    order-created:
+      id: "order-created-id"
+      name: "order-created"
+      group-id: "order-created-group"
+      class-path: "com.metao.book.shared.OrderCreatedEvent"
+    order-updated:
+      id: "order-updated-id"
+      name: "order-updated"
+      group-id: "order-updated-group"
+      class-path: "com.metao.book.shared.OrderUpdatedEvent"
+    order-payment:
+      id: "order-payment-id"
+      name: "order-payment"
+      group-id: "order-payment-group"
+      class-path: "com.metao.book.shared.OrderPaymentEvent"
+
+logging:
+  pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%t]){yellow} %clr(:){red} %clr(%m){faint}%n"
+  level:
+    org.springframework.data: INFO
+    org.springframework.boot.autoconfigure: ERROR
+    org.hibernate: INFO

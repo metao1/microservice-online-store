@@ -6,15 +6,16 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.notNullValue;
 
 import com.google.protobuf.Timestamp;
 import com.metao.book.order.application.cart.ShoppingCart;
 import com.metao.book.order.application.cart.ShoppingCartRepository;
 import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.model.valueobject.CustomerId;
+import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.domain.repository.OrderRepository;
 import com.metao.book.order.infrastructure.persistence.repository.JpaOrderRepository;
@@ -31,9 +32,7 @@ import java.time.Instant;
 import java.util.Currency;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -42,9 +41,11 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.wiremock.spring.ConfigureWireMock;
 import org.wiremock.spring.EnableWireMock;
 
@@ -52,6 +53,8 @@ import org.wiremock.spring.EnableWireMock;
 @DirtiesContext
 @ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@TestPropertySource(properties = "kafka.enabled=true")
+@Import(KafkaEventHandler.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableWireMock({@ConfigureWireMock(port = 8083, name = "inventory-microservice")})
 class E2EProductPurchaseContainerIT extends KafkaContainer {
@@ -143,28 +146,29 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
         CreateOrderRequest createOrderRequest = new CreateOrderRequest();
         createOrderRequest.setCustomerId(userId);
 
-        given()
+        OrderId orderId = given()
             .contentType(ContentType.JSON)
             .body(createOrderRequest)
             .when()
             .post("/api/orders")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("$", notNullValue());
+            .extract()
+            .as(OrderId.class);
 
         // Verify cart is cleared
         assertThat(shoppingCartRepository.findByUserId(userId)).isEmpty();
 
         // Wait a bit for the order to be created
-        try {
-            TimeUnit.SECONDS.sleep(1);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        await().atMost(Duration.ofSeconds(10)).pollInterval(Duration.ofMillis(500)).untilAsserted(
+            () -> {
+                var expectedOrders = List.of(new OrderAggregate(orderId, new CustomerId(userId)));
+                assertThat(expectedOrders).isEqualTo(orderRepository.findByCustomerId(new CustomerId(userId)));
+            }
+        );
 
         // Simulate payment event (since payment microservice is not running in this test)
-        List<OrderAggregate> createdOrders = orderRepository.findByCustomerId(
-            new CustomerId(userId));
+        var createdOrders = orderRepository.findByCustomerId(new CustomerId(userId));
         if (!createdOrders.isEmpty()) {
             OrderAggregate order = createdOrders.getFirst();
             OrderPaymentEvent paymentEvent = OrderPaymentEvent.newBuilder()
@@ -177,9 +181,8 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
         }
 
         // Verify order is created and confirmed (due to mock payment in Kafka listener)
-        Awaitility.await().atMost(Duration.ofSeconds(10)).pollInterval(Duration.ofMillis(500)).untilAsserted(() -> {
-            List<OrderAggregate> orders = orderRepository.findByCustomerId(
-                new CustomerId(userId));
+        await().atMost(Duration.ofSeconds(20)).pollInterval(Duration.ofMillis(500)).untilAsserted(() -> {
+            List<OrderAggregate> orders = orderRepository.findByCustomerId(new CustomerId(userId));
             assertThat(orders).hasSize(1);
             OrderAggregate order = orders.getFirst();
             assertThat(order.getCustomerId().getValue()).isEqualTo(userId);
@@ -189,4 +192,5 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
             assertThat(order.getTotal().fixedPointAmount()).isEqualByComparingTo(price1);
         });
     }
+
 }

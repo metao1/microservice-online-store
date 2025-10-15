@@ -18,6 +18,7 @@ public class ObjectMapperAutoConfiguration {
     @ConditionalOnMissingBean
     public ObjectMapper provideObjectMapper() {
         return new ObjectMapper()
+            .findAndRegisterModules()
             .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
             .enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING)
             .enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING)

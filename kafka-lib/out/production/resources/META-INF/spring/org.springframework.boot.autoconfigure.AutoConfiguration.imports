@@ -1,3 +1,2 @@
-com.metao.kafka.KafkaEventHandlerAutoConfiguration
 com.metao.kafka.KafkaEventConfiguration
 com.metao.kafka.KafkaEventHandler

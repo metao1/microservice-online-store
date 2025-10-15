@@ -8,7 +8,7 @@ import com.metao.book.payment.domain.model.valueobject.PaymentMethod;
 import com.metao.book.payment.domain.model.valueobject.PaymentStatus;
 import com.metao.book.shared.domain.base.AggregateRoot;
 import com.metao.book.shared.domain.financial.Money;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Objects;
 import lombok.Getter;
 import lombok.NonNull;
@@ -24,8 +24,8 @@ public class Payment extends AggregateRoot<PaymentId> {
     private PaymentMethod paymentMethod;
     private PaymentStatus status;
     private String failureReason;
-    private LocalDateTime processedAt;
-    private LocalDateTime createdAt;
+    private Instant processedAt;
+    private Instant createdAt;
 
     // For reconstruction from persistence
     protected Payment() {
@@ -44,7 +44,7 @@ public class Payment extends AggregateRoot<PaymentId> {
         this.amount = amount;
         this.paymentMethod = paymentMethod;
         this.status = PaymentStatus.PENDING;
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = Instant.now();
     }
 
     /**
@@ -57,8 +57,8 @@ public class Payment extends AggregateRoot<PaymentId> {
         PaymentMethod paymentMethod,
         PaymentStatus status,
         String failureReason,
-        LocalDateTime processedAt,
-        LocalDateTime createdAt
+        Instant processedAt,
+        Instant createdAt
     ) {
         Payment payment = new Payment();
         payment.setId(paymentId);
@@ -99,7 +99,7 @@ public class Payment extends AggregateRoot<PaymentId> {
      */
     private void markAsSuccessful() {
         this.status = PaymentStatus.SUCCESSFUL;
-        this.processedAt = LocalDateTime.now();
+        this.processedAt = Instant.now();
         this.failureReason = null;
 
         // Raise domain event
@@ -116,7 +116,7 @@ public class Payment extends AggregateRoot<PaymentId> {
      */
     private void markAsFailed(String reason) {
         this.status = PaymentStatus.FAILED;
-        this.processedAt = LocalDateTime.now();
+        this.processedAt = Instant.now();
         this.failureReason = reason;
 
         // Raise domain event
@@ -153,7 +153,7 @@ public class Payment extends AggregateRoot<PaymentId> {
         }
 
         this.status = PaymentStatus.CANCELLED;
-        this.processedAt = LocalDateTime.now();
+        this.processedAt = Instant.now();
     }
 
     /**

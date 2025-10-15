@@ -8,7 +8,6 @@ import static com.metao.book.order.OrderTestConstant.QUANTITY;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.metao.book.shared.OrderCreatedEvent;
-import com.metao.kafka.KafkaEventConfiguration;
 import com.metao.kafka.KafkaEventHandler;
 import com.metao.shared.test.KafkaContainer;
 import java.util.concurrent.CountDownLatch;
@@ -17,7 +16,6 @@ import java.util.stream.IntStream;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +25,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
 
 @Slf4j
-@SpringBootTest(webEnvironment = WebEnvironment.NONE,
-    classes = {KafkaEventConfiguration.class, KafkaEventHandler.class}
-)
+@SpringBootTest(webEnvironment = WebEnvironment.NONE)
 class KafkaFactoryIT extends KafkaContainer {
 
     private final CountDownLatch latch = new CountDownLatch(10);
@@ -37,26 +33,8 @@ class KafkaFactoryIT extends KafkaContainer {
     @Autowired
     KafkaEventHandler kafkaEventHandler;
 
-    @RetryableTopic
-    @KafkaListener(id = "order-listener-test",
-        topics = "order-created",
-        containerFactory = "orderCreatedEventKafkaListenerContainerFactory")
-    public void onEvent(ConsumerRecord<String, OrderCreatedEvent> consumerRecord) {
-        log.info("Consumed message -> {}", consumerRecord.offset());
-        latch.countDown();
-    }
-
-    private static OrderCreatedEvent getCreatedEvent() {
-        return OrderCreatedEvent.newBuilder()
-            .setCustomerId(CUSTOMER_ID).setProductId(PRODUCT_ID)
-            .setCurrency(EUR.toString())
-            .setStatus(OrderCreatedEvent.Status.NEW).setPrice(PRICE.doubleValue())
-                .setQuantity(QUANTITY.doubleValue()).build();
-    }
-
     @Test
     @SneakyThrows
-    @Disabled("Flaky integration test - depends on Kafka timing in CI environments")
     @DisplayName("When sending Kafka multiple messages then all messages sent successfully")
     void testWhenSendingMultipleKafkaMessagesThenSentSuccessfully() {
 
@@ -77,5 +55,22 @@ class KafkaFactoryIT extends KafkaContainer {
         assertThat(latch.getCount()).describedAs("Expected all messages to be processed, but %d remain",
                 latch.getCount())
             .isLessThanOrEqualTo(2); // Allow up to 2 messages to be unprocessed due to timing
+    }
+
+    @RetryableTopic
+    @KafkaListener(id = "order-listener-test",
+        topics = "order-created",
+        containerFactory = "orderCreatedEventKafkaListenerContainerFactory")
+    public void onEvent(ConsumerRecord<String, OrderCreatedEvent> consumerRecord) {
+        log.info("Consumed message -> {}", consumerRecord.offset());
+        latch.countDown();
+    }
+
+    private static OrderCreatedEvent getCreatedEvent() {
+        return OrderCreatedEvent.newBuilder()
+            .setCustomerId(CUSTOMER_ID).setProductId(PRODUCT_ID)
+            .setCurrency(EUR.toString())
+            .setStatus(OrderCreatedEvent.Status.NEW).setPrice(PRICE.doubleValue())
+            .setQuantity(QUANTITY.doubleValue()).build();
     }
 }

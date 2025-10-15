@@ -1,9 +1,8 @@
 package com.metao.book.order.application.service;
 
+import com.metao.book.order.infrastructure.messaging.DomainEventToKafkaEventHandler;
 import com.metao.book.order.application.cart.ShoppingCart;
 import com.metao.book.order.application.cart.ShoppingCartService;
-
-import com.metao.book.shared.domain.base.DomainEventPublisher;
 import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.model.valueobject.CustomerId;
 import com.metao.book.order.domain.model.valueobject.OrderId;
@@ -11,7 +10,6 @@ import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.domain.model.valueobject.ProductId;
 import com.metao.book.order.domain.model.valueobject.Quantity;
 import com.metao.book.order.domain.repository.OrderRepository;
-
 import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.domain.financial.Money;
 import java.util.List;
@@ -25,7 +23,7 @@ public class OrderApplicationService {
 
     public static final String ORDER_NOT_FOUND = "Order not found";
     private final OrderRepository orderRepository;
-    private final DomainEventPublisher eventPublisher;
+    private final DomainEventToKafkaEventHandler eventPublisher;
     private final ShoppingCartService shoppingCartService;
 
     @Transactional

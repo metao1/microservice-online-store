@@ -8,7 +8,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Currency;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -48,10 +48,10 @@ public class PaymentEntity extends AbstractEntity<PaymentId> {
     private String failureReason;
 
     @Column(name = "processed_at")
-    private LocalDateTime processedAt;
+    private Instant processedAt;
 
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     public PaymentEntity(
         String paymentId,
@@ -61,7 +61,7 @@ public class PaymentEntity extends AbstractEntity<PaymentId> {
         PaymentMethodType paymentMethodType,
         String paymentMethodDetails,
         PaymentStatusEntity status,
-        LocalDateTime createdAt
+        Instant createdAt
     ) {
         this.id = PaymentId.of(paymentId);
         this.orderId = orderId;

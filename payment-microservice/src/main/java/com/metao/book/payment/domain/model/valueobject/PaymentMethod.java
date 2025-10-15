@@ -1,5 +1,6 @@
 package com.metao.book.payment.domain.model.valueobject;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.metao.book.shared.domain.base.ValueObject;
 import lombok.Getter;
 import lombok.NonNull;
@@ -65,5 +66,9 @@ public record PaymentMethod(PaymentMethod.Type type,
             this.displayName = displayName;
         }
 
+        @JsonValue
+        public String getDisplayName() {
+            return displayName;
+        }
     }
 }

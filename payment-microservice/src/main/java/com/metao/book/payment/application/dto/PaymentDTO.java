@@ -2,7 +2,7 @@ package com.metao.book.payment.application.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Currency;
 import lombok.Builder;
 
@@ -36,10 +36,10 @@ public record PaymentDTO(
     String failureReason,
 
     @JsonProperty("processedAt")
-    LocalDateTime processedAt,
+    Instant processedAt,
 
     @JsonProperty("createdAt")
-    LocalDateTime createdAt,
+    Instant createdAt,
 
     @JsonProperty("isCompleted")
     boolean isCompleted,
