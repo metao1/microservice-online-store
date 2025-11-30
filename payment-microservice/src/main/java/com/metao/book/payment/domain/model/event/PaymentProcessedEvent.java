@@ -5,7 +5,7 @@ import com.metao.book.payment.domain.model.valueobject.PaymentId;
 import com.metao.book.payment.domain.model.valueobject.PaymentStatus;
 import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.domain.financial.Money;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
@@ -28,7 +28,7 @@ public class PaymentProcessedEvent extends DomainEvent {
         @NonNull Money amount,
         @NonNull PaymentStatus status
     ) {
-        super(LocalDateTime.now());
+        super(Instant.now());
         this.paymentId = paymentId;
         this.orderId = orderId;
         this.amount = amount;

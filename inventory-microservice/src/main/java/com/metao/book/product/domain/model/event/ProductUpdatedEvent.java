@@ -4,7 +4,7 @@ import com.metao.book.product.domain.model.valueobject.ProductSku;
 import com.metao.book.product.domain.model.valueobject.ProductTitle;
 import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.domain.financial.Money;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
@@ -26,9 +26,10 @@ public class ProductUpdatedEvent extends DomainEvent {
         @NonNull ProductSku productSku,
         @NonNull ProductTitle title,
         @NonNull Money oldPrice,
-        @NonNull Money newPrice
+        @NonNull Money newPrice,
+        @NonNull Instant occurredOn
     ) {
-        super(LocalDateTime.now());
+        super(occurredOn);
         this.productSku = productSku;
         this.title = title;
         this.oldPrice = oldPrice;

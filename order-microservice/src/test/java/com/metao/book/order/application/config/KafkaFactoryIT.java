@@ -8,7 +8,6 @@ import static com.metao.book.order.OrderTestConstant.QUANTITY;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.metao.book.shared.OrderCreatedEvent;
-import com.metao.kafka.KafkaEventHandler;
 import com.metao.shared.test.KafkaContainer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -23,6 +22,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
+import org.springframework.kafka.core.KafkaTemplate;
 
 @Slf4j
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)
@@ -31,7 +31,7 @@ class KafkaFactoryIT extends KafkaContainer {
     private final CountDownLatch latch = new CountDownLatch(10);
 
     @Autowired
-    KafkaEventHandler kafkaEventHandler;
+    KafkaTemplate<String, OrderCreatedEvent> kafkaEventHandler;
 
     @Test
     @SneakyThrows
@@ -39,7 +39,7 @@ class KafkaFactoryIT extends KafkaContainer {
     void testWhenSendingMultipleKafkaMessagesThenSentSuccessfully() {
 
         IntStream.range(0, 10).boxed()
-            .forEach(i -> kafkaEventHandler.send(String.valueOf(i), getCreatedEvent()));
+            .forEach(i -> kafkaEventHandler.send("order-created", String.valueOf(i), buildOrderCreatedEvent()));
 
         // Wait for messages to be processed with multiple attempts
         boolean completed = false;
@@ -66,7 +66,7 @@ class KafkaFactoryIT extends KafkaContainer {
         latch.countDown();
     }
 
-    private static OrderCreatedEvent getCreatedEvent() {
+    private static OrderCreatedEvent buildOrderCreatedEvent() {
         return OrderCreatedEvent.newBuilder()
             .setCustomerId(CUSTOMER_ID).setProductId(PRODUCT_ID)
             .setCurrency(EUR.toString())

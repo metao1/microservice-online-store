@@ -1,5 +1,6 @@
 package com.metao.book.order.domain.model.aggregate;
 
+import com.metao.book.order.domain.exception.OrderStateTransitionNotAllowed;
 import com.metao.book.order.domain.model.entity.OrderItem;
 import com.metao.book.order.domain.model.event.DomainOrderCreatedEvent;
 import com.metao.book.order.domain.model.event.OrderItemAddedEvent;
@@ -9,6 +10,7 @@ import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.domain.model.valueobject.ProductId;
 import com.metao.book.order.domain.model.valueobject.Quantity;
+import com.metao.book.shared.domain.base.AggregateRoot;
 import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.domain.financial.Money;
 import java.time.Instant;
@@ -20,8 +22,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
-@EqualsAndHashCode(of = {"id"})
-public class OrderAggregate {
+@EqualsAndHashCode(of = {"id"}, callSuper = true)
+public class OrderAggregate extends AggregateRoot<OrderId> {
 
     private final OrderId id;
     private final CustomerId customerId;
@@ -48,7 +50,7 @@ public class OrderAggregate {
         domainEvents.add(new DomainOrderCreatedEvent(id, customerId));
     }
 
-    public void addItem(ProductId productId, String productName, Quantity quantity, Money unitPrice) {
+    public void addItem(ProductId productId, Quantity quantity, Money unitPrice) {
         Objects.requireNonNull(productId, "Product ID cannot be null");
         Objects.requireNonNull(quantity, "Quantity cannot be null");
         Objects.requireNonNull(unitPrice, "Unit price cannot be null");
@@ -64,7 +66,7 @@ public class OrderAggregate {
         }
 
         // Create and add order item
-        OrderItem item = new OrderItem(productId, productName, quantity, unitPrice);
+        OrderItem item = new OrderItem(productId, quantity, unitPrice);
         this.items.add(item);
         this.updatedAt = Instant.now();
         this.total = calculateTotal();
@@ -73,7 +75,6 @@ public class OrderAggregate {
         domainEvents.add(new OrderItemAddedEvent(
             id,
             productId,
-            productName,
             quantity,
             unitPrice));
     }
@@ -138,22 +139,22 @@ public class OrderAggregate {
             });
     }
 
-    public synchronized Money getTotal() {
-        return total;
-    }
-
     private synchronized void validateStatusTransition(OrderStatus newStatus) {
         if (status == OrderStatus.CREATED && newStatus != OrderStatus.PAID && newStatus != OrderStatus.CANCELLED) {
-            throw new IllegalStateException("Cannot transition from CREATED to " + newStatus);
+            throw new OrderStateTransitionNotAllowed("Cannot transition from CREATED to " + newStatus);
         } else if (status == OrderStatus.PAID && newStatus != OrderStatus.CANCELLED) {
-            throw new IllegalStateException("Cannot transition from PAID to " + newStatus);
+            throw new OrderStateTransitionNotAllowed("Cannot transition from PAID to " + newStatus);
         } else if (status != OrderStatus.SHIPPED && newStatus == OrderStatus.DELIVERED) {
-            throw new IllegalStateException("Cannot transition from " + status + " to DELIVERED");
+            throw new OrderStateTransitionNotAllowed("Cannot transition from " + status + " to DELIVERED");
         } else if (status == OrderStatus.DELIVERED) {
-            throw new IllegalStateException("Cannot change status of a DELIVERED order");
+            throw new OrderStateTransitionNotAllowed("Cannot change status of a DELIVERED order");
         } else if (status == OrderStatus.CANCELLED) {
-            throw new IllegalStateException("Cannot change status of a CANCELLED order");
+            throw new OrderStateTransitionNotAllowed("Cannot change status of a CANCELLED order");
         }
+    }
+
+    public synchronized Money getTotal() {
+        return total;
     }
 
     public List<DomainEvent> getDomainEvents() {

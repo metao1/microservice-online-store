@@ -7,7 +7,7 @@ import lombok.Builder;
 @Builder
 public record ShoppingCartItem(
     String sku,
-    BigDecimal quantity,
+    int quantity,
     BigDecimal price,
     Currency currency
 ) {

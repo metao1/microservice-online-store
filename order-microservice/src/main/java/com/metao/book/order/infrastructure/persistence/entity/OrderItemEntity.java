@@ -36,9 +36,6 @@ public class OrderItemEntity {
     })
     private ProductId productId;
 
-    @Column(name = "product_name")
-    private String productName;
-
     @Embedded
     @AttributeOverrides({
         @AttributeOverride(name = "value", column = @Column(name = "quantity"))

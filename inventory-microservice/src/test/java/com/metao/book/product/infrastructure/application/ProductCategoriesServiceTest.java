@@ -19,7 +19,7 @@ import com.metao.book.product.domain.repository.ProductRepository;
 import com.metao.book.product.domain.service.ProductCategoriesService;
 import com.metao.book.shared.domain.financial.Money;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Currency;
 import java.util.Optional;
 import java.util.Set;
@@ -49,7 +49,7 @@ class ProductCategoriesServiceTest {
         var returnedProductEntity = ProductDtoGeneratorUtils.buildOneProduct();
         when(productRepository.findBySku(ProductSku.of(PRODUCT_ID)))
             .thenReturn(Optional.of(
-                Product.reconstruct(
+                new Product(
                     ProductSku.generate(),
                     ProductTitle.of("title"),
                     ProductDescription.of("description"),
@@ -58,9 +58,8 @@ class ProductCategoriesServiceTest {
                         new BigDecimal("12.00"),
                         Currency.getInstance("EUR")
                     ),
+                    Instant.now(),
                     ImageUrl.of("https://example.com/image.jpg"),
-                    LocalDateTime.now(),
-                    LocalDateTime.now(),
                     Set.of(ProductCategory.of(CategoryId.of(1L), CategoryName.of(CATEGORY)))
                 )
             ));

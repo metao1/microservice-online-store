@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.Currency;
 import java.util.HashSet;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,8 +16,8 @@ public class ShoppingCartService {
     private final ShoppingCartRepository shoppingCartRepository;
 
     public ShoppingCartDto getCartForUser(String userId) {
-        List<ShoppingCart> items = shoppingCartRepository.findByUserId(userId);
-        List<ShoppingCartItem> cartItems = items.stream()
+        var items = shoppingCartRepository.findByUserId(userId);
+        var cartItems = items.stream()
                 .map(item -> new ShoppingCartItem(
                         item.getSku(),
                         item.getQuantity(),
@@ -27,14 +26,14 @@ public class ShoppingCartService {
                 )).toList();
         // The grand total calculation will be handled by the client or a future enhancement.
         // The ShoppingCartDto is a record: ShoppingCartDto(Long createdOn, String userId, Set<ShoppingCartItem> shoppingCartItems)
-        return new ShoppingCartDto(null, userId, new HashSet<>(cartItems));
+        return new ShoppingCartDto(userId, new HashSet<>(cartItems));
     }
 
     @Transactional
-    public ShoppingCart addItemToCart(String userId, String sku, BigDecimal quantity, BigDecimal price, Currency currency) {
+    public ShoppingCart addItemToCart(String userId, String sku, int quantity, BigDecimal price, Currency currency) {
         ShoppingCart item = shoppingCartRepository.findByUserIdAndSku(userId, sku)
                 .map(existingItem -> {
-                    existingItem.setQuantity(existingItem.getQuantity().add(quantity));
+                    existingItem.setQuantity(existingItem.getQuantity() + quantity);
                     existingItem.setUpdatedOn(OffsetDateTime.now().toInstant().toEpochMilli()); // Corrected timestamp
                     return existingItem;
                 })
@@ -47,12 +46,12 @@ public class ShoppingCartService {
     }
 
     @Transactional
-    public ShoppingCart updateItemQuantity(String userId, String sku, BigDecimal newQuantity) {
+    public ShoppingCart updateItemQuantity(String userId, String sku, int newQuantity) {
         ShoppingCart item = shoppingCartRepository.findByUserIdAndSku(userId, sku)
             .orElseThrow(() -> new OrderNotFoundException(
                 String.format("Cart item not found for user %s and sku %s", userId, sku)));
 
-        if (newQuantity.compareTo(BigDecimal.ZERO) <= 0) {
+        if (newQuantity <= 0) {
             shoppingCartRepository.deleteByUserIdAndSku(userId, sku);
             return null;
         } else {

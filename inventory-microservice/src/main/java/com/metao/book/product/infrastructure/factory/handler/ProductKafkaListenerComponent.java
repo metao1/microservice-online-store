@@ -6,6 +6,7 @@ import com.metao.book.product.application.service.ProductApplicationService;
 import com.metao.book.shared.CategoryOuterClass.Category;
 import com.metao.book.shared.ProductUpdatedEvent;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Currency;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +41,9 @@ public class ProductKafkaListenerComponent {
             BigDecimal.valueOf(productCreatedEvent.getPrice()),
             Currency.getInstance(productCreatedEvent.getCurrency()),
             BigDecimal.valueOf(productCreatedEvent.getVolume()),
-            productCreatedEvent.getCategoriesList()
+            Instant.ofEpochSecond(productCreatedEvent.getCreateTime().getSeconds(), productCreatedEvent.getCreateTime().getNanos()),
+
+        productCreatedEvent.getCategoriesList()
                 .stream()
                 .map(Category::getName)
                 .toList()

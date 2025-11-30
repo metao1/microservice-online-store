@@ -8,9 +8,7 @@ import java.util.Set;
 public class ShoppingCartMapper {
 
     public static ShoppingCartDto mapToDto(ShoppingCart cartItem) {
-
         return new ShoppingCartDto(
-            cartItem.getCreatedOn(),
             cartItem.getUserId(),
             Set.of(new ShoppingCartItem(
                 cartItem.getSku(),

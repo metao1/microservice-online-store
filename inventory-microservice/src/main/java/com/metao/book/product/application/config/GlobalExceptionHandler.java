@@ -1,6 +1,8 @@
 package com.metao.book.product.application.config;
 
 import com.metao.book.product.domain.exception.ProductNotFoundException;
+import com.metao.book.shared.rest.client.ApiError;
+import java.time.Instant;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,10 +20,15 @@ public class GlobalExceptionHandler {
         log.error(ex.getMessage(), message);
         return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
-            .body(ApiError.builder()
-                .status(HttpStatus.BAD_REQUEST)
-                .message(ex.getMessage())
-                .build());
+            .body(new ApiError(
+                    HttpStatus.BAD_REQUEST.value(),
+                    HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                    ex.getMessage(),
+                    null,
+                    null,
+                    Instant.now()
+                )
+            );
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -29,10 +36,14 @@ public class GlobalExceptionHandler {
         log.error(ex.getMessage(), ex);
         return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
-            .body(ApiError.builder()
-                .status(HttpStatus.BAD_REQUEST)
-                .message(ex.getMessage())
-                .build()
+            .body(new ApiError(
+                    HttpStatus.BAD_REQUEST.value(),
+                    HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                    ex.getMessage(),
+                    null,
+                    null,
+                    Instant.now()
+                )
             );
     }
 
@@ -41,10 +52,14 @@ public class GlobalExceptionHandler {
         log.error(ex.getMessage(), ex);
         return ResponseEntity
             .status(HttpStatus.NOT_FOUND)
-            .body(ApiError.builder()
-                .status(HttpStatus.NOT_FOUND)
-                .message(ex.getMessage())
-                .build()
+            .body(new ApiError(
+                    HttpStatus.BAD_REQUEST.value(),
+                    HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                    ex.getMessage(),
+                    null,
+                    null,
+                    Instant.now()
+                )
             );
     }
 }

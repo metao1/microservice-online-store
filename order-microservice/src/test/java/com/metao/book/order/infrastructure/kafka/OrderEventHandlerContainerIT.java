@@ -21,6 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
 @Slf4j
@@ -34,6 +35,12 @@ class OrderEventHandlerContainerIT extends KafkaContainer {
 
     @Autowired
     KafkaEventHandler eventHandler;
+
+    @Autowired
+    KafkaTemplate<String, OrderCreatedEvent> kafkaTemplate1;
+
+    @Autowired
+    KafkaTemplate<String, OrderUpdatedEvent> kafkaTemplate2;
 
     @Test
     @SneakyThrows
@@ -49,11 +56,12 @@ class OrderEventHandlerContainerIT extends KafkaContainer {
             .setCurrency("USD")
             .build();
 
-        eventHandler.send(event.getId(), event);
+        var topic = eventHandler.getKafkaTopic(event.getClass());
+
+        kafkaTemplate1.send(topic, event.getId(), event);
         latch1.await(10, TimeUnit.SECONDS);
         assertThat(latch1.getCount()).isZero();
     }
-
     @Test
     @SneakyThrows
     @DisplayName("When receiving event then Kafka messages processed successfully")
@@ -76,8 +84,8 @@ class OrderEventHandlerContainerIT extends KafkaContainer {
             .setStatus(Status.CONFIRMED)
             .build();
 
-        eventHandler.send(event1.getId(), event1);
-        eventHandler.send(event2.getId(), event2);
+        kafkaTemplate1.send(eventHandler.getKafkaTopic(event1.getClass()), event1.getId(), event1);
+        kafkaTemplate2.send(eventHandler.getKafkaTopic(event2.getClass()), event2.getId(), event2);
         latch1.await(10, TimeUnit.SECONDS);
         latch2.await(10, TimeUnit.SECONDS);
 

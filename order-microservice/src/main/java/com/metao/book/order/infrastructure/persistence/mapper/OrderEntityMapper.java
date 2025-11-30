@@ -29,7 +29,6 @@ public class OrderEntityMapper {
             .map(item -> {
                 OrderItemEntity itemEntity = new OrderItemEntity();
                 itemEntity.setProductId(item.getProductId());
-                itemEntity.setProductName(item.getProductName());
                 itemEntity.setQuantity(item.getQuantity());
                 itemEntity.setUnitPrice(item.getUnitPrice());
                 itemEntity.setOrder(entity);
@@ -54,7 +53,6 @@ public class OrderEntityMapper {
         entity.getItems().forEach(itemEntity -> {
             order.addItem(
                 itemEntity.getProductId(),
-                itemEntity.getProductName(),
                 itemEntity.getQuantity(),
                 itemEntity.getUnitPrice());
         });

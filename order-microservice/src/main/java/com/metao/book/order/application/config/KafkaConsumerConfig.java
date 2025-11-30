@@ -29,7 +29,6 @@ public class KafkaConsumerConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
-    // Configuration for OrderPaymentEvent
     @Bean
     public ConsumerFactory<String, OrderPaymentEvent> orderPaymentEventConsumerFactory() {
         var ps = kafkaProperties.getProperties();

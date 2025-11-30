@@ -10,110 +10,90 @@ import com.metao.book.product.domain.model.valueobject.ProductTitle;
 import com.metao.book.product.domain.model.valueobject.ProductVolume;
 import com.metao.book.shared.domain.base.AggregateRoot;
 import com.metao.book.shared.domain.financial.Money;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Product aggregate root - contains all business logic for product management
  */
 @Getter
+@EqualsAndHashCode(of = {"id"}, callSuper = true)
 public class Product extends AggregateRoot<ProductSku> {
 
+    @NonNull
     private ProductTitle title;
+    @NonNull
     private ProductDescription description;
+    @NonNull
     private ProductVolume volume;
-    private Money price;
+    @NonNull
+    private Money money;
+    @NonNull
     private ImageUrl imageUrl;
-    private LocalDateTime createdTime;
-    private LocalDateTime updatedTime;
+    @NonNull
+    private final Instant createdTime;
+    @NonNull
     private Set<ProductCategory> categories;
-
-    // For reconstruction from persistence
-    protected Product() {
-        super();
-        this.categories = new HashSet<>();
-    }
+    private Instant updatedTime;
 
     // Constructor for new products
     public Product(
-        @NonNull ProductSku productSku,
-        @NonNull ProductTitle title,
-        @NonNull ProductDescription description,
-        @NonNull ProductVolume volume,
-        @NonNull Money price,
-        @NonNull ImageUrl imageUrl
+            @NotNull ProductSku productSku,
+            @NotNull ProductTitle title,
+            @NotNull ProductDescription description,
+            @NotNull ProductVolume volume,
+            @NonNull Money money,
+            @NonNull Instant createdTime,
+            @NonNull ImageUrl imageUrl,
+            Set<ProductCategory> categories
     ) {
         super(productSku);
         this.title = title;
         this.description = description;
         this.volume = volume;
-        this.price = price;
+        this.money = money;
         this.imageUrl = imageUrl;
-        this.createdTime = LocalDateTime.now();
-        this.updatedTime = this.createdTime;
-        this.categories = new HashSet<>();
+        this.createdTime = createdTime;
+        this.categories = categories != null ? new HashSet<>(categories) : new HashSet<>();
 
         // Raise domain event
-        addDomainEvent(new ProductCreatedEvent(this.getId(), this.title, this.price));
-    }
-
-    // For reconstruction from persistence
-    public static Product reconstruct(
-        ProductSku productSku,
-        ProductTitle title,
-        ProductDescription description,
-        ProductVolume volume,
-        Money price,
-        ImageUrl imageUrl,
-        LocalDateTime createdTime,
-        LocalDateTime updatedTime,
-        Set<ProductCategory> categories
-    ) {
-        Product product = new Product();
-        product.setId(productSku);
-        product.title = title;
-        product.description = description;
-        product.volume = volume;
-        product.price = price;
-        product.imageUrl = imageUrl;
-        product.createdTime = createdTime;
-        product.updatedTime = updatedTime;
-        product.categories = categories != null ? new HashSet<>(categories) : new HashSet<>();
-        return product;
+        addDomainEvent(new ProductCreatedEvent(this.getId(), this.title, this.money, this.createdTime));
     }
 
     // Business methods
     public void updatePrice(@NonNull Money newPrice) {
-        if (newPrice.fixedPointAmount().compareTo(this.price.fixedPointAmount()) != 0) {
-            Money oldPrice = this.price;
-            this.price = newPrice;
-            this.updatedTime = LocalDateTime.now();
+        if (newPrice.fixedPointAmount().compareTo(this.money.fixedPointAmount()) != 0) {
+            Money oldPrice = this.money;
+            this.money = newPrice;
+            this.updatedTime = Instant.now();
 
-            addDomainEvent(new ProductUpdatedEvent(this.getId(), this.title, oldPrice, newPrice));
+            addDomainEvent(new ProductUpdatedEvent(this.getId(), this.title, oldPrice, newPrice, this.createdTime));
         }
     }
 
     public void updateTitle(@NonNull ProductTitle newTitle) {
         if (!this.title.equals(newTitle)) {
             this.title = newTitle;
-            this.updatedTime = LocalDateTime.now();
+            this.updatedTime = Instant.now();
         }
     }
 
     public void updateDescription(@NonNull ProductDescription newDescription) {
         if (!this.description.equals(newDescription)) {
             this.description = newDescription;
-            this.updatedTime = LocalDateTime.now();
+            this.updatedTime = Instant.now();
         }
     }
 
     public void addCategory(@NonNull ProductCategory category) {
         if (this.categories.add(category)) {
-            this.updatedTime = LocalDateTime.now();
+            this.updatedTime = Instant.now();
         }
     }
 
@@ -126,12 +106,12 @@ public class Product extends AggregateRoot<ProductSku> {
             throw new IllegalArgumentException("Cannot reduce volume by more than available");
         }
         this.volume = new ProductVolume(this.volume.value().subtract(reduction.value()));
-        this.updatedTime = LocalDateTime.now();
+        this.updatedTime = Instant.now();
     }
 
     public void increaseVolume(@NonNull ProductVolume increase) {
         this.volume = new ProductVolume(this.volume.value().add(increase.value()));
-        this.updatedTime = LocalDateTime.now();
+        this.updatedTime = Instant.now();
     }
 
     @Override

@@ -1,25 +1,21 @@
 package com.metao.book.order.domain.model.valueobject;
 
-import lombok.Value;
+import lombok.Data;
+import org.jetbrains.annotations.NotNull;
 
-@Value
+@Data
 public class CustomerId {
 
     String value;
+    // Default constructor for Hibernate
+    public CustomerId() {
+    }
 
     public CustomerId(String value) {
-        if (value == null || value.trim().isEmpty()) {
-            throw new IllegalArgumentException("Customer ID cannot be null or empty");
-        }
         this.value = value;
     }
 
-    // Default constructor for Hibernate
-    public CustomerId() {
-        // ignore
-        this.value = null;
-    }
-
+    @NotNull
     @Override
     public String toString() {
         return value;

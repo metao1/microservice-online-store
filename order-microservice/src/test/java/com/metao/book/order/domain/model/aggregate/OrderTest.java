@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.metao.book.order.domain.model.event.DomainOrderCreatedEvent;
-import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.order.domain.model.event.OrderItemAddedEvent;
 import com.metao.book.order.domain.model.event.OrderStatusChangedEvent;
 import com.metao.book.order.domain.model.valueobject.CustomerId;
@@ -12,6 +11,7 @@ import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.domain.model.valueobject.ProductId;
 import com.metao.book.order.domain.model.valueobject.Quantity;
+import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.domain.financial.Money;
 import java.math.BigDecimal;
 import java.util.Currency;
@@ -82,12 +82,11 @@ class OrderTest {
             order.clearDomainEvents(); // Clear initial creation event
 
             ProductId productId = new ProductId("product123");
-            String productName = "Test Product";
             Quantity quantity = new Quantity(2);
             Money unitPrice = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10.0));
 
             // When
-            order.addItem(productId, productName, quantity, unitPrice);
+            order.addItem(productId, quantity, unitPrice);
 
             // Then
             assertThat(order.getItems()).hasSize(1);
@@ -102,7 +101,6 @@ class OrderTest {
 
             OrderItemAddedEvent addedEvent = (OrderItemAddedEvent) events.getFirst();
             assertThat(addedEvent.getProductId()).isEqualTo(productId);
-            assertThat(addedEvent.getProductName()).isEqualTo(productName);
             assertThat(addedEvent.getQuantity()).isEqualTo(quantity);
             assertThat(addedEvent.getUnitPrice()).isEqualTo(unitPrice);
         }
@@ -110,7 +108,7 @@ class OrderTest {
         @Test
         void shouldThrowExceptionForNullProductId() {
             OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
-            assertThatThrownBy(() -> order.addItem(null, "Test Product", new Quantity(1),
+            assertThatThrownBy(() -> order.addItem(null, new Quantity(1),
                 new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10.0))))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("Product ID cannot be null");
@@ -243,7 +241,6 @@ class OrderTest {
             for (OrderItemData item : items) {
                 order.addItem(
                     new ProductId(item.productId()),
-                    item.productName(),
                     new Quantity(item.quantity()),
                     new Money(Currency.getInstance("USD"), item.unitPrice())
                 );
@@ -270,7 +267,7 @@ class OrderTest {
         void shouldClearDomainEvents() {
             // Given
             OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
-            order.addItem(new ProductId("product1"), "Product 1", new Quantity(1),
+            order.addItem(new ProductId("product1"), new Quantity(1),
                 new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10.0)));
             order.updateStatus(OrderStatus.PAID);
 
@@ -293,7 +290,7 @@ class OrderTest {
         @Test
         void shouldAccumulateEventsForMultipleOperations() {
             OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
-            order.addItem(new ProductId("product1"), "Product 1", new Quantity(1),
+            order.addItem(new ProductId("product1"), new Quantity(1),
                 new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10.0)));
             order.updateStatus(OrderStatus.PAID);
 

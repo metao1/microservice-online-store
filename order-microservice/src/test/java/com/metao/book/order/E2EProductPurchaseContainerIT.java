@@ -19,7 +19,7 @@ import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.domain.repository.OrderRepository;
 import com.metao.book.order.infrastructure.persistence.repository.JpaOrderRepository;
-import com.metao.book.order.presentation.dto.AddItemRequestDTO;
+import com.metao.book.order.presentation.dto.AddItemRequestDto;
 import com.metao.book.order.presentation.dto.CreateOrderRequest;
 import com.metao.book.shared.OrderPaymentEvent;
 import com.metao.kafka.KafkaEventHandler;
@@ -41,8 +41,8 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -54,10 +54,14 @@ import org.wiremock.spring.EnableWireMock;
 @ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestPropertySource(properties = "kafka.enabled=true")
-@Import(KafkaEventHandler.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableWireMock({@ConfigureWireMock(port = 8083, name = "inventory-microservice")})
 class E2EProductPurchaseContainerIT extends KafkaContainer {
+
+    private final String userId = "e2eUser";
+    private final String sku1 = "SKU_E2E_001"; // Assume this product exists in inventory-microservice
+    private final BigDecimal price1 = BigDecimal.valueOf(12.99);
+    private final Currency currency = Currency.getInstance("EUR");
 
     @LocalServerPort // Port for order-microservice
     private Integer orderMicroservicePort;
@@ -72,12 +76,10 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
     private JpaOrderRepository jpaOrderRepository; // For test cleanup
 
     @Autowired
-    private KafkaEventHandler kafkaEventHandler;
+    private KafkaTemplate<String, OrderPaymentEvent> kafkaTemplate;
 
-    private final String userId = "e2eUser";
-    private final String sku1 = "SKU_E2E_001"; // Assume this product exists in inventory-microservice
-    private final BigDecimal price1 = BigDecimal.valueOf(12.99);
-    private final Currency currency = Currency.getInstance("EUR");
+    @Autowired
+    private KafkaEventHandler kafkaEventHandler;
 
     @BeforeEach
     void setUp() {
@@ -101,7 +103,7 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
 
         log.info("✅ Inventory service check passed for product: " + sku1);
 
-        AddItemRequestDTO addItemDTO = new AddItemRequestDTO(BigDecimal.ONE, price1, currency);
+        AddItemRequestDto addItemDTO = new AddItemRequestDto(sku1, 1, price1, currency);
 
         given()
             // Port is set in setUp for RestAssured
@@ -121,7 +123,7 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
         // Ensure item from step 1 is in cart for this ordered test
         // If step1 failed or tests were run out of order, this might fail without this setup.
         if (shoppingCartRepository.findByUserIdAndSku(userId, sku1).isEmpty()) {
-            shoppingCartRepository.save(new ShoppingCart(userId, sku1, price1, price1, BigDecimal.ONE, currency));
+            shoppingCartRepository.save(new ShoppingCart(userId, sku1, price1, price1, 1, currency));
         }
 
         given()
@@ -140,7 +142,7 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
     void step3_checkoutAndVerifyOrder() {
         // Ensure item from step 1 is in cart
         if (shoppingCartRepository.findByUserIdAndSku(userId, sku1).isEmpty()) {
-            shoppingCartRepository.save(new ShoppingCart(userId, sku1, price1, price1, BigDecimal.ONE, currency));
+            shoppingCartRepository.save(new ShoppingCart(userId, sku1, price1, price1, 1, currency));
         }
 
         CreateOrderRequest createOrderRequest = new CreateOrderRequest();
@@ -177,7 +179,8 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
                 .setPaymentId(UUID.randomUUID().toString())
                 .setCreateTime(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
                 .build();
-            kafkaEventHandler.send(order.getId().value(), paymentEvent);
+            var kafkaTopic = kafkaEventHandler.getKafkaTopic(paymentEvent.getClass());
+            kafkaTemplate.send(kafkaTopic, order.getId().value(), paymentEvent);
         }
 
         // Verify order is created and confirmed (due to mock payment in Kafka listener)

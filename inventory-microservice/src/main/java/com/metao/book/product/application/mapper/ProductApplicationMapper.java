@@ -11,7 +11,7 @@ import com.metao.book.product.domain.model.valueobject.ProductSku;
 import com.metao.book.product.domain.model.valueobject.ProductTitle;
 import com.metao.book.product.domain.model.valueobject.ProductVolume;
 import com.metao.book.shared.domain.financial.Money;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
@@ -31,8 +31,8 @@ public class ProductApplicationMapper {
             .title(product.getTitle().value())
             .description(product.getDescription().value())
             .imageUrl(product.getImageUrl().value())
-            .price(product.getPrice().fixedPointAmount())
-            .currency(product.getPrice().currency())
+            .price(product.getMoney().fixedPointAmount())
+            .currency(product.getMoney().currency())
             .volume(product.getVolume().value())
             .categories(mapCategoriesToNames(product.getCategories()))
             .createdTime(product.getCreatedTime())
@@ -42,15 +42,14 @@ public class ProductApplicationMapper {
     }
 
     public static Product toDomain(CreateProductDto createProductDto) {
-        return Product.reconstruct(
+        return new Product(
             ProductSku.of(createProductDto.sku()),
             ProductTitle.of(createProductDto.title()),
             ProductDescription.of(createProductDto.description()),
             ProductVolume.of(createProductDto.volume()),
             new Money(createProductDto.currency(), createProductDto.price()),
+            Instant.now(),
             ImageUrl.of(createProductDto.imageUrl()),
-            LocalDateTime.now(),
-            LocalDateTime.now(),
             createProductDto.categories().stream()
                 .map(CategoryName::of)
                 .map(ProductCategory::of)

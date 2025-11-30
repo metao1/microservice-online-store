@@ -1,8 +1,8 @@
 package com.metao.book.order.application.service;
 
-import com.metao.book.order.infrastructure.messaging.DomainEventToKafkaEventHandler;
 import com.metao.book.order.application.cart.ShoppingCart;
 import com.metao.book.order.application.cart.ShoppingCartService;
+import com.metao.book.order.domain.exception.ShoppingCartIsEmptyException;
 import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.model.valueobject.CustomerId;
 import com.metao.book.order.domain.model.valueobject.OrderId;
@@ -29,7 +29,12 @@ public class OrderApplicationService {
     @Transactional
     public OrderId createOrder(CustomerId customerId) {
         // Get items from shopping cart
-        List<ShoppingCart> cartItems = shoppingCartService.getCartForUser(customerId.getValue()).shoppingCartItems()
+        var cart = shoppingCartService.getCartForUser(customerId.getValue());
+        if (cart.shoppingCartItems().isEmpty()) {
+            throw new ShoppingCartIsEmptyException();
+        }
+
+        var cartItems = cart.shoppingCartItems()
             .stream()
             .map(item -> {
                 // Convert ShoppingCartItem back to ShoppingCart for processing
@@ -40,44 +45,45 @@ public class OrderApplicationService {
             .toList();
 
         if (cartItems.isEmpty()) {
-            throw new RuntimeException("Cannot create order: shopping cart is empty");
+            throw new ShoppingCartIsEmptyException();
         }
 
         // Create order
-        OrderAggregate order = new OrderAggregate(OrderId.generate(), customerId);
+        var order = new OrderAggregate(OrderId.generate(), customerId);
 
         // Add items from cart to order
         for (ShoppingCart cartItem : cartItems) {
             order.addItem(
                 new ProductId(cartItem.getSku()),
-                cartItem.getSku(), // Using SKU as product name for now
-                new Quantity(cartItem.getQuantity().intValue()),
+                new Quantity(cartItem.getQuantity()),
                 new Money(cartItem.getCurrency(), cartItem.getSellPrice())
             );
         }
 
         // Save order
-        OrderAggregate savedOrder = orderRepository.save(order);
+        orderRepository.save(order);
 
         // Clear shopping cart
         shoppingCartService.clearCart(customerId.getValue());
 
         // Publish events
-        publishEvents(savedOrder);
-        return savedOrder.getId();
+        publishEvents(order);
+        return order.getId();
     }
 
     @Transactional
     public void addItemToOrder(
-        OrderId orderId, ProductId productId, String productName, Quantity quantity,
+        OrderId orderId,
+        ProductId productId,
+        Quantity quantity,
         Money unitPrice
     ) {
         OrderAggregate order = orderRepository.findById(orderId)
             .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND));
 
-        order.addItem(productId, productName, quantity, unitPrice);
-        OrderAggregate savedOrder = orderRepository.save(order);
-        publishEvents(savedOrder);
+        order.addItem(productId, quantity, unitPrice);
+        orderRepository.save(order);
+        publishEvents(order);
     }
 
     @Transactional

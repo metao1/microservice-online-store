@@ -13,7 +13,7 @@ public class DomainTranslatorAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(DelegatingDomainEventTranslator.class)
     public DelegatingDomainEventTranslator delegatingDomainEventTranslator(
-        List<ProtobufDomainTranslator<?>> translators
+        List<ProtobufDomainTranslator> translators
     ) {
         return new DelegatingDomainEventTranslator(translators);
     }
