@@ -4,20 +4,16 @@ import com.google.protobuf.Message;
 import com.google.protobuf.Timestamp;
 import com.metao.book.order.domain.model.event.OrderStatusChangedEvent;
 import com.metao.book.shared.OrderUpdatedEvent;
+import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.domain.base.ProtobufDomainTranslator;
 import org.springframework.stereotype.Component;
 
 @Component
-public class OrderUpdatedEventTranslator implements ProtobufDomainTranslator<OrderStatusChangedEvent> {
+public class OrderUpdatedEventTranslator implements ProtobufDomainTranslator {
 
-    /**
-     * Translate a domain domainEvent to a protobuf message
-     *
-     * @param domainEvent domain domainEvent
-     * @return protobuf message
-     */
     @Override
-    public Message translate(OrderStatusChangedEvent domainEvent) {
+    public Message translate(DomainEvent event) {
+        OrderStatusChangedEvent domainEvent = (OrderStatusChangedEvent) event;
         return OrderUpdatedEvent.newBuilder()
             .setId(domainEvent.getEventId())
             .setStatus(mapOrderStatus(domainEvent.getNewStatus().name()))
@@ -28,14 +24,9 @@ public class OrderUpdatedEventTranslator implements ProtobufDomainTranslator<Ord
             .build();
     }
 
-    /**
-     * Declares that a specific DomainEvent class this translator is responsible for.
-     *
-     * @return the Class object of the DomainEvent this translator supports.
-     */
     @Override
-    public Class<OrderStatusChangedEvent> supports() {
-        return OrderStatusChangedEvent.class;
+    public boolean supports(DomainEvent event) {
+        return event instanceof OrderStatusChangedEvent;
     }
 
     private OrderUpdatedEvent.Status mapOrderStatus(String status) {

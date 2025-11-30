@@ -2,20 +2,20 @@ package com.metao.book.shared.domain.base;
 
 import com.google.protobuf.Message;
 
-public interface ProtobufDomainTranslator<E extends DomainEvent> {
+public interface ProtobufDomainTranslator {
 
     /**
-     * Translate a domain domainEvent to a protobuf message
+     * Translate a domain event to a protobuf message
      *
-     * @param domainEvent domain domainEvent
+     * @param event domain domain
      * @return protobuf message
      */
-    Message translate(E domainEvent);
+    Message translate(DomainEvent event);
 
     /**
      * Declares that a specific DomainEvent class this translator is responsible for.
      *
      * @return the Class object of the DomainEvent this translator supports.
      */
-    Class<E> supports();
+    boolean supports(DomainEvent event);
 }

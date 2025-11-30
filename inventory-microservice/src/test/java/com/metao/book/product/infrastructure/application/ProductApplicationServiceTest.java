@@ -23,6 +23,7 @@ import com.metao.book.product.domain.model.valueobject.ProductTitle;
 import com.metao.book.product.domain.repository.CategoryRepository;
 import com.metao.book.product.domain.repository.ProductRepository;
 import com.metao.book.product.domain.service.ProductDomainService;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -186,6 +187,7 @@ class ProductApplicationServiceTest {
             dto.price(),
             dto.currency(),
             dto.volume(),
+            Instant.now(),
             List.of(CATEGORY)
         );
     }

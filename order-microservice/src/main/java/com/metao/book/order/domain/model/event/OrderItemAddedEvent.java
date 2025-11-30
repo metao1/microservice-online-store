@@ -5,6 +5,7 @@ import com.metao.book.order.domain.model.valueobject.ProductId;
 import com.metao.book.order.domain.model.valueobject.Quantity;
 import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.domain.financial.Money;
+import java.time.Instant;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
@@ -13,18 +14,18 @@ public class OrderItemAddedEvent extends DomainEvent {
 
     private final OrderId orderId;
     private final ProductId productId;
-    private final String productName;
     private final Quantity quantity;
     private final Money unitPrice;
 
     public OrderItemAddedEvent(
-        OrderId orderId, ProductId productId, String productName, Quantity quantity,
+        OrderId orderId,
+        ProductId productId,
+        Quantity quantity,
         Money unitPrice
     ) {
-        super();
+        super(Instant.now());
         this.orderId = orderId;
         this.productId = productId;
-        this.productName = productName;
         this.quantity = quantity;
         this.unitPrice = unitPrice;
     }

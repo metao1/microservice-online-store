@@ -30,7 +30,6 @@ public class OrderResponse {
             .map(item -> {
                 OrderItemResponse itemResponse = new OrderItemResponse();
                 itemResponse.setProductId(item.getProductId().getValue());
-                itemResponse.setProductName(item.getProductName());
                 itemResponse.setQuantity(item.getQuantity().getValue());
                 itemResponse.setUnitPrice(item.getUnitPrice());
                 itemResponse.setTotalPrice(item.getTotalPrice());
@@ -45,7 +44,6 @@ public class OrderResponse {
     public static class OrderItemResponse {
 
         private String productId;
-        private String productName;
         private int quantity;
         private Money unitPrice;
         private Money totalPrice;

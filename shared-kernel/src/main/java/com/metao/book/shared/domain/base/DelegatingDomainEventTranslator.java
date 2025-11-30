@@ -1,26 +1,23 @@
 package com.metao.book.shared.domain.base;
 
 import com.google.protobuf.Message;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class DelegatingDomainEventTranslator {
 
-    private final Map<Class<?>, ProtobufDomainTranslator<?>> translatorMap = new HashMap<>();
-    public DelegatingDomainEventTranslator(List<ProtobufDomainTranslator<?>> translators) {
-        translators.forEach(translator -> translatorMap.put(translator.supports(), translator));
-    }
+    private final List<ProtobufDomainTranslator> translators;
 
-    @SuppressWarnings("unchecked")
-    public TranslationResult translate(DomainEvent event) {
-        ProtobufDomainTranslator translator = translatorMap.get(event.getClass());
-        if (translator == null) {
-            throw new IllegalArgumentException("No translator found for event type: " + event.getClass().getName());
+    public <T extends DomainEvent> TranslationResult translate(T event) {
+        for (ProtobufDomainTranslator translator : translators) {
+            if (translator.supports(event)) {
+                Message message = translator.translate(event);
+                return new TranslationResult(event.getEventType(), message);
+            }
         }
-        final Message translate = translator.translate(event);
-        return new TranslationResult(event.getEventType(), translate);
+        throw new IllegalArgumentException("No translator found for event: " + event.getClass().getName());
     }
 }

@@ -9,6 +9,7 @@ import com.metao.book.product.application.service.ProductApplicationService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.net.URI;
+import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +55,7 @@ public class ProductController {
             dto.price(),
             dto.currency(),
             dto.volume(),
+            Instant.now(),
             dto.categories()
         );
         productApplicationService.createProduct(command);

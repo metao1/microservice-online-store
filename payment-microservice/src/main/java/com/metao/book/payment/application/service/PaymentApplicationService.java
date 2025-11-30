@@ -1,5 +1,6 @@
 package com.metao.book.payment.application.service;
 
+import com.metao.book.payment.application.config.DomainEventToKafkaEventHandler;
 import com.metao.book.payment.application.dto.CreatePaymentCommand;
 import com.metao.book.payment.application.dto.PaymentDTO;
 import com.metao.book.payment.application.mapper.PaymentApplicationMapper;
@@ -12,7 +13,7 @@ import com.metao.book.payment.domain.model.valueobject.PaymentStatus;
 import com.metao.book.payment.domain.repository.PaymentRepository;
 import com.metao.book.payment.domain.service.PaymentDomainService;
 import com.metao.book.shared.domain.financial.Money;
-import com.metao.kafka.KafkaEventHandler;
+import jakarta.validation.constraints.NotBlank;
 import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.List;
@@ -34,7 +35,7 @@ public class PaymentApplicationService {
     private final PaymentRepository paymentRepository;
     private final PaymentDomainService paymentDomainService;
     private final PaymentApplicationMapper paymentMapper;
-    private final KafkaEventHandler kafkaEventHandler;
+    private final DomainEventToKafkaEventHandler eventPublisher;
 
     /**
      * Create a new payment
@@ -194,20 +195,19 @@ public class PaymentApplicationService {
     /**
      * Publish domain events from payment aggregate to Kafka
      */
-    private void publishDomainEvents(Payment payment) {
-        if (payment == null || !payment.hasDomainEvents()) {
+    private void publishDomainEvents(@NotBlank Payment payment) {
+        if (!payment.hasDomainEvents()) {
+            log.debug("has not domain events to publish: {}", payment);
             return;
         }
 
         payment.getDomainEvents().forEach(event -> {
             try {
                 // Use KafkaEventHandler to publish domain events
-                kafkaEventHandler.send(payment.getId().value(), event);
-                log.debug("Published domain event: {} for payment: {}",
-                    event.getEventType(), payment.getId().value());
+                eventPublisher.publish(event);
+                log.debug("Published domain event: {} for payment: {}", event.getEventType(), event);
             } catch (Exception e) {
-                log.error("Failed to publish domain event: {} for payment: {}",
-                    event.getEventType(), payment.getId().value(), e);
+                log.error("Failed to publish domain event: {} for payment: {}", event.getEventType(), event, e);
                 // Don't rethrow - we don't want to break the main business flow
             }
         });

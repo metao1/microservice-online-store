@@ -32,7 +32,7 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public List<OrderAggregate> findByCustomerId(CustomerId customerId) {
-        return jpaOrderRepository.findByCustomerId(customerId).stream()
+        return jpaOrderRepository.findByCustomerId(customerId.getValue()).stream()
             .map(OrderEntityMapper::toDomain)
             .toList();
     }

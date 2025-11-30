@@ -27,7 +27,7 @@ public class ProductEntityMapper {
             product.getTitle(),
             product.getDescription(),
             product.getVolume(),
-            new Money(product.getPrice().currency(),product.getPrice().doubleAmount()),
+            new Money(product.getMoney().currency(), product.getMoney().doubleAmount()),
             product.getImageUrl(),
             product.getCreatedTime(),
             product.getUpdatedTime()
@@ -51,15 +51,14 @@ public class ProductEntityMapper {
             .map(categoryEntityMapper::toDomain)
             .collect(Collectors.toSet());
 
-        return Product.reconstruct(
+        return new Product(
             entity.getSku(),
             entity.getTitle(),
             entity.getDescription(),
             entity.getVolume(),
             new Money(entity.getPrice().currency(), entity.getPrice().doubleAmount()),
-            entity.getImageUrl(),
-            entity.getCreatedTime(),
             entity.getUpdateTime(),
+            entity.getImageUrl(),
             categories
         );
     }

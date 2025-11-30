@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.metao.book.product.application.config.CurrencyDeserializer;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Currency;
 import java.util.Set;
 import lombok.Builder;
@@ -40,10 +40,10 @@ public record ProductDTO(
     Set<String> categories,
 
     @JsonProperty("createdTime")
-    LocalDateTime createdTime,
+    Instant createdTime,
 
     @JsonProperty("updatedTime")
-    LocalDateTime updatedTime,
+    Instant updatedTime,
 
     @JsonProperty("inStock")
     boolean inStock

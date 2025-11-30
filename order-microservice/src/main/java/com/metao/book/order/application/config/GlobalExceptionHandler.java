@@ -1,6 +1,5 @@
-package com.metao.book.product.application.config;
+package com.metao.book.order.application.config;
 
-import com.metao.book.product.domain.exception.ProductNotFoundException;
 import com.metao.book.shared.rest.client.ApiError;
 import java.time.Instant;
 import lombok.extern.slf4j.Slf4j;
@@ -21,14 +20,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
             .body(new ApiError(
-                    HttpStatus.BAD_REQUEST.value(),
-                    HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                    ex.getMessage(),
-                    null,
-                    null,
-                    Instant.now()
-                )
-            );
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage(),
+                null,
+                null,
+                Instant.now()
+            ));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -36,22 +34,6 @@ public class GlobalExceptionHandler {
         log.error(ex.getMessage(), ex);
         return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
-            .body(new ApiError(
-                    HttpStatus.BAD_REQUEST.value(),
-                    HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                    ex.getMessage(),
-                    null,
-                    null,
-                    Instant.now()
-                )
-            );
-    }
-
-    @ExceptionHandler(ProductNotFoundException.class)
-    public ResponseEntity<ApiError> handleException(ProductNotFoundException ex) {
-        log.error(ex.getMessage(), ex);
-        return ResponseEntity
-            .status(HttpStatus.NOT_FOUND)
             .body(new ApiError(
                     HttpStatus.BAD_REQUEST.value(),
                     HttpStatus.BAD_REQUEST.getReasonPhrase(),

@@ -5,8 +5,6 @@ import java.util.Set;
 
 public record ShoppingCartDto
     (
-        @JsonProperty("created_on")
-        Long createdOn,
         @JsonProperty("user_id")
         String userId,
         @JsonProperty("shopping_cart_items")

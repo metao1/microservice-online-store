@@ -33,7 +33,7 @@ public class ShoppingCart {
     private String sku;
 
     @Column(name = "quantity")
-    private BigDecimal quantity;
+    private int quantity;
 
     @Column(name = "updated_time")
     private Long updatedOn;
@@ -55,7 +55,7 @@ public class ShoppingCart {
         String sku,
         BigDecimal buyPrice,
         BigDecimal sellPrice,
-        BigDecimal quantity,
+        int quantity,
         Currency currency
     ) {
         this.createdOn = Instant.now().toEpochMilli();

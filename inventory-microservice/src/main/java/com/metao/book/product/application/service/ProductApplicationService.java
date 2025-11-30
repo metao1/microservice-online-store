@@ -16,6 +16,7 @@ import com.metao.book.product.domain.repository.ProductRepository;
 import com.metao.book.product.domain.service.ProductDomainService;
 import com.metao.book.shared.domain.financial.Money;
 import jakarta.validation.Valid;
+import java.util.HashSet;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,21 +56,24 @@ public class ProductApplicationService {
         var volume = ProductVolume.of(command.volume());
         var price = new Money(command.currency(), command.price());
         var imageUrl = ImageUrl.of(command.imageUrl());
+        var createdTime = command.createdTime();
 
+        var categories = new HashSet<ProductCategory>();
         // Create product aggregate
-        var product = new Product(productId, title, description, volume, price, imageUrl);
-
-        if (command.categoryNames() != null) {
+        if (command.categoryNames() != null && !command.categoryNames().isEmpty()) {
             for (String categoryName : command.categoryNames()) {
-                if (categoryName == null) continue;
+                if (categoryName == null) {
+                    break;
+                }
                 CategoryName catName = CategoryName.of(categoryName);
 
                 // Ensure category exists
                 ProductCategory category = categoryRepository.findByName(catName)
                     .orElseGet(() -> ProductCategory.of(catName));
-                product.addCategory(category);
+                categories.add(category);
             }
         }
+        var product = new Product(productId, title, description, volume, price, createdTime, imageUrl, categories);
 
         productRepository.save(product);
     }
@@ -81,20 +85,14 @@ public class ProductApplicationService {
     public Product updateProduct(@Valid UpdateProductCommand command) {
         log.info("Updating product with SKU: {}", command.sku());
 
-        ProductSku productSku = ProductSku.of(command.sku());
-        Product product = productRepository.findBySku(productSku)
+        var productSku = ProductSku.of(command.sku());
+        var product = productRepository.findBySku(productSku)
             .orElseThrow(() -> new ProductNotFoundException(productSku));
-
-        if (command.title() != null) {
             product.updateTitle(ProductTitle.of(command.title()));
-        }
-        if (command.description() != null) {
-            product.updateDescription(ProductDescription.of(command.description()));
-        }
-        if (command.price() != null && command.currency() != null) {
+
+        product.updateDescription(ProductDescription.of(command.description()));
             Money newPrice = new Money(command.currency(), command.price());
-            product.updatePrice(newPrice);
-        }
+        product.updatePrice(newPrice);
 
         productRepository.save(product);
 

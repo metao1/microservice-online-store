@@ -10,7 +10,7 @@ import static org.hamcrest.Matchers.is;
 import com.metao.book.order.application.cart.ShoppingCart;
 import com.metao.book.order.application.cart.ShoppingCartRepository;
 import com.metao.book.order.application.cart.UpdateCartItemQtyDTO;
-import com.metao.book.order.presentation.dto.AddItemRequestDTO;
+import com.metao.book.order.presentation.dto.AddItemRequestDto;
 import com.metao.shared.test.KafkaContainer;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -22,10 +22,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
-@Profile("test")
+@ActiveProfiles("test")
+@TestPropertySource(properties = "kafka.enabled=true")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class ShoppingCartControllerIT extends KafkaContainer {
 
@@ -35,9 +37,12 @@ class ShoppingCartControllerIT extends KafkaContainer {
     @Autowired
     private ShoppingCartRepository shoppingCartRepository;
 
-    private String userId1;
-    private String sku1;
-    private String sku2;
+    private String userId1 = "user123";
+
+    private String sku1 = "SKU001";
+
+    private String sku2 = "SKU002";
+
     private Currency currency;
 
     @BeforeEach
@@ -54,7 +59,7 @@ class ShoppingCartControllerIT extends KafkaContainer {
 
         // Initial item for user1
         // Constructor: public ShoppingCart(String userId, String sku, BigDecimal buyPrice, BigDecimal sellPrice, BigDecimal quantity, Currency currency)
-        ShoppingCart cartItem1User1 = new ShoppingCart(userId1, sku1, BigDecimal.TEN, BigDecimal.TEN, BigDecimal.ONE,
+        ShoppingCart cartItem1User1 = new ShoppingCart(userId1, sku1, BigDecimal.TEN, BigDecimal.TEN, 1,
             currency);
         // Need to set createdOn and updatedOn as the entity might expect them (e.g. non-null db constraints if any, or for DTO mapping)
         // The constructor ShoppingCart(...) sets createdOn. Let's assume updatedOn is also set or can be null initially.
@@ -99,7 +104,8 @@ class ShoppingCartControllerIT extends KafkaContainer {
 
     @Test
     void addItemToCart_newItem_returnsCreatedItem() {
-        AddItemRequestDTO newItemDto = new AddItemRequestDTO(BigDecimal.valueOf(2), BigDecimal.valueOf(20.00), currency);
+
+        AddItemRequestDto newItemDto = new AddItemRequestDto(sku1, 2, BigDecimal.valueOf(20.00), currency);
 
         given()
             .contentType(ContentType.JSON)
@@ -117,12 +123,12 @@ class ShoppingCartControllerIT extends KafkaContainer {
         // Verify in DB
         ShoppingCart dbItem = shoppingCartRepository.findByUserIdAndSku(userId1, sku2).orElse(null);
         assertThat(dbItem).isNotNull();
-        assertThat(dbItem.getQuantity()).isEqualByComparingTo(BigDecimal.valueOf(2));
+        assertThat(dbItem.getQuantity()).isEqualByComparingTo(2);
     }
     
     @Test
     void addItemToCart_existingItem_updatesQuantity() {
-        AddItemRequestDTO existingItemDto = new AddItemRequestDTO(BigDecimal.valueOf(2), BigDecimal.TEN, currency);
+        AddItemRequestDto existingItemDto = new AddItemRequestDto(sku1, 2, BigDecimal.TEN, currency);
 
         given()
             .contentType(ContentType.JSON)
@@ -140,12 +146,12 @@ class ShoppingCartControllerIT extends KafkaContainer {
         // Verify in DB
         ShoppingCart dbItem = shoppingCartRepository.findByUserIdAndSku(userId1, sku1).orElse(null);
         assertThat(dbItem).isNotNull();
-        assertThat(dbItem.getQuantity()).isEqualByComparingTo(BigDecimal.valueOf(3));
+        assertThat(dbItem.getQuantity()).isEqualByComparingTo(3);
     }
     
     @Test
     void updateItemQuantity_toZero_removesItemAndReturnsNoContent() {
-        UpdateCartItemQtyDTO updateDto = new UpdateCartItemQtyDTO(BigDecimal.ZERO);
+        UpdateCartItemQtyDTO updateDto = new UpdateCartItemQtyDTO(0);
 
         given()
             .contentType(ContentType.JSON)
@@ -177,7 +183,7 @@ class ShoppingCartControllerIT extends KafkaContainer {
     @Test
     void clearCart_removesAllItemsForUserAndReturnsNoContent() {
         // Add another item to the cart for user1 to ensure clearCart works for multiple items
-        ShoppingCart cartItem2User1 = new ShoppingCart(userId1, sku2, BigDecimal.valueOf(5), BigDecimal.valueOf(5), BigDecimal.ONE, currency);
+        ShoppingCart cartItem2User1 = new ShoppingCart(userId1, sku2, BigDecimal.valueOf(5), BigDecimal.valueOf(5), 1, currency);
         shoppingCartRepository.save(cartItem2User1);
         
         assertThat(shoppingCartRepository.findByUserId(userId1)).hasSize(2); // Verify two items exist
@@ -196,7 +202,7 @@ class ShoppingCartControllerIT extends KafkaContainer {
     // Test case for updating quantity of a non-existent item (should result in 404)
     @Test
     void updateItemQuantity_itemNotFound_returnsNotFound() {
-        UpdateCartItemQtyDTO updateDto = new UpdateCartItemQtyDTO(BigDecimal.valueOf(5));
+        UpdateCartItemQtyDTO updateDto = new UpdateCartItemQtyDTO(5);
         String nonExistentSku = "SKUNONEXIST";
 
         given()

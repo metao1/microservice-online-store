@@ -5,7 +5,7 @@ import com.metao.book.order.application.cart.ShoppingCartDto;
 import com.metao.book.order.application.cart.ShoppingCartService;
 import com.metao.book.order.application.cart.UpdateCartItemQtyDTO;
 import com.metao.book.order.infrastructure.ShoppingCartMapper;
-import com.metao.book.order.presentation.dto.AddItemRequestDTO;
+import com.metao.book.order.presentation.dto.AddItemRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -36,13 +36,14 @@ public class ShoppingCartController {
     public ResponseEntity<ShoppingCartDto> addItemToCart(
             @PathVariable String userId,
             @PathVariable String sku,
-            @RequestBody AddItemRequestDTO addItemRequestDTO) {
+        @RequestBody AddItemRequestDto dto
+    ) {
         ShoppingCart cartItem = shoppingCartService.addItemToCart(
                 userId,
                 sku,
-            addItemRequestDTO.quantity(),
-            addItemRequestDTO.price(),
-            addItemRequestDTO.currency());
+            dto.quantity(),
+            dto.unitPrice(),
+            dto.currency());
         var shoppingCardDto = ShoppingCartMapper.mapToDto(cartItem);
         return ResponseEntity.ok(shoppingCardDto);
     }
@@ -52,8 +53,7 @@ public class ShoppingCartController {
             @PathVariable String userId,
             @PathVariable String sku,
             @RequestBody UpdateCartItemQtyDTO updateCartItemQtyDTO) {
-        ShoppingCart cartItem = shoppingCartService.updateItemQuantity(
-                userId,
+        ShoppingCart cartItem = shoppingCartService.updateItemQuantity(userId,
                 sku,
             updateCartItemQtyDTO.quantity());
         if (cartItem == null) {

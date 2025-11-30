@@ -8,15 +8,12 @@ import lombok.Getter;
 
 @Getter
 public class OrderItem {
-
     private final ProductId productId;
-    private final String productName;
     private final Money unitPrice;
     private Quantity quantity;
 
-    public OrderItem(ProductId productId, String productName, Quantity quantity, Money unitPrice) {
+    public OrderItem(ProductId productId, Quantity quantity, Money unitPrice) {
         this.productId = productId;
-        this.productName = productName;
         this.quantity = quantity;
         this.unitPrice = unitPrice;
     }

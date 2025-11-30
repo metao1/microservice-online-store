@@ -19,7 +19,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
@@ -72,10 +72,10 @@ public class ProductEntity implements Serializable {
     private Money price;
 
     @Column(name = "created_time", nullable = false)
-    private LocalDateTime createdTime;
+    private Instant createdTime;
 
     @Column(name = "updated_time", nullable = false)
-    private LocalDateTime updateTime;
+    private Instant updateTime;
 
     @BatchSize(size = 50)
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
@@ -89,8 +89,8 @@ public class ProductEntity implements Serializable {
         ProductVolume volume,
         Money price,
         ImageUrl imageUrl,
-        LocalDateTime createdTime,
-        LocalDateTime updateTime
+        Instant createdTime,
+        Instant updateTime
     ) {
         this.sku = sku;
         this.title = title;

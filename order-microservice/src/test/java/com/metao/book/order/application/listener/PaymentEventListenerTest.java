@@ -1,5 +1,10 @@
 package com.metao.book.order.application.listener;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+
 import com.metao.book.order.application.service.OrderApplicationService;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
@@ -11,10 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for PaymentEventListener
@@ -187,7 +188,6 @@ class PaymentEventListenerTest {
                 eq(OrderId.of(orderId)),
                 eq(OrderStatus.PAYMENT_FAILED.name())
             );
-            // Should not re-throw the exception
         }
     }
 
