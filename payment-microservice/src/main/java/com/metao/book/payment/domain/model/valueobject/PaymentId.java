@@ -1,8 +1,8 @@
 package com.metao.book.payment.domain.model.valueobject;
 
 import com.metao.book.shared.domain.base.ValueObject;
+import jakarta.annotation.Nonnull;
 import java.util.UUID;
-import javax.annotation.Nonnull;
 import lombok.NonNull;
 
 /**

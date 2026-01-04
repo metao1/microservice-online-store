@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns="http://www.ehcache.org/v3"
-        xsi:schemaLocation="http://www.ehcache.org/v3
+    xmlns="http://www.ehcache.org/v3"
+    xsi:schemaLocation="http://www.ehcache.org/v3
         https://www.ehcache.org/schema/ehcache-core-3.0.xsd">
 
     <!-- Default cache configuration -->
@@ -37,7 +37,8 @@
     </cache>
 
     <!-- Product-Category association cache -->
-    <cache alias="com.metao.book.product.infrastructure.persistence.entity.ProductEntity.categories" uses-template="default">
+    <cache alias="com.metao.book.product.infrastructure.persistence.entity.ProductEntity.categories"
+        uses-template="default">
         <expiry>
             <ttl unit="hours">2</ttl>
         </expiry>
@@ -67,7 +68,8 @@
     </cache>
 
     <!-- Natural ID cache for products (SKU lookups) -->
-    <cache alias="com.metao.book.product.infrastructure.persistence.entity.ProductEntity##NaturalId" uses-template="default">
+    <cache alias="com.metao.book.product.infrastructure.persistence.entity.ProductEntity##NaturalId"
+        uses-template="default">
         <expiry>
             <ttl unit="hours">2</ttl>
         </expiry>
@@ -77,7 +79,8 @@
     </cache>
 
     <!-- Natural ID cache for categories -->
-    <cache alias="com.metao.book.product.infrastructure.persistence.entity.CategoryEntity##NaturalId" uses-template="default">
+    <cache alias="com.metao.book.product.infrastructure.persistence.entity.CategoryEntity##NaturalId"
+        uses-template="default">
         <expiry>
             <ttl unit="hours">4</ttl>
         </expiry>

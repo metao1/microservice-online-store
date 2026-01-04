@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:11.1:///integration-tests-db
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+  flyway:
+    enabled: false
+  kafka:
+    properties:
+      security.protocol: PLAINTEXT
+      sasl.mechanism: PLAIN
+      schema.registry.url: mock://not-used
+
+logging:
+  pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%t]){yellow} %clr([%c{1.}]){green} %clr(:){red} %clr(%m){faint}%n"
+  level:
+    org.springframework: ERROR
+    org.springframework.data: ERROR
+    org.springframework.boot: ERROR
+    org.springframework.context: ERROR
+    com.zaxxer.hikari: ERROR
+    org.testcontainers: ERROR
+    org.apache: ERROR
+    io.confluent: ERROR
+    org.flywaydb: ERROR
+    org.postgresql: ERROR
+    org.apache.kafka: ERROR
+    com.metao.book: ERROR
+    org.hibernate: ERROR
+    io.grpc: ERROR

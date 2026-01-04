@@ -41,9 +41,10 @@ public class ProductKafkaListenerComponent {
             BigDecimal.valueOf(productCreatedEvent.getPrice()),
             Currency.getInstance(productCreatedEvent.getCurrency()),
             BigDecimal.valueOf(productCreatedEvent.getVolume()),
-            Instant.ofEpochSecond(productCreatedEvent.getCreateTime().getSeconds(), productCreatedEvent.getCreateTime().getNanos()),
+            Instant.ofEpochSecond(productCreatedEvent.getCreateTime().getSeconds(),
+                productCreatedEvent.getCreateTime().getNanos()),
 
-        productCreatedEvent.getCategoriesList()
+            productCreatedEvent.getCategoriesList()
                 .stream()
                 .map(Category::getName)
                 .toList()

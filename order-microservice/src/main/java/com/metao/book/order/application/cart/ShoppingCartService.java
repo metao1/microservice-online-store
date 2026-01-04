@@ -1,10 +1,11 @@
 package com.metao.book.order.application.cart;
 
-import com.metao.book.order.domain.exception.OrderNotFoundException;
+import com.metao.book.order.domain.exception.ShoppingCartNotFoundException;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.util.Currency;
-import java.util.HashSet;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,40 +19,59 @@ public class ShoppingCartService {
     public ShoppingCartDto getCartForUser(String userId) {
         var items = shoppingCartRepository.findByUserId(userId);
         var cartItems = items.stream()
-                .map(item -> new ShoppingCartItem(
-                        item.getSku(),
-                        item.getQuantity(),
-                        item.getSellPrice(), // Assuming sellPrice is the price to display
-                        item.getCurrency()
-                )).toList();
-        // The grand total calculation will be handled by the client or a future enhancement.
-        // The ShoppingCartDto is a record: ShoppingCartDto(Long createdOn, String userId, Set<ShoppingCartItem> shoppingCartItems)
-        return new ShoppingCartDto(userId, new HashSet<>(cartItems));
+            .map(item -> new ShoppingCartItem(
+                item.getSku(),
+                item.getQuantity(),
+                item.getSellPrice(), // Assuming sellPrice is the price to display
+                item.getCurrency()
+            )).toList();
+        return new ShoppingCartDto(
+            userId,
+            Set.copyOf(cartItems)
+        );
     }
 
     @Transactional
-    public ShoppingCart addItemToCart(String userId, String sku, int quantity, BigDecimal price, Currency currency) {
-        ShoppingCart item = shoppingCartRepository.findByUserIdAndSku(userId, sku)
+    public int addItemToCart(
+        String userId,
+        @Valid @NotNull Set<ShoppingCartItem> shoppingCartItems
+    ) {
+        if (shoppingCartItems.isEmpty()) {
+            return 0;
+        }
+        // loop through each item and add to cart
+        var items = shoppingCartItems.stream()
+            .map(item -> shoppingCartRepository.findByUserIdAndSku(userId, item.sku())
                 .map(existingItem -> {
-                    existingItem.setQuantity(existingItem.getQuantity() + quantity);
-                    existingItem.setUpdatedOn(OffsetDateTime.now().toInstant().toEpochMilli()); // Corrected timestamp
+                    existingItem.setQuantity(existingItem.getQuantity().add(item.quantity()));
+                    existingItem.setUpdatedOn(OffsetDateTime.now().toInstant().toEpochMilli());
                     return existingItem;
                 })
                 .orElseGet(() -> {
-                    ShoppingCart newItem = new ShoppingCart(userId, sku, price, price, quantity, currency);
-                    newItem.setUpdatedOn(newItem.getCreatedOn()); // Set updatedOn to createdOn for new items
+                    ShoppingCart newItem = new ShoppingCart(
+                        userId,
+                        item.sku(),
+                        item.price(),
+                        item.price(),
+                        item.quantity(),
+                        item.currency()
+                    );
+                    newItem.setUpdatedOn(newItem.getCreatedOn());
                     return newItem;
-                });
-        return shoppingCartRepository.save(item);
+                })
+            ).toList();
+        // Save all items to the repository
+        shoppingCartRepository.saveAll(items);
+        // Return the last added item as a representative (could be modified as needed)
+        return items.size();
     }
 
     @Transactional
-    public ShoppingCart updateItemQuantity(String userId, String sku, int newQuantity) {
+    public ShoppingCart updateItemQuantity(String userId, String sku, BigDecimal newQuantity) {
         ShoppingCart item = shoppingCartRepository.findByUserIdAndSku(userId, sku)
-            .orElseThrow(() -> new OrderNotFoundException(
-                String.format("Cart item not found for user %s and sku %s", userId, sku)));
+            .orElseThrow(() -> new ShoppingCartNotFoundException(String.format("user %s and sku %s", userId, sku)));
 
-        if (newQuantity <= 0) {
+        if (newQuantity.compareTo(BigDecimal.ZERO) <= 0) {
             shoppingCartRepository.deleteByUserIdAndSku(userId, sku);
             return null;
         } else {
@@ -63,9 +83,9 @@ public class ShoppingCartService {
 
     @Transactional
     public void removeItemFromCart(String userId, String sku) {
-        // Ensure item exists before attempting delete to provide a clear exception if not.
+        // Ensure item exists before attempting to delete to provide a clear exception if not.
         shoppingCartRepository.findByUserIdAndSku(userId, sku)
-                .orElseThrow(() -> new OrderNotFoundException("Cart item not found for user " + userId + " and sku " + sku + " when attempting to remove."));
+            .orElseThrow(() -> new ShoppingCartNotFoundException(String.format("user %s and sku %s", userId, sku)));
         shoppingCartRepository.deleteByUserIdAndSku(userId, sku);
     }
 

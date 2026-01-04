@@ -2,9 +2,9 @@ package com.metao.book.shared.domain.base;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import org.springframework.lang.NonNull;
 import java.util.Objects;
 import java.util.UUID;
+import org.springframework.lang.NonNull;
 
 /**
  * Base class for value objects that are used as identifiers for {@link IdentifiableDomainObject}s. These are

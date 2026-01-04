@@ -2,8 +2,6 @@ spring:
   datasource:
     url: jdbc:tc:postgresql:11.1:///integration-tests-db
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
-  flyway:
-    enabled: false
   kafka:
     properties:
       security.protocol: PLAINTEXT

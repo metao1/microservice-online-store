@@ -23,8 +23,8 @@ public class ProductDtoGeneratorUtils {
 
     public static CreateProductDto buildOneProduct(String sku, String title, String description, String category) {
         var url = "https://example.com/image.jpg";
-        var price = new BigDecimal("12.00");
-        var volume = new BigDecimal("100.00");
+        var price = BigDecimal.valueOf(12.00);
+        var volume = BigDecimal.valueOf(100.00);
         return new CreateProductDto(
             sku,
             title,

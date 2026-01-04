@@ -1,6 +1,7 @@
 package com.metao.book.order.domain.model.valueobject;
 
 import java.util.UUID;
+import org.jetbrains.annotations.NotNull;
 
 public record OrderId(String value) {
 
@@ -10,5 +11,11 @@ public record OrderId(String value) {
 
     public static OrderId of(String value) {
         return new OrderId(value);
+    }
+
+    @NotNull
+    @Override
+    public String toString() {
+        return value;
     }
 }

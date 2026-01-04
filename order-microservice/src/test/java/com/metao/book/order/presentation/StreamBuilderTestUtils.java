@@ -1,11 +1,11 @@
 package com.metao.book.order.presentation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.experimental.UtilityClass;
 import java.io.IOException;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class StreamBuilderTestUtils {

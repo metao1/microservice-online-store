@@ -4,7 +4,6 @@ import com.google.protobuf.Message;
 import com.metao.book.shared.domain.base.DelegatingDomainEventTranslator;
 import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.domain.base.DomainEventPublisher;
-import com.metao.book.shared.domain.base.TranslationResult;
 import com.metao.kafka.KafkaEventHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,8 +22,8 @@ public class DomainEventToKafkaEventHandler implements DomainEventPublisher {
     @Override
     public void publish(DomainEvent event) {
         try {
-            final TranslationResult translationResult = domainEventTranslator.translate(event);
-            var kafkaTopic = kafkaEventHandler.getKafkaTopic(event.getClass());
+            var translationResult = domainEventTranslator.translate(event);
+            var kafkaTopic = kafkaEventHandler.getKafkaTopic(translationResult.message().getClass());
             kafkaTemplate.send(kafkaTopic, translationResult.key(), translationResult.message());
             log.debug("Published OrderCreatedEvent for order: {}", event.getEventType());
         } catch (Exception e) {

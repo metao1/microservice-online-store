@@ -45,7 +45,6 @@ public class ProductEntityMapper {
      * Convert ProductEntity to domain Product
      */
     public Product toDomain(ProductEntity entity) {
-
         // Map categories
         Set<ProductCategory> categories = entity.getCategories().stream()
             .map(categoryEntityMapper::toDomain)
@@ -57,6 +56,7 @@ public class ProductEntityMapper {
             entity.getDescription(),
             entity.getVolume(),
             new Money(entity.getPrice().currency(), entity.getPrice().doubleAmount()),
+            entity.getCreatedTime(),
             entity.getUpdateTime(),
             entity.getImageUrl(),
             categories

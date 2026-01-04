@@ -17,7 +17,7 @@ public class OrderCreatedEventTranslator implements ProtobufDomainTranslator {
         return OrderCreatedEvent.newBuilder()
             .setId(domainEvent.getOrderId().value())
             .setCustomerId(domainEvent.getCustomerId().getValue())
-            .setStatus(com.metao.book.shared.OrderCreatedEvent.Status.NEW)
+            .setStatus(OrderCreatedEvent.Status.NEW)
             .setCreateTime(Timestamp.newBuilder()
                 .setSeconds(domainEvent.getOccurredOn().atZone(java.time.ZoneOffset.UTC).toEpochSecond())
                 .setNanos(domainEvent.getOccurredOn().getNano())

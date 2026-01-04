@@ -3,11 +3,11 @@ package com.metao.book.order.domain.model.entity;
 import com.metao.book.order.domain.model.valueobject.ProductId;
 import com.metao.book.order.domain.model.valueobject.Quantity;
 import com.metao.book.shared.domain.financial.Money;
-import java.math.BigDecimal;
 import lombok.Getter;
 
 @Getter
 public class OrderItem {
+
     private final ProductId productId;
     private final Money unitPrice;
     private Quantity quantity;
@@ -23,6 +23,6 @@ public class OrderItem {
     }
 
     public Money getTotalPrice() {
-        return unitPrice.multiply(BigDecimal.valueOf(quantity.getValue()));
+        return unitPrice.multiply(quantity.getValue());
     }
 }

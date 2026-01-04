@@ -1,6 +1,6 @@
 package com.metao.book.payment.domain.repository;
 
-import com.metao.book.payment.domain.model.aggregate.Payment;
+import com.metao.book.payment.domain.model.aggregate.PaymentAggregate;
 import com.metao.book.payment.domain.model.valueobject.OrderId;
 import com.metao.book.payment.domain.model.valueobject.PaymentId;
 import com.metao.book.payment.domain.model.valueobject.PaymentStatus;
@@ -15,27 +15,27 @@ public interface PaymentRepository {
     /**
      * Save a payment
      */
-    Payment save(Payment payment);
+    PaymentAggregate save(PaymentAggregate payment);
 
     /**
      * Find payment by ID
      */
-    Optional<Payment> findById(PaymentId paymentId);
+    Optional<PaymentAggregate> findById(PaymentId paymentId);
 
     /**
      * Find payment by order ID
      */
-    Optional<Payment> findByOrderId(OrderId orderId);
+    Optional<PaymentAggregate> findByOrderId(OrderId orderId);
 
     /**
      * Find payments by status
      */
-    List<Payment> findByStatus(PaymentStatus status);
+    List<PaymentAggregate> findByStatus(PaymentStatus status);
 
     /**
      * Find all payments with pagination
      */
-    List<Payment> findAll(int offset, int limit);
+    List<PaymentAggregate> findAll(int offset, int limit);
 
     /**
      * Check if payment exists for order
@@ -45,7 +45,7 @@ public interface PaymentRepository {
     /**
      * Delete payment
      */
-    void delete(Payment payment);
+    void delete(PaymentAggregate payment);
 
     /**
      * Count total payments

@@ -96,7 +96,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres:/var/lib/postgresql/data
+      - postgres:/var/lib/postgresql
     environment:
       POSTGRES_DB: bookstore
       POSTGRES_USER: bookstore
@@ -108,7 +108,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - postgres-order:/var/lib/postgresql/data
+      - postgres-order:/var/lib/postgresql
     environment:
       POSTGRES_DB: bookstore-order
       POSTGRES_USER: bookstore
@@ -175,7 +175,7 @@ services:
     environment:
       SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
       BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:9092
-      SPRING_PROFILES_ACTIVE: "container" 
+      SPRING_PROFILES_ACTIVE: "container"
       # Add other necessary env vars like DB connection if payment-microservice uses one
       # Example:
       # DATABASE_URL: "jdbc:postgresql://postgres-payment:5432/bookstore-payment" 

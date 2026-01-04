@@ -3,11 +3,8 @@ package com.metao.book.product.infrastructure.persistence.entity;
 import jakarta.persistence.Cacheable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
@@ -29,17 +26,15 @@ import org.hibernate.annotations.NaturalIdCache;
 @Getter
 @NoArgsConstructor
 @Cacheable
-@NaturalIdCache
 @Entity(name = "product_category")
 @Table(name = "product_category")
+@NaturalIdCache(region = "CategoryEntity_NaturalId")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class CategoryEntity implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "category_sequence")
-    @SequenceGenerator(name = "category_sequence")
     @Column(name = "id", updatable = false, nullable = false)
-    private Long id;
+    private String id;
 
     @NaturalId
     @Column(name = "category", nullable = false, unique = true)

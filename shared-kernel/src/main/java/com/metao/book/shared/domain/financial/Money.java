@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.metao.book.shared.domain.base.ValueObject;
 import jakarta.persistence.Embeddable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Currency;
 import java.util.Objects;
 import org.springframework.lang.NonNull;
@@ -90,7 +91,7 @@ public class Money implements ValueObject {
      */
     @NonNull
     public Money divide(BigDecimal divisor) {
-        return new Money(currency, amount.divide(divisor, BigDecimal.ROUND_HALF_UP));
+        return new Money(currency, amount.divide(divisor, RoundingMode.HALF_UP));
     }
 
     /**
@@ -175,12 +176,16 @@ public class Money implements ValueObject {
             return false;
         }
         Money money = (Money) o;
-        return Objects.equals(amount, money.amount) && Objects.equals(currency, money.currency);
+        // Use compareTo for BigDecimal to ensure mathematical equality (ignoring scale)
+        return (amount == null ? money.amount == null : amount.compareTo(money.amount) == 0)
+            && Objects.equals(currency, money.currency);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(currency, amount);
+        // Normalize BigDecimal to ensure consistent hash codes for mathematically equal values
+        BigDecimal normalizedAmount = amount != null ? amount.stripTrailingZeros() : null;
+        return Objects.hash(currency, normalizedAmount);
     }
 
     @Override

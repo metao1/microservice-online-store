@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class KafkaEventHandler{
+public class KafkaEventHandler {
 
     private final KafkaEventConfiguration kafkaEventConfiguration;
 

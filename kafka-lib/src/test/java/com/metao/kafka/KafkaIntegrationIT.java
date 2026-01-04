@@ -16,7 +16,10 @@ import java.util.stream.IntStream;
 import lombok.SneakyThrows;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.PartitionInfo;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,6 +32,7 @@ import org.springframework.test.context.TestPropertySource;
 
 @ActiveProfiles("test")
 @Import(KafkaConsumerConfigTest.class)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestPropertySource(properties = "kafka.enabled=true")
 @SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = {
     KafkaEventHandler.class, KafkaEventConfiguration.class
@@ -45,20 +49,22 @@ class KafkaIntegrationIT extends KafkaContainer {
     KafkaTemplate<String, CreatedEventTest> kafkaTemplate;
 
     @Test
+    @Order(1)
     @SneakyThrows
     void testSendEventToAKafkaTopic_consumesFromSameKafkaTopicSuccessfully() {
-        String orderId = "integrationTestOrderId-" + System.currentTimeMillis();
+        String orderId = "integrationTestOrderId";
         CreatedEventTest createdEventTest = CreatedEventTest.newBuilder()
             .setId(orderId)
             .setCustomerId("custIntegrationTest")
             .setProductId("prodIntegrationTest")
             .setPrice(19.99)
             .setQuantity(1.0)
-            .setCurrency("USD")
+            .setCurrency("EUR")
             .setStatus(CreatedEventTest.Status.NEW)
             .build();
 
         String kafkaTopic = eventHandler.getKafkaTopic(createdEventTest.getClass());
+
         kafkaTemplate.send(kafkaTopic, orderId, createdEventTest);
         await().atMost(Duration.ofSeconds(10))
             .untilAsserted(() -> {
@@ -70,11 +76,20 @@ class KafkaIntegrationIT extends KafkaContainer {
                 assertThat(event)
                     .isNotNull()
                     .extracting(ConsumerRecord::value)
-                    .isEqualTo(event.value());
+                    .satisfies(createdEvent -> {
+                        assertThat(createdEvent.getId()).isEqualTo("integrationTestOrderId");
+                        assertThat(createdEvent.getCustomerId()).isEqualTo("custIntegrationTest");
+                        assertThat(createdEvent.getProductId()).isEqualTo("prodIntegrationTest");
+                        assertThat(createdEvent.getQuantity()).isEqualTo(1.0);
+                        assertThat(createdEvent.getPrice()).isEqualTo(19.99);
+                        assertThat(createdEvent.getCurrency()).isEqualTo("EUR");
+                        assertThat(createdEvent.hasUpdateTime()).isFalse();
+                    });
             });
     }
 
     @Test
+    @Order(2)
     @SneakyThrows
     void testConcurrentProduceAndConsumeOnSameTopic() {
         String orderIdPrefix = "concurrentOrder-" + System.currentTimeMillis();
@@ -141,6 +156,7 @@ class KafkaIntegrationIT extends KafkaContainer {
     }
 
     @Test
+    @Order(3)
     @SneakyThrows
     void testMultipleConcurrentProducersSingleConsumer() {
         String orderIdPrefix = "multiProducerOrder-" + System.currentTimeMillis();
@@ -153,6 +169,7 @@ class KafkaIntegrationIT extends KafkaContainer {
         // Configure KafkaTemplate for receive operations using the same pattern as the existing test
         @SuppressWarnings("unchecked")
         ConsumerFactory<String, CreatedEventTest> consumerFactory = beanFactory.getBean(ConsumerFactory.class);
+
         kafkaTemplate.setConsumerFactory(consumerFactory);
 
         List<PartitionInfo> partitions = kafkaTemplate.partitionsFor(kafkaTopic);

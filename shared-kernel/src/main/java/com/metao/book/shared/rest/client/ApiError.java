@@ -1,8 +1,8 @@
 package com.metao.book.shared.rest.client;
 
+import org.springframework.validation.FieldError;
 import java.time.Instant;
 import java.util.Set;
-import org.springframework.validation.FieldError;
 
 public record ApiError(
     /*
@@ -30,5 +30,5 @@ public record ApiError(
      */
     Instant timestamp
 ) {
-    
+
 }

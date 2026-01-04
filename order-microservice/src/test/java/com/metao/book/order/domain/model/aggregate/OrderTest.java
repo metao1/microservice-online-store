@@ -3,6 +3,7 @@ package com.metao.book.order.domain.model.aggregate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.metao.book.order.domain.exception.OrderStateTransitionNotAllowed;
 import com.metao.book.order.domain.model.event.DomainOrderCreatedEvent;
 import com.metao.book.order.domain.model.event.OrderItemAddedEvent;
 import com.metao.book.order.domain.model.event.OrderStatusChangedEvent;
@@ -82,7 +83,7 @@ class OrderTest {
             order.clearDomainEvents(); // Clear initial creation event
 
             ProductId productId = new ProductId("product123");
-            Quantity quantity = new Quantity(2);
+            Quantity quantity = new Quantity(BigDecimal.valueOf(2.0));
             Money unitPrice = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10.0));
 
             // When
@@ -108,7 +109,7 @@ class OrderTest {
         @Test
         void shouldThrowExceptionForNullProductId() {
             OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
-            assertThatThrownBy(() -> order.addItem(null, new Quantity(1),
+            assertThatThrownBy(() -> order.addItem(null, new Quantity(BigDecimal.ONE),
                 new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10.0))))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("Product ID cannot be null");
@@ -116,7 +117,7 @@ class OrderTest {
 
         @Test
         void shouldThrowExceptionForNegativeQuantity() {
-            assertThatThrownBy(() -> new Quantity(-1))
+            assertThatThrownBy(() -> new Quantity(BigDecimal.valueOf(-1)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Quantity must be positive");
         }
@@ -130,9 +131,9 @@ class OrderTest {
         static Stream<Arguments> invalidStatusTransitions() {
             return Stream.of(
                 Arguments.of(OrderStatus.CREATED, OrderStatus.PENDING_PAYMENT,
-                    "Cannot transition from CREATED to PENDING_PAYMENT"),
+                    "Transition error: Cannot transition from CREATED to PENDING_PAYMENT"),
                 Arguments.of(OrderStatus.CREATED, OrderStatus.PROCESSING,
-                    "Cannot transition from CREATED to PROCESSING")
+                    "Transition error: Cannot transition from CREATED to PROCESSING")
             );
         }
 
@@ -180,19 +181,19 @@ class OrderTest {
         @ParameterizedTest
         @MethodSource("invalidStatusTransitions")
         void shouldThrowExceptionForInvalidStatusTransitions(
-            OrderStatus fromStatus,
-            OrderStatus toStatus,
+            OrderStatus oldStatus,
+            OrderStatus newStatus,
             String expectedMessage
         ) {
             OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
 
             // Set initial status if not CREATED
-            if (fromStatus != OrderStatus.CREATED) {
-                order.updateStatus(fromStatus);
+            if (oldStatus != OrderStatus.CREATED) {
+                order.updateStatus(oldStatus);
             }
 
-            assertThatThrownBy(() -> order.updateStatus(toStatus))
-                .isInstanceOf(IllegalStateException.class)
+            assertThatThrownBy(() -> order.updateStatus(newStatus))
+                .isInstanceOf(OrderStateTransitionNotAllowed.class)
                 .hasMessage(expectedMessage);
         }
     }
@@ -204,22 +205,22 @@ class OrderTest {
             return Stream.of(
                 Arguments.of(
                     List.of(
-                        new OrderItemData("product1", "Product 1", 2, BigDecimal.valueOf(10.0)),
-                        new OrderItemData("product2", "Product 2", 1, BigDecimal.valueOf(15.0))
+                        new OrderItemData("product1", "Product 1", BigDecimal.TWO, BigDecimal.valueOf(10.0)),
+                        new OrderItemData("product2", "Product 2", BigDecimal.ONE, BigDecimal.valueOf(15.0))
                     ),
                     BigDecimal.valueOf(35.0),
                     "Multiple items calculation: (2 * 10.0) + (1 * 15.0)"
                 ),
                 Arguments.of(
                     List.of(
-                        new OrderItemData("product1", "Product 1", 1000, BigDecimal.valueOf(999.99))
+                        new OrderItemData("product1", "Product 1", BigDecimal.valueOf(1000), BigDecimal.valueOf(999.99))
                     ),
-                    new BigDecimal("999990.00"),
+                    BigDecimal.valueOf(999990.00),
                     "Large numbers calculation: 1000 * 999.99"
                 ),
                 Arguments.of(
                     List.of(
-                        new OrderItemData("product1", "Product 1", 1, BigDecimal.valueOf(0.01))
+                        new OrderItemData("product1", "Product 1", BigDecimal.ONE, BigDecimal.valueOf(0.01))
                     ),
                     BigDecimal.valueOf(0.01),
                     "Small decimal calculation: 1 * 0.01"
@@ -257,7 +258,7 @@ class OrderTest {
             assertThat(order.getTotal()).isNull();
         }
 
-        record OrderItemData(String productId, String productName, int quantity, BigDecimal unitPrice) {}
+        record OrderItemData(String productId, String productName, BigDecimal quantity, BigDecimal unitPrice) {}
     }
 
     @Nested
@@ -267,7 +268,7 @@ class OrderTest {
         void shouldClearDomainEvents() {
             // Given
             OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
-            order.addItem(new ProductId("product1"), new Quantity(1),
+            order.addItem(new ProductId("product1"), new Quantity(BigDecimal.ONE),
                 new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10.0)));
             order.updateStatus(OrderStatus.PAID);
 
@@ -290,7 +291,7 @@ class OrderTest {
         @Test
         void shouldAccumulateEventsForMultipleOperations() {
             OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
-            order.addItem(new ProductId("product1"), new Quantity(1),
+            order.addItem(new ProductId("product1"), new Quantity(BigDecimal.ONE),
                 new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10.0)));
             order.updateStatus(OrderStatus.PAID);
 

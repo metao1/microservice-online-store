@@ -3,10 +3,10 @@ package com.metao.book.shared.domain.financial;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.metao.book.shared.domain.base.ValueObject;
-import org.springframework.lang.NonNull;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
+import org.springframework.lang.NonNull;
 
 /**
  * Value object representing a VAT (Value Added Tax) percentage.

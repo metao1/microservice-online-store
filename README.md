@@ -2,12 +2,16 @@
 
 # Microservice Online Shop, a modern E-commerce book management web application using Event-Driven and microservice architecture
 
-Online Store is a modern E-commerce system for retailing and product management using web application, built using modern tech-stack. It built with Java Spring boot as backend and React as frontend over a Microservice and event-driven communicating based-on Apache Kafka.
+Online Store is a modern E-commerce system for retailing and product management using web application, built using
+modern tech-stack. It built with Java Spring boot as backend and React as frontend over a Microservice and event-driven
+communicating based-on Apache Kafka.
 
 ### Event Storming for understanding the system
+
 ![event-storming](img/eventstorming.png)
 
 ### Event-Driven architecture online Shop overall architecture
+
 ![online-shop-architecture](img/online-shop-architecture.png)
 
 ----------------------------------------------------------------
@@ -20,7 +24,8 @@ Online Store is a modern E-commerce system for retailing and product management 
 
 ### Components
 
-We have several microservices as components of online shop system, each of which is located under its directory in the project.
+We have several microservices as components of online shop system, each of which is located under its directory in the
+project.
 
 #### 1. Order Microservice:
 
@@ -35,7 +40,8 @@ Responsible to managing our products in inventory.
 
 #### 3. Payment Microservice: [Implemented - Mocked Processing]
 
-Responsible for processing payments related to orders. 
+Responsible for processing payments related to orders.
+
 - It consumes `OrderCreatedEvent` from a Kafka topic (when an order is initiated in the `order-microservice`).
 - It currently simulates payment processing (mocked logic with random success/failure).
 - After processing, it produces an `OrderPaymentEvent` (with status `SUCCESSFUL` or `FAILED`) to another Kafka topic.

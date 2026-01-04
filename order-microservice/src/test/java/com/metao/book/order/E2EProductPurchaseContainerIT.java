@@ -12,6 +12,7 @@ import static org.hamcrest.Matchers.hasSize;
 
 import com.google.protobuf.Timestamp;
 import com.metao.book.order.application.cart.ShoppingCart;
+import com.metao.book.order.application.cart.ShoppingCartItem;
 import com.metao.book.order.application.cart.ShoppingCartRepository;
 import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.model.valueobject.CustomerId;
@@ -20,7 +21,7 @@ import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.domain.repository.OrderRepository;
 import com.metao.book.order.infrastructure.persistence.repository.JpaOrderRepository;
 import com.metao.book.order.presentation.dto.AddItemRequestDto;
-import com.metao.book.order.presentation.dto.CreateOrderRequest;
+import com.metao.book.order.presentation.dto.CreateOrderRequestDTO;
 import com.metao.book.shared.OrderPaymentEvent;
 import com.metao.kafka.KafkaEventHandler;
 import com.metao.shared.test.KafkaContainer;
@@ -31,6 +32,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Currency;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,6 +59,8 @@ import org.wiremock.spring.EnableWireMock;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableWireMock({@ConfigureWireMock(port = 8083, name = "inventory-microservice")})
 class E2EProductPurchaseContainerIT extends KafkaContainer {
+
+    private static final BigDecimal ONE = BigDecimal.ONE;
 
     private final String userId = "e2eUser";
     private final String sku1 = "SKU_E2E_001"; // Assume this product exists in inventory-microservice
@@ -99,20 +103,43 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
         stubFor(get(urlEqualTo("/products/" + sku1))
             .willReturn(aResponse()
                 .withHeader("Content-Type", "application/json")
-                .withBody("{\"sku\":\"" + sku1 + "\",\"available\":true}")));
+                .withBody("""
+                    {
+                      "sku": "%s",
+                      "title": "Test Product",
+                      "description": "Test product description",
+                      "imageUrl": "https://example.com/image.jpg",
+                      "price": 12.99,
+                      "currency": "EUR",
+                      "volume": 1.0,
+                      "categories": ["test-category"],
+                      "createdTime": "2025-01-01T00:00:00Z",
+                      "updatedTime": "2025-01-01T00:00:00Z",
+                      "inStock": true
+                    }
+                    """.formatted(sku1))));
 
         log.info("✅ Inventory service check passed for product: " + sku1);
 
-        AddItemRequestDto addItemDTO = new AddItemRequestDto(sku1, 1, price1, currency);
+        var addItemDTO = new AddItemRequestDto(
+            userId,
+            Set.of(
+                new ShoppingCartItem(
+                    sku1,
+                    ONE,
+                    price1,
+                    currency
+                )
+            )
+        );
 
         given()
-            // Port is set in setUp for RestAssured
             .contentType(ContentType.JSON)
             .body(addItemDTO)
             .when()
-            .post("/cart/{userId}/{sku}", userId, sku1)
+            .post("/cart")
             .then()
-            .statusCode(HttpStatus.OK.value());
+            .statusCode(HttpStatus.CREATED.value());
 
         assertThat(shoppingCartRepository.findByUserIdAndSku(userId, sku1)).isPresent();
     }
@@ -120,10 +147,10 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
     @Test
     @Order(2)
     void step2_viewCart() {
-        // Ensure item from step 1 is in cart for this ordered test
+        // Ensure an item from step 1 is in the cart for this ordered test
         // If step1 failed or tests were run out of order, this might fail without this setup.
         if (shoppingCartRepository.findByUserIdAndSku(userId, sku1).isEmpty()) {
-            shoppingCartRepository.save(new ShoppingCart(userId, sku1, price1, price1, 1, currency));
+            shoppingCartRepository.save(new ShoppingCart(userId, sku1, price1, price1, ONE, currency));
         }
 
         given()
@@ -142,19 +169,18 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
     void step3_checkoutAndVerifyOrder() {
         // Ensure item from step 1 is in cart
         if (shoppingCartRepository.findByUserIdAndSku(userId, sku1).isEmpty()) {
-            shoppingCartRepository.save(new ShoppingCart(userId, sku1, price1, price1, 1, currency));
+            shoppingCartRepository.save(new ShoppingCart(userId, sku1, price1, price1, ONE, currency));
         }
 
-        CreateOrderRequest createOrderRequest = new CreateOrderRequest();
-        createOrderRequest.setCustomerId(userId);
+        CreateOrderRequestDTO dto = new CreateOrderRequestDTO(userId);
 
         OrderId orderId = given()
             .contentType(ContentType.JSON)
-            .body(createOrderRequest)
+            .body(dto)
             .when()
-            .post("/api/orders")
+            .post("/api/order")
             .then()
-            .statusCode(HttpStatus.OK.value())
+            .statusCode(HttpStatus.CREATED.value())
             .extract()
             .as(OrderId.class);
 
@@ -164,15 +190,19 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
         // Wait a bit for the order to be created
         await().atMost(Duration.ofSeconds(10)).pollInterval(Duration.ofMillis(500)).untilAsserted(
             () -> {
-                var expectedOrders = List.of(new OrderAggregate(orderId, new CustomerId(userId)));
-                assertThat(expectedOrders).isEqualTo(orderRepository.findByCustomerId(new CustomerId(userId)));
+                assertThat(orderRepository.findByCustomerId(new CustomerId(userId)))
+                    .isNotEmpty()
+                    .isEqualTo(List.of(new OrderAggregate(orderId, new CustomerId(userId))));
             }
         );
 
         // Simulate payment event (since payment microservice is not running in this test)
+        // PaymentProcessedEvent is published to Kafka topic paymentEvent
         var createdOrders = orderRepository.findByCustomerId(new CustomerId(userId));
+        // Sends mock payment event to paymentEvent Kafka topic
         if (!createdOrders.isEmpty()) {
             OrderAggregate order = createdOrders.getFirst();
+            // Mocks successful payment event for order
             OrderPaymentEvent paymentEvent = OrderPaymentEvent.newBuilder()
                 .setOrderId(order.getId().value())
                 .setStatus(OrderPaymentEvent.Status.SUCCESSFUL)

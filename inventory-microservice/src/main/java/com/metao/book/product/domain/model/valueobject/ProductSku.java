@@ -1,8 +1,12 @@
 package com.metao.book.product.domain.model.valueobject;
 
 import com.metao.book.shared.domain.base.ValueObject;
-import java.util.UUID;
 import jakarta.persistence.Embeddable;
+import java.util.UUID;
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
 
@@ -10,7 +14,12 @@ import org.jetbrains.annotations.NotNull;
  * Product identifier value object
  */
 @Embeddable
-public record ProductSku(String value) implements ValueObject {
+@Getter
+@EqualsAndHashCode
+@NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
+public class ProductSku implements ValueObject {
+
+    private final String value;
 
     public ProductSku(@NonNull String value) {
         if (value.trim().isEmpty()) {

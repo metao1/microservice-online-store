@@ -1,13 +1,13 @@
 package com.metao.book.order.presentation.dto;
 
-import java.math.BigDecimal;
-import java.util.Currency;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.metao.book.order.application.cart.ShoppingCartItem;
+import jakarta.validation.constraints.NotBlank;
+import java.util.Set;
 
 public record AddItemRequestDto(
-    String sku,
-    int quantity,
-    BigDecimal unitPrice,
-    Currency currency
+    @NotBlank @JsonProperty("user_id") String userId,
+    Set<ShoppingCartItem> items
 ) {
 
 }

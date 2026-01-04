@@ -5,7 +5,6 @@ import com.metao.book.shared.rest.client.ApiError;
 import java.time.Instant;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -14,52 +13,45 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ApiError> handleException(HttpMessageNotReadableException ex) {
-        var message = String.format("Message is not readable for [%s] [%s]", ex.getMessage(), ex.getHttpInputMessage());
-        log.error(ex.getMessage(), message);
-        return ResponseEntity
-            .status(HttpStatus.BAD_REQUEST)
-            .body(new ApiError(
-                    HttpStatus.BAD_REQUEST.value(),
-                    HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                    ex.getMessage(),
-                    null,
-                    null,
-                    Instant.now()
-                )
-            );
-    }
+    @ExceptionHandler(
+        {
+            HttpMessageNotReadableException.class,
+            IllegalArgumentException.class,
+            ProductNotFoundException.class
+        }
+    )
+    public ApiError handleException(Exception ex) {
+        HttpStatus status;
+        String message = ex.getMessage();
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiError> handleException(IllegalArgumentException ex) {
-        log.error(ex.getMessage(), ex);
-        return ResponseEntity
-            .status(HttpStatus.BAD_REQUEST)
-            .body(new ApiError(
-                    HttpStatus.BAD_REQUEST.value(),
-                    HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                    ex.getMessage(),
-                    null,
-                    null,
-                    Instant.now()
-                )
-            );
-    }
+        switch (ex) {
+            case HttpMessageNotReadableException httpEx -> {
+                status = HttpStatus.BAD_REQUEST;
+                message = String.format("Message is not readable for [%s] [%s]", httpEx.getMessage(),
+                    httpEx.getHttpInputMessage());
+                log.error(httpEx.getMessage(), message);
+            }
+            case IllegalArgumentException illegalEx -> {
+                status = HttpStatus.BAD_REQUEST;
+                log.error(illegalEx.getMessage(), illegalEx);
+            }
+            case ProductNotFoundException notFoundEx -> {
+                status = HttpStatus.NOT_FOUND;
+                log.error(notFoundEx.getMessage(), notFoundEx);
+            }
+            default -> {
+                status = HttpStatus.INTERNAL_SERVER_ERROR;
+                log.error(ex.getMessage(), ex);
+            }
+        }
 
-    @ExceptionHandler(ProductNotFoundException.class)
-    public ResponseEntity<ApiError> handleException(ProductNotFoundException ex) {
-        log.error(ex.getMessage(), ex);
-        return ResponseEntity
-            .status(HttpStatus.NOT_FOUND)
-            .body(new ApiError(
-                    HttpStatus.BAD_REQUEST.value(),
-                    HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                    ex.getMessage(),
-                    null,
-                    null,
-                    Instant.now()
-                )
-            );
+        return new ApiError(
+            status.value(),
+            status.getReasonPhrase(),
+            message,
+            null,
+            null,
+            Instant.now()
+        );
     }
 }

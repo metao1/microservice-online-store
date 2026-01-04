@@ -19,8 +19,8 @@ public class KafkaPaymentConfig {
     @Bean
     public NewTopic orderPaymentTopic() {
         return TopicBuilder.name(orderPaymentTopicName)
-                .partitions(1)
-                .replicas(1)
-                .build();
+            .partitions(1)
+            .replicas(1)
+            .build();
     }
 }
