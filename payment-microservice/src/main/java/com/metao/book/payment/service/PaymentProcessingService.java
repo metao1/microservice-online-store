@@ -62,7 +62,7 @@ public class PaymentProcessingService {
             // Return failed payment event
             return OrderPaymentEvent.newBuilder()
                 .setOrderId(orderEvent.getId())
-                .setPaymentId("FAILED-" + orderEvent.getId())
+                .setPaymentId(orderEvent.getId())
                 .setStatus(Status.FAILED)
                 .setErrorMessage("Payment processing failed: " + e.getMessage())
                 .setCreateTime(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())

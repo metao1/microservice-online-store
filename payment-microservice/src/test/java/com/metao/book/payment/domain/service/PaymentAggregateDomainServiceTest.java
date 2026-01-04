@@ -8,7 +8,7 @@ import static org.mockito.Mockito.when;
 
 import com.metao.book.payment.domain.exception.DuplicatePaymentException;
 import com.metao.book.payment.domain.exception.PaymentNotFoundException;
-import com.metao.book.payment.domain.model.aggregate.Payment;
+import com.metao.book.payment.domain.model.aggregate.PaymentAggregate;
 import com.metao.book.payment.domain.model.valueobject.OrderId;
 import com.metao.book.payment.domain.model.valueobject.PaymentId;
 import com.metao.book.payment.domain.model.valueobject.PaymentMethod;
@@ -32,7 +32,7 @@ import org.mockito.quality.Strictness;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class PaymentDomainServiceTest {
+class PaymentAggregateDomainServiceTest {
 
     @Mock
     private PaymentRepository paymentRepository;
@@ -80,7 +80,7 @@ class PaymentDomainServiceTest {
         when(paymentRepository.existsByOrderId(orderId)).thenReturn(false);
 
         // When
-        Payment payment = paymentDomainService.createPayment(orderId, amount, paymentMethod);
+        PaymentAggregate payment = paymentDomainService.createPayment(orderId, amount, paymentMethod);
 
         // Then
         assertThat(payment).isNotNull();
@@ -139,7 +139,7 @@ class PaymentDomainServiceTest {
     void processPayment_withValidPayment_shouldProcessAndSave() {
         // Given
         PaymentId paymentId = PaymentId.of("payment-123");
-        Payment payment = createMockPayment(paymentId, PaymentStatus.PENDING);
+        PaymentAggregate payment = createMockPayment(paymentId, PaymentStatus.PENDING);
 
         when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
         when(paymentRepository.save(payment)).thenReturn(payment);
@@ -226,22 +226,22 @@ class PaymentDomainServiceTest {
     @Test
     void findPaymentsForRetry_shouldReturnFailedPayments() {
         // Given
-        List<Payment> failedPayments = List.of(
+        List<PaymentAggregate> failedPayments = List.of(
             createMockPayment(PaymentId.of("payment-1"), PaymentStatus.FAILED),
             createMockPayment(PaymentId.of("payment-2"), PaymentStatus.FAILED)
         );
         when(paymentRepository.findByStatus(PaymentStatus.FAILED)).thenReturn(failedPayments);
 
         // When
-        List<Payment> result = paymentDomainService.findPaymentsForRetry();
+        List<PaymentAggregate> result = paymentDomainService.findPaymentsForRetry();
 
         // Then
         assertThat(result).hasSize(2);
         verify(paymentRepository).findByStatus(PaymentStatus.FAILED);
     }
 
-    private Payment createMockPayment(PaymentId paymentId, PaymentStatus status) {
-        Payment payment = mock(Payment.class);
+    private PaymentAggregate createMockPayment(PaymentId paymentId, PaymentStatus status) {
+        PaymentAggregate payment = mock(PaymentAggregate.class);
         when(payment.getId()).thenReturn(paymentId);
         when(payment.getStatus()).thenReturn(status);
         return payment;

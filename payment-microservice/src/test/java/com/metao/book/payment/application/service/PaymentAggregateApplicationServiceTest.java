@@ -9,10 +9,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.metao.book.payment.application.config.DomainEventToKafkaEventHandler;
 import com.metao.book.payment.application.dto.CreatePaymentCommand;
 import com.metao.book.payment.application.dto.PaymentDTO;
 import com.metao.book.payment.application.mapper.PaymentApplicationMapper;
-import com.metao.book.payment.domain.model.aggregate.Payment;
+import com.metao.book.payment.domain.model.aggregate.PaymentAggregate;
 import com.metao.book.payment.domain.model.valueobject.OrderId;
 import com.metao.book.payment.domain.model.valueobject.PaymentId;
 import com.metao.book.payment.domain.model.valueobject.PaymentMethod;
@@ -20,7 +21,6 @@ import com.metao.book.payment.domain.model.valueobject.PaymentStatus;
 import com.metao.book.payment.domain.repository.PaymentRepository;
 import com.metao.book.payment.domain.service.PaymentDomainService;
 import com.metao.book.shared.domain.financial.Money;
-import com.metao.kafka.KafkaEventHandler;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Currency;
@@ -39,7 +39,7 @@ import org.mockito.quality.Strictness;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class PaymentApplicationServiceTest {
+class PaymentAggregateApplicationServiceTest {
 
     @Mock
     private PaymentRepository paymentRepository;
@@ -51,14 +51,14 @@ class PaymentApplicationServiceTest {
     private PaymentApplicationMapper paymentMapper;
 
     @Mock
-    private KafkaEventHandler kafkaEventHandler;
+    private DomainEventToKafkaEventHandler eventPublisher;
 
     private PaymentApplicationService paymentApplicationService;
 
     @BeforeEach
     void setUp() {
         paymentApplicationService = new PaymentApplicationService(
-            paymentRepository, paymentDomainService, paymentMapper, kafkaEventHandler
+            paymentRepository, paymentDomainService, paymentMapper, eventPublisher
         );
     }
 
@@ -73,7 +73,7 @@ class PaymentApplicationServiceTest {
             "****-1234"
         );
 
-        Payment payment = createMockPayment();
+        PaymentAggregate payment = createMockPayment();
         PaymentDTO expectedDTO = createMockPaymentDTO();
 
         when(paymentDomainService.isPaymentMethodValidForAmount(any(), any())).thenReturn(true);
@@ -114,7 +114,7 @@ class PaymentApplicationServiceTest {
     void processPayment_withValidPaymentId_shouldProcessAndReturnPayment() {
         // Given
         String paymentId = "payment-123";
-        Payment payment = createMockPayment();
+        PaymentAggregate payment = createMockPayment();
         PaymentDTO expectedDTO = createMockPaymentDTO();
 
         when(paymentRepository.findById(any(PaymentId.class))).thenReturn(Optional.of(payment));
@@ -135,7 +135,7 @@ class PaymentApplicationServiceTest {
     void getPaymentById_withExistingPayment_shouldReturnPayment() {
         // Given
         String paymentId = "payment-123";
-        Payment payment = createMockPayment();
+        PaymentAggregate payment = createMockPayment();
         PaymentDTO expectedDTO = createMockPaymentDTO();
 
         when(paymentRepository.findById(any(PaymentId.class))).thenReturn(Optional.of(payment));
@@ -168,25 +168,25 @@ class PaymentApplicationServiceTest {
     void getPaymentsByStatus_shouldReturnFilteredPayments() {
         // Given
         String status = "SUCCESSFUL";
-        List<Payment> payments = List.of(createMockPayment(), createMockPayment());
+        List<PaymentAggregate> payments = List.of(createMockPayment(), createMockPayment());
         PaymentDTO expectedDTO = createMockPaymentDTO();
 
         when(paymentRepository.findByStatus(PaymentStatus.SUCCESSFUL)).thenReturn(payments);
-        when(paymentMapper.toDTO(any(Payment.class))).thenReturn(expectedDTO);
+        when(paymentMapper.toDTO(any(PaymentAggregate.class))).thenReturn(expectedDTO);
 
         // When
         List<PaymentDTO> result = paymentApplicationService.getPaymentsByStatus(status);
 
         // Then
         assertThat(result).hasSize(2);
-        verify(paymentMapper, times(2)).toDTO(any(Payment.class));
+        verify(paymentMapper, times(2)).toDTO(any(PaymentAggregate.class));
     }
 
     @Test
     void retryPayment_withValidPaymentId_shouldRetryAndReturnPayment() {
         // Given
         String paymentId = "payment-123";
-        Payment payment = createMockPayment();
+        PaymentAggregate payment = createMockPayment();
         PaymentDTO expectedDTO = createMockPaymentDTO();
 
         when(paymentRepository.findById(any(PaymentId.class))).thenReturn(Optional.of(payment));
@@ -220,7 +220,7 @@ class PaymentApplicationServiceTest {
         BigDecimal amount = BigDecimal.valueOf(100.00);
         String currency = "USD";
 
-        Payment payment = createMockPayment();
+        PaymentAggregate payment = createMockPayment();
         PaymentDTO paymentDTO = createMockPaymentDTO();
 
         when(paymentDomainService.isPaymentMethodValidForAmount(any(), any())).thenReturn(true);
@@ -238,8 +238,8 @@ class PaymentApplicationServiceTest {
         verify(paymentDomainService).processPayment(any());
     }
 
-    private Payment createMockPayment() {
-        Payment payment = mock(Payment.class);
+    private PaymentAggregate createMockPayment() {
+        PaymentAggregate payment = mock(PaymentAggregate.class);
         when(payment.getId()).thenReturn(PaymentId.of("payment-123"));
         when(payment.getDomainEvents()).thenReturn(List.of());
         when(payment.hasDomainEvents()).thenReturn(false);

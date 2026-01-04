@@ -1,70 +1,73 @@
 package com.metao.book.order.presentation.controller;
 
-import com.metao.book.order.application.service.OrderApplicationService;
 import com.metao.book.order.domain.model.valueobject.CustomerId;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.ProductId;
 import com.metao.book.order.domain.model.valueobject.Quantity;
+import com.metao.book.order.domain.service.OrderManagementService;
 import com.metao.book.order.presentation.dto.AddItemRequestDto;
-import com.metao.book.order.presentation.dto.CreateOrderRequest;
-import com.metao.book.order.presentation.dto.OrderResponse;
+import com.metao.book.order.presentation.dto.CreateOrderRequestDTO;
+import com.metao.book.order.presentation.dto.OrderResponseDto;
 import com.metao.book.order.presentation.dto.UpdateStatusRequestDto;
 import com.metao.book.shared.domain.financial.Money;
 import jakarta.validation.Valid;
-import java.util.Currency;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+@Validated
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/orders")
-public class OrderController {
+@RequestMapping("/api/order")
+public class OrderManagementController {
 
-    private final OrderApplicationService orderService;
+    private final OrderManagementService orderService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public OrderId createOrder(@Valid @RequestBody CreateOrderRequest request) {
-        return orderService.createOrder(new CustomerId(request.getCustomerId()));
+    public OrderId createOrder(@RequestBody CreateOrderRequestDTO request) { // TODO update this DTO to have all order info
+        return orderService.createOrder(new CustomerId(request.userId()));
     }
 
-    @PostMapping("/{orderId}/items")
-    @ResponseStatus(HttpStatus.CREATED)
-    public void addItem(
+    @PutMapping("/{orderId}/items")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void addItemToOrder(
         @PathVariable String orderId,
-        @RequestBody AddItemRequestDto request
+        @Valid @NotNull @RequestBody AddItemRequestDto request
     ) {
-        orderService.addItemToOrder(
-            OrderId.of(orderId),
-            new ProductId(request.sku()),
-            new Quantity(request.quantity()),
-            new Money(Currency.getInstance("USD"), request.unitPrice()));
+        request.items().forEach(item -> {
+            orderService.addItemToOrder(
+                OrderId.of(orderId),
+                new ProductId(item.sku()),
+                new Quantity(item.quantity()),
+                new Money(item.currency(), item.price()));
+        });
     }
 
     @PatchMapping("/{orderId}/status")
-    public ResponseEntity<Void> updateStatus(
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void updateStatus(
         @PathVariable String orderId,
         @RequestBody UpdateStatusRequestDto request
     ) {
         orderService.updateOrderStatus(OrderId.of(orderId), request.status());
-        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/customer/{customerId}")
-    public ResponseEntity<List<OrderResponse>> getCustomerOrders(@PathVariable String customerId) {
-        List<OrderResponse> orders = orderService.getCustomerOrders(new CustomerId(customerId)).stream()
-            .map(OrderResponse::fromDomain)
+    public List<OrderResponseDto> getCustomerOrders(@PathVariable String customerId) {
+        return orderService.getCustomerOrders(new CustomerId(customerId)).stream()
+            .map(OrderResponseDto::fromDomain)
             .toList();
-        return ResponseEntity.ok(orders);
     }
 }

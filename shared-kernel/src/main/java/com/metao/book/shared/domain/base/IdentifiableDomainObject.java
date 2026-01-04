@@ -1,7 +1,7 @@
 package com.metao.book.shared.domain.base;
 
-import org.springframework.lang.Nullable;
 import java.io.Serializable;
+import org.springframework.lang.Nullable;
 
 /**
  * Interface for domain objects that can be uniquely identified.

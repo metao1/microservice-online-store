@@ -4,9 +4,9 @@ import com.metao.book.order.application.cart.ShoppingCart;
 import com.metao.book.order.application.cart.ShoppingCartDto;
 import com.metao.book.order.application.cart.ShoppingCartService;
 import com.metao.book.order.application.cart.UpdateCartItemQtyDTO;
-import com.metao.book.order.infrastructure.ShoppingCartMapper;
 import com.metao.book.order.presentation.dto.AddItemRequestDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -27,53 +28,48 @@ public class ShoppingCartController {
     private final ShoppingCartService shoppingCartService;
 
     @GetMapping("/{userId}")
-    public ResponseEntity<ShoppingCartDto> getCart(@PathVariable String userId) {
-        ShoppingCartDto cartDto = shoppingCartService.getCartForUser(userId);
-        return ResponseEntity.ok(cartDto);
+    public ShoppingCartDto getCart(@PathVariable String userId) {
+        return shoppingCartService.getCartForUser(userId);
     }
 
-    @PostMapping("/{userId}/{sku}")
-    public ResponseEntity<ShoppingCartDto> addItemToCart(
-            @PathVariable String userId,
-            @PathVariable String sku,
-        @RequestBody AddItemRequestDto dto
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public int addItemToCart(
+        @Validated @RequestBody AddItemRequestDto dto
     ) {
-        ShoppingCart cartItem = shoppingCartService.addItemToCart(
-                userId,
-                sku,
-            dto.quantity(),
-            dto.unitPrice(),
-            dto.currency());
-        var shoppingCardDto = ShoppingCartMapper.mapToDto(cartItem);
-        return ResponseEntity.ok(shoppingCardDto);
+        return shoppingCartService.addItemToCart(
+            dto.userId(), dto.items()
+        );
     }
 
     @PutMapping("/{userId}/{sku}")
     public ResponseEntity<ShoppingCart> updateItemQuantity(
-            @PathVariable String userId,
-            @PathVariable String sku,
-            @RequestBody UpdateCartItemQtyDTO updateCartItemQtyDTO) {
+        @PathVariable String userId,
+        @PathVariable String sku,
+        @RequestBody UpdateCartItemQtyDTO updateCartItemQtyDTO
+    ) {
         ShoppingCart cartItem = shoppingCartService.updateItemQuantity(userId,
-                sku,
+            sku,
             updateCartItemQtyDTO.quantity());
         if (cartItem == null) {
             // This case handles when quantity is set to 0 or less, and item is removed.
-            return ResponseEntity.noContent().build(); 
+            return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(cartItem);
     }
 
     @DeleteMapping("/{userId}/{sku}")
-    public ResponseEntity<Void> removeItemFromCart(
-            @PathVariable String userId,
-            @PathVariable String sku) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeItemFromCart(
+        @PathVariable String userId,
+        @PathVariable String sku
+    ) {
         shoppingCartService.removeItemFromCart(userId, sku);
-        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> clearCart(@PathVariable String userId) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void clearCart(@PathVariable String userId) {
         shoppingCartService.clearCart(userId);
-        return ResponseEntity.noContent().build();
     }
 }

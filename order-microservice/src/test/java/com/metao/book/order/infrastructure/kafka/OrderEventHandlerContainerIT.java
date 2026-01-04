@@ -62,6 +62,7 @@ class OrderEventHandlerContainerIT extends KafkaContainer {
         latch1.await(10, TimeUnit.SECONDS);
         assertThat(latch1.getCount()).isZero();
     }
+
     @Test
     @SneakyThrows
     @DisplayName("When receiving event then Kafka messages processed successfully")

@@ -32,14 +32,14 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public List<OrderAggregate> findByCustomerId(CustomerId customerId) {
-        return jpaOrderRepository.findByCustomerId(customerId.getValue()).stream()
+        return jpaOrderRepository.findByCustomerId(customerId).stream()
             .map(OrderEntityMapper::toDomain)
             .toList();
     }
 
     @Override
     public void delete(OrderId orderId) {
-        jpaOrderRepository.deleteById(orderId.value());
+        throw new UnsupportedOperationException("Delete operation is not supported for orders.");
     }
 
 }

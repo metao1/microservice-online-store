@@ -5,7 +5,7 @@ import com.metao.book.payment.application.dto.CreatePaymentCommand;
 import com.metao.book.payment.application.dto.PaymentDTO;
 import com.metao.book.payment.application.mapper.PaymentApplicationMapper;
 import com.metao.book.payment.domain.exception.PaymentNotFoundException;
-import com.metao.book.payment.domain.model.aggregate.Payment;
+import com.metao.book.payment.domain.model.aggregate.PaymentAggregate;
 import com.metao.book.payment.domain.model.valueobject.OrderId;
 import com.metao.book.payment.domain.model.valueobject.PaymentId;
 import com.metao.book.payment.domain.model.valueobject.PaymentMethod;
@@ -13,7 +13,7 @@ import com.metao.book.payment.domain.model.valueobject.PaymentStatus;
 import com.metao.book.payment.domain.repository.PaymentRepository;
 import com.metao.book.payment.domain.service.PaymentDomainService;
 import com.metao.book.shared.domain.financial.Money;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.List;
@@ -38,7 +38,7 @@ public class PaymentApplicationService {
     private final DomainEventToKafkaEventHandler eventPublisher;
 
     /**
-     * Create a new payment
+     * Create a new payment and save it into database
      */
     public PaymentDTO createPayment(CreatePaymentCommand command) {
         log.info("Creating payment for order: {}", command.orderId());
@@ -53,8 +53,8 @@ public class PaymentApplicationService {
             throw new IllegalArgumentException("Payment method not valid for this amount");
         }
 
-        Payment payment = paymentDomainService.createPayment(orderId, amount, paymentMethod);
-        Payment savedPayment = paymentRepository.save(payment);
+        PaymentAggregate payment = paymentDomainService.createPayment(orderId, amount, paymentMethod);
+        PaymentAggregate savedPayment = paymentRepository.save(payment);
 
         // Publish domain events to Kafka
         publishDomainEvents(savedPayment);
@@ -72,7 +72,7 @@ public class PaymentApplicationService {
         PaymentId paymentId = PaymentId.of(id);
         paymentDomainService.processPayment(paymentId);
 
-        Payment payment = paymentRepository.findById(paymentId)
+        PaymentAggregate payment = paymentRepository.findById(paymentId)
             .orElseThrow(() -> new PaymentNotFoundException(paymentId));
 
         // Publish domain events to Kafka
@@ -91,7 +91,7 @@ public class PaymentApplicationService {
         PaymentId paymentId = PaymentId.of(id);
         paymentDomainService.retryPayment(paymentId);
 
-        Payment payment = paymentRepository.findById(paymentId)
+        PaymentAggregate payment = paymentRepository.findById(paymentId)
             .orElseThrow(() -> new PaymentNotFoundException(paymentId));
 
         log.info("Payment retry completed: {} with status: {}", id, payment.getStatus());
@@ -130,8 +130,7 @@ public class PaymentApplicationService {
         log.debug("Getting payment by order ID: {}", orderId);
 
         OrderId id = OrderId.of(orderId);
-        return paymentRepository.findByOrderId(id)
-            .map(paymentMapper::toDTO);
+        return paymentRepository.findByOrderId(id).map(paymentMapper::toDTO);
     }
 
     /**
@@ -142,7 +141,7 @@ public class PaymentApplicationService {
         log.debug("Getting payments by status: {}", status);
 
         PaymentStatus paymentStatus = PaymentStatus.valueOf(status.toUpperCase());
-        List<Payment> payments = paymentRepository.findByStatus(paymentStatus);
+        List<PaymentAggregate> payments = paymentRepository.findByStatus(paymentStatus);
         return payments.stream()
             .map(paymentMapper::toDTO)
             .toList();
@@ -195,7 +194,7 @@ public class PaymentApplicationService {
     /**
      * Publish domain events from payment aggregate to Kafka
      */
-    private void publishDomainEvents(@NotBlank Payment payment) {
+    private void publishDomainEvents(@NotNull PaymentAggregate payment) {
         if (!payment.hasDomainEvents()) {
             log.debug("has not domain events to publish: {}", payment);
             return;

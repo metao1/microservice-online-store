@@ -5,9 +5,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
-import com.metao.book.order.application.service.OrderApplicationService;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
+import com.metao.book.order.domain.service.OrderManagementService;
 import com.metao.book.shared.OrderPaymentEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,13 +25,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PaymentEventListenerTest {
 
     @Mock
-    private OrderApplicationService orderApplicationService;
+    private OrderManagementService orderManagementService;
 
     private PaymentEventListener paymentEventListener;
 
     @BeforeEach
     void setUp() {
-        paymentEventListener = new PaymentEventListener(orderApplicationService);
+        paymentEventListener = new PaymentEventListener(orderManagementService);
     }
 
     @Nested
@@ -54,7 +54,7 @@ class PaymentEventListenerTest {
             paymentEventListener.handlePaymentEvent(paymentEvent);
 
             // Then
-            verify(orderApplicationService).updateOrderStatus(
+            verify(orderManagementService).updateOrderStatus(
                 eq(OrderId.of(orderId)),
                 eq(OrderStatus.PAID.name())
             );
@@ -76,7 +76,7 @@ class PaymentEventListenerTest {
             paymentEventListener.handlePaymentEvent(paymentEvent);
 
             // Then
-            verify(orderApplicationService).updateOrderStatus(
+            verify(orderManagementService).updateOrderStatus(
                 eq(OrderId.of(orderId)),
                 eq(OrderStatus.PAID.name())
             );
@@ -103,7 +103,7 @@ class PaymentEventListenerTest {
             paymentEventListener.handlePaymentEvent(paymentEvent);
 
             // Then
-            verify(orderApplicationService).updateOrderStatus(
+            verify(orderManagementService).updateOrderStatus(
                 eq(OrderId.of(orderId)),
                 eq(OrderStatus.PAYMENT_FAILED.name())
             );
@@ -126,7 +126,7 @@ class PaymentEventListenerTest {
             paymentEventListener.handlePaymentEvent(paymentEvent);
 
             // Then
-            verify(orderApplicationService).updateOrderStatus(
+            verify(orderManagementService).updateOrderStatus(
                 eq(OrderId.of(orderId)),
                 eq(OrderStatus.PAYMENT_FAILED.name())
             );
@@ -150,14 +150,14 @@ class PaymentEventListenerTest {
                 .build();
 
             doThrow(new RuntimeException("Order not found"))
-                .when(orderApplicationService)
+                .when(orderManagementService)
                 .updateOrderStatus(any(), any());
 
             // When
             paymentEventListener.handlePaymentEvent(paymentEvent);
 
             // Then
-            verify(orderApplicationService).updateOrderStatus(
+            verify(orderManagementService).updateOrderStatus(
                 eq(OrderId.of(orderId)),
                 eq(OrderStatus.PAID.name())
             );
@@ -177,14 +177,14 @@ class PaymentEventListenerTest {
                 .build();
 
             doThrow(new RuntimeException("Database connection error"))
-                .when(orderApplicationService)
+                .when(orderManagementService)
                 .updateOrderStatus(any(), any());
 
             // When
             paymentEventListener.handlePaymentEvent(paymentEvent);
 
             // Then
-            verify(orderApplicationService).updateOrderStatus(
+            verify(orderManagementService).updateOrderStatus(
                 eq(OrderId.of(orderId)),
                 eq(OrderStatus.PAYMENT_FAILED.name())
             );
@@ -210,7 +210,7 @@ class PaymentEventListenerTest {
             paymentEventListener.handlePaymentEvent(paymentEvent);
 
             // Then
-            verify(orderApplicationService).updateOrderStatus(
+            verify(orderManagementService).updateOrderStatus(
                 eq(OrderId.of("")),
                 eq(OrderStatus.PAID.name())
             );
@@ -232,7 +232,7 @@ class PaymentEventListenerTest {
             paymentEventListener.handlePaymentEvent(paymentEvent);
 
             // Then
-            verify(orderApplicationService).updateOrderStatus(
+            verify(orderManagementService).updateOrderStatus(
                 eq(OrderId.of(orderId)),
                 eq(OrderStatus.PAID.name())
             );

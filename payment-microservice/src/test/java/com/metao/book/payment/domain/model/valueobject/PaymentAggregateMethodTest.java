@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Unit tests for PaymentMethod value object
  */
-class PaymentMethodTest {
+class PaymentAggregateMethodTest {
 
     @Test
     void creditCard_shouldCreateCreditCardPaymentMethod() {

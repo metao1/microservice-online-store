@@ -57,6 +57,7 @@ public class ProductApplicationService {
         var price = new Money(command.currency(), command.price());
         var imageUrl = ImageUrl.of(command.imageUrl());
         var createdTime = command.createdTime();
+        var updatedTime = command.createdTime();
 
         var categories = new HashSet<ProductCategory>();
         // Create product aggregate
@@ -67,18 +68,20 @@ public class ProductApplicationService {
                 }
                 CategoryName catName = CategoryName.of(categoryName);
 
-                // Ensure category exists
+                // Ensure a category exists
                 ProductCategory category = categoryRepository.findByName(catName)
                     .orElseGet(() -> ProductCategory.of(catName));
                 categories.add(category);
             }
         }
-        var product = new Product(productId, title, description, volume, price, createdTime, imageUrl, categories);
+        var product = new Product(productId, title, description, volume, price, createdTime, updatedTime, imageUrl,
+            categories);
 
         productRepository.save(product);
     }
 
     //TODO return DTO instead decouple controller's from internal aggregate logic
+
     /**
      * Update an existing product
      */
@@ -88,10 +91,10 @@ public class ProductApplicationService {
         var productSku = ProductSku.of(command.sku());
         var product = productRepository.findBySku(productSku)
             .orElseThrow(() -> new ProductNotFoundException(productSku));
-            product.updateTitle(ProductTitle.of(command.title()));
+        product.updateTitle(ProductTitle.of(command.title()));
 
         product.updateDescription(ProductDescription.of(command.description()));
-            Money newPrice = new Money(command.currency(), command.price());
+        Money newPrice = new Money(command.currency(), command.price());
         product.updatePrice(newPrice);
 
         productRepository.save(product);
@@ -120,7 +123,9 @@ public class ProductApplicationService {
      */
     @Transactional(readOnly = true)
     public List<Product> searchProducts(String keyword, int offset, int limit) {
-        if (keyword == null) return List.of();
+        if (keyword == null) {
+            return List.of();
+        }
         log.debug("Searching products with keyword: {}", keyword);
 
         List<Product> products = productRepository.searchByKeyword(keyword, offset, limit);
@@ -133,7 +138,9 @@ public class ProductApplicationService {
      */
     @Transactional(readOnly = true)
     public List<Product> getProductsByCategory(String categoryName, int offset, int limit) {
-        if (categoryName == null) return List.of();
+        if (categoryName == null) {
+            return List.of();
+        }
         log.debug("Getting products by category: {}", categoryName);
 
         CategoryName catName = CategoryName.of(categoryName);

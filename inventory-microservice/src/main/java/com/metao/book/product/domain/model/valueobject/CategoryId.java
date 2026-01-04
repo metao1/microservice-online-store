@@ -1,28 +1,25 @@
 package com.metao.book.product.domain.model.valueobject;
 
 import com.metao.book.shared.domain.base.ValueObject;
-import lombok.NonNull;
+import jakarta.validation.constraints.NotBlank;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Category identifier value object
  */
-public record CategoryId(Long value) implements ValueObject {
+public record CategoryId(String value) implements ValueObject {
 
-    public CategoryId(@NonNull Long value) {
-        if (value <= 0) {
-            throw new IllegalArgumentException("CategoryId must be a positive number");
-        }
+    public CategoryId(@NotBlank String value) {
         this.value = value;
     }
 
-    public static CategoryId of(Long value) {
+    public static CategoryId of(String value) {
         return new CategoryId(value);
     }
 
     @NotNull
     @Override
     public String toString() {
-        return value.toString();
+        return value;
     }
 }

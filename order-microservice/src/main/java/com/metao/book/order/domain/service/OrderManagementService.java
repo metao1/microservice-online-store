@@ -1,7 +1,9 @@
-package com.metao.book.order.application.service;
+package com.metao.book.order.domain.service;
 
 import com.metao.book.order.application.cart.ShoppingCart;
 import com.metao.book.order.application.cart.ShoppingCartService;
+import com.metao.book.order.application.service.DomainEventToKafkaEventHandler;
+import com.metao.book.order.domain.exception.OrderNotFoundException;
 import com.metao.book.order.domain.exception.ShoppingCartIsEmptyException;
 import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.model.valueobject.CustomerId;
@@ -19,9 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class OrderApplicationService {
+public class OrderManagementService {
 
-    public static final String ORDER_NOT_FOUND = "Order not found";
     private final OrderRepository orderRepository;
     private final DomainEventToKafkaEventHandler eventPublisher;
     private final ShoppingCartService shoppingCartService;
@@ -53,6 +54,7 @@ public class OrderApplicationService {
 
         // Add items from cart to order
         for (ShoppingCart cartItem : cartItems) {
+            // Adds priced and quantified items to order
             order.addItem(
                 new ProductId(cartItem.getSku()),
                 new Quantity(cartItem.getQuantity()),
@@ -67,6 +69,7 @@ public class OrderApplicationService {
         shoppingCartService.clearCart(customerId.getValue());
 
         // Publish events
+        // This will send OrderCreatedEvent
         publishEvents(order);
         return order.getId();
     }
@@ -78,9 +81,7 @@ public class OrderApplicationService {
         Quantity quantity,
         Money unitPrice
     ) {
-        OrderAggregate order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND));
-
+        OrderAggregate order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
         order.addItem(productId, quantity, unitPrice);
         orderRepository.save(order);
         publishEvents(order);
@@ -88,8 +89,7 @@ public class OrderApplicationService {
 
     @Transactional
     public void updateItemQuantity(OrderId orderId, ProductId productId, Quantity newQuantity) {
-        OrderAggregate order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND));
+        OrderAggregate order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
 
         order.updateItemQuantity(productId, newQuantity);
         OrderAggregate savedOrder = orderRepository.save(order);
@@ -98,8 +98,7 @@ public class OrderApplicationService {
 
     @Transactional
     public void removeItem(OrderId orderId, ProductId productId) {
-        OrderAggregate order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND));
+        OrderAggregate order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
 
         order.removeItem(productId);
         OrderAggregate savedOrder = orderRepository.save(order);
@@ -108,8 +107,7 @@ public class OrderApplicationService {
 
     @Transactional
     public void updateOrderStatus(OrderId orderId, String status) {
-        OrderAggregate order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND));
+        OrderAggregate order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
 
         order.updateStatus(OrderStatus.valueOf(status));
         OrderAggregate savedOrder = orderRepository.save(order);

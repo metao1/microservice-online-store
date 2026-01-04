@@ -26,10 +26,6 @@ dependencies {
   testRuntimeOnly 'org.postgresql:postgresql'
 }
 
-tasks.named('test') {
-    useJUnitPlatform()
-}
-
 sourceSets {
   main {
     java {

@@ -1,13 +1,24 @@
 package com.metao.book.product.domain.model.valueobject;
 
 import com.metao.book.shared.domain.base.ValueObject;
+import jakarta.persistence.Embeddable;
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Product title value object
  */
-public record ProductTitle(String value) implements ValueObject {
+@Embeddable
+@Getter
+@EqualsAndHashCode
+@NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
+public class ProductTitle implements ValueObject {
+
+    private final String value;
 
     public ProductTitle(@NonNull String value) {
         if (value.trim().isEmpty()) {

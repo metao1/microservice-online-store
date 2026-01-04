@@ -14,10 +14,11 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
-import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.HashSet;
@@ -28,7 +29,6 @@ import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.NaturalIdCache;
-import org.hibernate.validator.constraints.Length;
 
 /**
  * JPA entity for Product persistence
@@ -37,37 +37,39 @@ import org.hibernate.validator.constraints.Length;
 @Cacheable
 @NaturalIdCache
 @NoArgsConstructor
-@Table(name = "product")
 @Entity(name = "product")
+@Table(name = "product_table")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class ProductEntity implements Serializable {
 
-    @NotNull
     @EmbeddedId
-    @Column(name = "sku", nullable = false, unique = true, length = 10)
+    @AttributeOverride(name = "value", column = @Column(name = "sku", nullable = false, unique = true, length = 10))
     private ProductSku sku;
 
     @Version
     @Column(name = "version")
     private Long version;
 
-    @Column(nullable = false)
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "volume", nullable = false))
     private ProductVolume volume;
 
-    @Length(min = 3)
-    @Column(name = "title", nullable = false)
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "title", nullable = false))
     private ProductTitle title;
 
-    @Column(name = "description", columnDefinition = "TEXT")
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "description", columnDefinition = "TEXT"))
     private ProductDescription description;
 
-    @Column(name = "image_url", nullable = false)
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "image_url", nullable = false))
     private ImageUrl imageUrl;
 
     @Embedded
     @AttributeOverrides({
-        @AttributeOverride(name = "amount", column = @Column(name = "unit_price")),
-        @AttributeOverride(name = "currency", column = @Column(name = "currency"))
+        @AttributeOverride(name = "amount", column = @Column(name = "price_value")),
+        @AttributeOverride(name = "currency", column = @Column(name = "price_currency"))
     })
     private Money price;
 
@@ -80,6 +82,11 @@ public class ProductEntity implements Serializable {
     @BatchSize(size = 50)
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    @JoinTable(
+        name = "product_category_map",
+        joinColumns = @JoinColumn(name = "product_sku"),
+        inverseJoinColumns = @JoinColumn(name = "product_category_id")
+    )
     private final Set<CategoryEntity> categories = new HashSet<>();
 
     public ProductEntity(

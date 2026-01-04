@@ -1,0 +1,62 @@
+spring:
+  application:
+    name: payment-microservice
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: payment-service-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer
+      properties:
+        specific.protobuf.value.type: com.metao.book.shared.OrderCreatedEvent
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer
+  flyway:
+    enabled: true
+    baseline-version: 0
+    outOfOrder: false
+    locations: classpath:migration
+    clean-disabled: false
+    create-schemas: true
+    baseline-on-migrate: true
+    validate-on-migrate: true
+  jpa:
+    database: POSTGRESQL
+    generate-ddl: false
+    properties:
+      open-in-view: false
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 20
+          order_inserts: true
+          order_updates: true
+          batch_versioned_data: true
+        cache:
+          use_query_cache: true
+          use_second_level_cache: true
+          region.factory_class: org.hibernate.cache.jcache.JCacheRegionFactory
+          jcache:
+            provider: com.github.benmanes.caffeine.jcache.spi.CaffeineCachingProvider
+            configuration_resource_name: ehcache.xml
+        connection:
+          provider_disables_autocommit: true
+        temp:
+          use_jdbc_metadata_defaults: false
+server:
+  port: ${PORT:8084}
+
+kafka:
+  enabled: ${KAFKA_ENABLED:true}
+  topic:
+    order-created:
+      id: order-created-id
+      name: order-created-events
+      group-id: order-created-group
+      class-path: com.metao.book.shared.OrderCreatedEvent
+    order-payment:
+      id: order-payment-id
+      name: order-payment-events
+      group-id: order-payment-group
+      class-path: com.metao.book.shared.OrderPaymentEvent

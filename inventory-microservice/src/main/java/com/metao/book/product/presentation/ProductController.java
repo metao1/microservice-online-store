@@ -6,8 +6,10 @@ import com.metao.book.product.application.dto.ProductDTO;
 import com.metao.book.product.application.dto.UpdateProductCommand;
 import com.metao.book.product.application.mapper.ProductApplicationMapper;
 import com.metao.book.product.application.service.ProductApplicationService;
+import com.metao.book.product.domain.model.aggregate.Product;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.time.Instant;
 import java.util.List;
@@ -36,11 +38,10 @@ public class ProductController {
     private final ProductApplicationMapper productMapper;
 
     @GetMapping(value = "/{sku}")
-    public ResponseEntity<ProductDTO> getProduct(@PathVariable @Valid @NotBlank String sku) {
+    public ProductDTO getProduct(@PathVariable @Valid @NotBlank String sku) {
         log.info("Getting product with SKU: {}", sku);
-        var product = productApplicationService.getProductBySku(sku);
-        ProductDTO productDTO = productMapper.toDTO(product);
-        return ResponseEntity.ok(productDTO);
+        Product product = productApplicationService.getProductBySku(sku);
+        return productMapper.toDTO(product);
     }
 
     @PostMapping
@@ -69,12 +70,13 @@ public class ProductController {
     }
 
     @PutMapping("/{sku}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public ProductDTO updateProduct(
         @PathVariable String sku,
         @Valid @RequestBody UpdateProductCommand command
     ) {
         log.info("Updating product with SKU: {}", sku);
-        // Ensure SKU in path matches command
+        // Ensure SKU in a path matches the command
         var updatedCommand = new UpdateProductCommand(
             sku, command.title(), command.description(), command.price(), command.currency()
         );
@@ -134,7 +136,7 @@ public class ProductController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void reduceProductVolume(
         @PathVariable String sku,
-        @RequestParam java.math.BigDecimal quantity
+        @RequestParam BigDecimal quantity
     ) {
         log.info("Reducing volume for product {} by {}", sku, quantity);
         productApplicationService.reduceProductVolume(sku, quantity);
@@ -144,7 +146,7 @@ public class ProductController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void increaseProductVolume(
         @PathVariable String sku,
-        @RequestParam java.math.BigDecimal quantity
+        @RequestParam BigDecimal quantity
     ) {
         log.info("Increasing volume for product {} by {}", sku, quantity);
         productApplicationService.increaseProductVolume(sku, quantity);

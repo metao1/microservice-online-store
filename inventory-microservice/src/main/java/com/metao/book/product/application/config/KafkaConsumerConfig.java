@@ -21,6 +21,7 @@ import org.springframework.kafka.core.ConsumerFactory;
 public class KafkaConsumerConfig {
 
     private final KafkaProperties kafkaProperties;
+
     @Value("${spring.kafka.bootstrap-servers}")
 
     @Bean

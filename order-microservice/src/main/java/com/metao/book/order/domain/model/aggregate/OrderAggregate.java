@@ -29,10 +29,10 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
     private final CustomerId customerId;
     private final List<OrderItem> items;
     private final Instant createdAt;
-    private final List<DomainEvent> domainEvents = new ArrayList<>();
     private Money total;
     private OrderStatus status;
     private Instant updatedAt;
+    private final List<DomainEvent> domainEvents = new ArrayList<>();
 
     public OrderAggregate(OrderId id, CustomerId customerId) {
         Objects.requireNonNull(id, "Order ID cannot be null");
@@ -41,10 +41,10 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
         this.id = id;
         this.customerId = customerId;
         this.items = new ArrayList<>();
-        this.status = OrderStatus.CREATED;
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
         this.total = calculateTotal();
+        this.status = OrderStatus.CREATED;
 
         // Raise OrderCreatedEvent
         domainEvents.add(new DomainOrderCreatedEvent(id, customerId));

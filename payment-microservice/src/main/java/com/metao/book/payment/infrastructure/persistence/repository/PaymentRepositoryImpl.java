@@ -1,6 +1,6 @@
 package com.metao.book.payment.infrastructure.persistence.repository;
 
-import com.metao.book.payment.domain.model.aggregate.Payment;
+import com.metao.book.payment.domain.model.aggregate.PaymentAggregate;
 import com.metao.book.payment.domain.model.valueobject.OrderId;
 import com.metao.book.payment.domain.model.valueobject.PaymentId;
 import com.metao.book.payment.domain.model.valueobject.PaymentStatus;
@@ -25,26 +25,26 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     private final PaymentEntityMapper paymentEntityMapper;
 
     @Override
-    public Payment save(Payment payment) {
+    public PaymentAggregate save(PaymentAggregate payment) {
         PaymentEntity entity = paymentEntityMapper.toEntity(payment);
         PaymentEntity savedEntity = jpaPaymentRepository.save(entity);
         return paymentEntityMapper.toDomain(savedEntity);
     }
 
     @Override
-    public Optional<Payment> findById(PaymentId paymentId) {
+    public Optional<PaymentAggregate> findById(PaymentId paymentId) {
         return jpaPaymentRepository.findById(paymentId)
             .map(paymentEntityMapper::toDomain);
     }
 
     @Override
-    public Optional<Payment> findByOrderId(OrderId orderId) {
+    public Optional<PaymentAggregate> findByOrderId(OrderId orderId) {
         return jpaPaymentRepository.findByOrderId(orderId.value())
             .map(paymentEntityMapper::toDomain);
     }
 
     @Override
-    public List<Payment> findByStatus(PaymentStatus status) {
+    public List<PaymentAggregate> findByStatus(PaymentStatus status) {
         PaymentEntity.PaymentStatusEntity entityStatus = mapToEntityStatus(status);
         return jpaPaymentRepository.findByStatus(entityStatus)
             .stream()
@@ -53,7 +53,7 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     }
 
     @Override
-    public List<Payment> findAll(int offset, int limit) {
+    public List<PaymentAggregate> findAll(int offset, int limit) {
         Pageable pageable = PageRequest.of(offset / limit, limit);
         return jpaPaymentRepository.findAll(pageable)
             .stream()
@@ -67,7 +67,7 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     }
 
     @Override
-    public void delete(Payment payment) {
+    public void delete(PaymentAggregate payment) {
         jpaPaymentRepository.deleteById(payment.getId());
     }
 

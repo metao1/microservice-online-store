@@ -6,6 +6,7 @@ import com.metao.book.order.domain.model.event.OrderStatusChangedEvent;
 import com.metao.book.shared.OrderUpdatedEvent;
 import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.domain.base.ProtobufDomainTranslator;
+import java.time.ZoneOffset;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -18,7 +19,7 @@ public class OrderUpdatedEventTranslator implements ProtobufDomainTranslator {
             .setId(domainEvent.getEventId())
             .setStatus(mapOrderStatus(domainEvent.getNewStatus().name()))
             .setUpdateTime(Timestamp.newBuilder()
-                .setSeconds(domainEvent.getOccurredOn().atZone(java.time.ZoneOffset.UTC).toEpochSecond())
+                .setSeconds(domainEvent.getOccurredOn().atZone(ZoneOffset.UTC).toEpochSecond())
                 .setNanos(domainEvent.getOccurredOn().getNano())
             )
             .build();

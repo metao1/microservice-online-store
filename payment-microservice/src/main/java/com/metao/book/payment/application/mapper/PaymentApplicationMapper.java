@@ -1,7 +1,7 @@
 package com.metao.book.payment.application.mapper;
 
 import com.metao.book.payment.application.dto.PaymentDTO;
-import com.metao.book.payment.domain.model.aggregate.Payment;
+import com.metao.book.payment.domain.model.aggregate.PaymentAggregate;
 import org.springframework.stereotype.Component;
 
 /**
@@ -13,7 +13,7 @@ public class PaymentApplicationMapper {
     /**
      * Convert domain Payment to PaymentDTO
      */
-    public PaymentDTO toDTO(Payment payment) {
+    public PaymentDTO toDTO(PaymentAggregate payment) {
         return PaymentDTO.builder()
             .paymentId(payment.getId().value())
             .orderId(payment.getOrderId().value())

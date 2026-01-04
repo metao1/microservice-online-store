@@ -2,7 +2,7 @@ package com.metao.book.payment.domain.service;
 
 import com.metao.book.payment.domain.exception.DuplicatePaymentException;
 import com.metao.book.payment.domain.exception.PaymentNotFoundException;
-import com.metao.book.payment.domain.model.aggregate.Payment;
+import com.metao.book.payment.domain.model.aggregate.PaymentAggregate;
 import com.metao.book.payment.domain.model.valueobject.OrderId;
 import com.metao.book.payment.domain.model.valueobject.PaymentId;
 import com.metao.book.payment.domain.model.valueobject.PaymentMethod;
@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 public class PaymentDomainService {
 
     private final PaymentRepository paymentRepository;
+
     /**
      * Check if a payment can be created for an order
      */
@@ -33,7 +34,7 @@ public class PaymentDomainService {
     /**
      * Create a new payment with business rules validation
      */
-    public Payment createPayment(
+    public PaymentAggregate createPayment(
         @NonNull OrderId orderId,
         @NonNull Money amount,
         @NonNull PaymentMethod paymentMethod
@@ -54,14 +55,14 @@ public class PaymentDomainService {
         }
 
         PaymentId paymentId = PaymentId.generate();
-        return new Payment(paymentId, orderId, amount, paymentMethod);
+        return new PaymentAggregate(paymentId, orderId, amount, paymentMethod);
     }
 
     /**
      * Process payment with business rules
      */
     public void processPayment(@NonNull PaymentId paymentId) {
-        Payment payment = paymentRepository.findById(paymentId)
+        PaymentAggregate payment = paymentRepository.findById(paymentId)
             .orElseThrow(() -> new PaymentNotFoundException(paymentId));
 
         // Business rule: Check if payment can be processed
@@ -77,7 +78,7 @@ public class PaymentDomainService {
      * Retry failed payment with business rules
      */
     public void retryPayment(@NonNull PaymentId paymentId) {
-        Payment payment = paymentRepository.findById(paymentId)
+        PaymentAggregate payment = paymentRepository.findById(paymentId)
             .orElseThrow(() -> new PaymentNotFoundException(paymentId));
 
         // Business rule: Can only retry failed payments
@@ -93,7 +94,7 @@ public class PaymentDomainService {
      * Cancel payment with business rules
      */
     public void cancelPayment(@NonNull PaymentId paymentId) {
-        Payment payment = paymentRepository.findById(paymentId)
+        PaymentAggregate payment = paymentRepository.findById(paymentId)
             .orElseThrow(() -> new PaymentNotFoundException(paymentId));
 
         // Business rule: Can only cancel pending payments
@@ -137,7 +138,7 @@ public class PaymentDomainService {
     /**
      * Find payments that need retry (failed payments)
      */
-    public List<Payment> findPaymentsForRetry() {
+    public List<PaymentAggregate> findPaymentsForRetry() {
         return paymentRepository.findByStatus(PaymentStatus.FAILED);
     }
 

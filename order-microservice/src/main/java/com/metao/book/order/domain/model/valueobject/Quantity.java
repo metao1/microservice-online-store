@@ -1,32 +1,34 @@
 package com.metao.book.order.domain.model.valueobject;
 
-import lombok.Value;
+import com.metao.book.shared.domain.base.ValueObject;
+import java.math.BigDecimal;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
-@Value
-public class Quantity {
+@Getter
+@EqualsAndHashCode
+public class Quantity implements ValueObject {
 
-    int value;
+    private BigDecimal value;
 
-    public Quantity(int value) {
-        if (value <= 0) {
+    public Quantity() {
+    }
+
+    public Quantity(BigDecimal value) {
+        if (value != null && value.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Quantity must be positive");
         }
         this.value = value;
     }
 
-    // Default constructor for Hibernate
-    public Quantity() {
-        this.value = 1; // Default to 1 to avoid validation issues
-    }
-
     public Quantity add(Quantity other) {
-        return new Quantity(this.value + other.value);
+        return new Quantity(this.value.add(other.value));
     }
 
     public Quantity subtract(Quantity other) {
-        int newValue = this.value - other.value;
-        if (newValue <= 0) {
+        var newValue = this.value.subtract(other.value);
+        if (value.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Resulting quantity must be positive");
         }
         return new Quantity(newValue);

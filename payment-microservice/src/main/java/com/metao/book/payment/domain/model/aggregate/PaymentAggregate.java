@@ -17,7 +17,7 @@ import lombok.NonNull;
  * Payment aggregate root - contains all business logic for payment processing
  */
 @Getter
-public class Payment extends AggregateRoot<PaymentId> {
+public class PaymentAggregate extends AggregateRoot<PaymentId> {
 
     private OrderId orderId;
     private Money amount;
@@ -28,12 +28,12 @@ public class Payment extends AggregateRoot<PaymentId> {
     private Instant createdAt;
 
     // For reconstruction from persistence
-    protected Payment() {
+    protected PaymentAggregate() {
         super();
     }
 
     // Constructor for new payments
-    public Payment(
+    public PaymentAggregate(
         @NonNull PaymentId paymentId,
         @NonNull OrderId orderId,
         @NonNull Money amount,
@@ -50,7 +50,7 @@ public class Payment extends AggregateRoot<PaymentId> {
     /**
      * For reconstruction from persistence
      */
-    public static Payment reconstruct(
+    public static PaymentAggregate reconstruct(
         PaymentId paymentId,
         OrderId orderId,
         Money amount,
@@ -60,7 +60,7 @@ public class Payment extends AggregateRoot<PaymentId> {
         Instant processedAt,
         Instant createdAt
     ) {
-        Payment payment = new Payment();
+        PaymentAggregate payment = new PaymentAggregate();
         payment.setId(paymentId);
         payment.orderId = orderId;
         payment.amount = amount;
@@ -201,7 +201,7 @@ public class Payment extends AggregateRoot<PaymentId> {
         if (obj == this) {
             return true;
         }
-        if (!(obj instanceof Payment that)) {
+        if (!(obj instanceof PaymentAggregate that)) {
             return false;
         }
         return this.getId().equals(that.getId());

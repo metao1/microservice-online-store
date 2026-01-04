@@ -44,14 +44,15 @@ public class Product extends AggregateRoot<ProductSku> {
 
     // Constructor for new products
     public Product(
-            @NotNull ProductSku productSku,
-            @NotNull ProductTitle title,
-            @NotNull ProductDescription description,
-            @NotNull ProductVolume volume,
-            @NonNull Money money,
-            @NonNull Instant createdTime,
-            @NonNull ImageUrl imageUrl,
-            Set<ProductCategory> categories
+        @NotNull ProductSku productSku,
+        @NotNull ProductTitle title,
+        @NotNull ProductDescription description,
+        @NotNull ProductVolume volume,
+        @NonNull Money money,
+        @NonNull Instant createdTime,
+        @NonNull Instant updatedTime,
+        @NonNull ImageUrl imageUrl,
+        Set<ProductCategory> categories
     ) {
         super(productSku);
         this.title = title;
@@ -60,6 +61,7 @@ public class Product extends AggregateRoot<ProductSku> {
         this.money = money;
         this.imageUrl = imageUrl;
         this.createdTime = createdTime;
+        this.updatedTime = updatedTime;
         this.categories = categories != null ? new HashSet<>(categories) : new HashSet<>();
 
         // Raise domain event
@@ -98,19 +100,19 @@ public class Product extends AggregateRoot<ProductSku> {
     }
 
     public boolean isInStock() {
-        return this.volume.value().compareTo(java.math.BigDecimal.ZERO) > 0;
+        return this.volume.getValue().compareTo(java.math.BigDecimal.ZERO) > 0;
     }
 
     public void reduceVolume(@NonNull ProductVolume reduction) {
-        if (reduction.value().compareTo(this.volume.value()) > 0) {
+        if (reduction.getValue().compareTo(this.volume.getValue()) > 0) {
             throw new IllegalArgumentException("Cannot reduce volume by more than available");
         }
-        this.volume = new ProductVolume(this.volume.value().subtract(reduction.value()));
+        this.volume = new ProductVolume(this.volume.getValue().subtract(reduction.getValue()));
         this.updatedTime = Instant.now();
     }
 
     public void increaseVolume(@NonNull ProductVolume increase) {
-        this.volume = new ProductVolume(this.volume.value().add(increase.value()));
+        this.volume = new ProductVolume(this.volume.getValue().add(increase.getValue()));
         this.updatedTime = Instant.now();
     }
 

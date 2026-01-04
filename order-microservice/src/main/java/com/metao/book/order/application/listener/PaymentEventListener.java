@@ -1,8 +1,8 @@
 package com.metao.book.order.application.listener;
 
-import com.metao.book.order.application.service.OrderApplicationService;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
+import com.metao.book.order.domain.service.OrderManagementService;
 import com.metao.book.shared.OrderPaymentEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PaymentEventListener {
 
-    private final OrderApplicationService orderApplicationService;
+    private final OrderManagementService orderManagementService;
 
     @Transactional
     @KafkaListener(
@@ -26,26 +26,26 @@ public class PaymentEventListener {
     )
     public void handlePaymentEvent(OrderPaymentEvent paymentEvent) {
         log.info("Received OrderPaymentEvent for order ID: {}, status: {}",
-                 paymentEvent.getOrderId(), paymentEvent.getStatus());
+            paymentEvent.getOrderId(), paymentEvent.getStatus());
 
         try {
-            String newStatus;
-            switch (paymentEvent.getStatus()) {
-                case SUCCESSFUL:
-                    newStatus = OrderStatus.PAID.name();
+            final String newStatus = switch (paymentEvent.getStatus()) {
+                case SUCCESSFUL -> {
                     log.info("Order {} status will be updated to PAID.", paymentEvent.getOrderId());
-                    break;
-                case FAILED:
-                    newStatus = OrderStatus.PAYMENT_FAILED.name();
+                    yield OrderStatus.PAID.name();
+                }
+                case FAILED -> {
                     log.info("Order {} status will be updated to PAYMENT_FAILED.", paymentEvent.getOrderId());
-                    break;
-                default:
+                    yield OrderStatus.PAYMENT_FAILED.name();
+                }
+                default -> {
                     log.warn("Unhandled payment status {} for order {}.",
                         paymentEvent.getStatus(), paymentEvent.getOrderId());
-                    return;
-            }
+                    yield null;
+                }
+            };
 
-            orderApplicationService.updateOrderStatus(OrderId.of(paymentEvent.getOrderId()), newStatus);
+            orderManagementService.updateOrderStatus(OrderId.of(paymentEvent.getOrderId()), newStatus);
             log.info("Order {} status successfully updated to {}.", paymentEvent.getOrderId(), newStatus);
 
         } catch (RuntimeException e) {

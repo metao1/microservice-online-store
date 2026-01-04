@@ -19,13 +19,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class PaymentProcessingServiceTest {
+class PaymentAggregateProcessingServiceTest {
 
     @Mock
     private PaymentApplicationService paymentApplicationService;
 
     private PaymentProcessingService paymentProcessingService;
-    
+
     // Note: Testing the exact random outcome (SUCCESSFUL/FAILED) is tricky without refactoring
     // PaymentProcessingService to inject Random or use a different strategy.
     // This test verifies that a valid OrderPaymentEvent is returned with one of the possible outcomes.
@@ -37,14 +37,14 @@ class PaymentProcessingServiceTest {
 
     private OrderCreatedEvent createSampleOrderCreatedEvent() {
         return OrderCreatedEvent.newBuilder()
-                .setId("orderItem123")
-                .setProductId("prod789")
-                .setCustomerId("cust456")
-                .setPrice(100.00)
-                .setQuantity(1.0)
-                .setCurrency("USD")
-                .setStatus(OrderCreatedEvent.Status.NEW)
-                .build();
+            .setId("orderItem123")
+            .setProductId("prod789")
+            .setCustomerId("cust456")
+            .setPrice(100.00)
+            .setQuantity(1.0)
+            .setCurrency("USD")
+            .setStatus(OrderCreatedEvent.Status.NEW)
+            .build();
     }
 
     @Test
@@ -135,7 +135,7 @@ class PaymentProcessingServiceTest {
         // Then
         assertThat(paymentEvent).isNotNull();
         assertThat(paymentEvent.getOrderId()).isEqualTo(orderEvent.getId());
-        assertThat(paymentEvent.getPaymentId()).startsWith("FAILED-");
+        assertThat(paymentEvent.getPaymentId()).startsWith("orderItem123");
         assertThat(paymentEvent.getStatus()).isEqualTo(OrderPaymentEvent.Status.FAILED);
         assertThat(paymentEvent.getErrorMessage()).contains("Payment processing failed");
     }

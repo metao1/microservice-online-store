@@ -29,6 +29,7 @@ import lombok.Setter;
 public class OrderEntity {
 
     @Id
+    @Column(name = "id", updatable = false, nullable = false)
     private String id;
 
     @Embedded

@@ -33,6 +33,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "kafka.enabled", havingValue = "true", matchIfMissing = true)
 public class KafkaTopicHealthIndicator extends AbstractHealthIndicator {
+
     private final KafkaProperties kafkaProperties;
     private final ApplicationEventPublisher eventPublisher;
     private AdminClient adminClient;
@@ -76,10 +77,14 @@ public class KafkaTopicHealthIndicator extends AbstractHealthIndicator {
     private boolean hasWriteAcl(TopicDescription topicDescription) {
         return topicDescription != null
             && topicDescription.authorizedOperations() != null
-            && (topicDescription.authorizedOperations().contains(AclOperation.WRITE) || topicDescription.authorizedOperations().contains(AclOperation.ALL));
+            && (topicDescription.authorizedOperations().contains(AclOperation.WRITE)
+            || topicDescription.authorizedOperations().contains(AclOperation.ALL));
     }
 
-    private Map<String, TopicDescription> getTopicDescriptions(final Health.Builder builder, final Collection<String> topics) {
+    private Map<String, TopicDescription> getTopicDescriptions(
+        final Health.Builder builder,
+        final Collection<String> topics
+    ) {
         final DescribeTopicsOptions describeTopicsOptions = new DescribeTopicsOptions();
         describeTopicsOptions.includeAuthorizedOperations(true);
         final Map<String, TopicDescription> result = new HashMap<>();

@@ -1,8 +1,8 @@
 package com.metao.book.product.infrastructure.persistence.converter;
 
 import com.metao.book.product.domain.model.valueobject.ProductDescription;
+import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import javax.persistence.AttributeConverter;
 
 @Converter(autoApply = true)
 public class ProductDescriptionConverter implements AttributeConverter<ProductDescription, String> {
@@ -15,7 +15,7 @@ public class ProductDescriptionConverter implements AttributeConverter<ProductDe
      */
     @Override
     public String convertToDatabaseColumn(ProductDescription attribute) {
-        return attribute == null ? null : attribute.value();
+        return attribute == null ? null : attribute.getValue();
     }
 
     /**

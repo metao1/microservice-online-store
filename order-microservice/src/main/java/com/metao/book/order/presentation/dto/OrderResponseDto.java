@@ -2,12 +2,13 @@ package com.metao.book.order.presentation.dto;
 
 import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.shared.domain.financial.Money;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import lombok.Data;
 
 @Data
-public class OrderResponse {
+public class OrderResponseDto {
 
     private String id;
     private String customerId;
@@ -17,8 +18,8 @@ public class OrderResponse {
     private Instant updatedAt;
     private Money total;
 
-    public static OrderResponse fromDomain(OrderAggregate order) {
-        OrderResponse response = new OrderResponse();
+    public static OrderResponseDto fromDomain(OrderAggregate order) {
+        OrderResponseDto response = new OrderResponseDto();
         response.setId(order.getId().value());
         response.setCustomerId(order.getCustomerId().getValue());
         response.setStatus(order.getStatus().name());
@@ -44,7 +45,7 @@ public class OrderResponse {
     public static class OrderItemResponse {
 
         private String productId;
-        private int quantity;
+        private BigDecimal quantity;
         private Money unitPrice;
         private Money totalPrice;
     }

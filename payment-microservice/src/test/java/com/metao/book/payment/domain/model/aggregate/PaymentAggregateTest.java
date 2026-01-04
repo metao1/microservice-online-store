@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Unit tests for Payment aggregate
  */
-class PaymentTest {
+class PaymentAggregateTest {
 
     @Test
     void createPayment_shouldInitializeWithPendingStatus() {
@@ -30,7 +30,7 @@ class PaymentTest {
         PaymentMethod paymentMethod = PaymentMethod.creditCard("****-1234");
 
         // When
-        Payment payment = new Payment(paymentId, orderId, amount, paymentMethod);
+        PaymentAggregate payment = new PaymentAggregate(paymentId, orderId, amount, paymentMethod);
 
         // Then
         assertThat(payment.getId()).isEqualTo(paymentId);
@@ -47,7 +47,7 @@ class PaymentTest {
     @Test
     void processPayment_withValidAmount_shouldSucceedOrFail() {
         // Given
-        Payment payment = createValidPayment();
+        PaymentAggregate payment = createValidPayment();
 
         // When
         payment.processPayment();
@@ -69,7 +69,7 @@ class PaymentTest {
     @Test
     void processPayment_withNonPendingStatus_shouldThrowException() {
         // Given
-        Payment payment = createValidPayment();
+        PaymentAggregate payment = createValidPayment();
         payment.processPayment(); // Process once to change status
 
         // When/Then
@@ -85,7 +85,7 @@ class PaymentTest {
         OrderId orderId = OrderId.of("order-123");
         Money zeroAmount = new Money(Currency.getInstance("USD"), BigDecimal.ZERO);
         PaymentMethod paymentMethod = PaymentMethod.creditCard("****-1234");
-        Payment payment = new Payment(paymentId, orderId, zeroAmount, paymentMethod);
+        PaymentAggregate payment = new PaymentAggregate(paymentId, orderId, zeroAmount, paymentMethod);
 
         // When/Then
         assertThatThrownBy(payment::processPayment)
@@ -96,7 +96,7 @@ class PaymentTest {
     @Test
     void retry_withFailedPayment_shouldResetToPending() {
         // Given
-        Payment payment = createValidPayment();
+        PaymentAggregate payment = createValidPayment();
         payment.processPayment();
 
         // Ensure it's failed (retry until we get a failed payment for testing)
@@ -118,7 +118,7 @@ class PaymentTest {
     @Test
     void retry_withNonFailedPayment_shouldThrowException() {
         // Given
-        Payment payment = createValidPayment();
+        PaymentAggregate payment = createValidPayment();
 
         // When/Then
         assertThatThrownBy(payment::retry)
@@ -129,7 +129,7 @@ class PaymentTest {
     @Test
     void cancel_withPendingPayment_shouldSetStatusToCancelled() {
         // Given
-        Payment payment = createValidPayment();
+        PaymentAggregate payment = createValidPayment();
 
         // When
         payment.cancel();
@@ -142,7 +142,7 @@ class PaymentTest {
     @Test
     void cancel_withNonPendingPayment_shouldThrowException() {
         // Given
-        Payment payment = createValidPayment();
+        PaymentAggregate payment = createValidPayment();
         payment.processPayment(); // Change status from PENDING
 
         // When/Then
@@ -164,7 +164,7 @@ class PaymentTest {
         var createdAt = processedAt.minus(5, ChronoUnit.MINUTES);
 
         // When
-        Payment payment = Payment.reconstruct(
+        PaymentAggregate payment = PaymentAggregate.reconstruct(
             paymentId, orderId, amount, paymentMethod, status,
             failureReason, processedAt, createdAt
         );
@@ -181,11 +181,11 @@ class PaymentTest {
         assertThat(payment.getDomainEvents()).isEmpty();
     }
 
-    private Payment createValidPayment() {
+    private PaymentAggregate createValidPayment() {
         PaymentId paymentId = PaymentId.generate();
         OrderId orderId = OrderId.of("order-123");
         Money amount = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(100.00));
         PaymentMethod paymentMethod = PaymentMethod.creditCard("****-1234");
-        return new Payment(paymentId, orderId, amount, paymentMethod);
+        return new PaymentAggregate(paymentId, orderId, amount, paymentMethod);
     }
 }

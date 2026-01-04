@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
  * JPA repository for CategoryEntity
  */
 @Repository
-public interface JpaCategoryRepository extends JpaRepository<CategoryEntity, Long> {
+public interface JpaCategoryRepository extends JpaRepository<CategoryEntity, String> {
 
     Optional<CategoryEntity> findByCategory(String category);
 

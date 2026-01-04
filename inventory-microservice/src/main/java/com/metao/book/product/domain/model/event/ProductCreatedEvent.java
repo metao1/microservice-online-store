@@ -24,8 +24,8 @@ public class ProductCreatedEvent extends DomainEvent {
     public ProductCreatedEvent(
         @NonNull ProductSku productSku,
         @NonNull ProductTitle title,
-            @NonNull Money price,
-            @NonNull Instant occurredOn
+        @NonNull Money price,
+        @NonNull Instant occurredOn
     ) {
         super(occurredOn);
         this.productSku = productSku;

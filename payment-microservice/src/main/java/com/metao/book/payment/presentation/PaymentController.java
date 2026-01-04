@@ -82,7 +82,7 @@ public class PaymentController {
      * Get payment by order ID
      */
     @GetMapping("/order/{orderId}")
-    public ResponseEntity<PaymentDTO> getPaymentByOrderId(@PathVariable String orderId) {
+    public ResponseEntity<PaymentDTO> getPaymentInfoByOrderId(@PathVariable String orderId) {
         log.debug("Getting payment for order: {}", orderId);
         Optional<PaymentDTO> payment = paymentApplicationService.getPaymentByOrderId(orderId);
         return payment.map(ResponseEntity::ok)

@@ -1,6 +1,6 @@
 package com.metao.book.payment.infrastructure.persistence.mapper;
 
-import com.metao.book.payment.domain.model.aggregate.Payment;
+import com.metao.book.payment.domain.model.aggregate.PaymentAggregate;
 import com.metao.book.payment.domain.model.valueobject.OrderId;
 import com.metao.book.payment.domain.model.valueobject.PaymentMethod;
 import com.metao.book.payment.domain.model.valueobject.PaymentStatus;
@@ -17,7 +17,7 @@ public class PaymentEntityMapper {
     /**
      * Convert domain Payment to PaymentEntity
      */
-    public PaymentEntity toEntity(Payment payment) {
+    public PaymentEntity toEntity(PaymentAggregate payment) {
         return new PaymentEntity(
             payment.getId().value(),
             payment.getOrderId().value(),
@@ -33,13 +33,14 @@ public class PaymentEntityMapper {
     /**
      * Convert PaymentEntity to domain Payment
      */
-    public Payment toDomain(PaymentEntity payment) {
+    public PaymentAggregate toDomain(PaymentEntity payment) {
         OrderId orderId = OrderId.of(payment.getOrderId());
         Money amount = new Money(payment.getCurrency(), payment.getAmount());
-        PaymentMethod paymentMethod = mapPaymentMethod(payment.getPaymentMethodType(), payment.getPaymentMethodDetails());
+        PaymentMethod paymentMethod = mapPaymentMethod(payment.getPaymentMethodType(),
+            payment.getPaymentMethodDetails());
         PaymentStatus status = mapPaymentStatus(payment.getStatus());
 
-        return Payment.reconstruct(
+        return PaymentAggregate.reconstruct(
             payment.id(),
             orderId,
             amount,

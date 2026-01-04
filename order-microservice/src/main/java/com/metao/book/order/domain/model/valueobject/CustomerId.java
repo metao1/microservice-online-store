@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 public class CustomerId {
 
     String value;
+
     // Default constructor for Hibernate
     public CustomerId() {
     }

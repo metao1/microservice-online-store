@@ -17,7 +17,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class PaymentControllerIT extends KafkaContainer {
+class PaymentAggregateControllerIT extends KafkaContainer {
 
     @LocalServerPort
     private Integer port;
@@ -31,14 +31,14 @@ class PaymentControllerIT extends KafkaContainer {
     void shouldCreatePaymentSuccessfully() {
         // Given
         var requestBody = """
-        {
-            "orderId": "order-123",
-            "amount": 100.00,
-            "currency": "USD",
-            "paymentMethodType": "PAYPAL",
-            "paymentMethodDetails": "****-5678"
-        }
-        """;
+            {
+                "orderId": "order-123",
+                "amount": 100.00,
+                "currency": "USD",
+                "paymentMethodType": "PAYPAL",
+                "paymentMethodDetails": "****-5678"
+            }
+            """;
 
         // When & Then
         given()
@@ -59,21 +59,21 @@ class PaymentControllerIT extends KafkaContainer {
     void shouldProcessPaymentSuccessfully() {
         // Given - First create a payment
         var requestBody = """
-        {
-            "orderId": "order-456",
-            "amount": 100.00,
-            "currency": "USD",
-            "paymentMethodType": "PAYPAL",
-            "paymentMethodDetails": "****-5678"
-        }
-        """;
+            {
+                "orderId": "order-456",
+                "amount": 100.00,
+                "currency": "USD",
+                "paymentMethodType": "PAYPAL",
+                "paymentMethodDetails": "****-5678"
+            }
+            """;
 
         String paymentId = given()
             .contentType(ContentType.JSON)
             .body(requestBody)
-        .when()
+            .when()
             .post("/payments")
-        .then()
+            .then()
             .statusCode(HttpStatus.CREATED.value())
             .body("orderId", equalTo("order-456"))
             .extract()
@@ -82,9 +82,9 @@ class PaymentControllerIT extends KafkaContainer {
         // When & Then - Process the payment
         String processedStatus = given()
             .contentType(ContentType.JSON)
-        .when()
+            .when()
             .post("/payments/{paymentId}/process", paymentId)
-        .then()
+            .then()
             .statusCode(HttpStatus.OK.value())
             .body("paymentId", equalTo(paymentId))
             .body("status", anyOf(equalTo("SUCCESSFUL"), equalTo("FAILED")))
@@ -94,9 +94,9 @@ class PaymentControllerIT extends KafkaContainer {
         // Verify the payment status was updated (should be either SUCCESSFUL or FAILED)
         given()
             .contentType(ContentType.JSON)
-        .when()
+            .when()
             .get("/payments/{paymentId}", paymentId)
-        .then()
+            .then()
             .statusCode(HttpStatus.OK.value())
             .body("paymentId", equalTo(paymentId))
             .body("status", equalTo(processedStatus));

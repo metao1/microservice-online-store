@@ -1,7 +1,6 @@
 package com.metao.book.shared.domain.base;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
