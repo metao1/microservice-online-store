@@ -4,9 +4,11 @@ import com.metao.book.product.domain.model.entity.ProductCategory;
 import com.metao.book.product.domain.model.valueobject.CategoryId;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.product.infrastructure.persistence.entity.CategoryEntity;
-import com.metao.book.product.infrastructure.persistence.repository.JpaCategoryRepository;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Session;
 import org.springframework.stereotype.Component;
+import java.util.Objects;
 
 /**
  * Mapper between ProductCategory domain object and CategoryEntity
@@ -15,26 +17,21 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CategoryEntityMapper {
 
-    private final JpaCategoryRepository jpaCategoryRepository;
+    private final EntityManager entityManager;
 
     /**
      * Convert domain ProductCategory to CategoryEntity
-     * For existing categories (with ID), fetch from DB to ensure it's attached to session
+     * Uses Hibernate's natural ID lookup which checks session cache first
      */
     public CategoryEntity toEntity(ProductCategory category) {
-        // If category has an ID, it exists in DB - fetch it to attach to session
-        if (category.getId() != null) {
-            return jpaCategoryRepository.findById(category.getId().value())
-                .orElseGet(() -> {
-                    // Fallback: create new entity if not found by ID
-                    CategoryEntity entity = new CategoryEntity(category.getName().value());
-                    entity.setId(category.getId().value());
-                    return entity;
-                });
-        }
+        Session session = entityManager.unwrap(Session.class);
 
-        // New category without ID - let cascade persist handle it
-        return new CategoryEntity(category.getName().value());
+        // First, try to find by natural ID (category name) in session cache + DB
+        CategoryEntity existing = session.bySimpleNaturalId(CategoryEntity.class)
+            .load(category.getName().value());
+
+        // Found in session or DB - return the managed entity
+        return Objects.requireNonNullElseGet(existing, () -> new CategoryEntity(category.getName().value()));
     }
 
     /**
