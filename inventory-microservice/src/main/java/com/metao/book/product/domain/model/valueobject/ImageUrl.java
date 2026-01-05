@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 public class ImageUrl implements ValueObject {
 
     private static final Pattern URL_PATTERN = Pattern.compile(
-        "(http(s?):)([/|.\\w])*\\.(?:jpg|gif|png)",
+        "https?://[/|.\\w-]+\\.(?:jpg|gif|png)",
         Pattern.CASE_INSENSITIVE
     );
 
