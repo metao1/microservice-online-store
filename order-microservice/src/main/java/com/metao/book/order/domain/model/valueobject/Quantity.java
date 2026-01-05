@@ -28,7 +28,7 @@ public class Quantity implements ValueObject {
 
     public Quantity subtract(Quantity other) {
         var newValue = this.value.subtract(other.value);
-        if (value.compareTo(BigDecimal.ZERO) <= 0) {
+        if (newValue.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Resulting quantity must be positive");
         }
         return new Quantity(newValue);

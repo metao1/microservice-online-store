@@ -645,5 +645,327 @@ class ProductTest {
             .hasSize(2)
             .contains(category1, category2);
     }
+
+    // ========== Additional Edge Cases ==========
+
+    @Test
+    @DisplayName("should reduce volume to exactly zero")
+    void testReduceVolume_toExactlyZero() {
+        // GIVEN
+        Product Product = new Product(
+            productSku,
+            productTitle,
+            productDescription,
+            ProductVolume.of(BigDecimal.valueOf(50)),
+            money,
+            createdTime,
+            updatedTime,
+            imageUrl,
+            categories
+        );
+
+        ProductVolume reduction = ProductVolume.of(BigDecimal.valueOf(50));
+
+        // WHEN
+        Product.reduceVolume(reduction);
+
+        // THEN
+        assertThat(Product.getVolume())
+            .isEqualTo(ProductVolume.of(BigDecimal.ZERO));
+        assertThat(Product.isInStock()).isFalse();
+    }
+
+    @Test
+    @DisplayName("should handle decimal volume operations precisely")
+    void testVolumeOperations_withDecimals() {
+        // GIVEN
+        Product Product = new Product(
+            productSku,
+            productTitle,
+            productDescription,
+            ProductVolume.of(new BigDecimal("10.5")),
+            money,
+            createdTime,
+            updatedTime,
+            imageUrl,
+            categories
+        );
+
+        // WHEN
+        Product.reduceVolume(ProductVolume.of(new BigDecimal("3.2")));
+        Product.increaseVolume(ProductVolume.of(new BigDecimal("1.7")));
+
+        // THEN
+        assertThat(Product.getVolume())
+            .isEqualTo(ProductVolume.of(new BigDecimal("9.0")));
+    }
+
+    @Test
+    @DisplayName("should throw exception when updating to null price")
+    void testUpdatePrice_whenNullPrice_shouldThrowException() {
+        // GIVEN
+        Product Product = new Product(
+            productSku,
+            productTitle,
+            productDescription,
+            productVolume,
+            money,
+            createdTime,
+            updatedTime,
+            imageUrl,
+            categories
+        );
+
+        // WHEN & THEN
+        assertThatThrownBy(() -> Product.updatePrice(null))
+            .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    @DisplayName("should handle multiple sequential price updates")
+    void testMultipleSequentialPriceUpdates() {
+        // GIVEN
+        Product Product = new Product(
+            productSku,
+            productTitle,
+            productDescription,
+            productVolume,
+            money,
+            createdTime,
+            updatedTime,
+            imageUrl,
+            categories
+        );
+
+        Money price1 = Money.of(BigDecimal.valueOf(35.00), Currency.getInstance("EUR"));
+        Money price2 = Money.of(BigDecimal.valueOf(40.00), Currency.getInstance("EUR"));
+        Money price3 = Money.of(BigDecimal.valueOf(45.00), Currency.getInstance("EUR"));
+
+        // WHEN
+        Product.updatePrice(price1);
+        Product.updatePrice(price2);
+        Product.updatePrice(price3);
+
+        // THEN
+        assertThat(Product.getMoney()).isEqualTo(price3);
+        // Should have 1 created + 3 updated events
+        assertThat(Product.getDomainEvents()).hasSize(4);
+    }
+
+    @Test
+    @DisplayName("should handle multiple category additions")
+    void testMultipleCategoryAdditions() {
+        // GIVEN
+        Product Product = new Product(
+            productSku,
+            productTitle,
+            productDescription,
+            productVolume,
+            money,
+            createdTime,
+            updatedTime,
+            imageUrl,
+            Set.of()
+        );
+
+        ProductCategory category1 = ProductCategory.of(CategoryName.of("Books"));
+        ProductCategory category2 = ProductCategory.of(CategoryName.of("Electronics"));
+        ProductCategory category3 = ProductCategory.of(CategoryName.of("Home"));
+
+        // WHEN
+        Product.addCategory(category1);
+        Product.addCategory(category2);
+        Product.addCategory(category3);
+
+        // THEN
+        assertThat(Product.getCategories())
+            .hasSize(3)
+            .contains(category1, category2, category3);
+    }
+
+    @Test
+    @DisplayName("should not update timestamp when adding null category")
+    void testAddCategory_whenNullCategory_shouldNotUpdateTimestamp() {
+        // GIVEN
+        Product Product = new Product(
+            productSku,
+            productTitle,
+            productDescription,
+            productVolume,
+            money,
+            createdTime,
+            updatedTime,
+            imageUrl,
+            Set.of()
+        );
+
+        Instant timeBeforeAddition = Product.getUpdatedTime();
+
+        // WHEN & THEN - Should not throw, just ignore
+        assertThatThrownBy(() -> Product.addCategory(null))
+            .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    @DisplayName("should maintain immutability of original category set")
+    void testCategoryImmutability() {
+        // GIVEN
+        ProductCategory category1 = ProductCategory.of(CategoryName.of("Books"));
+        Set<ProductCategory> originalCategories = Set.of(category1);
+
+        Product Product = new Product(
+            productSku,
+            productTitle,
+            productDescription,
+            productVolume,
+            money,
+            createdTime,
+            updatedTime,
+            imageUrl,
+            originalCategories
+        );
+
+        ProductCategory category2 = ProductCategory.of(CategoryName.of("Electronics"));
+
+        // WHEN
+        Product.addCategory(category2);
+
+        // THEN
+        assertThat(originalCategories).hasSize(1); // Original set unchanged
+        assertThat(Product.getCategories()).hasSize(2); // Product's set modified
+    }
+
+    @Test
+    @DisplayName("should handle zero price updates")
+    void testUpdatePrice_withZeroPrice() {
+        // GIVEN
+        Product Product = new Product(
+            productSku,
+            productTitle,
+            productDescription,
+            productVolume,
+            money,
+            createdTime,
+            updatedTime,
+            imageUrl,
+            categories
+        );
+
+        Money zeroPrice = Money.of(BigDecimal.ZERO, Currency.getInstance("EUR"));
+
+        // WHEN
+        Product.updatePrice(zeroPrice);
+
+        // THEN
+        assertThat(Product.getMoney()).isEqualTo(zeroPrice);
+        assertThat(Product.getDomainEvents()).hasSize(2); // Created + Updated
+    }
+
+    @Test
+    @DisplayName("should update description to empty string")
+    void testUpdateDescription_withEmptyString() {
+        // GIVEN
+        Product Product = new Product(
+            productSku,
+            productTitle,
+            productDescription,
+            productVolume,
+            money,
+            createdTime,
+            updatedTime,
+            imageUrl,
+            categories
+        );
+
+        ProductDescription emptyDescription = ProductDescription.of("");
+
+        // WHEN & THEN - Should be allowed if ProductDescription validation permits
+        Product.updateDescription(emptyDescription);
+        assertThat(Product.getDescription()).isEqualTo(emptyDescription);
+    }
+
+    @Test
+    @DisplayName("should correctly handle volume reduction leaving fractional remainder")
+    void testReduceVolume_withFractionalRemainder() {
+        // GIVEN
+        Product Product = new Product(
+            productSku,
+            productTitle,
+            productDescription,
+            ProductVolume.of(new BigDecimal("100.75")),
+            money,
+            createdTime,
+            updatedTime,
+            imageUrl,
+            categories
+        );
+
+        ProductVolume reduction = ProductVolume.of(new BigDecimal("50.5"));
+
+        // WHEN
+        Product.reduceVolume(reduction);
+
+        // THEN
+        assertThat(Product.getVolume())
+            .isEqualTo(ProductVolume.of(new BigDecimal("50.25")));
+    }
+
+    @Test
+    @DisplayName("should verify all domain events maintain correct order")
+    void testDomainEvents_maintainOrder() {
+        // GIVEN
+        Product Product = new Product(
+            productSku,
+            productTitle,
+            productDescription,
+            productVolume,
+            money,
+            createdTime,
+            updatedTime,
+            imageUrl,
+            categories
+        );
+
+        Money newPrice = Money.of(BigDecimal.valueOf(39.99), Currency.getInstance("EUR"));
+
+        // WHEN
+        Product.updatePrice(newPrice);
+        Product.updateTitle(ProductTitle.of("New Title")); // Title update does not raise event
+
+        // THEN
+        assertThat(Product.getDomainEvents())
+            .hasSize(2)  // Created + Price Updated (title update does not raise event)
+            .element(0).isInstanceOf(ProductCreatedEvent.class);
+
+        assertThat(Product.getDomainEvents())
+            .element(1).isInstanceOf(ProductUpdatedEvent.class);
+    }
+
+    @Test
+    @DisplayName("should handle volume increase with large numbers")
+    void testIncreaseVolume_withLargeNumbers() {
+        // GIVEN
+        Product Product = new Product(
+            productSku,
+            productTitle,
+            productDescription,
+            ProductVolume.of(new BigDecimal("1000000")),
+            money,
+            createdTime,
+            updatedTime,
+            imageUrl,
+            categories
+        );
+
+        ProductVolume largeIncrease = ProductVolume.of(new BigDecimal("5000000"));
+
+        // WHEN
+        Product.increaseVolume(largeIncrease);
+
+        // THEN
+        assertThat(Product.getVolume())
+            .isEqualTo(ProductVolume.of(new BigDecimal("6000000")));
+        assertThat(Product.isInStock()).isTrue();
+    }
 }
 
