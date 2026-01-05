@@ -1,0 +1,54 @@
+name: Test Coverage Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'inventory-microservice/src/**'
+      - '.github/workflows/test-coverage.yml'
+
+jobs:
+  test-coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4.7.1
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Run inventory-microservice tests
+        run: ./gradlew inventory-microservice:test --info
+
+      - name: Generate test coverage report
+        run: ./gradlew inventory-microservice:jacocoTestReport
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./inventory-microservice/build/reports/jacoco/test/jacocoTestReport.xml
+          flags: inventory-microservice
+          fail_ci_if_error: false
+
+      - name: Comment PR with coverage status
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('./inventory-microservice/build/reports/jacoco/test/jacocoTestReport.xml', 'utf8');
+            const match = report.match(/linerate="([^"]+)"/);
+            const coverage = match ? (parseFloat(match[1]) * 100).toFixed(2) : 'unknown';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `📊 **Test Coverage Report**\n\n✓ All tests passed\n📈 Coverage: ${coverage}%\n\n> See [plan-strengthenInventoryMicroserviceTestCoverage.prompt.md](../../plan-strengthenInventoryMicroserviceTestCoverage.prompt.md) for coverage improvement goals.`
+            });
+

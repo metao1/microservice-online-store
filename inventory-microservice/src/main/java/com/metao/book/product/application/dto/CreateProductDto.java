@@ -18,7 +18,7 @@ public record CreateProductDto(
     String title,
     @NotBlank(message = "Image URL cannot be blank")
     String description,
-    @Pattern(regexp = "(http(s?):)([/|.\\w])*\\.(?:jpg|gif|png)", message = "Invalid image URL format")
+    @Pattern(regexp = "https?://[/|.\\w-]+\\.(?:jpg|gif|png|JPG|GIF|PNG)", message = "Invalid image URL format")
     String imageUrl,
     @NotNull(message = "Price cannot be null")
     @DecimalMin(value = "0.00", message = "Price must be greater than or equal to zero")
