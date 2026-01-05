@@ -42,7 +42,6 @@ import org.springframework.test.context.ActiveProfiles;
  * Integration tests for OrderController
  */
 @ActiveProfiles("test")
-@DisplayName("OrderController Integration Tests")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class OrderManagementControllerIT extends KafkaContainer {
 
