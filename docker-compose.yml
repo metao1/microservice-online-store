@@ -90,18 +90,6 @@ services:
       - kafka-schema-registry
       - kafka-rest-proxy
 
-  postgres:
-    image: postgres
-    hostname: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres:/var/lib/postgresql
-    environment:
-      POSTGRES_DB: bookstore
-      POSTGRES_USER: bookstore
-      POSTGRES_PASSWORD: bookstore
-
   postgres-order:
     image: postgres
     hostname: postgres-order
@@ -114,25 +102,39 @@ services:
       POSTGRES_USER: bookstore
       POSTGRES_PASSWORD: bookstore
 
-  frontend:
-    container_name: frontend
-    hostname: frontend
-    #restart: on-failure
-    build:
-      context: frontend
-      dockerfile: Dockerfile
+  postgres-payment:
+    image: postgres
+    hostname: postgres-order
     ports:
-      - "3000:80"
+      - "5434:5432"
+    volumes:
+      - postgres-order:/var/lib/postgresql
+    environment:
+      POSTGRES_DB: bookstore-payment
+      POSTGRES_USER: bookstore
+      POSTGRES_PASSWORD: bookstore
+
+  postgres-inventory:
+    image: postgres
+    hostname: postgres-order
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres-order:/var/lib/postgresql
+    environment:
+      POSTGRES_DB: bookstore-inventory
+      POSTGRES_USER: bookstore
+      POSTGRES_PASSWORD: bookstore
 
   order-microservice:
     container_name: order-microservice
     hostname: order-microservice
     #restart: on-failure
     environment:
-      DATABASE_URL: "jdbc:postgresql://postgres-order:5432/bookstore-order"
+      DATABASE_URL: "jdbc:postgresql://postgres-order:5432/bookstore"
       SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
       BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:9092
-      DATABASE_USER: bookstore
+      DATABASE_USER: bookstore-order
       DATABASE_PASSWORD: bookstore
       SECURITY_PROTOCOL: PLAINTEXT
       SASL_MECHANISM: PLAIN
@@ -140,9 +142,9 @@ services:
       context: order-microservice
       dockerfile: src/main/docker/Dockerfile
     ports:
-      - "1080:8080"
+      - "8086:8080"
     depends_on:
-      - postgres
+      - postgres-order
       - kafka1
       - kafka-schema-registry
 
@@ -151,11 +153,11 @@ services:
     hostname: inventory-microservice
     #restart: on-failure
     environment:
-      DATABASE_URL: "jdbc:postgresql://postgres:5432/bookstore"
+      DATABASE_URL: "jdbc:postgresql://postgres:5432/bookstore-inventory"
       SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
       BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:9092
       SPRING_PROFILES_ACTIVE: "container"
-      DATABASE_USER: bookstore
+      DATABASE_USER: bookstore-inventory
       DATABASE_PASSWORD: bookstore
       SECURITY_PROTOCOL: PLAINTEXT
       SASL_MECHANISM: PLAIN
@@ -165,7 +167,7 @@ services:
     ports:
       - "8083:8083"
     depends_on:
-      - postgres
+      - postgres-inventory
       - kafka1
       - kafka-schema-registry
 
@@ -173,14 +175,14 @@ services:
     container_name: payment-microservice
     hostname: payment-microservice
     environment:
+      DATABASE_URL: "jdbc:postgresql://postgres:5432/bookstore-payment"
       SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
       BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:9092
       SPRING_PROFILES_ACTIVE: "container"
-      # Add other necessary env vars like DB connection if payment-microservice uses one
-      # Example:
-      # DATABASE_URL: "jdbc:postgresql://postgres-payment:5432/bookstore-payment" 
-      # DATABASE_USER: bookstore
-      # DATABASE_PASSWORD: bookstore
+      DATABASE_USER: bookstore-payment
+      DATABASE_PASSWORD: bookstore
+      SECURITY_PROTOCOL: PLAINTEXT
+      SASL_MECHANISM: PLAIN
     build:
       context: payment-microservice
       dockerfile: src/main/docker/Dockerfile
@@ -189,7 +191,17 @@ services:
     depends_on:
       - kafka1
       - kafka-schema-registry
-      # Add postgres-payment if a dedicated DB is used for payment-microservice
+      - postgres-payment
+
+  frontend:
+    container_name: frontend
+    hostname: frontend
+    #restart: on-failure
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
 
   kafkacat:
     image: confluentinc/cp-kafkacat

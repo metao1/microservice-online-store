@@ -1,89 +1,308 @@
 [![Java CI with Gradle](https://github.com/metao1/microservice-online-store/actions/workflows/gradle.yml/badge.svg)](https://github.com/metao1/microservice-online-store/actions/workflows/gradle.yml)
 
-# Microservice Online Shop, a modern E-commerce book management web application using Event-Driven and microservice architecture
+# Microservice Online Store
 
-Online Store is a modern E-commerce system for retailing and product management using web application, built using
-modern tech-stack. It built with Java Spring boot as backend and React as frontend over a Microservice and event-driven
-communicating based-on Apache Kafka.
+A modern event-driven e-commerce platform built with microservices architecture, implementing Domain-Driven Design (DDD) principles and leveraging Apache Kafka for asynchronous communication between services.
 
-### Event Storming for understanding the system
+## Overview
 
-![event-storming](img/eventstorming.png)
+This project is a production-ready e-commerce system that demonstrates best practices in microservices architecture, including:
 
-### Event-Driven architecture online Shop overall architecture
+- **Event-Driven Architecture**: Services communicate asynchronously via Apache Kafka
+- **Domain-Driven Design**: Rich domain models with aggregates, entities, and value objects
+- **Saga Pattern**: Choreography-based saga for order-payment coordination
+- **Event Sourcing**: All state changes captured as domain events
+- **Database per Service**: Each microservice owns its data
+- **Protocol Buffers**: Efficient event serialization with schema validation
+- **Clean Architecture**: Clear separation of concerns across layers
 
-![online-shop-architecture](img/online-shop-architecture.png)
+## Architecture
 
-----------------------------------------------------------------
+The system consists of three core microservices that communicate through Kafka events:
 
-### component diagram and sequence diagram - microservices rely on event-driven architecture
+![Event Storming](img/eventstorming.png)
 
-![order-payment-inventory-user-diagrams](img/order-payment-inventory-user-diagrams.png)
+![Online Shop Architecture](img/online-shop-architecture.png)
 
-----------------------------------------------------------------
+![Component and Sequence Diagrams](img/order-payment-inventory-user-diagrams.png)
 
-### Components
+For detailed architecture documentation, including sequence diagrams, event flows, API endpoints, and DDD patterns, see [ARCHITECTURE.md](docs/ARCHITECTURE.md).**
 
-We have several microservices as components of online shop system, each of which is located under its directory in the
-project.
+## Technology Stack
 
-#### 1. Order Microservice:
+### Backend
+- **Java 17+** - Programming language
+- **Spring Boot 3.x** - Application framework
+- **Spring Data JPA** - Data persistence
+- **Hibernate** - ORM with 2nd level caching (Caffeine)
+- **Gradle** - Build automation
+- **Flyway** - Database migrations
 
-Responsible to manage orders
+### Messaging & Events
+- **Apache Kafka** - Message broker
+- **Zookeeper** - Kafka coordination
+- **Confluent Schema Registry** - Schema management
+- **Protocol Buffers (Protobuf)** - Event serialization
 
-- Order fulfillment:
-    - Is a component inside the order microservice
+### Databases
+- **PostgreSQL** - Primary database for all services
+- **HikariCP** - Database connection pooling
 
-#### 2. Inventory or Product Microservice:
+### Frontend
+- **React** - UI framework
+- **JavaScript/ES6** - Programming language
 
-Responsible to managing our products in inventory.
+### Infrastructure
+- **Docker** - Containerization
+- **Docker Compose** - Multi-container orchestration
 
-#### 3. Payment Microservice: [Implemented - Mocked Processing]
+## Getting Started
 
-Responsible for processing payments related to orders.
+### Prerequisites
 
-- It consumes `OrderCreatedEvent` from a Kafka topic (when an order is initiated in the `order-microservice`).
-- It currently simulates payment processing (mocked logic with random success/failure).
-- After processing, it produces an `OrderPaymentEvent` (with status `SUCCESSFUL` or `FAILED`) to another Kafka topic.
-- The `order-microservice` consumes this `OrderPaymentEvent` to update the order's status to `PAID` or `PAYMENT_FAILED`.
-- This service is designed to be replaced with a real payment gateway integration in the future.
+- **Java 17+**
+- **Docker & Docker Compose**
+- **Node.js 14+** (for frontend)
+- **Gradle** (wrapper included)
 
-#### 4. User Microservice: [work in progress]
+### Quick Start with Docker Compose
 
-Manages customer space, such as customer's info credits and addresses.
+Start all services (infrastructure + microservices):
 
-#### 5. Shared-kernel:
+```bash
+# Start all services
+docker-compose up -d
 
-A library that contains shared code for all microservices.
+# View logs
+docker-compose logs -f
 
-### Building and running backends
-
-Backend applications contains kafka, postgres, and all other applications running on different containers(microservices)
-
-```shell
-docker compose up --build order-microservice inventory-microservice
+# Check service health
+docker-compose ps
 ```
 
-### Building and running frontend
+This will start:
+- Zookeeper (port 2181)
+- Kafka (ports 9092, 9094)
+- Schema Registry (port 8081)
+- PostgreSQL instances (ports 5432, 5433)
+- Product Microservice (port 8083)
+- Order Microservice (port 8080)
+- Payment Microservice (port 8084)
+- React Frontend (port 3000)
 
-Get into frontend directory and run the below command:
+**Access the application**: http://localhost:3000
 
-```shell
-cd frontend && npm install
+### Local Development Setup
+
+#### Start Microservices and Infrastructure
+
+```bash
+# Start only Kafka, Zookeeper, PostgreSQL, Schema Registry
+docker-compose up -d zookeeper kafka schema-registry postgres postgres-order
 ```
 
-Wait a little bit when finished run the below command. This will open a new browser window for you:
+#### 2. Run Microservices Locally
 
-```shell
+```bash
+# Terminal 1 - Product Microservice
+./gradlew :inventory-microservice:bootRun
+
+# Terminal 2 - Order Microservice
+./gradlew :order-microservice:bootRun
+
+# Terminal 3 - Payment Microservice
+./gradlew :payment-microservice:bootRun
+```
+
+#### 3. Run Frontend
+
+```bash
+cd frontend
+npm install
 npm start
 ```
 
-The application is open in browser on http://localhost:3000
+### Verify Setup
 
-You can now start browsing products and purchskug some of them. If you like you can add new product as
-from 1500 categories. Then in checkout you can finish your orders and get a confirmation number to track your purchases.
+Check service health:
 
-### Online Store after frontend runs, screenshot
+```bash
+# Product service
+curl http://localhost:8083/actuator/health
 
-![product](img/Screenshot-2020-03-31.png)
+# Order service
+curl http://localhost:8080/actuator/health
 
+# Payment service
+curl http://localhost:8084/actuator/health
+
+# Kafka topics
+docker exec -it kafka kafka-topics --list --bootstrap-server localhost:9092
+```
+
+## Testing
+
+### Run All Tests
+
+```bash
+# Run all tests
+./gradlew test
+
+# Run tests for specific microservice
+./gradlew :inventory-microservice:test
+./gradlew :order-microservice:test
+./gradlew :payment-microservice:test
+```
+
+### Integration Tests
+
+```bash
+# Run integration tests (uses TestContainers)
+./gradlew integrationTest
+
+# Run specific integration test
+./gradlew :order-microservice:test --tests "*OrderManagementControllerIT"
+```
+
+### Test Coverage
+
+```bash
+# Generate test coverage report
+./gradlew jacocoTestReport
+
+# View report at: build/reports/jacoco/test/html/index.html
+```
+
+## Event-Driven Flow
+
+### Order Processing Saga (Choreography Pattern)
+
+**Happy Path**:
+1. User adds items to cart → Shopping cart updated
+2. User creates order → Order status: `CREATED`
+3. `OrderCreatedEvent` published to Kafka
+4. Payment service processes payment (80% success)
+5. `OrderPaymentEvent` published with status `SUCCESSFUL`
+6. Order service updates order → Order status: `PAID`
+7. Order proceeds to `SHIPPED` → `DELIVERED`
+
+**Compensation Path**:
+1. Payment fails (20% chance)
+2. `OrderPaymentEvent` published with status `FAILED`
+3. Order service updates order → Order status: `PAYMENT_FAILED`
+4. User notified to retry payment
+
+## Monitoring and Operations
+
+### Health Checks
+
+```bash
+# Service health
+GET /actuator/health
+
+# Application info
+GET /actuator/info
+
+# Metrics
+GET /actuator/metrics
+```
+
+### Kafka Monitoring
+
+- **Kafka Topics UI**: http://localhost:8000
+- **Schema Registry UI**: http://localhost:8001
+
+### Database Access
+
+```bash
+# Product database
+psql -h localhost -p 5432 -U admin -d bookstore
+
+# Order database
+psql -h localhost -p 5433 -U admin -d bookstore-order
+```
+
+## Troubleshooting
+
+### Kafka Connection Issues
+
+```bash
+# Check Kafka is running
+docker ps | grep kafka
+
+# View Kafka logs
+docker logs kafka
+
+# Verify topics exist
+docker exec -it kafka kafka-topics --list --bootstrap-server localhost:9092
+```
+
+### Database Migration Issues
+
+```bash
+# Check Flyway migrations
+./gradlew :inventory-microservice:flywayInfo
+
+# Repair failed migrations
+./gradlew :inventory-microservice:flywayRepair
+```
+
+### Service Won't Start
+
+```bash
+# Check port conflicts
+lsof -i :8080
+lsof -i :8083
+lsof -i :8084
+
+# View service logs
+./gradlew :order-microservice:bootRun --debug
+```
+
+## Documentation
+
+- **[Architecture](docs/ARCHITECTURE.md)** - Detailed architecture documentation with:
+  - Complete sequence diagrams for all flows
+  - Event catalog and Kafka topics
+  - REST API endpoints for all services
+  - Domain-Driven Design patterns
+  - Project structure and modules
+  - Deployment and scaling strategies
+
+## Development Best Practices
+
+- **Keep Aggregates Small**: Single responsibility, clear boundaries
+- **Validate in Value Objects**: Fail fast on construction
+- **Publish Events in Transactions**: Ensure consistency
+- **Make Event Handlers Idempotent**: Handle duplicate events gracefully
+- **Test Domain Logic Thoroughly**: High coverage for business rules
+
+## Future Enhancements
+- [ ] Distributed Caching (Redis)
+- [ ] User/Authentication Service (OAuth2/JWT)
+- [ ] Notification Service (Email, SMS)
+- [ ] Monitoring Stack (Prometheus, Grafana, ELK, Jaeger)
+- [ ] Real Payment Gateway Integration (Stripe/PayPal)
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- Domain-Driven Design by Eric Evans
+- Implementing Domain-Driven Design by Vaughn Vernon
+- Building Microservices by Sam Newman
+- Enterprise Integration Patterns by Gregor Hohpe
+
+---
+
+**Built with a passion for clean architecture and domain-driven design**

@@ -1,19 +1,48 @@
-FROM eclipse-temurin:21 AS jdk
+## Build stage
+FROM gradle:8.5-jdk21 AS build
 
-# Assuming the JAR file will be named payment-microservice.jar
-# Spring Boot Gradle plugin usually names it after the project/module name.
-COPY --chown=user:user build/libs/payment-microservice.jar app.jar
+# Set working directory
+WORKDIR /workspace
 
-FROM jdk AS payment-microservice
+# Copy gradle wrapper and root project files
+COPY gradlew gradlew.bat ./
+COPY gradle gradle
+COPY settings.gradle build.gradle ./
+
+# Copy shared modules (dependencies)
+COPY shared-kernel shared-kernel
+COPY shared-test shared-test
+COPY kafka-lib kafka-lib
+
+# Copy inventory-microservice
+COPY payment-microservice payment-microservice
+
+# Build shared modules first and publish to local Maven repository
+RUN ./gradlew :shared-kernel:build :shared-kernel:publishToMavenLocal \
+    :kafka-lib:build :kafka-lib:publishToMavenLocal \
+    :shared-test:build :shared-test:publishToMavenLocal \
+    -x test --no-daemon
+
+# Build the inventory-microservice
+RUN ./gradlew :payment-microservice:clean :payment-microservice:build -x test --no-daemon
+
+## Runtime stage
+FROM eclipse-temurin:21-jre AS payment-microservice
+
+# Set working directory
+WORKDIR /app
+
+# Copy the built JAR from build stage
+COPY --from=build /workspace/payment-microservice/build/libs/payment-microservice.jar app.jar
 
 # Set environment variables
-ENV JAVA_OPTS="-Xms256m -Xmx1024m"
+ENV JAVA_OPTS="-Xms256m -Xmx2048m"
+
+# Create non-root user
+RUN groupadd -r appuser && useradd -r -g appuser appuser && \
+    chown -R appuser:appuser /app
 
 # Run as non-root user
-USER 1001
+USER appuser
 
-# Expose the port the application will run on
-EXPOSE 8084
-
-# Start the application
 ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar app.jar" ]
