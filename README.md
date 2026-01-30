@@ -26,7 +26,7 @@ The system consists of three core microservices that communicate through Kafka e
 
 ![Component and Sequence Diagrams](img/order-payment-inventory-user-diagrams.png)
 
-For detailed architecture documentation, including sequence diagrams, event flows, API endpoints, and DDD patterns, see [ARCHITECTURE.md](docs/ARCHITECTURE.md).**
+For detailed architecture documentation, including sequence diagrams, event flows, API endpoints, and DDD patterns, see [architecture](docs/ARCHITECTURE.md).
 
 ## Technology Stack
 
