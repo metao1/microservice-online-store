@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 import { useCartContext } from '../context/CartContext';
-import { Container, Row, Col, Table, Button, Alert } from 'react-bootstrap';
+import { Container, Button, Alert } from 'react-bootstrap';
 import './CartPage.css';
 
 const CartPage: FC = () => {
@@ -18,70 +18,83 @@ const CartPage: FC = () => {
 
   if (cart.items.length === 0) {
     return (
-      <Container className="cart-page py-5">
-        <Alert variant="info">Your cart is empty</Alert>
-      </Container>
+      <div className="cart-container">
+        <Container>
+          <Alert variant="info">Your cart is empty</Alert>
+        </Container>
+      </div>
     );
   }
 
   return (
-    <Container className="cart-page py-5">
-      <h1>Shopping Cart</h1>
-      
-      <Table striped bordered hover responsive>
-        <thead>
-          <tr>
-            <th>Product</th>
-            <th>Price</th>
-            <th>Quantity</th>
-            <th>Total</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody data-testid="cart-items">
-          {cart.items.map((item) => (
-            <tr key={item.id}>
-              <td>{item.title}</td>
-              <td>{item.currency} {item.price.toFixed(2)}</td>
-              <td>
-                <input
-                  type="number"
-                  min="1"
-                  max="99"
-                  value={item.cartQuantity}
-                  onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value))}
-                  data-testid={`quantity-input-${item.id}`}
-                />
-              </td>
-              <td>{item.currency} {(item.price * item.cartQuantity).toFixed(2)}</td>
-              <td>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => handleRemoveItem(item.id)}
-                  data-testid={`remove-button-${item.id}`}
-                >
-                  Remove
-                </Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
-
-      <Row className="mt-4">
-        <Col md={6} className="ms-auto">
-          <div className="cart-summary">
-            <h3>Order Summary</h3>
-            <p>Total Items: {cart.items.reduce((acc, item) => acc + item.cartQuantity, 0)}</p>
-            <h4>Total: {cart.items[0]?.currency} {getCartTotal().toFixed(2)}</h4>
-            <Button variant="success" size="lg" className="w-100" data-testid="checkout-button">
-              Proceed to Checkout
-            </Button>
+    <div className="cart-container">
+      <Container>
+        <h1 id="cart-title">Shopping Cart</h1>
+        
+        <div className="cart">
+          <div className="cart-items">
+            <h3 className="items-title">Items in Cart</h3>
+            {cart.items.map((item) => (
+              <div key={item.sku} className="cart-item">
+                <div className="product-image">
+                  <img src={item.imageUrl} alt={item.title} />
+                </div>
+                <div className="details">
+                  <a href={`/products/${item.sku}`}>{item.title}</a>
+                  <p className="order-details">{item.description}</p>
+                </div>
+                <div className="pricing">
+                  <h6>Price: {item.currency} {item.price.toFixed(2)}</h6>
+                  <h6>Qty: 
+                    <input
+                      type="number"
+                      min="1"
+                      max="99"
+                      value={item.cartQuantity}
+                      onChange={(e) => handleQuantityChange(item.sku, parseInt(e.target.value))}
+                      data-testid={`quantity-input-${item.sku}`}
+                      style={{ width: '60px', marginLeft: '10px' }}
+                    />
+                  </h6>
+                  <h6>Total: {item.currency} {(item.price * item.cartQuantity).toFixed(2)}</h6>
+                </div>
+                <div className="actions">
+                  <Button
+                    className="btn-cart-remove"
+                    size="sm"
+                    onClick={() => handleRemoveItem(item.sku)}
+                    data-testid={`remove-button-${item.sku}`}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              </div>
+            ))}
           </div>
-        </Col>
-      </Row>
-    </Container>
+
+          <div className="total-price">
+            <div className="total">
+              <div className="details">
+                <h3>Order Summary</h3>
+                <p className="order-details">
+                  Total Items: {cart.items.reduce((acc, item) => acc + item.cartQuantity, 0)}
+                </p>
+              </div>
+              <div className="pricing">
+                <h6 id="total-price">
+                  Total: {cart.items[0]?.currency} {getCartTotal().toFixed(2)}
+                </h6>
+              </div>
+              <div className="actions">
+                <Button variant="success" size="lg" data-testid="checkout-button">
+                  Checkout
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Container>
+    </div>
   );
 };
 

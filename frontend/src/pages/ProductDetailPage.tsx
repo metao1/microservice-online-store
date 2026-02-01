@@ -51,8 +51,8 @@ const ProductDetailPage: FC = () => {
       <Row>
         <Col md={6}>
           <img
-            src={product.image}
-            alt={product.title}
+            src={product.imageUrl}
+            alt={product.title}            
             className="img-fluid"
             data-testid="product-image"
           />

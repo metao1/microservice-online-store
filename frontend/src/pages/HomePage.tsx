@@ -24,11 +24,12 @@ const HomePage: FC = () => {
               </div>
             </Col>
             <Col md={6}>
-              <img
-                src="https://via.placeholder.com/500x400?text=Hero+Image"
-                alt="Hero"
-                className="img-fluid"
-              />
+              <div 
+                className="hero-image-placeholder d-flex align-items-center justify-content-center bg-secondary text-white"
+                style={{ height: '400px', borderRadius: '8px' }}
+              >
+                <h3>Hero Image</h3>
+              </div>
             </Col>
           </Row>
         </Container>

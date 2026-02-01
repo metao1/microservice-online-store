@@ -2,11 +2,11 @@
  * Product Types
  */
 export interface Product {
-  id: string;
+  sku: string;
   title: string;
   price: number;
   currency: string;
-  image: string;
+  imageUrl: string;
   description: string;
   rating?: number;
   reviews?: number;

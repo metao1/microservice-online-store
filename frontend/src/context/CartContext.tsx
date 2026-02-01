@@ -26,7 +26,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children, userId }) 
 
   const addToCart = useCallback(
     async (product: Product, quantity: number) => {
-      await hookAddToCart(product.id, quantity);
+      await hookAddToCart(product.sku, quantity);
     },
     [hookAddToCart]
   );
@@ -48,7 +48,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children, userId }) 
   const clearCart = useCallback(() => {
     if (cart.items && Array.isArray(cart.items)) {
       cart.items.forEach((item) => {
-        hookRemoveFromCart(item.id).catch(err => console.error('Error removing item:', err));
+        hookRemoveFromCart(item.sku).catch(err => console.error('Error removing item:', err));
       });
     }
   }, [cart.items, hookRemoveFromCart]);

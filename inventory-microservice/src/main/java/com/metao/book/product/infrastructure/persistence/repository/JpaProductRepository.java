@@ -22,10 +22,10 @@ public interface JpaProductRepository extends JpaRepository<ProductEntity, Produ
     @Query("SELECT p FROM product p WHERE p.sku = :sku")
     Optional<ProductEntity> findBySkuForUpdate(ProductSku sku);
 
-    @Query("SELECT p FROM product p JOIN p.categories c WHERE c.category = :categoryName")
+    @Query("SELECT p FROM product p JOIN p.categories c WHERE LOWER(c.category) = LOWER(:categoryName)")
     List<ProductEntity> findByCategory(@Param("categoryName") String categoryName, Pageable pageable);
 
-    @Query("SELECT p FROM product p JOIN p.categories c WHERE c.category IN :categoryNames")
+    @Query("SELECT p FROM product p JOIN p.categories c WHERE LOWER(c.category) IN :categoryNames")
     List<ProductEntity> findByCategories(@Param("categoryNames") List<String> categoryNames, Pageable pageable);
 
     @Query("SELECT p FROM product p WHERE " +
