@@ -62,7 +62,7 @@ export default class App extends Component {
 
     fetchCart = () => {
         const self = this;
-        const url = '/api/cart/productsInCart?' + 'userid=' + this.userId;
+        const url = 'http://localhost:8086/cart/' + this.userId;
         fetch(url, {
             method: "GET",
             headers: {
@@ -94,11 +94,12 @@ export default class App extends Component {
         if (product) {
             console.log("Added to Cart " + product.sku);
             const self = this;
-            const url = '/api/cart/addProduct?sku=' + (product.sku.sku
-                    || product.sku) +
-                "&userid=" + this.userId;
-            let requestData = new FormData();
-            requestData.append("json", JSON.stringify({sku: product.sku}));
+            const url = 'http://localhost:8086/cart'
+            var requestData = JSON.stringify(
+                                          {user_id: this.userId,
+                                           items:[{sku: product.sku, quantity: 1, price: product.price, currency: product.currency}]
+                                           }
+                                          )
 
             fetch(url, {
                 method: 'POST',
@@ -135,8 +136,7 @@ export default class App extends Component {
         if (product) {
             console.log("Removed from Cart " + product.sku);
             const self = this;
-            const url = '/api/cart/removeProduct/?sku=' + product.sku
-                + '&userid=' + this.userId;
+            const url = 'http://localhost:8086/cart/' + this.userId + "/" + product.sku
             let requestData = new FormData();
             requestData.append("json", JSON.stringify({sku: product.sku}));
 
@@ -199,28 +199,28 @@ export default class App extends Component {
                            render={(props) => (
                                <AdminPanel currency={this.state.currency}/>
                            )}/>
-                    <Route path="/Music"
+                    <Route path="/music"
                            render={(props) => (
                                <Products
                                    currency={this.state.currency}
                                    category={"Music"}
                                    addItemToCart={this.addItemToCart}/>
                            )}/>
-                    <Route path="/Books"
+                    <Route path="/books"
                            render={(props) => (
                                <Products
                                    currency={this.state.currency}
                                    category={"Books"}
                                    addItemToCart={this.addItemToCart}/>
                            )}/>
-                    <Route path="/Beauty"
+                    <Route path="/beauty"
                            render={(props) => (
                                <Products
                                    currency={this.state.currency}
                                    category={"Beauty"}
                                    addItemToCart={this.addItemToCart}/>
                            )}/>
-                    <Route path="/Electronics"
+                    <Route path="/electronics"
                            render={(props) => (
                                <Products
                                    currency={this.state.currency}

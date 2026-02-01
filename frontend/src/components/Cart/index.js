@@ -48,7 +48,7 @@ class CartProducts extends Component {
     fetchProductDetails(product_id) {
         if (!this.state.products.product_id) {
             this.state.product_id = "" + product_id;
-            const url = '/api/products/details/' + product_id;
+            const url = 'http://localhost:8086/products/' + product_id;
             console.log("Fetching url: " + url);
             this._asyncRequest = fetch(url)
             .then(res => res.json())

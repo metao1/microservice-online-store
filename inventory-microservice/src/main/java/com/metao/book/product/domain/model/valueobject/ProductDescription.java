@@ -6,7 +6,6 @@ import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -18,9 +17,13 @@ import org.jetbrains.annotations.NotNull;
 @NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
 public class ProductDescription implements ValueObject {
 
-    private final String value;
+    private String value;
 
-    public ProductDescription(@NonNull String value) {
+    public ProductDescription(String value) {
+        if (value == null || value.isBlank()) {
+            this.value = "";
+            return;
+        }
         if (value.length() > 10_485_760) { // 10MB limit
             throw new IllegalArgumentException("Product description exceeds 10MB limit");
         }

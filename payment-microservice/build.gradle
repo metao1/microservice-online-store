@@ -1,12 +1,26 @@
 dependencies {
-  implementation "com.metao.book.shared:shared-kernel:1.0"
-  implementation "com.metao.kafka:kafka-lib:1.0"
+  implementation project(':shared-kernel')
+  implementation project(':kafka-lib')
 
   implementation "org.springframework.boot:spring-boot-starter-validation"
   implementation "org.springframework.boot:spring-boot-starter-data-jpa"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "org.springframework.kafka:spring-kafka"
 
+  implementation "org.apache.kafka:kafka-clients:4.0.0"
+  implementation "org.postgresql:postgresql:42.7.3"
+  runtimeOnly "org.postgresql:postgresql:42.7.3"
+
+  implementation "io.confluent:kafka-protobuf-serializer:7.8.0"
+  implementation "io.confluent:kafka-streams-protobuf-serde:7.8.0"
+
+  implementation "org.flywaydb:flyway-database-postgresql:10.11.0"
+  implementation "org.springframework.boot:spring-boot-starter-actuator"
+
+  implementation "org.flywaydb:flyway-core"
+
+  // cache - Modern JCache with Caffeine
+  implementation "org.hibernate:hibernate-core-jakarta:5.6.12.Final"
   implementation "org.hibernate:hibernate-jcache:5.6.15.Final"
   implementation "com.github.ben-manes.caffeine:caffeine:3.1.8"
   implementation "com.github.ben-manes.caffeine:jcache:3.1.8"
@@ -17,7 +31,7 @@ dependencies {
 
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.springframework.kafka:spring-kafka-test"
-  testImplementation "com.metao.book.shared:shared-test:1.0"
+  testImplementation project(':shared-test')
   testImplementation 'org.testcontainers:postgresql:1.19.3'
   testImplementation "io.rest-assured:rest-assured:5.4.0"
   testImplementation "org.mockito:mockito-core:4.8.0"
@@ -56,7 +70,5 @@ protobuf {
 }
 
 tasks.named('build') {
-  dependsOn ':shared-kernel:publishAllPublicationsToLocalRepository'
-  dependsOn ':shared-test:publishAllPublicationsToLocalRepository'
   dependsOn 'generateProto'
 }

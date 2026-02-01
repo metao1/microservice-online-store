@@ -24,7 +24,7 @@ dependencies {
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.springframework.boot:spring-boot-test"
 
-  testImplementation "com.metao.book.shared:shared-test:1.0"
+  testImplementation project(':shared-test')
 }
 
 publishing {

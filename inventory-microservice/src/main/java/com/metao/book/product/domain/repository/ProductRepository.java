@@ -50,4 +50,6 @@ public interface ProductRepository {
      * Find all products with pagination
      */
     List<Product> findAll(int offset, int limit);
+
+    void flush();
 }
