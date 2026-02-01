@@ -143,7 +143,7 @@ public class ProductApplicationService {
         }
         log.debug("Getting products by category: {}", categoryName);
 
-        CategoryName catName = CategoryName.of(categoryName);
+        CategoryName catName = CategoryName.of(categoryName.toLowerCase());
         List<Product> products = productRepository.findByCategory(catName, offset, limit);
         return products.stream()
             .toList();

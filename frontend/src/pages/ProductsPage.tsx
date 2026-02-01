@@ -15,7 +15,9 @@ const ProductsPage: FC<ProductsPageProps> = ({ category }) => {
   const [offset, setOffset] = useState(0);
 
   React.useEffect(() => {
-    fetchProducts(category, limit, offset);
+    // Default to 'books' category if no category is specified
+    const defaultCategory = category || 'books';
+    fetchProducts(defaultCategory, limit, offset);
   }, [category, fetchProducts, limit, offset]);
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -23,7 +25,9 @@ const ProductsPage: FC<ProductsPageProps> = ({ category }) => {
     if (searchQuery.trim()) {
       await searchProducts(searchQuery);
     } else {
-      await fetchProducts(category, limit, 0);
+      // Default to 'books' category if no category is specified
+      const defaultCategory = category || 'books';
+      await fetchProducts(defaultCategory, limit, 0);
     }
   };
 
@@ -58,7 +62,7 @@ const ProductsPage: FC<ProductsPageProps> = ({ category }) => {
       ) : (
         <Row className="g-4">
           {products.map((product) => (
-            <Col key={product.id} xs={12} sm={6} md={4} lg={3}>
+            <Col key={product.sku} xs={12} sm={6} md={4} lg={3}>
               <ProductCard product={product} />
             </Col>
           ))}

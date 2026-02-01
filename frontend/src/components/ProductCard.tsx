@@ -10,10 +10,10 @@ interface ProductCardProps {
 
 const ProductCard: FC<ProductCardProps> = ({ product }) => {
   return (
-    <Card className="product-card h-100" data-testid={`product-card-${product.id}`}>
+    <Card className="product-card h-100" data-testid={`product-card-${product.sku}`}>
       <Card.Img
         variant="top"
-        src={product.image}
+        src={product.imageUrl}
         alt={product.title}
         className="product-image"
       />
@@ -31,8 +31,8 @@ const ProductCard: FC<ProductCardProps> = ({ product }) => {
         </Card.Text>
 
         <div className="mt-auto">
-          <Link to={`/products/${product.id}`} className="w-100">
-            <Button variant="primary" className="w-100 mb-2" data-testid={`view-button-${product.id}`}>
+          <Link to={`/products/${product.sku}`} className="w-100">
+            <Button variant="primary" className="w-100 mb-2" data-testid={`view-button-${product.sku}`}>
               View Details
             </Button>
           </Link>
@@ -40,7 +40,7 @@ const ProductCard: FC<ProductCardProps> = ({ product }) => {
             variant="success"
             className="w-100"
             disabled={!product.inStock}
-            data-testid={`add-button-${product.id}`}
+            data-testid={`add-button-${product.sku}`}
           >
             {product.inStock ? 'Add to Cart' : 'Out of Stock'}
           </Button>
