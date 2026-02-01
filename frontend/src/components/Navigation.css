@@ -1,0 +1,34 @@
+/* Navigation Bar */
+.navbar {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white !important;
+}
+
+.navbar-brand:hover {
+  color: #e9ecef !important;
+}
+
+.navbar-nav .nav-link {
+  color: #adb5bd !important;
+  font-weight: 500;
+  margin-left: 1.5rem;
+  transition: color 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover {
+  color: white !important;
+}
+
+.navbar-nav .nav-link.active {
+  color: white !important;
+}
+
+.badge {
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+}

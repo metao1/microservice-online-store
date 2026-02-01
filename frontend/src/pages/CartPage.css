@@ -1,0 +1,36 @@
+.cart-page {
+  min-height: calc(100vh - 56px - 300px);
+}
+
+.cart-page table {
+  margin-top: 2rem;
+}
+
+.cart-page input[type="number"] {
+  width: 80px;
+  padding: 0.5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 0.25rem;
+}
+
+.cart-summary {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #dee2e6;
+}
+
+.cart-summary h3 {
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.cart-summary h4 {
+  color: #28a745;
+  font-weight: 700;
+  margin: 1rem 0;
+}
+
+.cart-summary button {
+  margin-top: 1rem;
+}

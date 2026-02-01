@@ -1,0 +1,52 @@
+.product-detail-page {
+  min-height: calc(100vh - 56px - 300px);
+}
+
+.product-detail-page img {
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.product-detail-page h1 {
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+}
+
+.price {
+  font-size: 1.75rem;
+  color: #28a745;
+  font-weight: 700;
+}
+
+.rating {
+  font-size: 1.1rem;
+  color: #ffc107;
+}
+
+.description {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #666;
+}
+
+.quantity-selector {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.quantity-selector label {
+  font-weight: 500;
+  margin-bottom: 0;
+}
+
+.quantity-selector input {
+  width: 100px;
+  padding: 0.5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 0.25rem;
+}
+
+.add-to-cart-section {
+  margin-top: 2rem;
+}
