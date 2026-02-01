@@ -1,0 +1,24 @@
+.products-page {
+  min-height: calc(100vh - 56px - 300px);
+}
+
+.search-bar {
+  margin-bottom: 2rem;
+}
+
+.search-bar form {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.search-bar .input-group {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.search-bar input {
+  border-radius: 0.25rem 0 0 0.25rem;
+}
+
+.search-bar button {
+  border-radius: 0 0.25rem 0.25rem 0;
+}

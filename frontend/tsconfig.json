@@ -2,16 +2,18 @@
     "compilerOptions": {
         "outDir": "build",
         "module": "esnext",
-        "target": "es5",
+        "target": "es2020",
         "lib": [
-            "es6",
-            "dom"
+            "es2020",
+            "dom",
+            "dom.iterable"
         ],
         "sourceMap": true,
         "allowJs": true,
-        "jsx": "react",
-        "moduleResolution": "node",
+        "jsx": "react-jsx",
+        "moduleResolution": "bundler",
         "rootDir": "src",
+        "baseUrl": "src",
         "noImplicitReturns": true,
         "noImplicitThis": true,
         "noImplicitAny": true,
@@ -20,10 +22,21 @@
         "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
         "strict": true,
-        "forceConsistentCskugInFileNames": true,
+        "forceConsistentCasingInFileNames": true,
         "resolveJsonModule": true,
         "isolatedModules": true,
-        "noEmit": true
+        "noEmit": true,
+        "paths": {
+            "@components/*": ["components/*"],
+            "@pages/*": ["pages/*"],
+            "@hooks/*": ["hooks/*"],
+            "@services/*": ["services/*"],
+            "@types": ["types/index"],
+            "@types/*": ["types/*"],
+            "@utils/*": ["utils/*"],
+            "@context/*": ["context/*"],
+            "@styles/*": ["styles/*"]
+        }
     },
     "exclude": [
         "node_modules",

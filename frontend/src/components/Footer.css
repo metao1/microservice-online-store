@@ -1,0 +1,30 @@
+/* Footer */
+footer {
+  border-top: 1px solid #dee2e6;
+  font-size: 0.95rem;
+}
+
+footer h5 {
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: #e9ecef;
+}
+
+footer p {
+  color: #adb5bd;
+  margin-bottom: 0.5rem;
+}
+
+footer a {
+  color: #adb5bd;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+footer a:hover {
+  color: white;
+}
+
+footer ul li {
+  margin-bottom: 0.5rem;
+}
