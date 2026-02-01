@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/bookstore
+    url: jdbc:postgresql://localhost:5435/bookstore-inventory
     username: bookstore
     password: bookstore
   jpa:

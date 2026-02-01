@@ -13,14 +13,20 @@ import org.springframework.kafka.config.TopicBuilder;
 @Import({KafkaEventHandler.class, DelegatingDomainEventTranslator.class})
 public class KafkaPaymentConfig {
 
-    @Value("${kafka.topic.order-payment.name}")
-    private String orderPaymentTopicName;
+    @Bean
+    public NewTopic orderPaymentTopic(@Value("${kafka.topic.order-payment.name}") String topic) {
+        return createTopic(topic);
+    }
 
     @Bean
-    public NewTopic orderPaymentTopic() {
-        return TopicBuilder.name(orderPaymentTopicName)
+    public NewTopic orderCreatedTopic(@Value("${kafka.topic.order-created.name}") String topic) {
+        return createTopic(topic);
+    }
+
+    private static NewTopic createTopic(String topicName) {
+        return TopicBuilder
+            .name(topicName)
             .partitions(1)
-            .replicas(1)
             .build();
     }
 }

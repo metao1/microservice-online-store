@@ -18,6 +18,11 @@ public class KafkaConfig {
         return createTopic(kafkaTopic);
     }
 
+    @Bean
+    public NewTopic orderPaymentTopic(@Value("${kafka.topic.order-payment.name}") String kafkaTopic) {
+        return createTopic(kafkaTopic);
+    }
+
     private static NewTopic createTopic(String topic) {
         return TopicBuilder
             .name(topic)

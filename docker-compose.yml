@@ -104,11 +104,11 @@ services:
 
   postgres-payment:
     image: postgres
-    hostname: postgres-order
+    hostname: postgres-payment
     ports:
       - "5434:5432"
     volumes:
-      - postgres-order:/var/lib/postgresql
+      - postgres-payment:/var/lib/postgresql
     environment:
       POSTGRES_DB: bookstore-payment
       POSTGRES_USER: bookstore
@@ -116,11 +116,11 @@ services:
 
   postgres-inventory:
     image: postgres
-    hostname: postgres-order
+    hostname: postgres-inventory
     ports:
       - "5435:5432"
     volumes:
-      - postgres-order:/var/lib/postgresql
+      - postgres-inventory:/var/lib/postgresql
     environment:
       POSTGRES_DB: bookstore-inventory
       POSTGRES_USER: bookstore
@@ -131,16 +131,16 @@ services:
     hostname: order-microservice
     #restart: on-failure
     environment:
-      DATABASE_URL: "jdbc:postgresql://postgres-order:5432/bookstore"
+      DATABASE_URL: "jdbc:postgresql://postgres-order:5432/bookstore-order"
       SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
       BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:9092
-      DATABASE_USER: bookstore-order
+      DATABASE_USER: bookstore
       DATABASE_PASSWORD: bookstore
       SECURITY_PROTOCOL: PLAINTEXT
       SASL_MECHANISM: PLAIN
     build:
-      context: order-microservice
-      dockerfile: src/main/docker/Dockerfile
+      context: .
+      dockerfile: order-microservice/src/main/docker/Dockerfile
     ports:
       - "8086:8080"
     depends_on:
@@ -153,17 +153,17 @@ services:
     hostname: inventory-microservice
     #restart: on-failure
     environment:
-      DATABASE_URL: "jdbc:postgresql://postgres:5432/bookstore-inventory"
+      DATABASE_URL: "jdbc:postgresql://postgres-inventory:5432/bookstore-inventory"
       SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
       BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:9092
       SPRING_PROFILES_ACTIVE: "container"
-      DATABASE_USER: bookstore-inventory
+      DATABASE_USER: bookstore
       DATABASE_PASSWORD: bookstore
       SECURITY_PROTOCOL: PLAINTEXT
       SASL_MECHANISM: PLAIN
     build:
-      context: inventory-microservice
-      dockerfile: src/main/docker/Dockerfile
+      context: .
+      dockerfile: inventory-microservice/src/main/docker/Dockerfile
     ports:
       - "8083:8083"
     depends_on:
@@ -175,17 +175,17 @@ services:
     container_name: payment-microservice
     hostname: payment-microservice
     environment:
-      DATABASE_URL: "jdbc:postgresql://postgres:5432/bookstore-payment"
+      DATABASE_URL: "jdbc:postgresql://postgres-payment:5432/bookstore-payment"
       SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
       BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:9092
       SPRING_PROFILES_ACTIVE: "container"
-      DATABASE_USER: bookstore-payment
+      DATABASE_USER: bookstore
       DATABASE_PASSWORD: bookstore
       SECURITY_PROTOCOL: PLAINTEXT
       SASL_MECHANISM: PLAIN
     build:
-      context: payment-microservice
-      dockerfile: src/main/docker/Dockerfile
+      context: .
+      dockerfile: payment-microservice/src/main/docker/Dockerfile
     ports:
       - "8084:8084"
     depends_on:
@@ -212,6 +212,12 @@ volumes:
     driver:
       local
   postgres-order:
+    driver:
+      local
+  postgres-payment:
+    driver:
+      local
+  postgres-inventory:
     driver:
       local
 

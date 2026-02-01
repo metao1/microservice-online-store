@@ -36,6 +36,24 @@ public class ProductApplicationMapper {
             .build();
     }
 
+    public static Product toDomain(ProductDTO productDTO) {
+        var createdTime = Instant.now();
+        return new Product(
+            ProductSku.of(productDTO.sku()),
+            ProductTitle.of(productDTO.title()),
+            ProductDescription.of(productDTO.description()),
+            ProductVolume.of(productDTO.volume()),
+            new Money(productDTO.currency(), productDTO.price()),
+            createdTime,
+            createdTime,
+            ImageUrl.of(productDTO.imageUrl()),
+            productDTO.categories().stream()
+                .map(CategoryName::of)
+                .map(ProductCategory::of)
+                .collect(Collectors.toSet())
+        );
+    }
+
     public static Product toDomain(CreateProductDto createProductDto) {
         var createdTime = Instant.now();
         return new Product(

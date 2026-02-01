@@ -6,6 +6,7 @@ import com.metao.book.product.domain.model.valueobject.ProductSku;
 import com.metao.book.product.domain.repository.ProductRepository;
 import com.metao.book.product.infrastructure.persistence.entity.ProductEntity;
 import com.metao.book.product.infrastructure.persistence.mapper.ProductEntityMapper;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +18,7 @@ import java.util.Optional;
  * Infrastructure implementation of ProductRepository
  */
 @Repository
+@Transactional
 @RequiredArgsConstructor
 public class ProductRepositoryImpl implements ProductRepository {
 
@@ -82,6 +84,11 @@ public class ProductRepositoryImpl implements ProductRepository {
             .stream()
             .map(productEntityMapper::toDomain)
             .toList();
+    }
+
+    @Override
+    public void flush() {
+        jpaProductRepository.flush();
     }
 
 }

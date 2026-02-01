@@ -4,27 +4,10 @@ FROM gradle:8.5-jdk21 AS build
 # Set working directory
 WORKDIR /workspace
 
-# Copy gradle wrapper and root project files
-COPY gradlew gradlew.bat ./
-COPY gradle gradle
-COPY settings.gradle build.gradle ./
+COPY . /workspace/
 
-# Copy shared modules (dependencies)
-COPY shared-kernel shared-kernel
-COPY shared-test shared-test
-COPY kafka-lib kafka-lib
-
-# Copy inventory-microservice
-COPY payment-microservice payment-microservice
-
-# Build shared modules first and publish to local Maven repository
-RUN ./gradlew :shared-kernel:build :shared-kernel:publishToMavenLocal \
-    :kafka-lib:build :kafka-lib:publishToMavenLocal \
-    :shared-test:build :shared-test:publishToMavenLocal \
-    -x test --no-daemon
-
-# Build the inventory-microservice
-RUN ./gradlew :payment-microservice:clean :payment-microservice:build -x test --no-daemon
+# Build the payment-microservice
+RUN gradle :payment-microservice:clean :payment-microservice:build -x test --no-daemon
 
 ## Runtime stage
 FROM eclipse-temurin:21-jre AS payment-microservice
