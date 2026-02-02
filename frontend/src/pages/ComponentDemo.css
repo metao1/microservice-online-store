@@ -1,0 +1,276 @@
+/**
+ * Component Demo Page Styles
+ * Styling for the UI components demonstration
+ */
+
+.component-demo {
+  min-height: 100vh;
+  background-color: var(--color-background-alt);
+  padding: var(--spacing-8) var(--spacing-4);
+}
+
+.demo-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.demo-header {
+  text-align: center;
+  margin-bottom: var(--spacing-12);
+}
+
+.demo-header h1 {
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-4);
+}
+
+.demo-header p {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+  margin-bottom: 0;
+}
+
+.demo-section {
+  background-color: var(--color-background);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-8);
+  margin-bottom: var(--spacing-8);
+  box-shadow: var(--shadow-sm);
+}
+
+.demo-section h2 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-6);
+  border-bottom: 2px solid var(--color-border-light);
+  padding-bottom: var(--spacing-3);
+}
+
+.demo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-6);
+}
+
+.demo-item {
+  padding: var(--spacing-4);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--border-radius-base);
+  background-color: var(--color-background-alt);
+}
+
+.demo-item h3 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-4);
+}
+
+/* Button Demo Styles */
+.button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  align-items: center;
+}
+
+/* Input Demo Styles */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+/* Badge Demo Styles */
+.badge-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  align-items: center;
+}
+
+.badge-demo-item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-base);
+}
+
+/* Skeleton Demo Styles */
+.skeleton-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.skeleton-demo-toggle {
+  margin-bottom: var(--spacing-4);
+}
+
+.product-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-4);
+  margin-top: var(--spacing-4);
+}
+
+/* Integration Demo Styles */
+.integration-demo {
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-6);
+}
+
+.demo-product-card {
+  width: 280px;
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-all);
+}
+
+.demo-product-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.product-image-placeholder {
+  width: 100%;
+  aspect-ratio: 4/5;
+  background-color: var(--color-neutral-100);
+}
+
+.product-info {
+  padding: var(--spacing-4);
+}
+
+.product-badges {
+  display: flex;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-3);
+}
+
+.product-info h3 {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-2);
+}
+
+.product-price {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-4);
+}
+
+.original-price {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+}
+
+.sale-price {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-error);
+}
+
+.product-actions {
+  display: flex;
+  gap: var(--spacing-2);
+  align-items: center;
+}
+
+.product-actions .btn {
+  flex: 1;
+}
+
+.product-actions .btn:last-child {
+  flex: 0;
+  position: relative;
+}
+
+/* Product Card Demo Styles */
+.product-card-demo {
+  padding: var(--spacing-4);
+}
+
+.product-card-demo p {
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-6);
+}
+
+.product-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-6);
+}
+
+/* Responsive Design */
+@media (max-width: calc(var(--breakpoint-md) - 1px)) {
+  .component-demo {
+    padding: var(--spacing-4) var(--spacing-2);
+  }
+  
+  .demo-section {
+    padding: var(--spacing-4);
+  }
+  
+  .demo-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .button-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .button-group .btn {
+    width: 100%;
+  }
+  
+  .badge-group {
+    justify-content: center;
+  }
+  
+  .product-skeleton-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .product-card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: calc(var(--breakpoint-sm) - 1px)) {
+  .demo-header h1 {
+    font-size: var(--font-size-3xl);
+  }
+  
+  .demo-header p {
+    font-size: var(--font-size-base);
+  }
+  
+  .product-skeleton-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .product-card-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .demo-product-card {
+    width: 100%;
+    max-width: 280px;
+  }
+}

@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
+import { beforeEach, describe } from 'vitest';
 
-test.describe('Products Page', () => {
+describe('Products Page', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/products');
   });
@@ -68,7 +69,7 @@ test.describe('Products Page', () => {
   });
 });
 
-test.describe('Product Cards', () => {
+describe('Product Cards', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/products');
     // Wait for products to load

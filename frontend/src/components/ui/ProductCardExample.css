@@ -1,0 +1,321 @@
+/**
+ * Product Card Example Styles
+ * Example styling showing how to use the foundational UI components
+ */
+
+.product-card-example {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-background);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  transition: var(--transition-all);
+  position: relative;
+  height: 100%;
+}
+
+.product-card-example:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.product-card-example.loading {
+  pointer-events: none;
+}
+
+/* Product Image Container */
+.product-image-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4/5;
+  overflow: hidden;
+  background-color: var(--color-neutral-100);
+}
+
+.product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: var(--transition-all);
+  opacity: 0;
+}
+
+.product-image.loaded {
+  opacity: 1;
+}
+
+.product-image.loading {
+  opacity: 0;
+}
+
+.image-skeleton {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.product-image.loaded + .image-skeleton {
+  display: none;
+}
+
+/* Product Badges */
+.product-badges {
+  position: absolute;
+  top: var(--spacing-2);
+  left: var(--spacing-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  z-index: 2;
+}
+
+/* Wishlist Button */
+.wishlist-btn {
+  position: absolute;
+  top: var(--spacing-2);
+  right: var(--spacing-2);
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-full);
+  color: var(--color-text-muted);
+  z-index: 2;
+  transition: var(--transition-all);
+}
+
+.wishlist-btn:hover {
+  background-color: var(--color-background);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  transform: scale(1.1);
+}
+
+.wishlist-btn.wishlisted {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+.wishlist-btn.wishlisted:hover {
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+/* Quick Actions */
+.quick-actions {
+  position: absolute;
+  bottom: var(--spacing-2);
+  left: var(--spacing-2);
+  right: var(--spacing-2);
+  display: flex;
+  gap: var(--spacing-2);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: var(--transition-all);
+  z-index: 2;
+}
+
+.quick-actions.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.quick-add-btn {
+  flex: 1;
+}
+
+.quick-view-btn {
+  flex: 1;
+}
+
+/* Product Information */
+.product-info {
+  padding: var(--spacing-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  flex: 1;
+}
+
+.product-brand {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+.product-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-snug);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Product Price */
+.product-price {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-1);
+}
+
+.original-price {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+}
+
+.current-price {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.current-price.sale-price {
+  color: var(--color-error);
+}
+
+/* Product Rating */
+.product-rating {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-1);
+}
+
+.stars {
+  display: flex;
+  gap: 1px;
+}
+
+.star {
+  font-size: var(--font-size-xs);
+  color: var(--color-neutral-300);
+}
+
+.star.filled {
+  color: var(--color-warning);
+}
+
+.review-count {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* Color Options */
+.color-options {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  margin-top: var(--spacing-2);
+}
+
+.color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--border-radius-full);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: var(--transition-all);
+}
+
+.color-dot:hover {
+  transform: scale(1.2);
+  border-color: var(--color-primary);
+}
+
+.more-colors {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-left: var(--spacing-1);
+}
+
+/* Size Information */
+.size-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-1);
+}
+
+.size-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.size-range {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Responsive Design */
+@media (max-width: calc(var(--breakpoint-md) - 1px)) {
+  .product-card-example {
+    border-radius: var(--border-radius-base);
+  }
+  
+  .product-info {
+    padding: var(--spacing-3);
+  }
+  
+  .quick-actions {
+    /* Always show on mobile */
+    opacity: 1;
+    transform: translateY(0);
+    position: static;
+    margin-top: var(--spacing-3);
+  }
+  
+  .wishlist-btn {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* Accessibility Enhancements */
+@media (prefers-reduced-motion: reduce) {
+  .product-card-example,
+  .product-image,
+  .wishlist-btn,
+  .quick-actions,
+  .color-dot {
+    transition: none;
+  }
+  
+  .product-card-example:hover {
+    transform: none;
+  }
+  
+  .wishlist-btn:hover {
+    transform: none;
+  }
+  
+  .color-dot:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .product-card-example {
+    border: 2px solid var(--color-border);
+  }
+  
+  .wishlist-btn {
+    border-width: 2px;
+  }
+  
+  .color-dot {
+    border-width: 2px;
+  }
+}
