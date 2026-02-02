@@ -1,0 +1,337 @@
+/**
+ * Account Page Styles
+ * Professional authentication and account management interface
+ */
+
+.account-page {
+  min-height: 100vh;
+  background: #ffffff;
+  padding: 2rem 0;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* ===== AUTHENTICATION CONTAINER ===== */
+.auth-container {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.auth-header h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #000000;
+  margin: 0 0 0.5rem 0;
+}
+
+.auth-header p {
+  color: #666666;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* ===== FORM STYLES ===== */
+.auth-form {
+  margin-bottom: 1.5rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+  flex: 1;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #333333;
+  margin-bottom: 0.5rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  background: #ffffff;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #000000;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+.auth-submit-btn {
+  width: 100%;
+  padding: 0.875rem;
+  background: #000000;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 1rem;
+}
+
+.auth-submit-btn:hover {
+  background: #333333;
+}
+
+.auth-submit-btn:focus {
+  outline: 2px solid #000000;
+  outline-offset: 2px;
+}
+
+/* ===== AUTH TOGGLE ===== */
+.auth-toggle {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.auth-toggle p {
+  color: #666666;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.toggle-btn {
+  background: none;
+  border: none;
+  color: #000000;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-left: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.toggle-btn:hover {
+  color: #333333;
+}
+
+/* ===== DIVIDER ===== */
+.auth-divider {
+  position: relative;
+  text-align: center;
+  margin: 1.5rem 0;
+}
+
+.auth-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #e0e0e0;
+}
+
+.auth-divider span {
+  background: #ffffff;
+  color: #999999;
+  padding: 0 1rem;
+  font-size: 0.875rem;
+  position: relative;
+}
+
+/* ===== SOCIAL AUTH ===== */
+.social-auth {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.social-btn {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #333333;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.social-btn:hover {
+  background: #f5f5f5;
+  border-color: #cccccc;
+}
+
+.google-btn:hover {
+  background: #f8f9fa;
+}
+
+.facebook-btn:hover {
+  background: #f0f2f5;
+}
+
+/* ===== ACCOUNT CONTAINER (LOGGED IN) ===== */
+.account-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.account-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.account-header h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #000000;
+  margin: 0;
+}
+
+.sign-out-btn {
+  padding: 0.5rem 1rem;
+  background: none;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  color: #666666;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sign-out-btn:hover {
+  background: #f5f5f5;
+  border-color: #cccccc;
+  color: #333333;
+}
+
+/* ===== ACCOUNT SECTIONS ===== */
+.account-sections {
+  display: grid;
+  gap: 2rem;
+}
+
+.account-section {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.account-section h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #000000;
+  margin: 0 0 1rem 0;
+}
+
+.account-info p {
+  margin: 0.5rem 0;
+  color: #333333;
+  font-size: 0.875rem;
+}
+
+.account-info strong {
+  color: #000000;
+  font-weight: 500;
+}
+
+/* ===== QUICK ACTIONS ===== */
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.action-card {
+  display: block;
+  padding: 1.5rem;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.action-card:hover {
+  border-color: #000000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+}
+
+.action-card h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #000000;
+  margin: 0 0 0.5rem 0;
+}
+
+.action-card p {
+  font-size: 0.875rem;
+  color: #666666;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+  .account-page {
+    padding: 1rem 0;
+  }
+  
+  .auth-container {
+    margin: 0 1rem;
+    padding: 1.5rem;
+  }
+  
+  .account-container {
+    padding: 0 1rem;
+  }
+  
+  .account-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .quick-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-container {
+    margin: 0 0.5rem;
+    padding: 1rem;
+  }
+  
+  .social-auth {
+    gap: 0.5rem;
+  }
+}

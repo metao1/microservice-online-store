@@ -135,9 +135,12 @@ const Navigation: FC<NavigationProps> = ({
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
 
   // Refs
   const searchRef = useRef<HTMLInputElement>(null);
+  const accountDropdownRef = useRef<HTMLDivElement>(null);
+  const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -194,8 +197,207 @@ const Navigation: FC<NavigationProps> = ({
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
+  // Handle click outside account dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (accountDropdownRef.current && !accountDropdownRef.current.contains(event.target as Node)) {
+        setIsAccountDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (dropdownTimeoutRef.current) {
+        clearTimeout(dropdownTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Handle dropdown hover with delay
+  const handleDropdownMouseEnter = () => {
+    if (dropdownTimeoutRef.current) {
+      clearTimeout(dropdownTimeoutRef.current);
+    }
+    setIsAccountDropdownOpen(true);
+  };
+
+  const handleDropdownMouseLeave = () => {
+    dropdownTimeoutRef.current = setTimeout(() => {
+      setIsAccountDropdownOpen(false);
+    }, 300); // Increased to 300ms delay before closing
+  };
+
   return (
     <>
+      {/* Top Bar - Brand Logo and User Actions */}
+      <div className="top-bar">
+        <div className="top-bar-container">
+          <Link to="/" className="brand-logo" data-testid="brand-logo">
+            <span className="brand-text">ModernStore</span>
+          </Link>
+          
+          {/* User Actions in Top Bar */}
+          <div className="top-bar-actions">
+            {/* Account Link with Dropdown */}
+            <div 
+              className="account-dropdown-container"
+              ref={accountDropdownRef}
+              onMouseEnter={handleDropdownMouseEnter}
+              onMouseLeave={handleDropdownMouseLeave}
+            >
+              <Link
+                to="/account"
+                className={`top-action-link ${isActive('/account') ? 'top-action-link-active' : ''}`}
+                data-testid="account-link"
+              >
+                <UserIcon />
+              </Link>
+              
+              {/* Account Dropdown */}
+              {isAccountDropdownOpen && (
+                <div 
+                  className="account-dropdown"
+                  onMouseEnter={handleDropdownMouseEnter}
+                  onMouseLeave={handleDropdownMouseLeave}
+                >
+                  <div className="account-dropdown-content">
+                    <Link 
+                      to="/account" 
+                      className="account-dropdown-item account-main-item"
+                      onClick={() => {
+                        if (dropdownTimeoutRef.current) {
+                          clearTimeout(dropdownTimeoutRef.current);
+                        }
+                        setIsAccountDropdownOpen(false);
+                      }}
+                    >
+                      Your account
+                    </Link>
+                    
+                    <Link 
+                      to="/orders" 
+                      className="account-dropdown-item"
+                      onClick={() => {
+                        if (dropdownTimeoutRef.current) {
+                          clearTimeout(dropdownTimeoutRef.current);
+                        }
+                        setIsAccountDropdownOpen(false);
+                      }}
+                    >
+                      Orders
+                    </Link>
+                    
+                    <Link 
+                      to="/returns" 
+                      className="account-dropdown-item"
+                      onClick={() => {
+                        if (dropdownTimeoutRef.current) {
+                          clearTimeout(dropdownTimeoutRef.current);
+                        }
+                        setIsAccountDropdownOpen(false);
+                      }}
+                    >
+                      Return an item
+                    </Link>
+                    
+                    <Link 
+                      to="/sizes" 
+                      className="account-dropdown-item"
+                      onClick={() => {
+                        if (dropdownTimeoutRef.current) {
+                          clearTimeout(dropdownTimeoutRef.current);
+                        }
+                        setIsAccountDropdownOpen(false);
+                      }}
+                    >
+                      Your sizes
+                    </Link>                                     
+                    <Link 
+                      to="/appearance" 
+                      className="account-dropdown-item"
+                      onClick={() => {
+                        if (dropdownTimeoutRef.current) {
+                          clearTimeout(dropdownTimeoutRef.current);
+                        }
+                        setIsAccountDropdownOpen(false);
+                      }}
+                    >
+                      Change appearance
+                    </Link>
+                    
+                    <Link 
+                      to="/help" 
+                      className="account-dropdown-item"
+                      onClick={() => {
+                        if (dropdownTimeoutRef.current) {
+                          clearTimeout(dropdownTimeoutRef.current);
+                        }
+                        setIsAccountDropdownOpen(false);
+                      }}
+                    >
+                      Help & FAQ
+                    </Link>
+                    
+                    <div className="account-dropdown-divider"></div>
+                    
+                    <div className="account-dropdown-user">
+                      <span className="user-email">Not yaboci8065@aixind.com?</span>
+                      <button 
+                        className="sign-out-link"
+                        onClick={() => {
+                          if (dropdownTimeoutRef.current) {
+                            clearTimeout(dropdownTimeoutRef.current);
+                          }
+                          setIsAccountDropdownOpen(false);
+                          // Add sign out logic here
+                          console.log('Sign out clicked');
+                        }}
+                      >
+                        Sign out
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Wishlist Link */}
+            <Link
+              to="/wishlist"
+              className={`top-action-link ${isActive('/wishlist') ? 'top-action-link-active' : ''}`}
+              data-testid="wishlist-link"
+            >
+              <HeartIcon />
+            </Link>
+
+            {/* Cart Link */}
+            <Link
+              to="/cart"
+              className={`top-action-link ${isActive('/cart') ? 'top-action-link-active' : ''}`}
+              data-testid="cart-link"
+            >
+              <ShoppingBagIcon />
+              {itemCount > 0 && (
+                <Badge
+                  variant="secondary"
+                  size="sm"
+                  count={itemCount}
+                  className="cart-badge"
+                  data-testid="cart-badge"
+                />
+              )}
+            </Link>
+          </div>
+        </div>
+      </div>
+
       {/* Main Navigation */}
       <header className="navigation" data-testid="navbar">
         <div className="nav-container">
@@ -213,18 +415,13 @@ const Navigation: FC<NavigationProps> = ({
             ))}
           </nav>
 
-          {/* Center Section - Brand Logo */}
-          <Link to="/" className="brand-logo" data-testid="brand-logo">
-            <span className="brand-text">ModernStore</span>
-          </Link>
-
           {/* Right Section - Search and User Actions */}
           <div className="nav-actions">
-            {/* Search Bar */}
-            <div className="search-container">
+            {/* Animated Search Bar */}
+            <div className={`search-container ${isSearchFocused ? 'search-focused' : ''}`}>
               <form onSubmit={handleSearchSubmit} className="search-form">
                 <div className="search-input-wrapper">
-                  <SearchIcon className="search-icon" />
+                  {!isSearchFocused && <SearchIcon className="search-icon" />}
                   <input
                     ref={searchRef}
                     type="text"
@@ -271,47 +468,6 @@ const Navigation: FC<NavigationProps> = ({
                 )}
               </form>
             </div>
-
-            {/* User Actions */}
-            <div className="user-actions">
-              {/* Account Link */}
-              <Link
-                to="/account"
-                className={`action-link ${isActive('/account') ? 'action-link-active' : ''}`}
-                data-testid="account-link"
-              >
-                <UserIcon />
-              </Link>
-
-              {/* Wishlist Link */}
-              <Link
-                to="/wishlist"
-                className={`action-link ${isActive('/wishlist') ? 'action-link-active' : ''}`}
-                data-testid="wishlist-link"
-              >
-                <HeartIcon />
-              </Link>
-
-              {/* Cart Link */}
-              <Link
-                to="/cart"
-                className={`action-link ${isActive('/cart') ? 'action-link-active' : ''}`}
-                data-testid="cart-link"
-              >
-                <div className="cart-icon-container">
-                  <ShoppingBagIcon />
-                  {itemCount > 0 && (
-                    <Badge
-                      variant="secondary"
-                      size="sm"
-                      count={itemCount}
-                      className="cart-badge"
-                      data-testid="cart-badge"
-                    />
-                  )}
-                </div>
-              </Link>
-            </div>
           </div>
 
           {/* Mobile Menu Toggle */}
@@ -346,6 +502,13 @@ const Navigation: FC<NavigationProps> = ({
             >
               {/* Mobile Menu Content */}
               <div className="mobile-menu-content">
+                {/* Mobile Brand Logo */}
+                <div className="mobile-brand">
+                  <Link to="/" className="mobile-brand-logo" onClick={() => setIsMobileMenuOpen(false)}>
+                    <span className="brand-text">ModernStore</span>
+                  </Link>
+                </div>
+
                 {/* Mobile Search */}
                 <div className="mobile-search">
                   <form onSubmit={handleSearchSubmit}>
