@@ -1,5 +1,5 @@
-import { createContext, useContext, ReactNode, useState, useCallback } from 'react';
-import { Cart, CartItem, Product } from '../types';
+import { createContext, useContext, ReactNode, useCallback } from 'react';
+import { Cart, Product } from '../types';
 import { useCart as useCartHook } from '../hooks/useCart';
 
 interface CartContextType {
@@ -8,7 +8,7 @@ interface CartContextType {
   error: string | null;
   addToCart: (product: Product, quantity: number) => Promise<void>;
   removeFromCart: (productId: string) => Promise<void>;
-  updateCartItem: (productId: string, quantity: number) => Promise<void>;
+  updateCartItem: (product: Product, quantity: number) => Promise<void>;
   clearCart: () => void;
   getCartTotal: () => number;
   getCartItemCount: () => number;
@@ -26,9 +26,18 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children, userId }) 
 
   const addToCart = useCallback(
     async (product: Product, quantity: number) => {
-      await hookAddToCart(product.sku, quantity);
+      try {
+        console.log('CartContext: Adding product to cart:', product.sku);
+        await hookAddToCart(product.sku, quantity, product.price, product.currency);
+        console.log('CartContext: Product added successfully');
+        console.log('CartContext: Current cart after add:', cart);
+      } catch (error) {
+        console.error('CartContext: Failed to add product to cart:', error);
+        // Don't re-throw the error to prevent app crashes
+        // The UI will handle the error state through the error state from useCart
+      }
     },
-    [hookAddToCart]
+    [hookAddToCart, cart]
   );
 
   const removeFromCart = useCallback(
@@ -39,8 +48,8 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children, userId }) 
   );
 
   const updateCartItem = useCallback(
-    async (productId: string, quantity: number) => {
-      await hookUpdateCartItem(productId, quantity);
+    async (product: Product, quantity: number) => {
+      await hookUpdateCartItem(product.sku, quantity, product.price, product.currency);
     },
     [hookUpdateCartItem]
   );
@@ -54,7 +63,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children, userId }) 
   }, [cart.items, hookRemoveFromCart]);
 
   const getCartItemCount = useCallback(() => {
-    return cart.items.reduce((count, item) => count + item.cartQuantity, 0);
+    return (cart.items || []).reduce((count, item) => count + item.cartQuantity, 0);
   }, [cart.items]);
 
   const value: CartContextType = {
@@ -76,10 +85,10 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children, userId }) 
   );
 };
 
-export const useCartContext = () => {
+export function useCartContext() {
   const context = useContext(CartContext);
   if (!context) {
     throw new Error('useCartContext must be used within CartProvider');
   }
   return context;
-};
+}

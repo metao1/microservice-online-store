@@ -1,0 +1,349 @@
+/**
+ * Skeleton Component Styles
+ * Professional skeleton loading styles
+ * Based on requirements 2.4, 7.7, 9.2
+ */
+
+/* ===== BASE SKELETON STYLES ===== */
+.skeleton {
+  display: block;
+  background-color: var(--color-neutral-200);
+  border-radius: var(--border-radius-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: inherit;
+}
+
+/* ===== SKELETON VARIANTS ===== */
+
+/* Text Skeleton */
+.skeleton-text {
+  height: 1em;
+  border-radius: var(--border-radius-sm);
+  margin-bottom: var(--spacing-2);
+}
+
+.skeleton-text:last-child,
+.skeleton-text-last {
+  margin-bottom: 0;
+}
+
+/* Rectangular Skeleton */
+.skeleton-rectangular {
+  border-radius: var(--border-radius-base);
+}
+
+/* Circular Skeleton */
+.skeleton-circular {
+  border-radius: var(--border-radius-full);
+}
+
+/* Rounded Skeleton */
+.skeleton-rounded {
+  border-radius: var(--border-radius-lg);
+}
+
+/* ===== SKELETON ANIMATIONS ===== */
+
+/* Pulse Animation */
+.skeleton-pulse {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Wave Animation */
+.skeleton-wave {
+  background: linear-gradient(
+    90deg,
+    var(--color-neutral-200) 0%,
+    var(--color-neutral-100) 50%,
+    var(--color-neutral-200) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-wave 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-wave {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* No Animation */
+.skeleton-none {
+  /* Static skeleton without animation */
+}
+
+/* ===== SKELETON CONTAINER ===== */
+.skeleton-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+/* ===== PREDEFINED SKELETON COMPONENTS ===== */
+
+/* Skeleton Card */
+.skeleton-card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+}
+
+.skeleton-card-image {
+  width: 100%;
+  border-radius: 0;
+}
+
+.skeleton-card-content {
+  padding: var(--spacing-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.skeleton-card-title {
+  height: 1.25rem;
+}
+
+.skeleton-card-description {
+  gap: var(--spacing-2);
+}
+
+/* Skeleton Product Card */
+.skeleton-product-card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-background);
+  border-radius: var(--border-radius-base);
+  overflow: hidden;
+}
+
+.skeleton-product-image {
+  width: 100%;
+  border-radius: 0;
+  margin-bottom: var(--spacing-3);
+}
+
+.skeleton-product-content {
+  padding: 0 var(--spacing-2) var(--spacing-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.skeleton-product-brand {
+  height: 0.875rem;
+}
+
+.skeleton-product-title {
+  height: 1rem;
+}
+
+.skeleton-product-price {
+  height: 1.125rem;
+  margin-top: var(--spacing-1);
+}
+
+.skeleton-product-rating {
+  margin-top: var(--spacing-2);
+}
+
+/* Skeleton Navigation */
+.skeleton-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-4);
+  background-color: var(--color-background);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.skeleton-nav-left,
+.skeleton-nav-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.skeleton-nav-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  max-width: 400px;
+  margin: 0 var(--spacing-8);
+}
+
+/* ===== SKELETON GRID LAYOUTS ===== */
+.skeleton-grid {
+  display: grid;
+  gap: var(--spacing-4);
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+
+.skeleton-grid-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.skeleton-grid-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.skeleton-grid-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* ===== SKELETON LIST LAYOUTS ===== */
+.skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.skeleton-list-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--border-radius-base);
+}
+
+.skeleton-list-item-avatar {
+  flex-shrink: 0;
+}
+
+.skeleton-list-item-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+@media (max-width: calc(var(--breakpoint-lg) - 1px)) {
+  .skeleton-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .skeleton-grid-4 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: calc(var(--breakpoint-md) - 1px)) {
+  .skeleton-grid,
+  .skeleton-grid-3,
+  .skeleton-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .skeleton-nav-center {
+    margin: 0 var(--spacing-4);
+  }
+  
+  .skeleton-product-content {
+    padding: 0 var(--spacing-3) var(--spacing-3);
+  }
+}
+
+@media (max-width: calc(var(--breakpoint-sm) - 1px)) {
+  .skeleton-grid,
+  .skeleton-grid-2,
+  .skeleton-grid-3,
+  .skeleton-grid-4 {
+    grid-template-columns: 1fr;
+  }
+  
+  .skeleton-navigation {
+    padding: var(--spacing-3);
+  }
+  
+  .skeleton-nav-center {
+    margin: 0 var(--spacing-2);
+  }
+  
+  .skeleton-nav-left,
+  .skeleton-nav-right {
+    gap: var(--spacing-2);
+  }
+}
+
+/* ===== ACCESSIBILITY ENHANCEMENTS ===== */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-pulse,
+  .skeleton-wave {
+    animation: none;
+  }
+  
+  .skeleton-wave {
+    background: var(--color-neutral-200);
+  }
+}
+
+/* ===== DARK MODE SUPPORT ===== */
+@media (prefers-color-scheme: dark) {
+  .skeleton {
+    background-color: var(--color-neutral-700);
+  }
+  
+  .skeleton-wave {
+    background: linear-gradient(
+      90deg,
+      var(--color-neutral-700) 0%,
+      var(--color-neutral-600) 50%,
+      var(--color-neutral-700) 100%
+    );
+  }
+}
+
+/* ===== HIGH CONTRAST SUPPORT ===== */
+@media (prefers-contrast: high) {
+  .skeleton {
+    background-color: var(--color-neutral-400);
+    border: 1px solid var(--color-neutral-600);
+  }
+  
+  .skeleton-wave {
+    background: linear-gradient(
+      90deg,
+      var(--color-neutral-400) 0%,
+      var(--color-neutral-300) 50%,
+      var(--color-neutral-400) 100%
+    );
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .skeleton,
+  .skeleton-card,
+  .skeleton-product-card,
+  .skeleton-navigation {
+    display: none !important;
+  }
+}

@@ -1,0 +1,229 @@
+/**
+ * Grid Component Styles - E-commerce Redesign
+ * Responsive CSS Grid layouts for product displays
+ * Based on requirements 2.1, 2.6
+ */
+
+.grid-component {
+  display: grid;
+  width: 100%;
+}
+
+/* Gap variants using design tokens */
+.grid-gap-xs {
+  gap: var(--spacing-2);
+}
+
+.grid-gap-sm {
+  gap: var(--spacing-3);
+}
+
+.grid-gap-md {
+  gap: var(--spacing-4);
+}
+
+.grid-gap-lg {
+  gap: var(--spacing-6);
+}
+
+.grid-gap-xl {
+  gap: var(--spacing-8);
+}
+
+/* Alignment options */
+.grid-align-start {
+  align-items: start;
+}
+
+.grid-align-center {
+  align-items: center;
+}
+
+.grid-align-end {
+  align-items: end;
+}
+
+.grid-align-stretch {
+  align-items: stretch;
+}
+
+/* Justification options */
+.grid-justify-start {
+  justify-items: start;
+}
+
+.grid-justify-center {
+  justify-items: center;
+}
+
+.grid-justify-end {
+  justify-items: end;
+}
+
+.grid-justify-stretch {
+  justify-items: stretch;
+}
+
+/* Base column configurations */
+.grid-cols-xs-1 { grid-template-columns: repeat(1, 1fr); }
+.grid-cols-xs-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-cols-xs-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-cols-xs-4 { grid-template-columns: repeat(4, 1fr); }
+.grid-cols-xs-5 { grid-template-columns: repeat(5, 1fr); }
+.grid-cols-xs-6 { grid-template-columns: repeat(6, 1fr); }
+
+/* Responsive column configurations */
+@media (min-width: 576px) {
+  .grid-cols-sm-1 { grid-template-columns: repeat(1, 1fr); }
+  .grid-cols-sm-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-cols-sm-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-cols-sm-4 { grid-template-columns: repeat(4, 1fr); }
+  .grid-cols-sm-5 { grid-template-columns: repeat(5, 1fr); }
+  .grid-cols-sm-6 { grid-template-columns: repeat(6, 1fr); }
+}
+
+@media (min-width: 768px) {
+  .grid-cols-md-1 { grid-template-columns: repeat(1, 1fr); }
+  .grid-cols-md-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-cols-md-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-cols-md-4 { grid-template-columns: repeat(4, 1fr); }
+  .grid-cols-md-5 { grid-template-columns: repeat(5, 1fr); }
+  .grid-cols-md-6 { grid-template-columns: repeat(6, 1fr); }
+  
+  /* Reduce gap on tablet for better space utilization */
+  .grid-gap-md {
+    gap: var(--spacing-3);
+  }
+  
+  .grid-gap-lg {
+    gap: var(--spacing-4);
+  }
+}
+
+@media (min-width: 992px) {
+  .grid-cols-lg-1 { grid-template-columns: repeat(1, 1fr); }
+  .grid-cols-lg-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-cols-lg-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-cols-lg-4 { grid-template-columns: repeat(4, 1fr); }
+  .grid-cols-lg-5 { grid-template-columns: repeat(5, 1fr); }
+  .grid-cols-lg-6 { grid-template-columns: repeat(6, 1fr); }
+}
+
+@media (min-width: 1200px) {
+  .grid-cols-xl-1 { grid-template-columns: repeat(1, 1fr); }
+  .grid-cols-xl-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-cols-xl-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-cols-xl-4 { grid-template-columns: repeat(4, 1fr); }
+  .grid-cols-xl-5 { grid-template-columns: repeat(5, 1fr); }
+  .grid-cols-xl-6 { grid-template-columns: repeat(6, 1fr); }
+  
+  /* Restore full gaps on desktop */
+  .grid-gap-md {
+    gap: var(--spacing-4);
+  }
+  
+  .grid-gap-lg {
+    gap: var(--spacing-6);
+  }
+}
+
+/* Auto-fit and auto-fill grids */
+.grid-auto-fit {
+  /* Grid template columns set via inline styles */
+}
+
+.grid-auto-fill {
+  /* Grid template columns set via inline styles */
+}
+
+/* Product grid specific optimizations */
+.grid-component.product-grid {
+  /* Ensure consistent card heights within rows */
+  align-items: stretch;
+}
+
+.grid-component.product-grid > * {
+  /* Ensure product cards fill their grid cells */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 575.98px) {
+  .grid-gap-sm {
+    gap: var(--spacing-2);
+  }
+  
+  .grid-gap-md {
+    gap: var(--spacing-2);
+  }
+  
+  .grid-gap-lg {
+    gap: var(--spacing-3);
+  }
+  
+  .grid-gap-xl {
+    gap: var(--spacing-4);
+  }
+  
+  /* Force 2 columns max on mobile for readability */
+  .grid-cols-xs-3,
+  .grid-cols-xs-4,
+  .grid-cols-xs-5,
+  .grid-cols-xs-6 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Dense grid option for compact layouts */
+.grid-component.grid-dense {
+  grid-auto-flow: row dense;
+}
+
+/* Equal height rows */
+.grid-component.grid-equal-rows {
+  grid-auto-rows: 1fr;
+}
+
+/* Masonry-like layout for varied content heights */
+.grid-component.grid-masonry {
+  grid-auto-rows: max-content;
+  align-items: start;
+}
+
+/* Utility classes for common grid patterns */
+.grid-component.sidebar-layout {
+  grid-template-areas: 
+    "sidebar main"
+    "sidebar main";
+  grid-template-columns: 250px 1fr;
+}
+
+@media (max-width: 767.98px) {
+  .grid-component.sidebar-layout {
+    grid-template-areas: 
+      "main"
+      "sidebar";
+    grid-template-columns: 1fr;
+  }
+}
+
+.grid-component.hero-layout {
+  grid-template-areas: 
+    "hero hero"
+    "content sidebar";
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: auto 1fr;
+}
+
+@media (max-width: 767.98px) {
+  .grid-component.hero-layout {
+    grid-template-areas: 
+      "hero"
+      "content"
+      "sidebar";
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+  }
+}

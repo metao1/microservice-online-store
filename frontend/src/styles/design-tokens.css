@@ -1,0 +1,275 @@
+/**
+ * Design Tokens - E-commerce Redesign
+ * Professional design system following modern e-commerce standards
+ * Based on requirements 7.1, 7.2, 7.3
+ */
+
+:root {
+  /* ===== COLOR PALETTE ===== */
+  /* Primary Colors - Minimal black/white system */
+  --color-primary: #000000;
+  --color-primary-hover: #333333;
+  --color-primary-active: #1a1a1a;
+  
+  /* Secondary Colors */
+  --color-secondary: #ffffff;
+  --color-secondary-hover: #f8f8f8;
+  --color-secondary-active: #f0f0f0;
+  
+  /* Neutral Colors - Systematic gray scale */
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-200: #eeeeee;
+  --color-neutral-300: #e0e0e0;
+  --color-neutral-400: #bdbdbd;
+  --color-neutral-500: #9e9e9e;
+  --color-neutral-600: #757575;
+  --color-neutral-700: #616161;
+  --color-neutral-800: #424242;
+  --color-neutral-900: #212121;
+  
+  /* Semantic Colors */
+  --color-success: #27ae60;
+  --color-success-light: #2ecc71;
+  --color-success-dark: #229954;
+  
+  --color-error: #e74c3c;
+  --color-error-light: #ec7063;
+  --color-error-dark: #c0392b;
+  
+  --color-warning: #f39c12;
+  --color-warning-light: #f4d03f;
+  --color-warning-dark: #d68910;
+  
+  --color-info: #3498db;
+  --color-info-light: #5dade2;
+  --color-info-dark: #2980b9;
+  
+  /* Background Colors */
+  --color-background: #ffffff;
+  --color-background-alt: #fafafa;
+  --color-background-muted: #f5f5f5;
+  
+  /* Text Colors */
+  --color-text-primary: #000000;
+  --color-text-secondary: #666666;
+  --color-text-muted: #999999;
+  --color-text-inverse: #ffffff;
+  
+  /* Border Colors */
+  --color-border: #e0e0e0;
+  --color-border-light: #f1f1f1;
+  --color-border-dark: #bdbdbd;
+  --color-border-focus: #000000;
+  
+  /* ===== TYPOGRAPHY ===== */
+  /* Font Families */
+  --font-family-primary: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-family-secondary: 'Helvetica Neue', Arial, sans-serif;
+  --font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  
+  /* Font Sizes - Systematic scale */
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;     /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;    /* 20px */
+  --font-size-2xl: 1.5rem;    /* 24px */
+  --font-size-3xl: 1.875rem;  /* 30px */
+  --font-size-4xl: 2.25rem;   /* 36px */
+  --font-size-5xl: 3rem;      /* 48px */
+  --font-size-6xl: 3.75rem;   /* 60px */
+  
+  /* Font Weights */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  
+  /* Line Heights */
+  --line-height-tight: 1.25;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --line-height-loose: 2;
+  
+  /* Letter Spacing */
+  --letter-spacing-tighter: -0.05em;
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.025em;
+  --letter-spacing-wider: 0.05em;
+  --letter-spacing-widest: 0.1em;
+  
+  /* ===== SPACING SYSTEM ===== */
+  /* Systematic 8px-based spacing scale */
+  --spacing-0: 0;
+  --spacing-1: 0.25rem;   /* 4px */
+  --spacing-2: 0.5rem;    /* 8px */
+  --spacing-3: 0.75rem;   /* 12px */
+  --spacing-4: 1rem;      /* 16px */
+  --spacing-5: 1.25rem;   /* 20px */
+  --spacing-6: 1.5rem;    /* 24px */
+  --spacing-8: 2rem;      /* 32px */
+  --spacing-10: 2.5rem;   /* 40px */
+  --spacing-12: 3rem;     /* 48px */
+  --spacing-16: 4rem;     /* 64px */
+  --spacing-20: 5rem;     /* 80px */
+  --spacing-24: 6rem;     /* 96px */
+  --spacing-32: 8rem;     /* 128px */
+  
+  /* Component-specific spacing */
+  --spacing-component-xs: var(--spacing-2);
+  --spacing-component-sm: var(--spacing-3);
+  --spacing-component-md: var(--spacing-4);
+  --spacing-component-lg: var(--spacing-6);
+  --spacing-component-xl: var(--spacing-8);
+  
+  /* ===== BREAKPOINTS ===== */
+  /* Mobile-first responsive breakpoints */
+  --breakpoint-xs: 320px;
+  --breakpoint-sm: 576px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1200px;
+  --breakpoint-2xl: 1400px;
+  
+  /* Container max-widths */
+  --container-sm: 540px;
+  --container-md: 720px;
+  --container-lg: 960px;
+  --container-xl: 1140px;
+  --container-2xl: 1320px;
+  
+  /* ===== SHADOWS ===== */
+  /* Subtle shadow system for professional look */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+  --shadow-none: 0 0 #0000;
+  
+  /* ===== BORDER RADIUS ===== */
+  /* Minimal border radius system */
+  --border-radius-none: 0;
+  --border-radius-sm: 0.125rem;   /* 2px */
+  --border-radius-base: 0.25rem;  /* 4px */
+  --border-radius-md: 0.375rem;   /* 6px */
+  --border-radius-lg: 0.5rem;     /* 8px */
+  --border-radius-xl: 0.75rem;    /* 12px */
+  --border-radius-2xl: 1rem;      /* 16px */
+  --border-radius-full: 9999px;
+  
+  /* ===== TRANSITIONS ===== */
+  /* Consistent transition timing */
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+  --transition-slow: 300ms ease;
+  --transition-slower: 500ms ease;
+  
+  /* Transition properties */
+  --transition-colors: color var(--transition-base), background-color var(--transition-base), border-color var(--transition-base);
+  --transition-opacity: opacity var(--transition-base);
+  --transition-transform: transform var(--transition-base);
+  --transition-all: all var(--transition-base);
+  
+  /* ===== Z-INDEX SCALE ===== */
+  /* Systematic z-index management */
+  --z-index-hide: -1;
+  --z-index-auto: auto;
+  --z-index-base: 0;
+  --z-index-docked: 10;
+  --z-index-dropdown: 1000;
+  --z-index-sticky: 1020;
+  --z-index-banner: 1030;
+  --z-index-overlay: 1040;
+  --z-index-modal: 1050;
+  --z-index-popover: 1060;
+  --z-index-skiplink: 1070;
+  --z-index-toast: 1080;
+  --z-index-tooltip: 1090;
+  
+  /* ===== COMPONENT TOKENS ===== */
+  /* Button tokens */
+  --button-height-sm: 2rem;
+  --button-height-md: 2.5rem;
+  --button-height-lg: 3rem;
+  --button-padding-x-sm: var(--spacing-3);
+  --button-padding-x-md: var(--spacing-4);
+  --button-padding-x-lg: var(--spacing-6);
+  
+  /* Input tokens */
+  --input-height-sm: 2rem;
+  --input-height-md: 2.5rem;
+  --input-height-lg: 3rem;
+  --input-padding-x: var(--spacing-3);
+  --input-border-width: 1px;
+  
+  /* Card tokens */
+  --card-padding: var(--spacing-4);
+  --card-padding-sm: var(--spacing-3);
+  --card-padding-lg: var(--spacing-6);
+  --card-border-width: 1px;
+  --card-border-radius: var(--border-radius-base);
+  
+  /* Navigation tokens */
+  --nav-height: 60px;
+  --nav-padding-x: var(--spacing-4);
+  --nav-item-padding-x: var(--spacing-4);
+  --nav-item-padding-y: var(--spacing-3);
+  
+  /* Product grid tokens */
+  --product-card-aspect-ratio: 4/5;
+  --product-grid-gap: var(--spacing-4);
+  --product-grid-gap-sm: var(--spacing-3);
+  
+  /* ===== ACCESSIBILITY ===== */
+  /* Focus ring tokens */
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  --focus-ring-color: var(--color-primary);
+  --focus-ring-opacity: 0.5;
+  
+  /* Touch target minimum size */
+  --touch-target-min: 44px;
+  
+  /* ===== ANIMATION ===== */
+  /* Easing functions */
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  
+  /* Animation durations */
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+  --duration-slower: 500ms;
+}
+
+/* ===== DARK MODE SUPPORT (Future Enhancement) ===== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Dark mode color overrides would go here */
+    /* Currently maintaining light theme for professional e-commerce look */
+  }
+}
+
+/* ===== REDUCED MOTION SUPPORT ===== */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 0ms;
+    --transition-base: 0ms;
+    --transition-slow: 0ms;
+    --transition-slower: 0ms;
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+    --duration-slower: 0ms;
+  }
+}

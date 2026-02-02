@@ -18,15 +18,28 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    proxy: {
-      '/products': {
-        target: 'http://localhost:8083',
-        changeOrigin: true,
-      },
-    },
+    // Removed proxy configuration to prevent conflicts with React routing
+    // proxy: {
+    //   '/products': {
+    //     target: 'http://localhost:8083',
+    //     changeOrigin: true,
+    //   },
+    // },
   },
   build: {
     outDir: 'dist',
     sourcemap: false,
   },
+  optimizeDeps: {
+    exclude: [
+      'playwright-core',
+      'playwright',
+      'chromium-bidi',
+      'fsevents'
+    ]
+  },
+  define: {
+    // Exclude Node.js specific modules from browser bundle
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
+  }
 });

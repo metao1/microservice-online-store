@@ -12,21 +12,36 @@ export const useCart = (userId: string) => {
     setError(null);
     try {
       const data = await apiClient.getCart(userId);
-      setCart(data);
+      // Ensure cart always has items array
+      setCart({
+        items: data.items || [],
+        total: data.total || 0
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch cart');
+      // Set empty cart on error
+      setCart({ items: [], total: 0 });
     } finally {
       setLoading(false);
     }
   }, [userId]);
 
   const addToCart = useCallback(
-    async (productId: string, quantity: number) => {
+    async (productId: string, quantity: number, price: number, currency: string) => {
       try {
-        const updatedCart = await apiClient.addToCart(userId, productId, quantity);
-        setCart(updatedCart);
+        console.log('useCart: Adding item to cart:', { productId, quantity, price, currency });
+        const updatedCart = await apiClient.addToCart(userId, productId, quantity, price, currency);
+        console.log('useCart: Received updated cart:', updatedCart);
+        // Ensure cart has proper structure
+        const newCartState = {
+          items: updatedCart.items || [],
+          total: updatedCart.total || 0
+        };
+        console.log('useCart: Setting cart state to:', newCartState);
+        setCart(newCartState);
         return updatedCart;
       } catch (err) {
+        console.error('useCart: Error adding to cart:', err);
         setError(err instanceof Error ? err.message : 'Failed to add to cart');
         throw err;
       }
@@ -38,7 +53,11 @@ export const useCart = (userId: string) => {
     async (productId: string) => {
       try {
         const updatedCart = await apiClient.removeFromCart(userId, productId);
-        setCart(updatedCart);
+        // Ensure cart has proper structure
+        setCart({
+          items: updatedCart.items || [],
+          total: updatedCart.total || 0
+        });
         return updatedCart;
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to remove from cart');
@@ -49,10 +68,14 @@ export const useCart = (userId: string) => {
   );
 
   const updateCartItem = useCallback(
-    async (productId: string, quantity: number) => {
+    async (productId: string, quantity: number, price: number, currency: string) => {
       try {
-        const updatedCart = await apiClient.updateCartItem(userId, productId, quantity);
-        setCart(updatedCart);
+        const updatedCart = await apiClient.updateCartItem(userId, productId, quantity, price, currency);
+        // Ensure cart has proper structure
+        setCart({
+          items: updatedCart.items || [],
+          total: updatedCart.total || 0
+        });
         return updatedCart;
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to update cart');
@@ -63,15 +86,14 @@ export const useCart = (userId: string) => {
   );
 
   const getCartTotal = useCallback(() => {
-    return cart.items.reduce((total, item) => total + item.price * item.cartQuantity, 0);
+    return (cart.items || []).reduce((total, item) => total + item.price * item.cartQuantity, 0);
   }, [cart.items]);
 
   useEffect(() => {
-    // Commented out to avoid API calls on initial mount
-    // Uncomment when backend API is ready
-    // if (userId) {
-    //   fetchCart();
-    // }
+    // Enable cart fetching now that backend API is working
+    if (userId) {
+      fetchCart();
+    }
   }, [userId, fetchCart]);
 
   return {
