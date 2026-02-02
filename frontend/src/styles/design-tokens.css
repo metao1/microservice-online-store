@@ -33,9 +33,9 @@
   --color-success-light: #2ecc71;
   --color-success-dark: #229954;
   
-  --color-error: #e74c3c;
-  --color-error-light: #ec7063;
-  --color-error-dark: #c0392b;
+  --color-error: #000000;
+  --color-error-light: #333333;
+  --color-error-dark: #000000;
   
   --color-warning: #f39c12;
   --color-warning-light: #f4d03f;

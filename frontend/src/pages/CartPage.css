@@ -157,7 +157,7 @@
 }
 
 .discount-badge {
-  background: #ff6b35;
+  background: #000000;
   color: #ffffff;
 }
 
@@ -546,7 +546,7 @@
 
 /* Payment method specific styling */
 .payment-icon.mastercard {
-  background: linear-gradient(45deg, #eb001b 50%, #ff5f00 50%);
+  background: #000000;
 }
 
 .payment-icon.visa {

@@ -8,6 +8,8 @@ import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import CartPage from './pages/CartPage';
 import ComponentDemo from './pages/ComponentDemo';
+import AccountPage from './pages/AccountPage';
+import OrdersPage from './pages/OrdersPage';
 import Navigation from './components/Navigation';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider } from './context/AuthContext';
@@ -40,6 +42,8 @@ const App: FC = () => {
                   <Route path="/products" element={<ProductsPage />} />
                   <Route path="/products/:sku" element={<ProductDetailPage />} />
                   <Route path="/cart" element={<CartPage />} />
+                  <Route path="/account" element={<AccountPage />} />
+                  <Route path="/orders" element={<OrdersPage />} />
                   <Route path="/demo" element={<ComponentDemo />} />
                   <Route path="*" element={<HomePage />} />
                 </Routes>
