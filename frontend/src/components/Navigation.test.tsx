@@ -1,6 +1,6 @@
 /**
  * Navigation Component Tests
- * Updated to match Zalando-like navigation layout.
+ * Updated to match navigation layout.
  */
 
 import React from 'react';

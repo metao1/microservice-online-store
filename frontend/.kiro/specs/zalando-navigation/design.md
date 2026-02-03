@@ -2,7 +2,7 @@
 
 ## Overview
 
-This design document outlines the implementation of a modern, professional e-commerce navigation and header system that provides an enhanced user experience with advanced search capabilities, multi-level navigation, and comprehensive mobile support. The system will enhance the existing navigation with a more sophisticated solution that matches industry-leading e-commerce platforms like Zalando, ASOS, and Net-A-Porter.
+This design document outlines the implementation of a modern, professional e-commerce navigation and header system that provides an enhanced user experience with advanced search capabilities, multi-level navigation, and comprehensive mobile support. The system will enhance the existing navigation with a more sophisticated solution that matches industry-leading e-commerce platforms ASOS, and Net-A-Porter.
 
 The design focuses on creating a dual-tier navigation structure: a top bar for brand identity and user actions, and a main navigation bar for gender categories and search functionality. The system will provide intelligent search with an inbox-style interface, comprehensive user account management with Plus membership integration, and a fully responsive mobile experience that maintains feature parity with desktop.
 
@@ -815,7 +815,7 @@ The navigation system will employ both unit testing and property-based testing t
 The testing strategy will use **fast-check 4.5.3** for property-based testing with the following configuration:
 - **Minimum 100 iterations** per property test to ensure comprehensive coverage through randomization
 - Each property test will reference its corresponding design document property for traceability
-- Tag format: **Feature: zalando-navigation, Property {number}: {property_text}**
+- Tag format: **Feature: navigation, Property {number}: {property_text}**
 - Integration with existing Vitest 3.2.4 test runner and jsdom environment
 - Custom generators for navigation-specific data types (categories, users, search queries)
 
@@ -864,7 +864,7 @@ Each correctness property will be implemented as a single property-based test fo
 
 ```typescript
 // Example property test structure using fast-check and Vitest
-describe('Feature: zalando-navigation', () => {
+describe('Feature: navigation', () => {
   it('Property 4: Cart State Display Management - For any shopping cart state, navigation should display correct item count', () => {
     fc.assert(fc.property(
       fc.integer({ min: 0, max: 999 }), // Generate random cart counts
