@@ -6,5 +6,4 @@
 export { Container } from './Container/Container';
 export { Grid } from './Grid/Grid';
 export { Flex } from './Flex/Flex';
-export { Stack } from './Stack/Stack';
-export { Center } from './Center/Center';
+// Note: Stack and Center components are not yet implemented

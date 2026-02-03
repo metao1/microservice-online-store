@@ -198,7 +198,7 @@ const Navigation: FC<NavigationProps> = ({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSearchActive, setIsMobileSearchActive] = useState(false);
   const [isMobileView, setIsMobileView] = useState(() => {
-    if (typeof window === 'undefined') return false;
+    if (typeof window === 'undefined' || !window.matchMedia) return false;
     return window.matchMedia('(max-width: 900px)').matches;
   });
 
@@ -292,13 +292,12 @@ const Navigation: FC<NavigationProps> = ({
 
   // Keep mobile-only UI in sync when resizing across breakpoints
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || !window.matchMedia) return;
     const mediaQuery = window.matchMedia('(max-width: 900px)');
 
     const handleChange = (event: MediaQueryListEvent | MediaQueryList) => {
-      const matches = 'matches' in event ? event.matches : event.matches;
-      setIsMobileView(matches);
-      if (!matches) {
+      setIsMobileView(event.matches);
+      if (!event.matches) {
         setIsMobileSearchActive(false);
         setIsSearchFocused(false);
         setSearchSuggestions([]);
