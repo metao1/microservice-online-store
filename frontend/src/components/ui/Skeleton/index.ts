@@ -1,4 +1,5 @@
 export { 
+  default as Skeleton,
   default,
   SkeletonText,
   SkeletonAvatar,

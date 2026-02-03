@@ -111,15 +111,14 @@ interface NavigationProps {
 
 const Navigation: FC<NavigationProps> = ({
   categories = [
-    { id: 'clothing', name: 'Clothing' },
+    { id: 'women', name: 'Women' },
+    { id: 'men', name: 'Men' },
+    { id: 'kids', name: 'Kids' },
     { id: 'shoes', name: 'Shoes' },
     { id: 'accessories', name: 'Accessories' },
     { id: 'beauty', name: 'Beauty' },
-    { id: 'designer', name: 'Designer' },
     { id: 'sports', name: 'Sports' },
-    { id: 'streetwear', name: 'Streetwear' },
-    { id: 'sale', name: 'Sale %' },
-    { id: 'pre-owned', name: 'Pre-owned' },
+    { id: 'sale', name: 'Sale' },
   ],
   onSearch,
   onCategorySelect,
@@ -235,15 +234,13 @@ const Navigation: FC<NavigationProps> = ({
   };
 
   return (
-    <>
-      {/* Top Bar - Brand Logo and User Actions */}
+    <header className="navigation" data-testid="navbar">
+      {/* Top Bar - User Actions (Desktop Only) */}
       <div className="top-bar">
         <div className="top-bar-container">
-          <Link to="/" className="brand-logo" data-testid="brand-logo">
-            <span className="brand-text">ModernStore</span>
-          </Link>
+          <div className="top-bar-spacer"></div>
           
-          {/* User Actions in Top Bar */}
+          {/* User Actions */}
           <div className="top-bar-actions">
             {/* Account Link with Dropdown */}
             <div 
@@ -398,192 +395,187 @@ const Navigation: FC<NavigationProps> = ({
         </div>
       </div>
 
-      {/* Main Navigation */}
-      <header className="navigation" data-testid="navbar">
-        <div className="nav-container">
-          {/* Left Section - Categories */}
-          <nav className="nav-categories" role="navigation" aria-label="Main navigation">
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => handleCategoryClick(category)}
-                className={`nav-category ${category.id === 'sale' ? 'nav-category-sale' : ''} ${isActive(`/products?category=${category.id}`) ? 'nav-category-active' : ''}`}
-                data-testid={`category-${category.id}`}
-              >
-                {category.name}
-              </button>
-            ))}
-          </nav>
+      {/* Main Navigation Container */}
+      <div className="nav-container">
+        {/* Mobile Menu Toggle */}
+        <button
+          className="mobile-menu-toggle"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-expanded={isMobileMenuOpen}
+          aria-label="Toggle mobile menu"
+          data-testid="mobile-menu-toggle"
+        >
+          <MenuIcon />
+        </button>
 
-          {/* Right Section - Search and User Actions */}
-          <div className="nav-actions">
-            {/* Animated Search Bar */}
-            <div className={`search-container ${isSearchFocused ? 'search-focused' : ''}`}>
-              <form onSubmit={handleSearchSubmit} className="search-form">
-                <div className="search-input-wrapper">
-                  {!isSearchFocused && <SearchIcon className="search-icon" />}
-                  <input
-                    ref={searchRef}
-                    type="text"
-                    placeholder="Search"
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    onFocus={() => setIsSearchFocused(true)}
-                    onBlur={() => {
-                      setTimeout(() => setIsSearchFocused(false), 200);
-                    }}
-                    className="search-input"
-                    data-testid="search-input"
-                  />
-                </div>
-                
-                {/* Search Suggestions */}
-                {isSearchFocused && (
-                  <div className="search-suggestions" data-testid="search-suggestions">
-                    {isLoadingSuggestions ? (
-                      <div className="search-suggestion loading-suggestion">
-                        <SearchIcon className="suggestion-icon" />
-                        Searching...
-                      </div>
-                    ) : searchSuggestions.length > 0 ? (
-                      searchSuggestions.map((suggestion, index) => (
-                        <button
-                          key={index}
-                          type="button"
-                          className="search-suggestion"
-                          onClick={() => handleSuggestionClick(suggestion)}
-                          data-testid={`search-suggestion-${index}`}
-                        >
-                          <SearchIcon className="suggestion-icon" />
-                          {suggestion}
-                        </button>
-                      ))
-                    ) : searchQuery.length > 2 ? (
-                      <div className="search-suggestion no-results">
-                        <SearchIcon className="suggestion-icon" />
-                        No suggestions found
-                      </div>
-                    ) : null}
-                  </div>
-                )}
-              </form>
-            </div>
-          </div>
+        {/* Categories Navigation (Desktop) / Hidden on Mobile */}
+        <nav className="nav-categories" role="navigation" aria-label="Main navigation">
+          {categories.map((category) => (
+            <button
+              key={category.id}
+              onClick={() => handleCategoryClick(category)}
+              className={`nav-category ${category.id === 'sale' ? 'nav-category-sale' : ''} ${isActive(`/products?category=${category.id}`) ? 'nav-category-active' : ''}`}
+              data-testid={`category-${category.id}`}
+            >
+              {category.name}
+            </button>
+          ))}
+        </nav>
 
-          {/* Mobile Menu Toggle */}
-          <button
-            className="mobile-menu-toggle"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-expanded={isMobileMenuOpen}
-            aria-label="Toggle mobile menu"
-            data-testid="mobile-menu-toggle"
-          >
-            <MenuIcon />
-          </button>
+        {/* Brand Logo (Center) */}
+        <div className="nav-brand">
+          <Link to="/" className="nav-brand-logo" data-testid="nav-brand-logo">
+            <span className="brand-text">ModernStore</span>
+          </Link>
         </div>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <>
-            {/* Mobile Menu Backdrop */}
-            <div 
-              className="mobile-menu-backdrop"
-              onClick={() => setIsMobileMenuOpen(false)}
-              aria-hidden="true"
-            />
-            
-            {/* Mobile Menu Panel */}
-            <div 
-              className="mobile-menu" 
-              data-testid="mobile-menu"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="mobile-menu-title"
-            >
-              {/* Mobile Menu Content */}
-              <div className="mobile-menu-content">
-                {/* Mobile Brand Logo */}
-                <div className="mobile-brand">
-                  <Link to="/" className="mobile-brand-logo" onClick={() => setIsMobileMenuOpen(false)}>
-                    <span className="brand-text">ModernStore</span>
-                  </Link>
+        {/* Search Container (Desktop Right / Mobile Full Width Below) */}
+        <div className="nav-search">
+          <div className={`search-container ${isSearchFocused ? 'search-focused' : ''}`}>
+            <form onSubmit={handleSearchSubmit} className="search-form">
+              <div className="search-input-wrapper">
+                <div className="search-icon-container">
+                  <SearchIcon className="search-icon" />
                 </div>
-
-                {/* Mobile Search */}
-                <div className="mobile-search">
-                  <form onSubmit={handleSearchSubmit}>
-                    <div className="search-input-wrapper">
-                      <SearchIcon className="search-icon" />
-                      <input
-                        type="text"
-                        placeholder="Search"
-                        value={searchQuery}
-                        onChange={handleSearchChange}
-                        className="search-input"
-                        data-testid="mobile-search-input"
-                      />
-                    </div>
-                  </form>
-                </div>
-
-                {/* Mobile Navigation Links */}
-                <nav className="mobile-nav-categories" role="navigation" aria-label="Mobile navigation">
-                  {categories.map((category) => (
-                    <button
-                      key={category.id}
-                      onClick={() => handleCategoryClick(category)}
-                      className={`mobile-nav-category ${category.id === 'sale' ? 'mobile-nav-category-sale' : ''} ${isActive(`/products?category=${category.id}`) ? 'mobile-nav-category-active' : ''}`}
-                      data-testid={`mobile-category-${category.id}`}
+                <input
+                  ref={searchRef}
+                  type="text"
+                  placeholder="Search"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  onFocus={() => setIsSearchFocused(true)}
+                  onBlur={() => {
+                    setTimeout(() => setIsSearchFocused(false), 200);
+                  }}
+                  className="search-input"
+                  data-testid="search-input"
+                  role="combobox"
+                  aria-label="Search products"
+                  aria-haspopup="listbox"
+                  aria-expanded={isSearchFocused && (searchSuggestions.length > 0 || searchQuery.length > 2)}
+                  autoComplete="off"
+                  spellCheck="false"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    className="search-clear-button"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSearchSuggestions([]);
+                      searchRef.current?.focus();
+                    }}
+                    aria-label="Clear search"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="1em"
+                      height="1em"
+                      fill="currentColor"
+                      className="clear-icon"
                     >
-                      {category.name}
-                    </button>
-                  ))}
-                </nav>
-
-                {/* Mobile User Actions */}
-                <div className="mobile-user-actions">
-                  <Link
-                    to="/account"
-                    className="mobile-user-link"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    data-testid="mobile-account-link"
-                  >
-                    <UserIcon />
-                    My Account
-                  </Link>
-                  <Link
-                    to="/wishlist"
-                    className="mobile-user-link"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    data-testid="mobile-wishlist-link"
-                  >
-                    <HeartIcon />
-                    Wishlist
-                  </Link>
-                  <Link
-                    to="/cart"
-                    className="mobile-user-link"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    data-testid="mobile-cart-link"
-                  >
-                    <ShoppingBagIcon />
-                    Shopping Bag
-                    {itemCount > 0 && (
-                      <Badge
-                        variant="secondary"
-                        size="sm"
-                        count={itemCount}
-                        className="cart-badge"
-                      />
-                    )}
-                  </Link>
+                      <path d="M18.3 5.71a.996.996 0 0 0-1.41 0L12 10.59 7.11 5.7A.996.996 0 1 0 5.7 7.11L10.59 12 5.7 16.89a.996.996 0 1 0 1.41 1.41L12 13.41l4.89 4.89a.996.996 0 0 0 1.41-1.41L13.41 12l4.89-4.89c.38-.38.38-1.02 0-1.4z"/>
+                    </svg>
+                  </button>
+                )}
+              </div>
+              
+              {/* Search Suggestions */}
+              {isSearchFocused && (
+                <div className="search-suggestions" data-testid="search-suggestions">
+                  {isLoadingSuggestions ? (
+                    <div className="search-suggestion loading-suggestion">
+                      <SearchIcon className="suggestion-icon" />
+                      Searching...
+                    </div>
+                  ) : searchSuggestions.length > 0 ? (
+                    searchSuggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        className="search-suggestion"
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        data-testid={`search-suggestion-${index}`}
+                      >
+                        <SearchIcon className="suggestion-icon" />
+                        {suggestion}
+                      </button>
+                    ))
+                  ) : searchQuery.length > 2 ? (
+                    <div className="search-suggestion no-results">
+                      <SearchIcon className="suggestion-icon" />
+                      No suggestions found
+                    </div>
+                  ) : null}
                 </div>
+              )}
+            </form>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <>
+          <div 
+            className="mobile-menu-backdrop"
+            onClick={() => setIsMobileMenuOpen(false)}
+            aria-hidden="true"
+          />
+          <div 
+            className="mobile-menu" 
+            data-testid="mobile-menu"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="mobile-menu-title"
+          >
+            <div className="mobile-menu-content">
+              {/* Mobile Categories */}
+              <nav className="mobile-nav-categories" role="navigation" aria-label="Mobile navigation">
+                {categories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => handleCategoryClick(category)}
+                    className={`mobile-nav-category ${category.id === 'sale' ? 'mobile-nav-category-sale' : ''} ${isActive(`/products?category=${category.id}`) ? 'mobile-nav-category-active' : ''}`}
+                    data-testid={`mobile-category-${category.id}`}
+                  >
+                    {category.name}
+                  </button>
+                ))}
+              </nav>
+
+              {/* Mobile User Actions */}
+              <div className="mobile-user-actions">
+                <Link
+                  to="/account"
+                  className={`mobile-user-link ${isActive('/account') ? 'mobile-user-link-active' : ''}`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <UserIcon />
+                  Account
+                </Link>
+                <Link
+                  to="/wishlist"
+                  className={`mobile-user-link ${isActive('/wishlist') ? 'mobile-user-link-active' : ''}`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <HeartIcon />
+                  Wishlist
+                </Link>
+                <Link
+                  to="/cart"
+                  className={`mobile-user-link ${isActive('/cart') ? 'mobile-user-link-active' : ''}`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <ShoppingBagIcon />
+                  Cart {itemCount > 0 && `(${itemCount})`}
+                </Link>
               </div>
             </div>
-          </>
-        )}
-      </header>
-    </>
+          </div>
+        </>
+      )}
+    </header>
   );
 };
 

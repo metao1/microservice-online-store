@@ -123,6 +123,14 @@
   border: 1px solid var(--color-border, #e0e0e0);
 }
 
+.status-badge.new {
+  background: var(--color-success, #28a745);
+  color: var(--color-text-inverse, #ffffff);
+  top: var(--spacing-2, 0.5rem);
+  right: var(--spacing-2, 0.5rem);
+  left: auto;
+}
+
 .status-badge.bestseller {
   background: var(--color-primary, #000000);
   color: var(--color-text-inverse, #ffffff);
@@ -240,8 +248,10 @@
 /* Colors Available - Enhanced Design */
 .colors-available {
   display: flex;
+  align-items: center;
   gap: var(--spacing-1, 0.25rem);
   margin-bottom: var(--spacing-3, 0.75rem);
+  flex-wrap: wrap;
 }
 
 .color-dot {
@@ -252,6 +262,22 @@
   cursor: pointer;
   transition: all var(--transition-fast, 150ms ease);
   position: relative;
+  background: none;
+  padding: 0;
+  min-height: var(--accessibility-touch-target-min, 44px);
+  min-width: var(--accessibility-touch-target-min, 44px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.color-dot::before {
+  content: '';
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: currentColor;
+  border: 1px solid var(--color-border, #e0e0e0);
 }
 
 .color-dot:hover {
@@ -280,12 +306,36 @@
   border-radius: 50%;
 }
 
+.more-colors {
+  font-size: var(--font-size-xs, 0.75rem);
+  color: var(--color-text-secondary, #666666);
+  font-weight: var(--font-weight-normal, 400);
+  margin-left: var(--spacing-1, 0.25rem);
+}
+
 /* Sizes Available */
 .sizes-available {
   font-size: var(--font-size-xs, 0.75rem);
   color: var(--color-text-secondary, #666666);
   margin-bottom: var(--spacing-3, 0.75rem);
   font-weight: var(--font-weight-normal, 400);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-1, 0.25rem);
+}
+
+.sizes-label {
+  font-weight: var(--font-weight-medium, 500);
+}
+
+.size-item {
+  white-space: nowrap;
+}
+
+.more-sizes {
+  color: var(--color-text-muted, #999999);
+  font-style: italic;
 }
 
 /* Price Section - Professional Design */

@@ -200,7 +200,7 @@
   grid-template-columns: 250px 1fr;
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 768px) {
   .grid-component.sidebar-layout {
     grid-template-areas: 
       "main"
@@ -217,7 +217,7 @@
   grid-template-rows: auto 1fr;
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 768px) {
   .grid-component.hero-layout {
     grid-template-areas: 
       "hero"

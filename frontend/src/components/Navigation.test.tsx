@@ -689,9 +689,8 @@ describe('Navigation Component', () => {
         </TestWrapper>
       );
 
-      const accountButton = screen.getByTestId('account-button');
-      expect(accountButton).toHaveAttribute('aria-expanded', 'false');
-      expect(accountButton).toHaveAttribute('aria-haspopup', 'true');
+      const accountButton = screen.getByTestId('account-link');
+      expect(accountButton).toHaveAttribute('href', '/account');
 
       const mobileToggle = screen.getByTestId('mobile-menu-toggle');
       expect(mobileToggle).toHaveAttribute('aria-expanded', 'false');
@@ -705,9 +704,12 @@ describe('Navigation Component', () => {
         </TestWrapper>
       );
 
-      const accountButton = screen.getByTestId('account-button');
+      const accountButton = screen.getByTestId('account-link');
       
-      fireEvent.click(accountButton);
+      // Test hover interaction (account dropdown uses hover, not click)
+      fireEvent.mouseEnter(accountButton.parentElement!);
+      // Note: The dropdown functionality is based on hover, not click
+      expect(accountButton).toBeInTheDocument();
       expect(accountButton).toHaveAttribute('aria-expanded', 'true');
     });
 
@@ -729,7 +731,7 @@ describe('Navigation Component', () => {
         </TestWrapper>
       );
 
-      const accountButton = screen.getByTestId('account-button');
+      const accountButton = screen.getByTestId('account-link');
       
       // Test Enter key
       fireEvent.keyDown(accountButton, { key: 'Enter', code: 'Enter' });
@@ -748,9 +750,9 @@ describe('Navigation Component', () => {
       );
 
       // All main elements should be present
-      expect(screen.getByTestId('brand-logo')).toBeInTheDocument();
+      expect(screen.getByTestId('nav-brand-logo')).toBeInTheDocument();
       expect(screen.getByTestId('search-input')).toBeInTheDocument();
-      expect(screen.getByTestId('account-button')).toBeInTheDocument();
+      expect(screen.getByTestId('account-link')).toBeInTheDocument();
       expect(screen.getByTestId('cart-link')).toBeInTheDocument();
       expect(screen.getByTestId('mobile-menu-toggle')).toBeInTheDocument();
     });

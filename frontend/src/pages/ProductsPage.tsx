@@ -1,9 +1,8 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useProducts } from '../hooks/useProducts';
-import ProductCard from '../components/ProductCard';
-import { apiClient } from '../services/api';
-import { Category } from '../types';
+import ProductGrid from '../components/ProductGrid';
+import { Product, ProductVariant } from '../types';
 import './ProductsPage.css';
 
 interface ProductsPageProps {
@@ -17,7 +16,6 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState<'name' | 'price' | 'rating'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [showAllFilters, setShowAllFilters] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [selectedFilters, setSelectedFilters] = useState({
@@ -29,6 +27,9 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
     pattern: '',
     length: ''
   });
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const limit = 16;
 
   // Sidebar categories
@@ -83,6 +84,12 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
     const urlSearchQuery = searchParams.get('search');
     const urlCategory = searchParams.get('category');
     
+    // Reset products when category or search changes
+    if (currentPage === 1) {
+      setAllProducts([]);
+      setHasMore(true);
+    }
+    
     if (urlSearchQuery) {
       const offset = (currentPage - 1) * limit;
       searchProducts(urlSearchQuery, limit, offset);
@@ -97,7 +104,46 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
     setActiveCategory(categoryId);
     setSearchParams({ category: categoryId });
     setCurrentPage(1);
+    setAllProducts([]);
+    setHasMore(true);
   };
+
+  // Update allProducts when new products are loaded
+  useEffect(() => {
+    if (products.length > 0) {
+      if (currentPage === 1) {
+        setAllProducts(products);
+      } else {
+        setAllProducts(prev => [...prev, ...products]);
+      }
+      
+      // Check if we have more products to load
+      setHasMore(products.length === limit);
+      setLoadingMore(false);
+    }
+  }, [products, currentPage, limit]);
+
+  const handleLoadMore = useCallback(() => {
+    if (!loadingMore && hasMore) {
+      setLoadingMore(true);
+      setCurrentPage(prev => prev + 1);
+    }
+  }, [loadingMore, hasMore]);
+
+  const handleAddToCart = useCallback((product: Product, selectedVariants?: ProductVariant[]) => {
+    console.log('Adding to cart:', product.title, selectedVariants);
+    // Cart functionality is handled by ProductCard component
+  }, []);
+
+  const handleToggleWishlist = useCallback((productId: string) => {
+    console.log('Toggling wishlist for product:', productId);
+    // Wishlist functionality would be implemented here
+  }, []);
+
+  const handleQuickView = useCallback((product: Product) => {
+    console.log('Quick view for product:', product.title);
+    // Quick view functionality would be implemented here
+  }, []);
 
   const handleSortChange = (value: string) => {
     const [newSortBy, newSortOrder] = value.split('-') as ['name' | 'price' | 'rating', 'asc' | 'desc'];
@@ -119,7 +165,7 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
   };
 
   // Sort products locally
-  const sortedProducts = [...products].sort((a, b) => {
+  const sortedProducts = [...allProducts].sort((a, b) => {
     let aValue: string | number = '';
     let bValue: string | number = '';
     
@@ -357,29 +403,33 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
 
             {/* Product Count */}
             <div className="product-count">
-              <span>{products.length} items</span>
+              <span>{allProducts.length} items</span>
             </div>
           </div>
 
           {/* Products Grid */}
           <div className="products-content">
-            {loading ? (
-              <div className="loading-container">
-                <div className="loading-spinner"></div>
-                <p>Loading products...</p>
-              </div>
-            ) : error ? (
+            {error ? (
               <div className="error-container">
                 <p>{error}</p>
               </div>
             ) : (
-              <div className="products-grid">
-                {sortedProducts.map((product) => (
-                  <div key={product.sku} className="product-grid-item">
-                    <ProductCard product={product} />
-                  </div>
-                ))}
-              </div>
+              <ProductGrid
+                products={sortedProducts}
+                loading={loading && currentPage === 1}
+                loadingMore={loadingMore}
+                hasMore={hasMore}
+                onLoadMore={handleLoadMore}
+                onAddToCart={handleAddToCart}
+                onToggleWishlist={handleToggleWishlist}
+                onQuickView={handleQuickView}
+                infiniteScroll={true}
+                emptyMessage={searchParams.get('search') 
+                  ? `No products found for "${searchParams.get('search')}"` 
+                  : "No products found in this category"
+                }
+                className="products-page-grid"
+              />
             )}
           </div>
         </main>

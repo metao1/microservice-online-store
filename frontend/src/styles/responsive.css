@@ -239,7 +239,7 @@
 /* ===== MOBILE TOUCH TARGETS ===== */
 
 /* Ensure minimum touch target size on mobile (44px) */
-@media (max-width: 767.98px) {
+@media (max-width: 768px) {
   .touch-target {
     min-height: var(--touch-target-min);
     min-width: var(--touch-target-min);
@@ -315,7 +315,7 @@
 /* ===== RESPONSIVE FILTERS ===== */
 
 /* Mobile filter panel */
-@media (max-width: 767.98px) {
+@media (max-width: 768px) {
   .filter-panel {
     position: fixed;
     top: 0;
@@ -378,7 +378,7 @@
   }
 }
 
-@media (min-width: 576px) and (max-width: 767.98px) {
+@media (min-width: 576px) and (max-width: 768px) {
   .product-card .product-image-container {
     height: 280px;
   }
@@ -393,7 +393,7 @@
 /* ===== RESPONSIVE CART ===== */
 
 /* Mobile cart panel */
-@media (max-width: 767.98px) {
+@media (max-width: 768px) {
   .cart-panel {
     position: fixed;
     top: 0;

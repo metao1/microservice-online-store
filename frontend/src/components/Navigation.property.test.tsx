@@ -108,12 +108,13 @@ describe('Navigation Component - Property Tests', () => {
   });
 
   /**
-   * **Property 2: Cart badge display accuracy**
-   * **Validates: Requirements 1.5**
+   * **Property 4: Cart State Display Management**
+   * **Validates: Requirements 2.3, 4.1, 4.2, 4.4**
    * 
-   * For any cart state with items present, the navigation should display a badge with the correct item count
+   * For any shopping cart state, the navigation should display the correct item count as a badge when items exist, 
+   * no badge when empty, and update counts immediately when items are added or removed
    */
-  describe('Property 2: Cart badge display accuracy', () => {
+  describe('Property 4: Cart State Display Management', () => {
     it('should display cart badge with accurate item count for any cart state', () => {
       fc.assert(
         fc.property(
@@ -128,25 +129,25 @@ describe('Navigation Component - Property Tests', () => {
             const cartLink = screen.getByTestId('cart-link');
             expect(cartLink).toBeInTheDocument();
 
-            // Property: Cart link should always be present regardless of cart state
-            expect(cartLink).toHaveClass('cart-link');
+            // Property: Cart link should always be present regardless of cart state (Requirement 2.3)
+            expect(cartLink).toHaveClass('top-action-link');
             expect(cartLink).toHaveAttribute('href', '/cart');
 
             // Property: Cart link should be functional
             expect(cartLink.tagName.toLowerCase()).toBe('a');
 
             if (itemCount > 0) {
-              // Property: When cart has items, badge should be displayed
+              // Property: When cart has items, badge should be displayed (Requirement 4.1)
               const cartBadge = screen.getByTestId('cart-badge');
               expect(cartBadge).toBeInTheDocument();
               
-              // Property: Badge should display the correct count
+              // Property: Badge should display the correct count (Requirement 4.1)
               expect(cartBadge).toHaveTextContent(itemCount.toString());
               
               // Property: Badge should have proper styling classes
               expect(cartBadge).toHaveClass('cart-badge');
             } else {
-              // Property: When cart is empty, no badge should be displayed
+              // Property: When cart is empty, no badge should be displayed (Requirement 4.2)
               expect(screen.queryByTestId('cart-badge')).not.toBeInTheDocument();
             }
 
@@ -155,6 +156,68 @@ describe('Navigation Component - Property Tests', () => {
           }
         ),
         { numRuns: 100 } // Minimum 100 iterations as specified
+      );
+    });
+
+    it('should update cart badge immediately when cart state changes', () => {
+      fc.assert(
+        fc.property(
+          fc.integer({ min: 0, max: 50 }),
+          fc.integer({ min: 1, max: 10 }),
+          (initialCount, addedItems) => {
+            // Create a mock cart hook that we can update
+            let currentItemCount = initialCount;
+            const mockCart = createMockCart(currentItemCount);
+            
+            const mockCartHook = {
+              cart: mockCart,
+              loading: false,
+              error: null,
+              fetchCart: vi.fn(),
+              addToCart: vi.fn(() => {
+                currentItemCount += addedItems;
+              }),
+              removeFromCart: vi.fn(),
+              updateCartItem: vi.fn(),
+              getCartTotal: vi.fn(() => mockCart.total)
+            };
+
+            mockUseCart.mockReturnValue(mockCartHook);
+
+            const { unmount, rerender } = render(
+              <TestWrapper cartItemCount={currentItemCount}>
+                <Navigation />
+              </TestWrapper>
+            );
+
+            // Verify initial state
+            if (initialCount > 0) {
+              expect(screen.getByTestId('cart-badge')).toHaveTextContent(initialCount.toString());
+            } else {
+              expect(screen.queryByTestId('cart-badge')).not.toBeInTheDocument();
+            }
+
+            // Simulate cart update by re-rendering with new count
+            const newCount = initialCount + addedItems;
+            rerender(
+              <TestWrapper cartItemCount={newCount}>
+                <Navigation />
+              </TestWrapper>
+            );
+
+            // Property: Cart badge should update immediately (Requirement 4.4)
+            if (newCount > 0) {
+              const updatedBadge = screen.getByTestId('cart-badge');
+              expect(updatedBadge).toHaveTextContent(newCount.toString());
+            } else {
+              expect(screen.queryByTestId('cart-badge')).not.toBeInTheDocument();
+            }
+
+            // Cleanup
+            unmount();
+          }
+        ),
+        { numRuns: 100 }
       );
     });
 

@@ -1,0 +1,344 @@
+/**
+ * ProductGrid Component Styles - E-commerce Redesign
+ * Responsive product grid with loading states and empty states
+ * Based on requirements 2.1, 2.3, 2.4, 2.6
+ */
+
+.product-grid {
+  width: 100%;
+  min-height: 400px;
+}
+
+.product-grid-container {
+  width: 100%;
+}
+
+/* Grid view mode (default) */
+.product-grid-grid .product-grid-container {
+  /* Grid layout handled by Grid component */
+}
+
+/* List view mode */
+.product-grid-list .product-grid-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 1rem);
+}
+
+.product-grid-list .product-card {
+  display: flex;
+  flex-direction: row;
+  max-height: 200px;
+}
+
+.product-grid-list .product-image-container {
+  width: 200px;
+  height: 200px;
+  flex-shrink: 0;
+}
+
+.product-grid-list .product-info {
+  flex: 1;
+  padding: var(--spacing-4, 1rem);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Skeleton loading states */
+.product-grid-skeleton {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-background, #ffffff);
+  border: 1px solid var(--color-border-light, #f1f1f1);
+  border-radius: var(--border-radius-base, 0.25rem);
+  overflow: hidden;
+  height: 100%;
+}
+
+.skeleton-image {
+  flex-shrink: 0;
+}
+
+.skeleton-content {
+  padding: var(--spacing-4, 1rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2, 0.5rem);
+  flex-grow: 1;
+}
+
+.skeleton-brand {
+  margin-bottom: var(--spacing-1, 0.25rem);
+}
+
+.skeleton-title {
+  margin-bottom: var(--spacing-2, 0.5rem);
+}
+
+.skeleton-rating {
+  margin-bottom: var(--spacing-3, 0.75rem);
+}
+
+.skeleton-price {
+  margin-top: auto;
+}
+
+/* Empty state */
+.product-grid-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--spacing-12, 3rem) var(--spacing-4, 1rem);
+  min-height: 400px;
+  background: var(--color-background, #ffffff);
+  border-radius: var(--border-radius-lg, 0.5rem);
+  border: 1px solid var(--color-border-light, #f1f1f1);
+}
+
+.empty-icon {
+  margin-bottom: var(--spacing-6, 1.5rem);
+  color: var(--color-text-muted, #999999);
+  opacity: 0.6;
+}
+
+.empty-icon svg {
+  width: 64px;
+  height: 64px;
+}
+
+.empty-title {
+  font-size: var(--font-size-xl, 1.25rem);
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--color-text-primary, #000000);
+  margin: 0 0 var(--spacing-3, 0.75rem) 0;
+}
+
+.empty-description {
+  font-size: var(--font-size-base, 1rem);
+  color: var(--color-text-secondary, #666666);
+  margin: 0 0 var(--spacing-6, 1.5rem) 0;
+  max-width: 400px;
+  line-height: var(--line-height-relaxed, 1.625);
+}
+
+.empty-action {
+  margin-top: var(--spacing-4, 1rem);
+}
+
+/* Load more indicator */
+.load-more-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-8, 2rem) var(--spacing-4, 1rem);
+  margin-top: var(--spacing-6, 1.5rem);
+  opacity: 0;
+  transition: opacity var(--transition-base, 200ms ease);
+}
+
+.load-more-indicator.loading {
+  opacity: 1;
+}
+
+.load-more-spinner {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3, 0.75rem);
+  color: var(--color-text-secondary, #666666);
+  font-size: var(--font-size-sm, 0.875rem);
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-neutral-200, #e0e0e0);
+  border-top: 2px solid var(--color-primary, #000000);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .product-grid-empty {
+    padding: var(--spacing-8, 2rem) var(--spacing-4, 1rem);
+    min-height: 300px;
+  }
+  
+  .empty-icon svg {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .empty-title {
+    font-size: var(--font-size-lg, 1.125rem);
+  }
+  
+  .empty-description {
+    font-size: var(--font-size-sm, 0.875rem);
+  }
+  
+  /* List view adjustments for mobile */
+  .product-grid-list .product-card {
+    flex-direction: column;
+    max-height: none;
+  }
+  
+  .product-grid-list .product-image-container {
+    width: 100%;
+    height: 240px;
+  }
+  
+  .product-grid-list .product-info {
+    padding: var(--spacing-3, 0.75rem);
+  }
+}
+
+@media (max-width: 576px) {
+  .product-grid-skeleton {
+    min-height: 400px;
+  }
+  
+  .skeleton-content {
+    padding: var(--spacing-3, 0.75rem);
+  }
+  
+  .load-more-indicator {
+    padding: var(--spacing-6, 1.5rem) var(--spacing-4, 1rem);
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .product-grid-empty {
+    border-color: var(--color-text-primary, #000000);
+  }
+  
+  .product-grid-skeleton {
+    border-color: var(--color-text-primary, #000000);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+  
+  .load-more-indicator {
+    transition: none;
+  }
+}
+
+/* Focus management for accessibility */
+.product-grid:focus-within .product-card:focus {
+  outline: var(--accessibility-focus-ring-width, 2px) solid var(--accessibility-focus-ring-color, #000000);
+  outline-offset: var(--accessibility-focus-ring-offset, 2px);
+}
+
+/* Loading state overlay */
+.product-grid.loading {
+  position: relative;
+}
+
+.product-grid.loading::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(2px);
+  z-index: var(--z-index-overlay, 100);
+  pointer-events: none;
+}
+
+/* Masonry-like layout for varied content heights */
+.product-grid-masonry .product-grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-auto-rows: max-content;
+  gap: var(--spacing-4, 1rem);
+  align-items: start;
+}
+
+/* Compact grid for smaller screens */
+.product-grid-compact .product-grid-container {
+  gap: var(--spacing-2, 0.5rem);
+}
+
+.product-grid-compact .product-card {
+  min-height: 360px;
+}
+
+.product-grid-compact .product-image-container {
+  height: 240px;
+}
+
+.product-grid-compact .product-info {
+  padding: var(--spacing-3, 0.75rem);
+}
+
+/* Performance optimizations */
+.product-grid-container {
+  contain: layout style;
+}
+
+.product-grid-skeleton {
+  contain: layout style paint;
+}
+
+/* Intersection observer target styling */
+.load-more-indicator {
+  contain: layout;
+  will-change: opacity;
+}
+
+/* Grid item animations */
+.product-card {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Disable animations for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .product-card {
+    animation: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  .product-grid {
+    break-inside: avoid;
+  }
+  
+  .load-more-indicator,
+  .product-grid-skeleton {
+    display: none;
+  }
+  
+  .product-grid-container {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1rem !important;
+  }
+}

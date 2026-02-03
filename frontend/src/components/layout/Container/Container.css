@@ -97,7 +97,7 @@
   }
 }
 
-@media (min-width: 576px) and (max-width: 767.98px) {
+@media (min-width: 576px) and (max-width: 768px) {
   .container-md,
   .container-lg,
   .container-xl,
@@ -149,7 +149,7 @@
   padding-bottom: var(--spacing-8);
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 768px) {
   .container-component.product-grid-container {
     padding-top: var(--spacing-4);
     padding-bottom: var(--spacing-4);
