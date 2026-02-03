@@ -1,10 +1,15 @@
 import { FC, useState } from 'react';
 import { useCartContext } from '../context/CartContext';
-import { Link } from 'react-router-dom';
+import { useAuthContext } from '../context/AuthContext';
+import { useCheckout } from '../hooks/useCheckout';
+import { Link, useNavigate } from 'react-router-dom';
 import './CartPage.css';
 
 const CartPage: FC = () => {
   const { cart, removeFromCart, updateCartItem, getCartTotal } = useCartContext();
+  const { user } = useAuthContext();
+  const { isProcessing, processCheckout } = useCheckout();
+  const navigate = useNavigate();
   const [promoCode, setPromoCode] = useState('');
   const [isPromoExpanded, setIsPromoExpanded] = useState(false);
 
@@ -33,10 +38,24 @@ const CartPage: FC = () => {
     }
   };
 
-  const subtotal = getCartTotal();
+  const handleCheckout = async () => {
+    if (!user) {
+      // Redirect to login or show login modal
+      navigate('/account');
+      return;
+    }
+
+    const order = await processCheckout(user.id, (newOrder) => {
+      // Redirect to orders page after successful checkout
+      navigate('/orders');
+    });
+  };
+
+  const subtotal = getCartTotal() || 0;
   const delivery = 0; // Free delivery
   const total = subtotal + delivery;
   const totalItems = cart.items.reduce((acc, item) => acc + item.cartQuantity, 0);
+  const currency = cart.items.length > 0 ? cart.items[0].currency : 'EUR';
 
   if (cart.items.length === 0) {
     return (
@@ -217,15 +236,15 @@ const CartPage: FC = () => {
               <div className="price-breakdown">
                 <div className="price-row">
                   <span>Subtotal</span>
-                  <span>{cart.items[0]?.currency || 'EUR'} {subtotal.toFixed(2)}</span>
+                  <span>{currency} {subtotal.toFixed(2)}</span>
                 </div>
                 <div className="price-row">
                   <span>Delivery</span>
-                  <span>{delivery === 0 ? 'Free' : `${cart.items[0]?.currency || 'EUR'} ${delivery.toFixed(2)}`}</span>
+                  <span>{delivery === 0 ? 'Free' : `${currency} ${(delivery as number).toFixed(2)}`}</span>
                 </div>
                 <div className="price-row total-row">
                   <span>Total <span className="vat-note">VAT included</span></span>
-                  <span className="total-price">{cart.items[0]?.currency || 'EUR'} {total.toFixed(2)}</span>
+                  <span className="total-price">{currency} {total.toFixed(2)}</span>
                 </div>
               </div>
 
@@ -235,8 +254,13 @@ const CartPage: FC = () => {
               </div>
 
               {/* Checkout Button */}
-              <button className="checkout-btn" data-testid="checkout-button">
-                Go to checkout
+              <button 
+                className="checkout-btn" 
+                data-testid="checkout-button"
+                onClick={handleCheckout}
+                disabled={isProcessing}
+              >
+                {isProcessing ? 'Processing...' : 'Go to checkout'}
               </button>
 
               {/* Payment Methods */}

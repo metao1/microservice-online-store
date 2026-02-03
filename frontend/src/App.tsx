@@ -1,6 +1,8 @@
 import { FC, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
 import 'bootstrap/dist/css/bootstrap.css';
+import 'react-toastify/dist/ReactToastify.css';
 import './index.css';
 import './App.css';
 import HomePage from './pages/HomePage';
@@ -49,6 +51,17 @@ const App: FC = () => {
                 </Routes>
               </Suspense>
             </div>
+            <ToastContainer
+              position="top-right"
+              autoClose={3000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+            />
           </BrowserRouter>
         </CartProvider>
       </AuthProvider>

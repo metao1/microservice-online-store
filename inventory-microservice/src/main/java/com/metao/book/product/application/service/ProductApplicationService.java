@@ -86,8 +86,6 @@ public class ProductApplicationService {
      * Update an existing product
      */
     public Product updateProduct(@Valid UpdateProductCommand command) {
-        log.info("Updating product with SKU: {}", command.sku());
-
         var productSku = ProductSku.of(command.sku());
         var product = productRepository.findBySku(productSku)
             .orElseThrow(() -> new ProductNotFoundException(productSku));
