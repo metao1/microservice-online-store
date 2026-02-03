@@ -8,7 +8,7 @@ import React, { forwardRef } from 'react';
 import { cn } from '../../../styles/utils';
 import './Input.css';
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   /** Input variant */
   variant?: 'default' | 'search' | 'filter';
   /** Input size */
@@ -69,8 +69,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             `input-container-${size}`,
             error && 'input-container-error',
             loading && 'input-container-loading',
-            startIcon && 'input-container-start-icon',
-            endIcon && 'input-container-end-icon'
+            !!startIcon && 'input-container-start-icon',
+            !!endIcon && 'input-container-end-icon'
           )}
         >
           {startIcon && (
