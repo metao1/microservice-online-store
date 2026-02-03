@@ -2,7 +2,7 @@
 
 ## Overview
 
-This design document outlines the comprehensive redesign of an e-commerce frontend to achieve professional, industry-standard quality matching platforms like Zalando, Amazon, and ASOS. The redesign focuses on creating a modern, clean, and highly functional user interface that prioritizes user experience, performance, and conversion optimization.
+This design document outlines the comprehensive redesign of an e-commerce frontend to achieve professional, industry-standard quality matching platforms, Amazon, and ASOS. The redesign focuses on creating a modern, clean, and highly functional user interface that prioritizes user experience, performance, and conversion optimization.
 
 The current React/TypeScript application will be transformed using a component-driven architecture with emphasis on reusability, maintainability, and scalability. The design adopts a minimal aesthetic with professional typography, consistent spacing, and subtle interactions that build user trust and encourage purchases.
 

@@ -210,7 +210,7 @@ export const ProductGrid: FC<ProductGridProps> = ({
     return (
       <div className={gridClasses}>
         <Grid 
-          columns={{ xs: 2, md: 3, xl: 4 }} 
+          columns={{ xs: 2, md: 3, xl: 3 }} 
           gap="md" 
           className="product-grid-container"
         >
@@ -233,7 +233,7 @@ export const ProductGrid: FC<ProductGridProps> = ({
   return (
     <div className={gridClasses}>
       <Grid 
-        columns={{ xs: 2, md: 3, xl: 4 }} 
+        columns={{ xs: 2, md: 3, xl: 3 }} 
         gap="md" 
         className="product-grid-container"
         alignItems="stretch"
@@ -245,7 +245,7 @@ export const ProductGrid: FC<ProductGridProps> = ({
             onAddToCart={handleAddToCart}
             onToggleWishlist={handleToggleWishlist}
             onQuickView={handleQuickView}
-            showQuickActions={true}
+            showQuickActions={false}
           />
         ))}
         

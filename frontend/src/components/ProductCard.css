@@ -102,6 +102,47 @@
   transform: scale(1.05);
 }
 
+/* Products listing page adjustments to match reference layout */
+.products-page .product-card {
+  border-radius: 0;
+  border: 1px solid #efefef;
+  box-shadow: none;
+}
+
+.products-page .product-card:hover,
+.products-page .product-card.hovered {
+  box-shadow: none;
+  transform: none;
+  border-color: #e0e0e0;
+}
+
+.products-page .product-image-container {
+  height: 360px;
+  background: #f6f6f6;
+}
+
+.products-page .product-info {
+  padding: 0.75rem 0.5rem;
+}
+
+.products-page .brand-name {
+  font-size: 0.75rem;
+}
+
+.products-page .rating-section,
+.products-page .sizes-available,
+.products-page .colors-available,
+.products-page .status-badge {
+  display: none;
+}
+
+.products-page .wishlist-btn {
+  background: #ffffff;
+  border-radius: 2px;
+  width: 28px;
+  height: 28px;
+}
+
 /* Status Badges - Clean Design */
 .status-badge {
   position: absolute;

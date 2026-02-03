@@ -182,7 +182,6 @@
   border-bottom: 1px solid var(--color-border-light);
 }
 
-.skeleton-nav-left,
 .skeleton-nav-right {
   display: flex;
   align-items: center;
@@ -287,7 +286,6 @@
     margin: 0 var(--spacing-2);
   }
   
-  .skeleton-nav-left,
   .skeleton-nav-right {
     gap: var(--spacing-2);
   }
