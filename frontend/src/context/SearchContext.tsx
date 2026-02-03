@@ -145,16 +145,16 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children, userId
       const mockSuggestions: SearchSuggestion[] = [
         {
           id: '1',
-          type: 'product',
+          type: 'product' as const,
           text: `${query} dress`,
           category: 'clothing',
-          gender: 'women',
+          gender: 'women' as const,
           matchedText: query,
           popularity: 95,
         },
         {
           id: '2',
-          type: 'category',
+          type: 'category' as const,
           text: `${query} shoes`,
           category: 'shoes',
           matchedText: query,
@@ -162,7 +162,7 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children, userId
         },
         {
           id: '3',
-          type: 'brand',
+          type: 'brand' as const,
           text: `${query} brand`,
           matchedText: query,
           popularity: 76,

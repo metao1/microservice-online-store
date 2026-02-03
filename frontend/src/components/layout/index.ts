@@ -6,5 +6,4 @@
 export { Container } from './Container/Container';
 export { Grid } from './Grid/Grid';
 export { Flex } from './Flex/Flex';
-export { Stack } from './Stack/Stack';
-export { Center } from './Center/Center';
+// Stack/Center were referenced historically but don't exist in this codebase.
