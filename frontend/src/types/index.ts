@@ -1,17 +1,47 @@
 /**
  * Product Types
  */
+export interface ProductImage {
+  id: string;
+  url: string;
+  alt: string;
+  isPrimary: boolean;
+  sortOrder: number;
+}
+
+export interface ProductVariant {
+  id: string;
+  type: 'color' | 'size' | 'style';
+  name: string;
+  value: string;
+  hexColor?: string;
+  inStock: boolean;
+  priceModifier?: number;
+}
+
 export interface Product {
   sku: string;
   title: string;
+  brand?: string;
   price: number;
+  originalPrice?: number;
   currency: string;
   imageUrl: string;
+  images?: ProductImage[];
   description: string;
   rating?: number;
   reviews?: number;
   inStock: boolean;
   quantity?: number;
+  variants?: ProductVariant[];
+  category?: string;
+  tags?: string[];
+  isNew?: boolean;
+  isFeatured?: boolean;
+  isSale?: boolean;
+  salePercentage?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 /**
@@ -65,3 +95,6 @@ export interface Category {
   name: string;
   description?: string;
 }
+
+// Re-export navigation types for convenience
+export * from './navigation';

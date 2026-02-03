@@ -51,8 +51,71 @@ class ApiClient {
   }
 
   /**
-   * Generate a placeholder image URL
+   * Generate mock variant data for products
    */
+  private generateMockVariants(product: Product, index: number): { variants: any[], brand: string, originalPrice?: number, isNew?: boolean, isFeatured?: boolean, isSale?: boolean } {
+    // Generate color variants
+    const colorOptions = [
+      { name: 'Black', value: '#000000', hexColor: '#000000' },
+      { name: 'Navy', value: '#1e3a8a', hexColor: '#1e3a8a' },
+      { name: 'Brown', value: '#8b4513', hexColor: '#8b4513' },
+      { name: 'Gray', value: '#6b7280', hexColor: '#6b7280' },
+      { name: 'White', value: '#ffffff', hexColor: '#ffffff' },
+      { name: 'Red', value: '#dc2626', hexColor: '#dc2626' },
+      { name: 'Blue', value: '#2563eb', hexColor: '#2563eb' },
+      { name: 'Green', value: '#16a34a', hexColor: '#16a34a' }
+    ];
+
+    const sizeOptions = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+    
+    // Generate 2-4 color variants per product
+    const numColors = Math.floor(Math.random() * 3) + 2;
+    const selectedColors = colorOptions.slice(0, numColors);
+    
+    const colorVariants = selectedColors.map((color, i) => ({
+      id: `color-${product.sku}-${i}`,
+      type: 'color' as const,
+      name: color.name,
+      value: color.value,
+      hexColor: color.hexColor,
+      inStock: Math.random() > 0.2, // 80% chance of being in stock
+      priceModifier: 0
+    }));
+
+    // Generate 3-5 size variants per product
+    const numSizes = Math.floor(Math.random() * 3) + 3;
+    const selectedSizes = sizeOptions.slice(0, numSizes);
+    
+    const sizeVariants = selectedSizes.map((size, i) => ({
+      id: `size-${product.sku}-${i}`,
+      type: 'size' as const,
+      name: size,
+      value: size,
+      inStock: Math.random() > 0.3, // 70% chance of being in stock
+      priceModifier: size === 'XXL' ? 5 : 0 // XXL costs $5 more
+    }));
+
+    // Extract brand from title
+    const brand = product.title.split(' ')[0];
+    
+    // Generate discount data
+    const hasDiscount = Math.random() > 0.7; // 30% chance of discount
+    const originalPrice = hasDiscount ? Math.round(product.price * (1.2 + Math.random() * 0.3) * 100) / 100 : undefined;
+    
+    // Product flags
+    const isNew = Math.random() > 0.8; // 20% chance of being new
+    const isFeatured = Math.random() > 0.9; // 10% chance of being featured
+    const isSale = hasDiscount;
+
+    return {
+      variants: [...colorVariants, ...sizeVariants],
+      brand,
+      originalPrice,
+      isNew,
+      isFeatured,
+      isSale
+    };
+  }
   private getPlaceholderImage(title: string, index: number): string {
     // Use a variety of placeholder images for better visual appeal
     const colors = ['4A90E2', '7ED321', 'F5A623', 'D0021B', '9013FE', '50E3C2'];
@@ -83,17 +146,28 @@ class ApiClient {
       const products = response.data;
       
       // Temporary: Override inStock status for testing (remove this in production)
-      const productsWithStock = products.map((product, index) => ({
-        ...product,
-        // Make every 3rd product in stock for testing
-        inStock: index % 3 === 0,
-        // Add some mock ratings for products that don't have them
-        rating: product.rating || (4.0 + Math.random()),
-        reviews: product.reviews || Math.floor(Math.random() * 200) + 10,
-        quantity: index % 3 === 0 ? Math.floor(Math.random() * 20) + 1 : 0,
-        // Fix image URLs - convert HTTP to HTTPS and add fallback
-        imageUrl: this.getValidImageUrl(product.imageUrl, product.title, index)
-      }));
+      const productsWithStock = products.map((product, index) => {
+        const mockData = this.generateMockVariants(product, index);
+        return {
+          ...product,
+          // Make every 3rd product in stock for testing
+          inStock: index % 3 === 0,
+          // Add some mock ratings for products that don't have them
+          rating: product.rating || (4.0 + Math.random()),
+          reviews: product.reviews || Math.floor(Math.random() * 200) + 10,
+          quantity: index % 3 === 0 ? Math.floor(Math.random() * 20) + 1 : 0,
+          // Fix image URLs - convert HTTP to HTTPS and add fallback
+          imageUrl: this.getValidImageUrl(product.imageUrl, product.title, index),
+          // Add enhanced product data
+          variants: mockData.variants,
+          brand: mockData.brand,
+          originalPrice: mockData.originalPrice,
+          isNew: mockData.isNew,
+          isFeatured: mockData.isFeatured,
+          isSale: mockData.isSale,
+          salePercentage: mockData.originalPrice ? Math.round(((mockData.originalPrice - product.price) / mockData.originalPrice) * 100) : undefined
+        };
+      });
       
       return productsWithStock;
     } catch (error) {
@@ -131,7 +205,9 @@ class ApiClient {
         reviews: productData.reviews || Math.floor(Math.random() * 200) + 10,
         quantity: Math.floor(Math.random() * 20) + 1,
         // Fix image URL
-        imageUrl: this.getValidImageUrl(productData.imageUrl, productData.title, 0)
+        imageUrl: this.getValidImageUrl(productData.imageUrl, productData.title, 0),
+        // Add enhanced product data
+        ...this.generateMockVariants(productData, 0)
       };
       
       return productWithStock;
@@ -153,17 +229,28 @@ class ApiClient {
       console.log('Search response from backend:', response.data);
       
       // Apply the same stock status override as in getProducts
-      const productsWithStock = response.data.map((product, index) => ({
-        ...product,
-        // Make every 3rd product in stock for testing
-        inStock: index % 3 === 0,
-        // Add some mock ratings for products that don't have them
-        rating: product.rating || (4.0 + Math.random()),
-        reviews: product.reviews || Math.floor(Math.random() * 200) + 10,
-        quantity: index % 3 === 0 ? Math.floor(Math.random() * 20) + 1 : 0,
-        // Fix image URLs
-        imageUrl: this.getValidImageUrl(product.imageUrl, product.title, index)
-      }));
+      const productsWithStock = response.data.map((product, index) => {
+        const mockData = this.generateMockVariants(product, index);
+        return {
+          ...product,
+          // Make every 3rd product in stock for testing
+          inStock: index % 3 === 0,
+          // Add some mock ratings for products that don't have them
+          rating: product.rating || (4.0 + Math.random()),
+          reviews: product.reviews || Math.floor(Math.random() * 200) + 10,
+          quantity: index % 3 === 0 ? Math.floor(Math.random() * 20) + 1 : 0,
+          // Fix image URLs
+          imageUrl: this.getValidImageUrl(product.imageUrl, product.title, index),
+          // Add enhanced product data
+          variants: mockData.variants,
+          brand: mockData.brand,
+          originalPrice: mockData.originalPrice,
+          isNew: mockData.isNew,
+          isFeatured: mockData.isFeatured,
+          isSale: mockData.isSale,
+          salePercentage: mockData.originalPrice ? Math.round(((mockData.originalPrice - product.price) / mockData.originalPrice) * 100) : undefined
+        };
+      });
       
       return productsWithStock;
     } catch (error) {

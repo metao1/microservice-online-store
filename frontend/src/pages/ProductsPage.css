@@ -1,4 +1,4 @@
-/* Zalando-Inspired Black Sidebar Design */
+/* Black Sidebar Design */
 .products-page {
   background-color: #ffffff;
   min-height: 100vh;
@@ -263,7 +263,7 @@
   color: #666666;
 }
 
-/* Products Grid */
+/* Products Content */
 .products-content {
   background-color: #ffffff;
   animation: fadeIn 0.5s ease-in-out;
@@ -280,40 +280,18 @@
   }
 }
 
+/* ProductGrid integration */
+.products-page-grid {
+  width: 100%;
+}
+
+/* Remove old grid styles since ProductGrid handles this now */
 .products-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 2rem;
-  padding: 0;
+  display: none; /* Legacy grid - replaced by ProductGrid component */
 }
 
 .product-grid-item {
-  display: flex;
-  flex-direction: column;
-  animation: slideUp 0.6s ease-out;
-  animation-fill-mode: both;
-}
-
-.product-grid-item:nth-child(1) { animation-delay: 0.1s; }
-.product-grid-item:nth-child(2) { animation-delay: 0.2s; }
-.product-grid-item:nth-child(3) { animation-delay: 0.3s; }
-.product-grid-item:nth-child(4) { animation-delay: 0.4s; }
-.product-grid-item:nth-child(n+5) { animation-delay: 0.5s; }
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.product-grid-item .product-card {
-  height: 100%;
-  flex: 1;
+  display: none; /* Legacy grid item - replaced by ProductGrid component */
 }
 
 /* Loading State */
@@ -371,8 +349,7 @@
   }
   
   .products-grid {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1.5rem;
+    display: none; /* Legacy - replaced by ProductGrid */
   }
 }
 
@@ -435,15 +412,13 @@
   }
   
   .products-grid {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1rem;
+    display: none; /* Legacy - replaced by ProductGrid */
   }
 }
 
 @media (max-width: 480px) {
   .products-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
+    display: none; /* Legacy - replaced by ProductGrid */
   }
   
   .filter-bar {

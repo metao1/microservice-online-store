@@ -6,14 +6,13 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import * as fc from 'fast-check';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import ProductCard from './ProductCard';
 import { CartProvider } from '../context/CartContext';
-import { Product } from '../types';
 
 // Mock the cart context
 const mockAddToCart = vi.fn();
