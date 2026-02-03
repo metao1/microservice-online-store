@@ -6,6 +6,7 @@ import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.product.domain.repository.CategoryRepository;
 import com.metao.book.product.infrastructure.persistence.entity.CategoryEntity;
 import com.metao.book.product.infrastructure.persistence.mapper.CategoryEntityMapper;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -31,6 +32,16 @@ public class CategoryRepositoryImpl implements CategoryRepository {
     public Optional<ProductCategory> findById(CategoryId categoryId) {
         return jpaCategoryRepository.findById(categoryId.value())
             .map(categoryEntityMapper::toDomain);
+    }
+
+    @Override
+    public List<ProductCategory> findAll(int offset, int limit) {
+        return jpaCategoryRepository.findAll()
+            .stream()
+            .skip(offset)
+            .limit(limit)
+            .map(categoryEntityMapper::toDomain)
+            .toList();
     }
 
     @Override

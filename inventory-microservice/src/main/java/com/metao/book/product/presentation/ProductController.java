@@ -110,6 +110,17 @@ public class ProductController {
             .toList();
     }
 
+    @GetMapping("/categories")
+    public List<ProductDTO> getCategories(
+        @RequestParam(value = "offset", defaultValue = "0") int offset,
+        @RequestParam(value = "limit", defaultValue = "10") int limit
+    ) {
+        var products = productApplicationService.getProducts(offset, limit);
+        return products.stream()
+            .map(productMapper::toDTO)
+            .toList();
+    }
+
     @GetMapping("/{sku}/related")
     public List<ProductDTO> getRelatedProducts(
         @PathVariable String sku,

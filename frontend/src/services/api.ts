@@ -253,7 +253,7 @@ class ApiClient {
       
       // Backend seems to return just a number instead of cart data
       // Let's fetch the updated cart after adding the item
-      if (typeof response.data === 'number' || !response.data.items) {
+      if (typeof response.data === 'number' || !response.data || !('items' in response.data)) {
         console.log('Backend returned simple response, fetching updated cart...');
         const updatedCart = await this.getCart(userId);
         return updatedCart;
@@ -326,7 +326,7 @@ class ApiClient {
       
       // Backend seems to return just a number instead of cart data
       // Let's fetch the updated cart after updating the item
-      if (typeof response.data === 'number' || !response.data.items) {
+      if (typeof response.data === 'number' || !response.data || !('items' in response.data)) {
         console.log('Backend returned simple response, fetching updated cart...');
         const updatedCart = await this.getCart(userId);
         return updatedCart;
@@ -344,10 +344,64 @@ class ApiClient {
    */
   async createOrder(userId: string): Promise<Order> {
     try {
-      const response = await this.cartClient.post<ApiResponse<Order>>(`/orders`, {
-        userId,
+      const response = await this.cartClient.post<any>(`/api/order`, {
+        user_id: userId,
       });
-      return response.data.data;
+      console.log('Create order response from backend:', response.data);
+      
+      // Backend returns order directly, transform to match frontend Order interface
+      const backendOrder = response.data;
+      
+      // Enrich order items with product details if items exist
+      let enrichedItems = [];
+      if (backendOrder.items && Array.isArray(backendOrder.items)) {
+        enrichedItems = await Promise.all(
+          backendOrder.items.map(async (item: any) => {
+            try {
+              // Try to fetch product details for each order item
+              const productDetails = await this.getProductById(item.sku);
+              return {
+                sku: item.sku,
+                title: productDetails.title || item.name || `Product ${item.sku}`,
+                price: item.price,
+                currency: item.currency || 'USD',
+                imageUrl: productDetails.imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=500&fit=crop',
+                description: productDetails.description || 'Product description',
+                rating: productDetails.rating || 4.5,
+                reviews: productDetails.reviews || 100,
+                inStock: productDetails.inStock !== false,
+                quantity: productDetails.quantity || 10,
+                cartQuantity: item.quantity
+              };
+            } catch (error) {
+              console.warn(`Failed to fetch details for product ${item.sku}:`, error);
+              // Fallback to basic item data
+              return {
+                sku: item.sku,
+                title: item.name || `Product ${item.sku}`,
+                price: item.price,
+                currency: item.currency || 'USD',
+                imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=500&fit=crop',
+                description: 'Product description',
+                rating: 4.5,
+                reviews: 100,
+                inStock: true,
+                quantity: 10,
+                cartQuantity: item.quantity
+              };
+            }
+          })
+        );
+      }
+
+      return {
+        id: backendOrder.id || backendOrder.orderId || `ORDER-${Date.now()}`,
+        userId: backendOrder.userId || backendOrder.customerId || userId,
+        items: enrichedItems,
+        total: backendOrder.total || enrichedItems.reduce((sum, item) => sum + (item.price * item.cartQuantity), 0),
+        status: this.mapOrderStatus(backendOrder.status || 'PENDING'),
+        createdAt: backendOrder.createdAt || backendOrder.orderDate || new Date().toISOString()
+      };
     } catch (error) {
       console.error('Failed to create order:', error);
       throw error;
@@ -356,13 +410,92 @@ class ApiClient {
 
   async getOrders(userId: string): Promise<Order[]> {
     try {
-      const response = await this.cartClient.get<ApiResponse<Order[]>>(`/orders`, {
-        params: { userId },
-      });
-      return response.data.data;
+      const response = await this.cartClient.get<Order[]>(`/api/order/customer/${userId}`);
+      console.log('Orders response from backend:', response.data);
+      
+      // Backend returns array directly, transform to match frontend Order interface
+      const orders = Array.isArray(response.data) ? response.data : [];
+      
+      // Transform backend order format to frontend format
+      const transformedOrders = await Promise.all(
+        orders.map(async (backendOrder: any) => {
+          // Enrich order items with product details
+          const enrichedItems = await Promise.all(
+            (backendOrder.items || []).map(async (item: any) => {
+              try {
+                // Try to fetch product details for each order item
+                const productDetails = await this.getProductById(item.sku);
+                return {
+                  sku: item.sku,
+                  title: productDetails.title || item.name || `Product ${item.sku}`,
+                  price: item.price,
+                  currency: item.currency || 'USD',
+                  imageUrl: productDetails.imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=500&fit=crop',
+                  description: productDetails.description || 'Product description',
+                  rating: productDetails.rating || 4.5,
+                  reviews: productDetails.reviews || 100,
+                  inStock: productDetails.inStock !== false,
+                  quantity: productDetails.quantity || 10,
+                  cartQuantity: item.quantity
+                };
+              } catch (error) {
+                console.warn(`Failed to fetch details for product ${item.sku}:`, error);
+                // Fallback to basic item data
+                return {
+                  sku: item.sku,
+                  title: item.name || `Product ${item.sku}`,
+                  price: item.price,
+                  currency: item.currency || 'USD',
+                  imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=500&fit=crop',
+                  description: 'Product description',
+                  rating: 4.5,
+                  reviews: 100,
+                  inStock: true,
+                  quantity: 10,
+                  cartQuantity: item.quantity
+                };
+              }
+            })
+          );
+
+          return {
+            id: backendOrder.id || backendOrder.orderId,
+            userId: backendOrder.userId || backendOrder.customerId,
+            items: enrichedItems,
+            total: backendOrder.total || enrichedItems.reduce((sum, item) => sum + (item.price * item.cartQuantity), 0),
+            status: this.mapOrderStatus(backendOrder.status),
+            createdAt: backendOrder.createdAt || backendOrder.orderDate || new Date().toISOString()
+          };
+        })
+      );
+      
+      return transformedOrders;
     } catch (error) {
       console.error('Failed to fetch orders:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Map backend order status to frontend status
+   */
+  private mapOrderStatus(backendStatus: string): 'PENDING' | 'CONFIRMED' | 'SHIPPED' | 'DELIVERED' {
+    const status = (backendStatus || '').toUpperCase();
+    switch (status) {
+      case 'PENDING':
+      case 'PROCESSING':
+        return 'PENDING';
+      case 'CONFIRMED':
+      case 'CONFIRMED_ORDER':
+        return 'CONFIRMED';
+      case 'SHIPPED':
+      case 'IN_TRANSIT':
+        return 'SHIPPED';
+      case 'DELIVERED':
+      case 'COMPLETED':
+        return 'DELIVERED';
+      default:
+        return 'PENDING';
     }
   }
 }
