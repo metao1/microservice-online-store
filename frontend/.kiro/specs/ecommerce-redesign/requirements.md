@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This specification defines the requirements for redesigning an existing e-commerce frontend to match modern industry standards exemplified by leading platforms like Zalando, Amazon, ASOS, and other professional e-commerce sites. The current application has basic functionality but lacks the professional design, user experience, and modern interface patterns expected in today's competitive e-commerce landscape.
+This specification defines the requirements for redesigning an existing e-commerce frontend to match modern industry standards exemplified by leading platforms like Amazon, ASOS, and other professional e-commerce sites. The current application has basic functionality but lacks the professional design, user experience, and modern interface patterns expected in today's competitive e-commerce landscape.
 
 ## Glossary
 

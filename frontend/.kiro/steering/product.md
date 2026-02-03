@@ -19,4 +19,4 @@ The application serves as a demonstration of modern e-commerce frontend patterns
 
 ## Business Context
 
-The application follows industry standards exemplified by platforms like Zalando, Amazon, and ASOS, focusing on clean design, professional user experience, and modern interface patterns.
+The application follows industry standards exemplified by platforms like Amazon, and ASOS, focusing on clean design, professional user experience, and modern interface patterns.

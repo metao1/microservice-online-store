@@ -1,6 +1,6 @@
 /**
  * Navigation Component
- * Redesigned to match Zalando-like layout across desktop and mobile.
+ * Redesigned to match layout across desktop and mobile.
  */
 
 import { FC, useState, useRef, useEffect } from 'react';

@@ -1,6 +1,5 @@
 /**
  * Navigation Component Property-Based Tests
- * Updated for Zalando-like layout.
  */
 
 import React from 'react';
@@ -57,38 +56,38 @@ const createMockCart = (totalItems: number): Cart => {
   };
 };
 
-const TestWrapper: React.FC<{ 
-  children: React.ReactNode; 
+const TestWrapper: React.FC<{
+  children: React.ReactNode;
   userId?: string;
   cartItemCount?: number;
-}> = ({ 
-  children, 
+}> = ({
+  children,
   userId = mockUser.id,
   cartItemCount = 0
 }) => {
-  const mockCart = createMockCart(cartItemCount);
+    const mockCart = createMockCart(cartItemCount);
 
-  mockUseCart.mockReturnValue({
-    cart: mockCart,
-    loading: false,
-    error: null,
-    fetchCart: vi.fn(),
-    addToCart: vi.fn(),
-    removeFromCart: vi.fn(),
-    updateCartItem: vi.fn(),
-    getCartTotal: vi.fn(() => mockCart.total)
-  });
+    mockUseCart.mockReturnValue({
+      cart: mockCart,
+      loading: false,
+      error: null,
+      fetchCart: vi.fn(),
+      addToCart: vi.fn(),
+      removeFromCart: vi.fn(),
+      updateCartItem: vi.fn(),
+      getCartTotal: vi.fn(() => mockCart.total)
+    });
 
-  return (
-    <BrowserRouter>
-      <AuthProvider initialUser={mockUser}>
-        <CartProvider userId={userId}>
-          {children}
-        </CartProvider>
-      </AuthProvider>
-    </BrowserRouter>
-  );
-};
+    return (
+      <BrowserRouter>
+        <AuthProvider initialUser={mockUser}>
+          <CartProvider userId={userId}>
+            {children}
+          </CartProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    );
+  };
 
 describe('Navigation Component - Property Tests', () => {
   beforeEach(() => {
