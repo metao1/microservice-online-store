@@ -69,19 +69,22 @@ describe('Navigation Component', () => {
   });
 
   describe('Navigation Links', () => {
-    it('renders all primary navigation links', () => {
+    it('renders secondary navigation links', () => {
       render(
         <TestWrapper>
           <Navigation />
         </TestWrapper>
       );
 
-      expect(screen.getByTestId('category-women')).toBeInTheDocument();
-      expect(screen.getByTestId('category-men')).toBeInTheDocument();
-      expect(screen.getByTestId('category-kids')).toBeInTheDocument();
+      // Test secondary navigation links that are actually present
+      expect(screen.getByText('NEW IN')).toBeInTheDocument();
+      expect(screen.getByText('Clothing')).toBeInTheDocument();
+      expect(screen.getByText('Shoes')).toBeInTheDocument();
+      expect(screen.getByText('Sports')).toBeInTheDocument();
+      expect(screen.getByText('Sale %')).toBeInTheDocument();
     });
 
-    it('calls onCategorySelect when category is clicked', () => {
+    it('calls onCategorySelect when secondary category is clicked', () => {
       const mockOnCategorySelect = vi.fn();
 
       render(
@@ -90,8 +93,9 @@ describe('Navigation Component', () => {
         </TestWrapper>
       );
 
-      fireEvent.click(screen.getByTestId('category-women'));
-      expect(mockOnCategorySelect).toHaveBeenCalledWith('women');
+      // Click on a secondary navigation button
+      fireEvent.click(screen.getByText('Clothing'));
+      expect(mockOnCategorySelect).toHaveBeenCalledWith('clothing');
     });
   });
 

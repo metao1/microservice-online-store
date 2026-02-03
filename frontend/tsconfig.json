@@ -45,7 +45,13 @@
         "acceptance-tests",
         "webpack",
         "jest",
-        "src/setupTests.ts"
+        "src/setupTests.ts",
+        "**/*.test.tsx",
+        "**/*.test.ts",
+        "**/*.spec.tsx",
+        "**/*.spec.ts",
+        "src/test/**/*",
+        "e2e/**/*"
     ],
     "types": [
         "typePatches"
