@@ -1,7 +1,6 @@
 /**
- * Modern Navigation Component
- * Professional navigation system with clean header layout, search integration, and cart functionality
- * Based on requirements 1.1, 1.3, 1.5
+ * Navigation Component
+ * Redesigned to match Zalando-like layout across desktop and mobile.
  */
 
 import { FC, useState, useRef, useEffect } from 'react';
@@ -12,7 +11,7 @@ import { Category } from '../types';
 import { apiClient } from '../services/api';
 import './Navigation.css';
 
-// Search icon component
+// Icon components
 const SearchIcon: FC<{ className?: string }> = ({ className }) => (
   <svg
     className={className}
@@ -30,12 +29,11 @@ const SearchIcon: FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-// User icon component
 const UserIcon: FC<{ className?: string }> = ({ className }) => (
   <svg
     className={className}
-    width="14"
-    height="14"
+    width="16"
+    height="16"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -48,12 +46,11 @@ const UserIcon: FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-// Shopping bag icon component
 const ShoppingBagIcon: FC<{ className?: string }> = ({ className }) => (
   <svg
     className={className}
-    width="14"
-    height="14"
+    width="16"
+    height="16"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -67,12 +64,11 @@ const ShoppingBagIcon: FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-// Heart icon component
 const HeartIcon: FC<{ className?: string }> = ({ className }) => (
   <svg
     className={className}
-    width="14"
-    height="14"
+    width="16"
+    height="16"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -84,7 +80,40 @@ const HeartIcon: FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-// Menu icon component
+const GlobeIcon: FC<{ className?: string }> = ({ className }) => (
+  <svg
+    className={className}
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <circle cx="12" cy="12" r="10" />
+    <path d="M2 12h20" />
+    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+  </svg>
+);
+
+const ChevronDownIcon: FC<{ className?: string }> = ({ className }) => (
+  <svg
+    className={className}
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="6 9 12 15 18 9" />
+  </svg>
+);
+
 const MenuIcon: FC<{ className?: string }> = ({ className }) => (
   <svg
     className={className}
@@ -103,6 +132,23 @@ const MenuIcon: FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
+const BackIcon: FC<{ className?: string }> = ({ className }) => (
+  <svg
+    className={className}
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="19" y1="12" x2="5" y2="12" />
+    <polyline points="12 19 5 12 12 5" />
+  </svg>
+);
+
 interface NavigationProps {
   categories?: Category[];
   onSearch?: (query: string) => void;
@@ -114,11 +160,6 @@ const Navigation: FC<NavigationProps> = ({
     { id: 'women', name: 'Women' },
     { id: 'men', name: 'Men' },
     { id: 'kids', name: 'Kids' },
-    { id: 'shoes', name: 'Shoes' },
-    { id: 'accessories', name: 'Accessories' },
-    { id: 'beauty', name: 'Beauty' },
-    { id: 'sports', name: 'Sports' },
-    { id: 'sale', name: 'Sale' },
   ],
   onSearch,
   onCategorySelect,
@@ -128,31 +169,53 @@ const Navigation: FC<NavigationProps> = ({
   const location = useLocation();
   const navigate = useNavigate();
 
+  const utilityLinks = [
+    'Help and contact',
+    'Free standard delivery over €29,90 & free returns*',
+    '30-day return policy',
+    'Gift Cards'
+  ];
+
+  const secondaryCategories = [
+    { id: 'new-in', name: 'NEW IN' },
+    { id: 'clothing', name: 'Clothing' },
+    { id: 'shoes', name: 'Shoes' },
+    { id: 'sports', name: 'Sports' },
+    { id: 'streetwear', name: 'Streetwear' },
+    { id: 'accessories', name: 'Accessories' },
+    { id: 'beauty', name: 'Beauty' },
+    { id: 'designer', name: 'Designer' },
+    { id: 'brands', name: 'Brands' },
+    { id: 'sale', name: 'Sale %', isSale: true },
+    { id: 'pre-owned', name: 'Pre-owned' },
+  ];
+
   // State management
   const [searchQuery, setSearchQuery] = useState('');
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
+  const [isMobileSearchActive, setIsMobileSearchActive] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(max-width: 900px)').matches;
+  });
 
   // Refs
-  const searchRef = useRef<HTMLInputElement>(null);
-  const accountDropdownRef = useRef<HTMLDivElement>(null);
-  const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const desktopSearchRef = useRef<HTMLInputElement>(null);
+  const mobileSearchRef = useRef<HTMLInputElement>(null);
 
   const isActive = (path: string) => location.pathname === path;
 
   // Handle search functionality
-  const handleSearchChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
-    setSearchQuery(query);
+  const handleSearchChange = async (value: string) => {
+    setSearchQuery(value);
 
-    // Get real search suggestions from API
-    if (query.length > 2) {
+    if (value.length > 2) {
       setIsLoadingSuggestions(true);
       try {
-        const suggestions = await apiClient.searchProducts(query, 5, 0);
+        const suggestions = await apiClient.searchProducts(value, 5, 0);
         const suggestionTitles = suggestions.map(product => product.title).slice(0, 5);
         setSearchSuggestions(suggestionTitles);
       } catch (error) {
@@ -174,6 +237,7 @@ const Navigation: FC<NavigationProps> = ({
       navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
       setIsSearchFocused(false);
       setSearchSuggestions([]);
+      setIsMobileSearchActive(false);
     }
   };
 
@@ -183,6 +247,7 @@ const Navigation: FC<NavigationProps> = ({
     navigate(`/products?search=${encodeURIComponent(suggestion)}`);
     setIsSearchFocused(false);
     setSearchSuggestions([]);
+    setIsMobileSearchActive(false);
   };
 
   const handleCategoryClick = (category: Category) => {
@@ -191,352 +256,286 @@ const Navigation: FC<NavigationProps> = ({
     setIsMobileMenuOpen(false);
   };
 
+  const handleSearchFocus = (isMobile: boolean) => {
+    setIsSearchFocused(true);
+    if (isMobile) {
+      setIsMobileSearchActive(true);
+    }
+  };
+
+  const handleMobileSearchBack = () => {
+    setIsMobileSearchActive(false);
+    setIsSearchFocused(false);
+    setSearchSuggestions([]);
+    if (mobileSearchRef.current) {
+      mobileSearchRef.current.blur();
+    }
+  };
+
   // Close mobile menu on route change
   useEffect(() => {
     setIsMobileMenuOpen(false);
+    setIsMobileSearchActive(false);
+    setIsSearchFocused(false);
   }, [location.pathname]);
 
-  // Handle click outside account dropdown
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (accountDropdownRef.current && !accountDropdownRef.current.contains(event.target as Node)) {
-        setIsAccountDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (dropdownTimeoutRef.current) {
-        clearTimeout(dropdownTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  // Handle dropdown hover with delay
-  const handleDropdownMouseEnter = () => {
-    if (dropdownTimeoutRef.current) {
-      clearTimeout(dropdownTimeoutRef.current);
+    if (!isMobileView) {
+      document.body.style.overflow = '';
+      return;
     }
-    setIsAccountDropdownOpen(true);
-  };
+    document.body.style.overflow = isMobileSearchActive ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileSearchActive, isMobileView]);
 
-  const handleDropdownMouseLeave = () => {
-    dropdownTimeoutRef.current = setTimeout(() => {
-      setIsAccountDropdownOpen(false);
-    }, 300); // Increased to 300ms delay before closing
-  };
+  // Keep mobile-only UI in sync when resizing across breakpoints
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mediaQuery = window.matchMedia('(max-width: 900px)');
+
+    const handleChange = (event: MediaQueryListEvent | MediaQueryList) => {
+      const matches = 'matches' in event ? event.matches : event.matches;
+      setIsMobileView(matches);
+      if (!matches) {
+        setIsMobileSearchActive(false);
+        setIsSearchFocused(false);
+        setSearchSuggestions([]);
+      }
+    };
+
+    handleChange(mediaQuery);
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    }
+
+    mediaQuery.addListener(handleChange);
+    return () => mediaQuery.removeListener(handleChange);
+  }, []);
 
   return (
-    <header className="navigation" data-testid="navbar">
-      {/* Top Bar - User Actions (Desktop Only) */}
-      <div className="top-bar">
-        <div className="top-bar-container">
-          <div className="top-bar-spacer"></div>
-          
-          {/* User Actions */}
-          <div className="top-bar-actions">
-            {/* Account Link with Dropdown */}
-            <div 
-              className="account-dropdown-container"
-              ref={accountDropdownRef}
-              onMouseEnter={handleDropdownMouseEnter}
-              onMouseLeave={handleDropdownMouseLeave}
-            >
+    <header className={`navigation ${isSearchFocused && !isMobileView ? 'search-focused' : ''}`} data-testid="navbar">
+      {/* Utility Bar */}
+      <div className="utility-bar">
+        <div className="utility-bar-container">
+          {utilityLinks.map((item) => (
+            <span key={item} className="utility-item">{item}</span>
+          ))}
+        </div>
+      </div>
+
+      {/* Main Navigation */}
+      <div className="nav-shell">
+        <div className="nav-row">
+          <div className="nav-brand">
+            <Link to="/" className="nav-brand-logo" data-testid="nav-brand-logo">
+              <span className="brand-mark" aria-hidden="true"></span>
+              <span className="brand-text">ModernStore</span>
+            </Link>
+          </div>
+
+          <div className="nav-right">
+            <div className="nav-icons">
+              <button className="lang-toggle" type="button">EN</button>
+              <button className="icon-button" type="button" aria-label="Change region">
+                <GlobeIcon />
+              </button>
               <Link
                 to="/account"
-                className={`top-action-link ${isActive('/account') ? 'top-action-link-active' : ''}`}
+                className={`icon-link ${isActive('/account') ? 'active' : ''}`}
                 data-testid="account-link"
               >
                 <UserIcon />
               </Link>
-              
-              {/* Account Dropdown */}
-              {isAccountDropdownOpen && (
-                <div 
-                  className="account-dropdown"
-                  onMouseEnter={handleDropdownMouseEnter}
-                  onMouseLeave={handleDropdownMouseLeave}
-                >
-                  <div className="account-dropdown-content">
-                    <Link 
-                      to="/account" 
-                      className="account-dropdown-item account-main-item"
-                      onClick={() => {
-                        if (dropdownTimeoutRef.current) {
-                          clearTimeout(dropdownTimeoutRef.current);
-                        }
-                        setIsAccountDropdownOpen(false);
-                      }}
-                    >
-                      Your account
-                    </Link>
-                    
-                    <Link 
-                      to="/orders" 
-                      className="account-dropdown-item"
-                      onClick={() => {
-                        if (dropdownTimeoutRef.current) {
-                          clearTimeout(dropdownTimeoutRef.current);
-                        }
-                        setIsAccountDropdownOpen(false);
-                      }}
-                    >
-                      Orders
-                    </Link>
-                    
-                    <Link 
-                      to="/returns" 
-                      className="account-dropdown-item"
-                      onClick={() => {
-                        if (dropdownTimeoutRef.current) {
-                          clearTimeout(dropdownTimeoutRef.current);
-                        }
-                        setIsAccountDropdownOpen(false);
-                      }}
-                    >
-                      Return an item
-                    </Link>
-                    
-                    <Link 
-                      to="/sizes" 
-                      className="account-dropdown-item"
-                      onClick={() => {
-                        if (dropdownTimeoutRef.current) {
-                          clearTimeout(dropdownTimeoutRef.current);
-                        }
-                        setIsAccountDropdownOpen(false);
-                      }}
-                    >
-                      Your sizes
-                    </Link>                                     
-                    <Link 
-                      to="/appearance" 
-                      className="account-dropdown-item"
-                      onClick={() => {
-                        if (dropdownTimeoutRef.current) {
-                          clearTimeout(dropdownTimeoutRef.current);
-                        }
-                        setIsAccountDropdownOpen(false);
-                      }}
-                    >
-                      Change appearance
-                    </Link>
-                    
-                    <Link 
-                      to="/help" 
-                      className="account-dropdown-item"
-                      onClick={() => {
-                        if (dropdownTimeoutRef.current) {
-                          clearTimeout(dropdownTimeoutRef.current);
-                        }
-                        setIsAccountDropdownOpen(false);
-                      }}
-                    >
-                      Help & FAQ
-                    </Link>
-                    
-                    <div className="account-dropdown-divider"></div>
-                    
-                    <div className="account-dropdown-user">
-                      <span className="user-email">Not yaboci8065@aixind.com?</span>
-                      <button 
-                        className="sign-out-link"
-                        onClick={() => {
-                          if (dropdownTimeoutRef.current) {
-                            clearTimeout(dropdownTimeoutRef.current);
-                          }
-                          setIsAccountDropdownOpen(false);
-                          // Add sign out logic here
-                          console.log('Sign out clicked');
-                        }}
-                      >
-                        Sign out
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
+              <Link
+                to="/wishlist"
+                className={`icon-link ${isActive('/wishlist') ? 'active' : ''}`}
+                data-testid="wishlist-link"
+              >
+                <HeartIcon />
+              </Link>
+              <Link
+                to="/cart"
+                className={`icon-link ${isActive('/cart') ? 'active' : ''}`}
+                data-testid="cart-link"
+              >
+                <ShoppingBagIcon />
+                {itemCount > 0 && (
+                  <Badge
+                    variant="secondary"
+                    size="sm"
+                    count={itemCount}
+                    className="cart-badge"
+                    data-testid="cart-badge"
+                  />
+                )}
+              </Link>
             </div>
 
-            {/* Wishlist Link */}
-            <Link
-              to="/wishlist"
-              className={`top-action-link ${isActive('/wishlist') ? 'top-action-link-active' : ''}`}
-              data-testid="wishlist-link"
-            >
-              <HeartIcon />
-            </Link>
+            {/* Desktop Search */}
+            <div className="nav-search nav-search-desktop">
+              <form onSubmit={handleSearchSubmit} className="search-form">
+                <div className="search-input-wrapper">
+                  <SearchIcon className="search-icon" />
+                  <input
+                    ref={desktopSearchRef}
+                    type="text"
+                    placeholder="Search"
+                    value={searchQuery}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    onFocus={() => handleSearchFocus(false)}
+                    onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                    className="search-input"
+                    data-testid="search-input"
+                    role="combobox"
+                    aria-label="Search products"
+                    aria-haspopup="listbox"
+                    aria-expanded={isSearchFocused && (searchSuggestions.length > 0 || searchQuery.length > 2)}
+                    autoComplete="off"
+                    spellCheck="false"
+                  />
+                </div>
 
-            {/* Cart Link */}
-            <Link
-              to="/cart"
-              className={`top-action-link ${isActive('/cart') ? 'top-action-link-active' : ''}`}
-              data-testid="cart-link"
-            >
-              <ShoppingBagIcon />
-              {itemCount > 0 && (
-                <Badge
-                  variant="secondary"
-                  size="sm"
-                  count={itemCount}
-                  className="cart-badge"
-                  data-testid="cart-badge"
-                />
-              )}
-            </Link>
+                {isSearchFocused && (
+                  <div className="search-suggestions" data-testid="search-suggestions">
+                    {isLoadingSuggestions ? (
+                      <div className="search-suggestion loading-suggestion">
+                        <SearchIcon className="suggestion-icon" />
+                        Searching...
+                      </div>
+                    ) : searchSuggestions.length > 0 ? (
+                      searchSuggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          className="search-suggestion"
+                          onClick={() => handleSuggestionClick(suggestion)}
+                          data-testid={`search-suggestion-${index}`}
+                        >
+                          <SearchIcon className="suggestion-icon" />
+                          {suggestion}
+                        </button>
+                      ))
+                    ) : searchQuery.length > 2 ? (
+                      <div className="search-suggestion no-results">
+                        <SearchIcon className="suggestion-icon" />
+                        No suggestions found
+                      </div>
+                    ) : null}
+                  </div>
+                )}
+              </form>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Main Navigation Container */}
-      <div className="nav-container">
-        {/* Mobile Menu Toggle */}
-        <button
-          className="mobile-menu-toggle"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          aria-expanded={isMobileMenuOpen}
-          aria-label="Toggle mobile menu"
-          data-testid="mobile-menu-toggle"
-        >
-          <MenuIcon />
-        </button>
-
-        {/* Categories Navigation (Desktop) / Hidden on Mobile */}
-        <nav className="nav-categories" role="navigation" aria-label="Main navigation">
-          {categories.map((category) => (
+        {/* Secondary Categories */}
+        <div className="nav-secondary" role="navigation" aria-label="Secondary navigation">
+          {secondaryCategories.map((category) => (
             <button
               key={category.id}
-              onClick={() => handleCategoryClick(category)}
-              className={`nav-category ${category.id === 'sale' ? 'nav-category-sale' : ''} ${isActive(`/products?category=${category.id}`) ? 'nav-category-active' : ''}`}
-              data-testid={`category-${category.id}`}
+              className={`nav-secondary-link ${category.isSale ? 'sale' : ''}`}
+              onClick={() => handleCategoryClick({ id: category.id, name: category.name })}
             >
               {category.name}
             </button>
           ))}
-        </nav>
-
-        {/* Brand Logo (Center) */}
-        <div className="nav-brand">
-          <Link to="/" className="nav-brand-logo" data-testid="nav-brand-logo">
-            <span className="brand-text">ModernStore</span>
-          </Link>
         </div>
 
-        {/* Search Container (Desktop Right / Mobile Full Width Below) */}
-        <div className="nav-search">
-          <div className={`search-container ${isSearchFocused ? 'search-focused' : ''}`}>
-            <form onSubmit={handleSearchSubmit} className="search-form">
-              <div className="search-input-wrapper">
-                <div className="search-icon-container">
+        {/* Mobile search row */}
+        {!isMobileSearchActive && (
+          <div className="nav-search-row">
+            <button
+              className="mobile-menu-toggle"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-expanded={isMobileMenuOpen}
+              aria-label="Toggle mobile menu"
+              data-testid="mobile-menu-toggle"
+            >
+              <MenuIcon />
+            </button>
+
+            <div className="nav-search nav-search-mobile">
+              <form onSubmit={handleSearchSubmit} className="search-form">
+                <div className="search-input-wrapper">
                   <SearchIcon className="search-icon" />
+                  <input
+                    ref={mobileSearchRef}
+                    type="text"
+                    placeholder="Search"
+                    value={searchQuery}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    onFocus={() => handleSearchFocus(true)}
+                    className="search-input"
+                    data-testid="search-input-mobile"
+                    role="combobox"
+                    aria-label="Search products"
+                    autoComplete="off"
+                    spellCheck="false"
+                  />
                 </div>
-                <input
-                  ref={searchRef}
-                  type="text"
-                  placeholder="Search"
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                  onFocus={() => setIsSearchFocused(true)}
-                  onBlur={() => {
-                    setTimeout(() => setIsSearchFocused(false), 200);
-                  }}
-                  className="search-input"
-                  data-testid="search-input"
-                  role="combobox"
-                  aria-label="Search products"
-                  aria-haspopup="listbox"
-                  aria-expanded={isSearchFocused && (searchSuggestions.length > 0 || searchQuery.length > 2)}
-                  autoComplete="off"
-                  spellCheck="false"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    className="search-clear-button"
-                    onClick={() => {
-                      setSearchQuery('');
-                      setSearchSuggestions([]);
-                      searchRef.current?.focus();
-                    }}
-                    aria-label="Clear search"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      width="1em"
-                      height="1em"
-                      fill="currentColor"
-                      className="clear-icon"
-                    >
-                      <path d="M18.3 5.71a.996.996 0 0 0-1.41 0L12 10.59 7.11 5.7A.996.996 0 1 0 5.7 7.11L10.59 12 5.7 16.89a.996.996 0 1 0 1.41 1.41L12 13.41l4.89 4.89a.996.996 0 0 0 1.41-1.41L13.41 12l4.89-4.89c.38-.38.38-1.02 0-1.4z"/>
-                    </svg>
-                  </button>
-                )}
-              </div>
-              
-              {/* Search Suggestions */}
-              {isSearchFocused && (
-                <div className="search-suggestions" data-testid="search-suggestions">
-                  {isLoadingSuggestions ? (
-                    <div className="search-suggestion loading-suggestion">
-                      <SearchIcon className="suggestion-icon" />
-                      Searching...
-                    </div>
-                  ) : searchSuggestions.length > 0 ? (
-                    searchSuggestions.map((suggestion, index) => (
-                      <button
-                        key={index}
-                        type="button"
-                        className="search-suggestion"
-                        onClick={() => handleSuggestionClick(suggestion)}
-                        data-testid={`search-suggestion-${index}`}
-                      >
-                        <SearchIcon className="suggestion-icon" />
-                        {suggestion}
-                      </button>
-                    ))
-                  ) : searchQuery.length > 2 ? (
-                    <div className="search-suggestion no-results">
-                      <SearchIcon className="suggestion-icon" />
-                      No suggestions found
-                    </div>
-                  ) : null}
-                </div>
-              )}
-            </form>
+              </form>
+            </div>
           </div>
-        </div>
+        )}
       </div>
+
+      {/* Mobile Search Active Bar */}
+      {isMobileSearchActive && isMobileView && (
+        <div className="mobile-search-overlay" role="dialog" aria-label="Search">
+          <div className="mobile-search-bar">
+            <button
+              type="button"
+              className="mobile-search-back"
+              aria-label="Back"
+              onClick={handleMobileSearchBack}
+            >
+              <BackIcon />
+            </button>
+            <button type="button" className="mobile-search-all">
+              <span>All</span>
+              <ChevronDownIcon />
+            </button>
+            <div className="mobile-search-input">
+              <SearchIcon className="search-icon" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                placeholder="Search"
+                autoFocus
+              />
+            </div>
+          </div>
+          <div className="mobile-search-body" aria-hidden="true"></div>
+        </div>
+      )}
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <>
-          <div 
+          <div
             className="mobile-menu-backdrop"
             onClick={() => setIsMobileMenuOpen(false)}
             aria-hidden="true"
           />
-          <div 
-            className="mobile-menu" 
+          <div
+            className="mobile-menu"
             data-testid="mobile-menu"
             role="dialog"
             aria-modal="true"
             aria-labelledby="mobile-menu-title"
           >
             <div className="mobile-menu-content">
-              {/* Mobile Categories */}
+              <span id="mobile-menu-title" className="sr-only">Menu</span>
               <nav className="mobile-nav-categories" role="navigation" aria-label="Mobile navigation">
                 {categories.map((category) => (
                   <button
                     key={category.id}
                     onClick={() => handleCategoryClick(category)}
-                    className={`mobile-nav-category ${category.id === 'sale' ? 'mobile-nav-category-sale' : ''} ${isActive(`/products?category=${category.id}`) ? 'mobile-nav-category-active' : ''}`}
+                    className={`mobile-nav-category ${isActive(`/products?category=${category.id}`) ? 'mobile-nav-category-active' : ''}`}
                     data-testid={`mobile-category-${category.id}`}
                   >
                     {category.name}
@@ -544,7 +543,6 @@ const Navigation: FC<NavigationProps> = ({
                 ))}
               </nav>
 
-              {/* Mobile User Actions */}
               <div className="mobile-user-actions">
                 <Link
                   to="/account"

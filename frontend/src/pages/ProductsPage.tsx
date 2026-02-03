@@ -1,4 +1,4 @@
-import { FC, useState, useEffect, useCallback } from 'react';
+import { FC, useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useProducts } from '../hooks/useProducts';
 import ProductGrid from '../components/ProductGrid';
@@ -9,58 +9,149 @@ interface ProductsPageProps {
   category?: string;
 }
 
+const PRIMARY_TABS = [
+  { id: 'women', name: 'Women' },
+  { id: 'men', name: 'Men' },
+  { id: 'kids', name: 'Kids' }
+];
+
+const FILTER_GROUPS = [
+  {
+    id: 'brand',
+    label: 'Brand',
+    options: [
+      { value: '', label: 'All Brands' },
+      { value: 'nike', label: 'Nike' },
+      { value: 'adidas', label: 'Adidas' },
+      { value: 'puma', label: 'Puma' }
+    ]
+  },
+  {
+    id: 'size',
+    label: 'Size',
+    options: [
+      { value: '', label: 'All Sizes' },
+      { value: '36', label: '36' },
+      { value: '37', label: '37' },
+      { value: '38', label: '38' },
+      { value: '39', label: '39' }
+    ]
+  },
+  {
+    id: 'color',
+    label: 'Colour',
+    options: [
+      { value: '', label: 'All Colours' },
+      { value: 'black', label: 'Black' },
+      { value: 'white', label: 'White' },
+      { value: 'blue', label: 'Blue' },
+      { value: 'red', label: 'Red' }
+    ]
+  },
+  {
+    id: 'qualities',
+    label: 'Qualities',
+    options: [
+      { value: '', label: 'All Qualities' },
+      { value: 'premium', label: 'Premium' },
+      { value: 'sustainable', label: 'Sustainable' }
+    ]
+  },
+  {
+    id: 'price',
+    label: 'Price',
+    options: [
+      { value: '', label: 'All Prices' },
+      { value: '0-50', label: '€0 - €50' },
+      { value: '50-100', label: '€50 - €100' },
+      { value: '100+', label: '€100+' }
+    ]
+  },
+  {
+    id: 'collection',
+    label: 'Collection',
+    options: [
+      { value: '', label: 'All Collections' },
+      { value: 'new', label: 'New in' },
+      { value: 'sale', label: 'Sale' }
+    ]
+  },
+  {
+    id: 'material',
+    label: 'Material',
+    options: [
+      { value: '', label: 'All Materials' },
+      { value: 'leather', label: 'Leather' },
+      { value: 'canvas', label: 'Canvas' },
+      { value: 'synthetic', label: 'Synthetic' }
+    ]
+  },
+  {
+    id: 'heel',
+    label: 'Type of heel',
+    options: [
+      { value: '', label: 'All Heel Types' },
+      { value: 'flat', label: 'Flat' },
+      { value: 'block', label: 'Block' }
+    ]
+  },
+  {
+    id: 'shoeWidth',
+    label: 'Shoe width',
+    options: [
+      { value: '', label: 'All Widths' },
+      { value: 'narrow', label: 'Narrow' },
+      { value: 'regular', label: 'Regular' },
+      { value: 'wide', label: 'Wide' }
+    ]
+  },
+  {
+    id: 'toe',
+    label: 'Toe',
+    options: [
+      { value: '', label: 'All Toes' },
+      { value: 'round', label: 'Round' },
+      { value: 'pointed', label: 'Pointed' }
+    ]
+  }
+];
+
 const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
   const { products, loading, error, fetchProducts, searchProducts } = useProducts();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [activeCategory, setActiveCategory] = useState<string>('clothing');
+  const [searchParams] = useSearchParams();
+  const [activeCategory, setActiveCategory] = useState<string>('shoes');
+  const [activeSegment, setActiveSegment] = useState<string>('women');
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState<'name' | 'price' | 'rating'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [selectedFilters, setSelectedFilters] = useState({
     size: '',
     brand: '',
     price: '',
     color: '',
+    qualities: '',
+    collection: '',
     material: '',
-    pattern: '',
-    length: ''
+    heel: '',
+    shoeWidth: '',
+    toe: ''
   });
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const limit = 16;
 
-  // Sidebar categories
-  const sidebarCategories = [
-    { id: 'clothing', name: 'Clothing', active: true },
-    { id: 'dresses', name: 'Dresses' },
-    { id: 'knitwear', name: 'Knitwear & Cardigans' },
-    { id: 'sweatshirts', name: 'Sweatshirts & Hoodies' },
-    { id: 'trousers', name: 'Trousers' },
-    { id: 'jeans', name: 'Jeans' },
-    { id: 'jackets', name: 'Jackets & Blazers' },
-    { id: 'coats', name: 'Coats' },
-    { id: 'tops', name: 'T-shirts & tops' },
-    { id: 'shirts', name: 'Shirts & Blouses' },
-    { id: 'skirts', name: 'Skirts' },
-    { id: 'sportswear', name: 'Sportswear' },
-    { id: 'jumpsuits', name: 'Jumpsuits' },
-    { id: 'swimwear', name: 'Swimwear' },
-    { id: 'shorts', name: 'Shorts' },
-    { id: 'underwear', name: 'Underwear' },
-    { id: 'nightwear', name: 'Nightwear & Loungewear' },
-    { id: 'socks', name: 'Socks & Tights' },
-    { id: 'sale', name: 'Sale' }
-  ];
 
   // Initialize search query and category from URL parameters
   useEffect(() => {
     const urlCategory = searchParams.get('category');
-    
+
     if (urlCategory) {
       setActiveCategory(urlCategory);
+      if (PRIMARY_TABS.some(tab => tab.id === urlCategory)) {
+        setActiveSegment(urlCategory);
+      }
     }
   }, [searchParams]);
 
@@ -83,13 +174,12 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
   useEffect(() => {
     const urlSearchQuery = searchParams.get('search');
     const urlCategory = searchParams.get('category');
-    
-    // Reset products when category or search changes
+
     if (currentPage === 1) {
       setAllProducts([]);
       setHasMore(true);
     }
-    
+
     if (urlSearchQuery) {
       const offset = (currentPage - 1) * limit;
       searchProducts(urlSearchQuery, limit, offset);
@@ -100,12 +190,8 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
     }
   }, [searchParams, propCategory, activeCategory, currentPage, fetchProducts, searchProducts]);
 
-  const handleCategoryClick = (categoryId: string) => {
-    setActiveCategory(categoryId);
-    setSearchParams({ category: categoryId });
-    setCurrentPage(1);
-    setAllProducts([]);
-    setHasMore(true);
+  const handleSegmentClick = (segmentId: string) => {
+    setActiveSegment(segmentId);
   };
 
   // Update allProducts when new products are loaded
@@ -116,8 +202,7 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
       } else {
         setAllProducts(prev => [...prev, ...products]);
       }
-      
-      // Check if we have more products to load
+
       setHasMore(products.length === limit);
       setLoadingMore(false);
     }
@@ -132,125 +217,102 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
 
   const handleAddToCart = useCallback((product: Product, selectedVariants?: ProductVariant[]) => {
     console.log('Adding to cart:', product.title, selectedVariants);
-    // Cart functionality is handled by ProductCard component
   }, []);
 
   const handleToggleWishlist = useCallback((productId: string) => {
     console.log('Toggling wishlist for product:', productId);
-    // Wishlist functionality would be implemented here
   }, []);
 
   const handleQuickView = useCallback((product: Product) => {
     console.log('Quick view for product:', product.title);
-    // Quick view functionality would be implemented here
   }, []);
 
   const handleSortChange = (value: string) => {
     const [newSortBy, newSortOrder] = value.split('-') as ['name' | 'price' | 'rating', 'asc' | 'desc'];
     setSortBy(newSortBy);
     setSortOrder(newSortOrder);
-    setActiveFilter(null); // Close dropdown after selection
+    setActiveFilter(null);
   };
 
-  const handleFilterChange = (filterType: string, value: string) => {
+  const handleFilterChange = (filterType: keyof typeof selectedFilters, value: string) => {
     setSelectedFilters(prev => ({
       ...prev,
       [filterType]: value
     }));
-    setActiveFilter(null); // Close dropdown after selection
+    setActiveFilter(null);
   };
 
   const toggleFilterDropdown = (filterType: string) => {
     setActiveFilter(activeFilter === filterType ? null : filterType);
   };
 
-  // Sort products locally
-  const sortedProducts = [...allProducts].sort((a, b) => {
-    let aValue: string | number = '';
-    let bValue: string | number = '';
-    
-    switch (sortBy) {
-      case 'name':
-        aValue = a.title.toLowerCase();
-        bValue = b.title.toLowerCase();
-        break;
-      case 'price':
-        aValue = a.price;
-        bValue = b.price;
-        break;
-      case 'rating':
-        aValue = a.rating || 0;
-        bValue = b.rating || 0;
-        break;
-    }
-    
-    if (sortOrder === 'asc') {
-      return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-    } else {
+  const sortedProducts = useMemo(() => {
+    return [...allProducts].sort((a, b) => {
+      let aValue: string | number = '';
+      let bValue: string | number = '';
+
+      switch (sortBy) {
+        case 'name':
+          aValue = a.title.toLowerCase();
+          bValue = b.title.toLowerCase();
+          break;
+        case 'price':
+          aValue = a.price;
+          bValue = b.price;
+          break;
+        case 'rating':
+          aValue = a.rating || 0;
+          bValue = b.rating || 0;
+          break;
+      }
+
+      if (sortOrder === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      }
       return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
-    }
-  });
+    });
+  }, [allProducts, sortBy, sortOrder]);
+
+  const activeCategoryName = useMemo(() => {
+    const match = PRIMARY_TABS.find(tab => tab.id === activeCategory);
+    return match?.name || activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1);
+  }, [activeCategory]);
 
   return (
     <div className="products-page">
+      <div className="products-header">
+        <div className="breadcrumb">
+          <span>All</span>
+          <span className="breadcrumb-separator">›</span>
+          <span>{activeCategoryName}</span>
+        </div>
+
+        <h1 className="page-title">
+          {searchParams.get('search')
+            ? `Search Results for "${searchParams.get('search')}"`
+            : activeCategoryName
+          }
+        </h1>
+
+        <div className="segment-tabs">
+          {PRIMARY_TABS.map(tab => (
+            <button
+              key={tab.id}
+              className={`segment-tab ${activeSegment === tab.id ? 'active' : ''}`}
+              onClick={() => handleSegmentClick(tab.id)}
+            >
+              {tab.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="products-container">
-        {/* Mobile Menu Button */}
-        <button 
-          className="mobile-menu-btn"
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          aria-label="Toggle menu"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="3" y1="6" x2="21" y2="6"></line>
-            <line x1="3" y1="12" x2="21" y2="12"></line>
-            <line x1="3" y1="18" x2="21" y2="18"></line>
-          </svg>
-        </button>
-
-        {/* Sidebar Navigation */}
-        <aside className={`products-sidebar ${sidebarOpen ? 'open' : ''}`}>
-          <nav className="sidebar-nav">
-            {sidebarCategories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => {
-                  handleCategoryClick(category.id);
-                  setSidebarOpen(false); // Close sidebar on mobile after selection
-                }}
-                className={`sidebar-category ${activeCategory === category.id ? 'active' : ''}`}
-              >
-                {category.name}
-              </button>
-            ))}
-          </nav>
-        </aside>
-
-        {/* Sidebar Overlay for Mobile */}
-        {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
-
-        {/* Main Content */}
         <main className="products-main">
-          {/* Breadcrumb */}
-          <div className="breadcrumb">
-            <span>Women</span>
-            <span className="breadcrumb-separator">›</span>
-            <span>Clothing</span>
-          </div>
-
-          {/* Page Title */}
-          <h1 className="page-title">
-            {searchParams.get('search') 
-              ? `Search Results for "${searchParams.get('search')}"` 
-              : 'Clothing for Women'
-            }
-          </h1>
-
-          {/* Filter Bar */}
           <div className="filter-bar">
             <div className="filter-buttons">
-              {/* Sort By Filter */}
               <div className="filter-dropdown">
-                <button 
+                <button
                   className={`filter-btn ${activeFilter === 'sort' ? 'active' : ''}`}
                   onClick={() => toggleFilterDropdown('sort')}
                 >
@@ -281,133 +343,57 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
                 )}
               </div>
 
-              {/* Brand Filter */}
-              <div className="filter-dropdown">
-                <button 
-                  className={`filter-btn ${activeFilter === 'brand' ? 'active' : ''}`}
-                  onClick={() => toggleFilterDropdown('brand')}
-                >
-                  Brand
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="6,9 12,15 18,9"></polyline>
-                  </svg>
-                </button>
-                {activeFilter === 'brand' && (
-                  <div className="filter-dropdown-menu">
-                    <button onClick={() => handleFilterChange('brand', '')} className={selectedFilters.brand === '' ? 'selected' : ''}>
-                      All Brands
-                    </button>
-                    <button onClick={() => handleFilterChange('brand', 'culture')} className={selectedFilters.brand === 'culture' ? 'selected' : ''}>
-                      Culture
-                    </button>
-                    <button onClick={() => handleFilterChange('brand', 'elena-miro')} className={selectedFilters.brand === 'elena-miro' ? 'selected' : ''}>
-                      Elena Miró
-                    </button>
-                    <button onClick={() => handleFilterChange('brand', 'vera-mont')} className={selectedFilters.brand === 'vera-mont' ? 'selected' : ''}>
-                      Vera Mont
-                    </button>
-                  </div>
-                )}
-              </div>
+              {FILTER_GROUPS.map((filter) => (
+                <div className="filter-dropdown" key={filter.id}>
+                  <button
+                    className={`filter-btn ${activeFilter === filter.id ? 'active' : ''}`}
+                    onClick={() => toggleFilterDropdown(filter.id)}
+                  >
+                    {filter.label}
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="6,9 12,15 18,9"></polyline>
+                    </svg>
+                  </button>
+                  {activeFilter === filter.id && (
+                    <div className="filter-dropdown-menu">
+                      {filter.options.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => handleFilterChange(filter.id as keyof typeof selectedFilters, option.value)}
+                          className={selectedFilters[filter.id as keyof typeof selectedFilters] === option.value ? 'selected' : ''}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
 
-              {/* Color Filter */}
-              <div className="filter-dropdown">
-                <button 
-                  className={`filter-btn ${activeFilter === 'color' ? 'active' : ''}`}
-                  onClick={() => toggleFilterDropdown('color')}
-                >
-                  Colour
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="6,9 12,15 18,9"></polyline>
+              <button className="filter-show-all" type="button">
+                <span className="filter-icon" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="4" y1="21" x2="4" y2="14"></line>
+                    <line x1="4" y1="10" x2="4" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12" y2="3"></line>
+                    <line x1="20" y1="21" x2="20" y2="16"></line>
+                    <line x1="20" y1="12" x2="20" y2="3"></line>
+                    <line x1="1" y1="14" x2="7" y2="14"></line>
+                    <line x1="9" y1="8" x2="15" y2="8"></line>
+                    <line x1="17" y1="16" x2="23" y2="16"></line>
                   </svg>
-                </button>
-                {activeFilter === 'color' && (
-                  <div className="filter-dropdown-menu">
-                    <button onClick={() => handleFilterChange('color', '')} className={selectedFilters.color === '' ? 'selected' : ''}>
-                      All Colors
-                    </button>
-                    <button onClick={() => handleFilterChange('color', 'black')} className={selectedFilters.color === 'black' ? 'selected' : ''}>
-                      Black
-                    </button>
-                    <button onClick={() => handleFilterChange('color', 'white')} className={selectedFilters.color === 'white' ? 'selected' : ''}>
-                      White
-                    </button>
-                    <button onClick={() => handleFilterChange('color', 'blue')} className={selectedFilters.color === 'blue' ? 'selected' : ''}>
-                      Blue
-                    </button>
-                    <button onClick={() => handleFilterChange('color', 'red')} className={selectedFilters.color === 'red' ? 'selected' : ''}>
-                      Red
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Price Filter */}
-              <div className="filter-dropdown">
-                <button 
-                  className={`filter-btn ${activeFilter === 'price' ? 'active' : ''}`}
-                  onClick={() => toggleFilterDropdown('price')}
-                >
-                  Price
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="6,9 12,15 18,9"></polyline>
-                  </svg>
-                </button>
-                {activeFilter === 'price' && (
-                  <div className="filter-dropdown-menu">
-                    <button onClick={() => handleFilterChange('price', '')} className={selectedFilters.price === '' ? 'selected' : ''}>
-                      All Prices
-                    </button>
-                    <button onClick={() => handleFilterChange('price', '0-25')} className={selectedFilters.price === '0-25' ? 'selected' : ''}>
-                      €0 - €25
-                    </button>
-                    <button onClick={() => handleFilterChange('price', '25-50')} className={selectedFilters.price === '25-50' ? 'selected' : ''}>
-                      €25 - €50
-                    </button>
-                    <button onClick={() => handleFilterChange('price', '50-100')} className={selectedFilters.price === '50-100' ? 'selected' : ''}>
-                      €50 - €100
-                    </button>
-                    <button onClick={() => handleFilterChange('price', '100+')} className={selectedFilters.price === '100+' ? 'selected' : ''}>
-                      €100+
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Campaigns Filter */}
-              <div className="filter-dropdown">
-                <button 
-                  className={`filter-btn ${activeFilter === 'campaigns' ? 'active' : ''}`}
-                  onClick={() => toggleFilterDropdown('campaigns')}
-                >
-                  Campaigns
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="6,9 12,15 18,9"></polyline>
-                  </svg>
-                </button>
-                {activeFilter === 'campaigns' && (
-                  <div className="filter-dropdown-menu">
-                    <button onClick={() => handleFilterChange('campaigns', '')} className={selectedFilters.length === '' ? 'selected' : ''}>
-                      All Items
-                    </button>
-                    <button onClick={() => handleFilterChange('campaigns', 'sale')} className={selectedFilters.length === 'sale' ? 'selected' : ''}>
-                      Sale
-                    </button>
-                    <button onClick={() => handleFilterChange('campaigns', 'new')} className={selectedFilters.length === 'new' ? 'selected' : ''}>
-                      New arrivals
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Product Count */}
-            <div className="product-count">
-              <span>{allProducts.length} items</span>
+                </span>
+                Show all filters
+              </button>
             </div>
           </div>
 
-          {/* Products Grid */}
+          <div className="product-count">
+            <span>{allProducts.length.toLocaleString()} items</span>
+            <span className="info-icon">i</span>
+          </div>
+
           <div className="products-content">
             {error ? (
               <div className="error-container">
@@ -424,8 +410,8 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
                 onToggleWishlist={handleToggleWishlist}
                 onQuickView={handleQuickView}
                 infiniteScroll={true}
-                emptyMessage={searchParams.get('search') 
-                  ? `No products found for "${searchParams.get('search')}"` 
+                emptyMessage={searchParams.get('search')
+                  ? `No products found for "${searchParams.get('search')}"`
                   : "No products found in this category"
                 }
                 className="products-page-grid"

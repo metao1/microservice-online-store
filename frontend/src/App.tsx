@@ -37,7 +37,7 @@ const App: FC = () => {
         <CartProvider userId={defaultUser.id}>
           <BrowserRouter>
             <Navigation />
-            <div style={{ paddingTop: '100px' }}>
+            <div>
               <Suspense fallback={<LoadingFallback />}>
                 <Routes>
                   <Route path="/" element={<HomePage />} />

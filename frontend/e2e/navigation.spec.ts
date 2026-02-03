@@ -3,114 +3,55 @@ import { test, expect } from '@playwright/test';
 test.describe('Navigation', () => {
   test('should display navigation bar on all pages', async ({ page }) => {
     const pages = ['/', '/products', '/cart'];
-    
+
     for (const path of pages) {
       await page.goto(path);
-      
       const navbar = page.getByTestId('navbar');
       await expect(navbar).toBeVisible();
     }
   });
 
-  test('should have all navigation links visible', async ({ page }) => {
+  test('should show primary navigation links and search', async ({ page }) => {
     await page.goto('/');
-    
-    const homeLink = page.getByTestId('home-link');
-    const productsLink = page.getByTestId('products-link');
-    const cartLink = page.getByTestId('cart-link');
-    
-    await expect(homeLink).toBeVisible();
-    await expect(productsLink).toBeVisible();
-    await expect(cartLink).toBeVisible();
+
+    await expect(page.getByTestId('category-women')).toBeVisible();
+    await expect(page.getByTestId('category-men')).toBeVisible();
+    await expect(page.getByTestId('category-kids')).toBeVisible();
+    await expect(page.getByTestId('search-input')).toBeVisible();
   });
 
-  test('should navigate to home page', async ({ page }) => {
+  test('should navigate to home via brand logo', async ({ page }) => {
     await page.goto('/products');
-    
-    const homeLink = page.getByTestId('home-link');
-    await homeLink.click();
-    
-    await expect(page).toHaveURL('/');
-  });
 
-  test('should navigate to products page', async ({ page }) => {
-    await page.goto('/');
-    
-    const productsLink = page.getByTestId('products-link');
-    await productsLink.click();
-    
-    await expect(page).toHaveURL('/products');
+    const brandLogo = page.getByTestId('nav-brand-logo');
+    await expect(brandLogo).toBeVisible();
+    await brandLogo.click();
+    await expect(page).toHaveURL('/');
   });
 
   test('should navigate to cart page', async ({ page }) => {
     await page.goto('/');
-    
+
     const cartLink = page.getByTestId('cart-link');
     await cartLink.click();
-    
     await expect(page).toHaveURL('/cart');
-  });
-
-  test('should display brand logo', async ({ page }) => {
-    await page.goto('/');
-    
-    const brandLogo = page.getByTestId('brand-logo');
-    await expect(brandLogo).toBeVisible();
-    await expect(brandLogo).toContainText('Online Store');
-  });
-
-  test('should have cart badge when items in cart', async ({ page }) => {
-    await page.goto('/products');
-    await page.waitForTimeout(2000);
-    
-    const cartBadge = page.getByTestId('cart-badge');
-    const badgeInitialCount = await cartBadge.count();
-    
-    // Cart badge may or may not be visible initially
-    // This test just verifies it can appear
-    if (badgeInitialCount > 0) {
-      await expect(cartBadge).toBeVisible();
-    }
   });
 });
 
 test.describe('Responsive Navigation', () => {
-  test('should have working navigation on mobile', async ({ page }) => {
-    // Set mobile viewport
+  test('should show mobile menu toggle on small screens', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
-    
     await page.goto('/');
-    
-    const navbar = page.getByTestId('navbar');
-    await expect(navbar).toBeVisible();
-    
-    const homeLink = page.getByTestId('home-link');
-    await expect(homeLink).toBeVisible();
+
+    const mobileToggle = page.getByTestId('mobile-menu-toggle');
+    await expect(mobileToggle).toBeVisible();
   });
 
-  test('should have working navigation on tablet', async ({ page }) => {
-    // Set tablet viewport
-    await page.setViewportSize({ width: 768, height: 1024 });
-    
+  test('should show navigation on desktop', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
-    
-    const navbar = page.getByTestId('navbar');
-    await expect(navbar).toBeVisible();
-    
-    const productsLink = page.getByTestId('products-link');
-    await expect(productsLink).toBeVisible();
-  });
 
-  test('should have working navigation on desktop', async ({ page }) => {
-    // Set desktop viewport
-    await page.setViewportSize({ width: 1920, height: 1080 });
-    
-    await page.goto('/');
-    
-    const navbar = page.getByTestId('navbar');
-    await expect(navbar).toBeVisible();
-    
-    const cartLink = page.getByTestId('cart-link');
-    await expect(cartLink).toBeVisible();
+    await expect(page.getByTestId('navbar')).toBeVisible();
+    await expect(page.getByTestId('cart-link')).toBeVisible();
   });
 });

@@ -18,7 +18,7 @@ const HomePage: FC = () => {
               of premium clothing and accessories designed to elevate your wardrobe.
             </p>
             <div className="hero-actions">
-              <Link to="/products" className="btn-primary">
+              <Link to="/products" className="btn-primary" data-testid="shop-now-button">
                 Shop Collection
               </Link>
               <Link to="/products?category=sale" className="btn-secondary">
