@@ -295,16 +295,17 @@ const Navigation: FC<NavigationProps> = ({
     if (typeof window === 'undefined' || !window.matchMedia) return;
     const mediaQuery = window.matchMedia('(max-width: 900px)');
 
-    const handleChange = (event: MediaQueryListEvent | MediaQueryList) => {
-      setIsMobileView(event.matches);
-      if (!event.matches) {
+    const handleChange = (event: MediaQueryListEvent) => {
+      const matches = event.matches;
+      setIsMobileView(matches);
+      if (!matches) {
         setIsMobileSearchActive(false);
         setIsSearchFocused(false);
         setSearchSuggestions([]);
       }
     };
 
-    handleChange(mediaQuery);
+    setIsMobileView(mediaQuery.matches);
     if (typeof mediaQuery.addEventListener === 'function') {
       mediaQuery.addEventListener('change', handleChange);
       return () => mediaQuery.removeEventListener('change', handleChange);
