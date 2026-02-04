@@ -6,9 +6,12 @@ import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.product.domain.repository.CategoryRepository;
 import com.metao.book.product.infrastructure.persistence.entity.CategoryEntity;
 import com.metao.book.product.infrastructure.persistence.mapper.CategoryEntityMapper;
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -35,13 +38,12 @@ public class CategoryRepositoryImpl implements CategoryRepository {
     }
 
     @Override
-    public List<ProductCategory> findAll(int offset, int limit) {
-        return jpaCategoryRepository.findAll()
+    public Set<ProductCategory> findAll(int offset, int limit) {
+        Pageable pageable = PageRequest.of(offset / limit, limit);
+        return jpaCategoryRepository.findAll(pageable)
             .stream()
-            .skip(offset)
-            .limit(limit)
             .map(categoryEntityMapper::toDomain)
-            .toList();
+            .collect(Collectors.toSet());
     }
 
     @Override

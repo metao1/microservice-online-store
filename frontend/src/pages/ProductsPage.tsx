@@ -310,7 +310,8 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
       <div className="products-container">
         <main className="products-main">
           <div className="filter-bar">
-            <div className="filter-buttons">
+            <div className="filter-area">
+              <div className="filter-buttons" aria-label="Filters">
               <div className="filter-dropdown">
                 <button
                   className={`filter-btn ${activeFilter === 'sort' ? 'active' : ''}`}
@@ -369,7 +370,9 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
                   )}
                 </div>
               ))}
+              </div>
 
+              <div className="filter-actions">
               <button className="filter-show-all" type="button">
                 <span className="filter-icon" aria-hidden="true">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -386,6 +389,7 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
                 </span>
                 Show all filters
               </button>
+              </div>
             </div>
           </div>
 
