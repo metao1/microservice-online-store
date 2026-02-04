@@ -66,7 +66,8 @@ class ApiClient {
       { name: 'Green', value: '#16a34a', hexColor: '#16a34a' }
     ];
 
-    const sizeOptions = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+    // Keep sizes aligned with the ProductsPage filter UI (shoe sizes).
+    const sizeOptions = ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'];
     
     // Generate 2-4 color variants per product
     const numColors = Math.floor(Math.random() * 3) + 2;
@@ -95,8 +96,9 @@ class ApiClient {
       priceModifier: size === 'XXL' ? 5 : 0 // XXL costs $5 more
     }));
 
-    // Extract brand from title
-    const brand = product.title.split(' ')[0];
+    // Use deterministic mock brands so the Brand filter can reliably work.
+    const brands = ['Nike', 'Adidas', 'Puma', 'Reebok', 'Converse', 'New Balance'];
+    const brand = brands[index % brands.length];
     
     // Generate discount data
     const hasDiscount = Math.random() > 0.7; // 30% chance of discount
