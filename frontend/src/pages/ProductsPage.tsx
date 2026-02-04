@@ -307,6 +307,90 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
     });
   }, [allProducts, sortBy, sortOrder]);
 
+  const filteredProducts = useMemo(() => {
+    const hashSku = (sku: string) => {
+      let h = 0;
+      for (let i = 0; i < sku.length; i += 1) {
+        h = (h * 31 + sku.charCodeAt(i)) >>> 0;
+      }
+      return h;
+    };
+
+    const getFacet = (p: Product) => {
+      const seed = hashSku(p.sku);
+      const material = ['leather', 'canvas', 'synthetic'][seed % 3];
+      const heel = ['flat', 'block'][seed % 2];
+      const shoeWidth = ['narrow', 'regular', 'wide'][seed % 3];
+      const toe = ['round', 'pointed'][seed % 2];
+      const sustainable = seed % 7 === 0;
+      const premium = (p.isFeatured ?? false) || p.price >= 100 || seed % 5 === 0;
+
+      return { material, heel, shoeWidth, toe, sustainable, premium };
+    };
+
+    const parsePriceRange = (value: string) => {
+      if (!value) return null;
+      if (value.endsWith('+')) {
+        const min = Number(value.slice(0, -1));
+        return { min, max: null as number | null };
+      }
+      const [minStr, maxStr] = value.split('-');
+      const min = Number(minStr);
+      const max = Number(maxStr);
+      if (Number.isFinite(min) && Number.isFinite(max)) return { min, max };
+      return null;
+    };
+
+    const matches = (p: Product) => {
+      const f = selectedFilters;
+      const facet = getFacet(p);
+
+      if (f.brand) {
+        const brand = (p.brand || '').toLowerCase();
+        if (brand !== f.brand.toLowerCase()) return false;
+      }
+
+      if (f.size) {
+        const hasSize = (p.variants || []).some(v => v.type === 'size' && v.value === f.size);
+        if (!hasSize) return false;
+      }
+
+      if (f.color) {
+        const wanted = f.color.toLowerCase();
+        const aliases = wanted === 'blue' ? new Set(['blue', 'navy']) : new Set([wanted]);
+        const hasColor = (p.variants || []).some(v => v.type === 'color' && aliases.has(v.name.toLowerCase()));
+        if (!hasColor) return false;
+      }
+
+      if (f.price) {
+        const range = parsePriceRange(f.price);
+        if (range) {
+          if (p.price < range.min) return false;
+          if (range.max != null && p.price > range.max) return false;
+        }
+      }
+
+      if (f.collection) {
+        if (f.collection === 'new' && !p.isNew) return false;
+        if (f.collection === 'sale' && !p.isSale) return false;
+      }
+
+      if (f.material && facet.material !== f.material) return false;
+      if (f.heel && facet.heel !== f.heel) return false;
+      if (f.shoeWidth && facet.shoeWidth !== f.shoeWidth) return false;
+      if (f.toe && facet.toe !== f.toe) return false;
+
+      if (f.qualities) {
+        if (f.qualities === 'premium' && !facet.premium) return false;
+        if (f.qualities === 'sustainable' && !facet.sustainable) return false;
+      }
+
+      return true;
+    };
+
+    return sortedProducts.filter(matches);
+  }, [sortedProducts, selectedFilters]);
+
   const activeCategoryName = useMemo(() => {
     const match = PRIMARY_TABS.find(tab => tab.id === activeCategory);
     return match?.name || activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1);
@@ -428,7 +512,7 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
           </div>
 
           <div className="product-count">
-            <span>{allProducts.length.toLocaleString()} items</span>
+            <span>{filteredProducts.length.toLocaleString()} items</span>
             <span className="info-icon">i</span>
           </div>
 
@@ -439,7 +523,7 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
               </div>
             ) : (
               <ProductGrid
-                products={sortedProducts}
+                products={filteredProducts}
                 loading={loading && currentPage === 1}
                 loadingMore={loadingMore}
                 hasMore={hasMore}

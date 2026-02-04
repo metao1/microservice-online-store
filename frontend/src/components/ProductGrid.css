@@ -131,6 +131,8 @@
   align-items: center;
   padding: var(--spacing-8, 2rem) var(--spacing-4, 1rem);
   margin-top: var(--spacing-6, 1.5rem);
+  /* Keep a visible "end of list" sentinel so loading triggers at the real bottom. */
+  min-height: 64px;
   opacity: 0;
   transition: opacity var(--transition-base, 200ms ease);
 }
@@ -159,6 +161,28 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* Smoothly animate newly mounted cards (e.g. when infinite scroll appends items). */
+.product-grid-item {
+  animation: productGridEnter 220ms ease both;
+}
+
+@keyframes productGridEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-grid-item {
+    animation: none;
+  }
 }
 
 /* Responsive adjustments */

@@ -4,7 +4,7 @@
  * Based on requirements 2.1, 2.3, 2.4, 2.6
  */
 
-import React, { FC, useState, useEffect, useCallback, useRef } from 'react';
+import React, { FC, useEffect, useCallback, useRef } from 'react';
 import { Product, ProductVariant } from '../types';
 import ProductCard from './ProductCard';
 import { Grid } from './layout/Grid/Grid';
@@ -89,9 +89,17 @@ export const ProductGrid: FC<ProductGridProps> = ({
   infiniteScroll = true,
   scrollThreshold = 200
 }) => {
-  const [isIntersecting, setIsIntersecting] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const lastTriggerAtRef = useRef(0);
+
+  const triggerLoadMore = useCallback(() => {
+    if (!onLoadMore || !hasMore || loadingMore) return;
+    const now = Date.now();
+    if (now - lastTriggerAtRef.current < 400) return;
+    lastTriggerAtRef.current = now;
+    onLoadMore();
+  }, [onLoadMore, hasMore, loadingMore]);
 
   // Set up intersection observer for infinite scroll
   useEffect(() => {
@@ -102,10 +110,12 @@ export const ProductGrid: FC<ProductGridProps> = ({
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
-        setIsIntersecting(entry.isIntersecting);
+        if (entry.isIntersecting) {
+          triggerLoadMore();
+        }
       },
       {
-        rootMargin: `${scrollThreshold}px`,
+        rootMargin: `0px 0px ${scrollThreshold}px 0px`,
         threshold: 0.1
       }
     );
@@ -121,16 +131,26 @@ export const ProductGrid: FC<ProductGridProps> = ({
         observerRef.current.disconnect();
       }
     };
-  }, [infiniteScroll, onLoadMore, hasMore, loadingMore, scrollThreshold]);
+  }, [infiniteScroll, hasMore, loadingMore, scrollThreshold, triggerLoadMore]);
 
-  // Trigger load more when intersection is detected
+  // Fallback/assistive scroll trigger so loading happens when the user hits the bottom.
   useEffect(() => {
-    if (isIntersecting && hasMore && !loadingMore && onLoadMore) {
-      // Prevent repeated triggers while the sentinel remains in view.
-      setIsIntersecting(false);
-      onLoadMore();
-    }
-  }, [isIntersecting, hasMore, loadingMore, onLoadMore]);
+    if (!infiniteScroll || !onLoadMore || !hasMore || loadingMore) return;
+
+    const handleScroll = () => {
+      const doc = document.documentElement;
+      const scrollTop = window.scrollY || doc.scrollTop || 0;
+      const viewportH = window.innerHeight || doc.clientHeight || 0;
+      const pageH = doc.scrollHeight || document.body.scrollHeight || 0;
+      const nearBottom = scrollTop + viewportH >= pageH - 80;
+      if (nearBottom) {
+        triggerLoadMore();
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [infiniteScroll, onLoadMore, hasMore, loadingMore, triggerLoadMore]);
 
   const handleAddToCart = useCallback((product: Product, selectedVariants?: ProductVariant[]) => {
     onAddToCart?.(product, selectedVariants);
@@ -241,14 +261,15 @@ export const ProductGrid: FC<ProductGridProps> = ({
         alignItems="stretch"
       >
         {products.map((product) => (
-          <ProductCard
-            key={product.sku}
-            product={product}
-            onAddToCart={handleAddToCart}
-            onToggleWishlist={handleToggleWishlist}
-            onQuickView={handleQuickView}
-            showQuickActions={false}
-          />
+          <div key={product.sku} className="product-grid-item">
+            <ProductCard
+              product={product}
+              onAddToCart={handleAddToCart}
+              onToggleWishlist={handleToggleWishlist}
+              onQuickView={handleQuickView}
+              showQuickActions={false}
+            />
+          </div>
         ))}
         
         {/* Show loading skeletons for additional products */}
