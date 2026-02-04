@@ -126,6 +126,8 @@ export const ProductGrid: FC<ProductGridProps> = ({
   // Trigger load more when intersection is detected
   useEffect(() => {
     if (isIntersecting && hasMore && !loadingMore && onLoadMore) {
+      // Prevent repeated triggers while the sentinel remains in view.
+      setIsIntersecting(false);
       onLoadMore();
     }
   }, [isIntersecting, hasMore, loadingMore, onLoadMore]);

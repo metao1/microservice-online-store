@@ -1,4 +1,4 @@
-import { FC, useState, useEffect, useCallback, useMemo } from 'react';
+import { FC, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useProducts } from '../hooks/useProducts';
 import ProductGrid from '../components/ProductGrid';
@@ -140,6 +140,8 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const seenSkusRef = useRef<Set<string>>(new Set());
+  const requestKeyRef = useRef<string>('');
   const limit = 16;
 
 
@@ -174,17 +176,27 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
   useEffect(() => {
     const urlSearchQuery = searchParams.get('search');
     const urlCategory = searchParams.get('category');
+    const categoryToUse = urlCategory || propCategory || activeCategory;
+
+    // Reset pagination when the query/category changes; otherwise we'd fetch with the old page offset.
+    const nextKey = urlSearchQuery ? `search:${urlSearchQuery}` : `category:${categoryToUse}`;
+    if (requestKeyRef.current && requestKeyRef.current !== nextKey && currentPage !== 1) {
+      requestKeyRef.current = nextKey;
+      setCurrentPage(1);
+      return;
+    }
+    requestKeyRef.current = nextKey;
 
     if (currentPage === 1) {
       setAllProducts([]);
       setHasMore(true);
+      seenSkusRef.current = new Set();
     }
 
     if (urlSearchQuery) {
       const offset = (currentPage - 1) * limit;
       searchProducts(urlSearchQuery, limit, offset);
     } else {
-      const categoryToUse = urlCategory || propCategory || activeCategory;
       const offset = (currentPage - 1) * limit;
       fetchProducts(categoryToUse, limit, offset);
     }
@@ -194,19 +206,41 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
     setActiveSegment(segmentId);
   };
 
-  // Update allProducts when new products are loaded
+  // Update aggregated list after each fetch completes.
+  // Important: handle the empty-array case to avoid getting stuck in "loadingMore".
   useEffect(() => {
-    if (products.length > 0) {
-      if (currentPage === 1) {
-        setAllProducts(products);
-      } else {
-        setAllProducts(prev => [...prev, ...products]);
+    if (loading) return;
+
+    setLoadingMore(false);
+
+    // If the backend errors, stop infinite scroll for this session.
+    if (error) {
+      setHasMore(false);
+      return;
+    }
+
+    if (currentPage === 1) {
+      setAllProducts(products);
+      seenSkusRef.current = new Set(products.map(p => p.sku));
+    } else if (products.length > 0) {
+      const seen = seenSkusRef.current;
+      const uniqueNext = products.filter(p => !seen.has(p.sku));
+      uniqueNext.forEach(p => seen.add(p.sku));
+
+      if (uniqueNext.length === 0) {
+        // If the backend ignores offset/limit and keeps returning the same items,
+        // stop requesting further pages to avoid an infinite loop.
+        setHasMore(false);
+        return;
       }
 
-      setHasMore(products.length === limit);
-      setLoadingMore(false);
+      setAllProducts(prev => [...prev, ...uniqueNext]);
     }
-  }, [products, currentPage, limit]);
+
+    // If the server returns fewer than `limit`, we assume there are no more pages.
+    // Use >= for safety in case the backend returns more than requested.
+    setHasMore(products.length >= limit);
+  }, [loading, error, products, currentPage, limit]);
 
   const handleLoadMore = useCallback(() => {
     if (!loadingMore && hasMore) {
