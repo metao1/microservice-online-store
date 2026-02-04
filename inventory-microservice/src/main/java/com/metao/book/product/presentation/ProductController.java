@@ -6,6 +6,7 @@ import com.metao.book.product.application.dto.ProductDTO;
 import com.metao.book.product.application.dto.UpdateProductCommand;
 import com.metao.book.product.application.mapper.ProductApplicationMapper;
 import com.metao.book.product.application.service.ProductApplicationService;
+import com.metao.book.product.domain.category.dto.CategoryDTO;
 import com.metao.book.product.domain.model.aggregate.Product;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -111,13 +112,13 @@ public class ProductController {
     }
 
     @GetMapping("/categories")
-    public List<ProductDTO> getCategories(
+    public List<CategoryDTO> getCategories(
         @RequestParam(value = "offset", defaultValue = "0") int offset,
         @RequestParam(value = "limit", defaultValue = "10") int limit
     ) {
-        var products = productApplicationService.getProducts(offset, limit);
+        var products = productApplicationService.getCategories(offset, limit);
         return products.stream()
-            .map(productMapper::toDTO)
+            .map(category-> new CategoryDTO(category.getName().value()))
             .toList();
     }
 

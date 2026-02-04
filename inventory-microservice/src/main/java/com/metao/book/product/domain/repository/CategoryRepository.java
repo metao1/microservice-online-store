@@ -3,8 +3,8 @@ package com.metao.book.product.domain.repository;
 import com.metao.book.product.domain.model.entity.ProductCategory;
 import com.metao.book.product.domain.model.valueobject.CategoryId;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Domain repository interface for ProductCategory entity
@@ -31,7 +31,7 @@ public interface CategoryRepository {
      */
     boolean existsByName(CategoryName categoryName);
 
-    List<ProductCategory> findAll(int offset, int limit);
+    Set<ProductCategory> findAll(int offset, int limit);
 
     /**
      * Delete category

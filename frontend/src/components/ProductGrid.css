@@ -5,17 +5,13 @@
  */
 
 .product-grid {
-  width: 100%;
-  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 1rem);
 }
 
 .product-grid-container {
   width: 100%;
-}
-
-/* Grid view mode (default) */
-.product-grid-grid .product-grid-container {
-  /* Grid layout handled by Grid component */
 }
 
 /* List view mode */

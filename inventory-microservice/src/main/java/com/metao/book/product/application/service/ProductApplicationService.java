@@ -16,8 +16,10 @@ import com.metao.book.product.domain.repository.ProductRepository;
 import com.metao.book.product.domain.service.ProductDomainService;
 import com.metao.book.shared.domain.financial.Money;
 import jakarta.validation.Valid;
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -184,7 +186,7 @@ public class ProductApplicationService {
     /**
      * Reduce product volume (for order processing)
      */
-    public void reduceProductVolume(String sku, java.math.BigDecimal quantity) {
+    public void reduceProductVolume(String sku, BigDecimal quantity) {
         if (sku == null || quantity == null) {
             return;
         }
@@ -204,11 +206,11 @@ public class ProductApplicationService {
     /**
      * Increase product volume (for restocking)
      */
-    public void increaseProductVolume(String sku, java.math.BigDecimal quantity) {
+    public void increaseProductVolume(String sku, BigDecimal quantity) {
         if (sku == null || quantity == null) {
             return;
         }
-        log.info("Increskug volume for product {} by {}", sku, quantity);
+        log.debug("Increasing volume for product {} by {}", sku, quantity);
 
         ProductSku productSKU = ProductSku.of(sku);
         Product product = productRepository.findBySku(productSKU)
@@ -219,5 +221,9 @@ public class ProductApplicationService {
         productRepository.save(product);
 
         log.info("Product volume increased successfully for {}", sku);
+    }
+
+    public Set<ProductCategory> getCategories(int offset, int limit) {
+        return categoryRepository.findAll(offset, limit);
     }
 }
