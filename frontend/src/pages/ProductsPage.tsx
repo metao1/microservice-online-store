@@ -1,5 +1,5 @@
 import { FC, useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import { useProducts } from '../hooks/useProducts';
 import ProductGrid from '../components/ProductGrid';
 import { Product, ProductVariant } from '../types';
@@ -118,6 +118,7 @@ const FILTER_GROUPS = [
 
 const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
   const { products, loading, error, fetchProducts, searchProducts } = useProducts();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const [activeCategory, setActiveCategory] = useState<string>('shoes');
   const [activeSegment, setActiveSegment] = useState<string>('women');
@@ -142,7 +143,42 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const seenSkusRef = useRef<Set<string>>(new Set());
   const requestKeyRef = useRef<string>('');
+  const loadingMoreStartedAtRef = useRef<number>(0);
+  const loadingMoreTimerRef = useRef<number | null>(null);
   const limit = 16;
+  const filtersKey = useMemo(() => `products-filters:${location.pathname}`, [location.pathname]);
+  const hasHydratedFilters = useRef(false);
+
+  useEffect(() => {
+    if (hasHydratedFilters.current) return;
+    const raw = window.sessionStorage.getItem(filtersKey);
+    if (!raw) {
+      hasHydratedFilters.current = true;
+      return;
+    }
+    try {
+      const data = JSON.parse(raw);
+      if (data?.sortBy) setSortBy(data.sortBy);
+      if (data?.sortOrder) setSortOrder(data.sortOrder);
+      if (data?.selectedFilters) {
+        setSelectedFilters((prev) => ({ ...prev, ...data.selectedFilters }));
+      }
+    } catch {
+      // ignore corrupt storage
+    } finally {
+      hasHydratedFilters.current = true;
+    }
+  }, [filtersKey]);
+
+  useEffect(() => {
+    if (!hasHydratedFilters.current) return;
+    const payload = {
+      sortBy,
+      sortOrder,
+      selectedFilters
+    };
+    window.sessionStorage.setItem(filtersKey, JSON.stringify(payload));
+  }, [filtersKey, sortBy, sortOrder, selectedFilters]);
 
 
   // Initialize search query and category from URL parameters
@@ -169,6 +205,14 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (loadingMoreTimerRef.current) {
+        window.clearTimeout(loadingMoreTimerRef.current);
+      }
     };
   }, []);
 
@@ -211,7 +255,19 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
   useEffect(() => {
     if (loading) return;
 
-    setLoadingMore(false);
+    if (loadingMore) {
+      const minVisibleMs = 350;
+      const elapsed = Date.now() - loadingMoreStartedAtRef.current;
+      const remaining = Math.max(0, minVisibleMs - elapsed);
+
+      if (loadingMoreTimerRef.current) {
+        window.clearTimeout(loadingMoreTimerRef.current);
+      }
+
+      loadingMoreTimerRef.current = window.setTimeout(() => {
+        setLoadingMore(false);
+      }, remaining);
+    }
 
     // If the backend errors, stop infinite scroll for this session.
     if (error) {
@@ -244,6 +300,7 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
 
   const handleLoadMore = useCallback(() => {
     if (!loadingMore && hasMore) {
+      loadingMoreStartedAtRef.current = Date.now();
       setLoadingMore(true);
       setCurrentPage(prev => prev + 1);
     }
