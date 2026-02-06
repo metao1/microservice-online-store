@@ -57,7 +57,7 @@ import org.wiremock.spring.EnableWireMock;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestPropertySource(properties = "kafka.enabled=true")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@EnableWireMock({@ConfigureWireMock(port = 8083, name = "inventory-microservice")})
+@EnableWireMock({@ConfigureWireMock(port = 0, name = "inventory-microservice")})
 class E2EProductPurchaseContainerIT extends KafkaContainer {
 
     private static final BigDecimal ONE = BigDecimal.ONE;
