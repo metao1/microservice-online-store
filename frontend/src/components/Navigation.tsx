@@ -3,12 +3,12 @@
  * Redesigned to match layout across desktop and mobile.
  */
 
-import { FC, useState, useRef, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useCartContext } from '../context/CartContext';
+import {FC, useEffect, useMemo, useRef, useState} from 'react';
+import {Link, useLocation, useNavigate} from 'react-router-dom';
+import {useCartContext} from '../context/CartContext';
 import Badge from './ui/Badge/Badge';
-import { Category } from '../types';
-import { apiClient } from '../services/api';
+import {Category} from '../types';
+import {apiClient} from '../services/api';
 import './Navigation.css';
 
 // Icon components
@@ -156,11 +156,7 @@ interface NavigationProps {
 }
 
 const Navigation: FC<NavigationProps> = ({
-  categories = [
-    { id: 'women', name: 'Women' },
-    { id: 'men', name: 'Men' },
-    { id: 'kids', name: 'Kids' },
-  ],
+                                           categories,
   onSearch,
   onCategorySelect,
 }) => {
@@ -176,19 +172,8 @@ const Navigation: FC<NavigationProps> = ({
     'Gift Cards'
   ];
 
-  const secondaryCategories = [
-    { id: 'new-in', name: 'NEW IN' },
-    { id: 'clothing', name: 'Clothing' },
-    { id: 'shoes', name: 'Shoes' },
-    { id: 'sports', name: 'Sports' },
-    { id: 'streetwear', name: 'Streetwear' },
-    { id: 'accessories', name: 'Accessories' },
-    { id: 'beauty', name: 'Beauty' },
-    { id: 'designer', name: 'Designer' },
-    { id: 'brands', name: 'Brands' },
-    { id: 'sale', name: 'Sale %', isSale: true },
-    { id: 'pre-owned', name: 'Pre-owned' },
-  ];
+  const [secondaryCategories, setSecondaryCategories] = useState<Category[]>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
 
   // State management
   const [searchQuery, setSearchQuery] = useState('');
@@ -197,6 +182,7 @@ const Navigation: FC<NavigationProps> = ({
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSearchActive, setIsMobileSearchActive] = useState(false);
+  const [activeMegaCategory, setActiveMegaCategory] = useState<string | null>(null);
   const [isMobileView, setIsMobileView] = useState(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return false;
     return window.matchMedia('(max-width: 900px)').matches;
@@ -207,6 +193,105 @@ const Navigation: FC<NavigationProps> = ({
   const mobileSearchRef = useRef<HTMLInputElement>(null);
 
   const isActive = (path: string) => location.pathname === path;
+
+  const megaCategories = useMemo(() => ([
+    'Computers & Accessories',
+    'Mobile / PDAs & Handhelds',
+    'Audio & Video',
+    'Car Electronics',
+    'GPS & Navigation',
+    'Office & Business',
+    'Books & Learning',
+    'Toys & Kids Electronics',
+    'All Electronics / Bundles',
+  ]), []);
+
+  const groupedSecondaryCategories = useMemo(() => {
+    const groups: Record<string, Category[]> = {};
+    const remaining: Category[] = [];
+    megaCategories.forEach((key) => {
+      groups[key] = [];
+    });
+
+    secondaryCategories.forEach((category) => {
+      const label = (category.category || category.name || '').toLowerCase();
+      const matchedKey = megaCategories.find((key) => {
+        const lowerKey = key.toLowerCase();
+        if (lowerKey.includes('computers')) {
+          return label.includes('computer') || label.includes('laptop') || label.includes('netbook') || label.includes('docking');
+        }
+        if (lowerKey.includes('mobile / pdas')) {
+          return label.includes('pda') || label.includes('handheld') || label.includes('tablet') || label.includes('touch screen') || label.includes('skins') || label.includes('covers');
+        }
+        if (lowerKey.includes('audio & video')) {
+          return label.includes('audio') || label.includes('video') || label.includes('headphone') || label.includes('remote control') || label.includes('tv remote');
+        }
+        if (lowerKey.includes('car electronics')) {
+          return label.includes('car') || label.includes('vehicle') || label.includes('stereo');
+        }
+        if (lowerKey.includes('gps')) {
+          return label.includes('gps') || label.includes('navigation');
+        }
+        if (lowerKey.includes('office')) {
+          return label.includes('office');
+        }
+        if (lowerKey.includes('books')) {
+          return label.includes('book') || label.includes('dictionary') || label.includes('thesauri') || label.includes('charts') || label.includes('maps') || label.includes('education') || label.includes('learning');
+        }
+        if (lowerKey.includes('toys')) {
+          return label.includes('toy') || label.includes('kids');
+        }
+        if (lowerKey.includes('all electronics')) {
+          return label.includes('electronics') || label.includes('bundles');
+        }
+        return label.includes(lowerKey);
+      });
+      if (matchedKey) {
+        groups[matchedKey].push(category);
+      } else {
+        remaining.push(category);
+      }
+    });
+
+    // If a group is empty, fill it with a few remaining categories (round-robin)
+    let cursor = 0;
+    megaCategories.forEach((key) => {
+      if (groups[key].length === 0 && remaining.length > 0) {
+        const slice = remaining.slice(cursor, cursor + 6);
+        groups[key] = slice;
+        cursor += slice.length;
+      }
+    });
+
+    return {groups, remaining};
+  }, [secondaryCategories, megaCategories]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadCategories = async () => {
+      setIsLoadingCategories(true);
+      try {
+        const data = await apiClient.getCategories(50, 0);
+        if (isMounted) {
+          setSecondaryCategories(data);
+        }
+      } catch (error) {
+        if (isMounted) {
+          console.error('Failed to fetch search suggestions:', error);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingCategories(false);
+        }
+      }
+      ;
+    };
+
+    loadCategories();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Handle search functionality
   const handleSearchChange = async (value: string) => {
@@ -251,8 +336,11 @@ const Navigation: FC<NavigationProps> = ({
   };
 
   const handleCategoryClick = (category: Category) => {
-    onCategorySelect?.(category.id);
-    navigate(`/products?category=${category.id}`);
+    const label = category.category || category.name || '';
+    onCategorySelect?.(label);
+    if (label) {
+      navigate(`/products?category=${encodeURIComponent(label)}`);
+    }
     setIsMobileMenuOpen(false);
   };
 
@@ -432,16 +520,84 @@ const Navigation: FC<NavigationProps> = ({
         </div>
 
         {/* Secondary Categories */}
-        <div className="nav-secondary" role="navigation" aria-label="Secondary navigation">
-          {secondaryCategories.map((category) => (
-            <button
-              key={category.id}
-              className={`nav-secondary-link ${category.isSale ? 'sale' : ''}`}
-              onClick={() => handleCategoryClick({ id: category.id, name: category.name })}
-            >
-              {category.name}
-            </button>
-          ))}
+        <div
+            className="nav-secondary"
+            role="navigation"
+            aria-label="Secondary navigation"
+            onMouseLeave={() => setActiveMegaCategory(null)}
+        >
+          {isLoadingCategories && secondaryCategories.length === 0 ? (
+              <span className="nav-secondary-loading">Loading...</span>
+          ) : (
+              megaCategories.map((category) => (
+                  <button
+                      key={category}
+                      className={`nav-secondary-link ${/sale/i.test(category) ? 'sale' : ''}`}
+                      onMouseEnter={() => setActiveMegaCategory(category)}
+                      onFocus={() => setActiveMegaCategory(category)}
+                  >
+                    {category}
+                  </button>
+              ))
+          )}
+
+          {activeMegaCategory && (
+              <div className="nav-mega-panel" role="dialog" aria-label={`${activeMegaCategory} categories`}>
+                <div className="nav-mega-columns">
+                  <div className="nav-mega-column">
+                    <h4>Categories</h4>
+                    <ul>
+                      {(groupedSecondaryCategories.groups[activeMegaCategory] || []).slice(0, 6).map((item) => {
+                        const label = item.category || item.name || '';
+                        return (
+                            <li key={label}>
+                              <button onClick={() => handleCategoryClick({category: label})}>
+                                {label}
+                              </button>
+                            </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                  <div className="nav-mega-column">
+                    <h4>More categories</h4>
+                    <ul>
+                      {(groupedSecondaryCategories.groups[activeMegaCategory] || []).slice(6, 12).map((item) => {
+                        const label = item.category || item.name || '';
+                        return (
+                            <li key={label}>
+                              <button onClick={() => handleCategoryClick({category: label})}>
+                                {label}
+                              </button>
+                            </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                  <div className="nav-mega-column">
+                    <h4>Highlights</h4>
+                    <ul>
+                      <li>
+                        <button onClick={() => handleCategoryClick({category: 'New arrivals'})}>New arrivals</button>
+                      </li>
+                      <li>
+                        <button onClick={() => handleCategoryClick({category: 'Latest sneaker'})}>Latest sneaker
+                        </button>
+                      </li>
+                      <li>
+                        <button onClick={() => handleCategoryClick({category: 'Gift cards'})}>Gift cards</button>
+                      </li>
+                    </ul>
+                  </div>
+                  <div className="nav-mega-visual">
+                    <div className="nav-mega-card">
+                      <span className="nav-mega-card-title">Dreamly cozy</span>
+                      <span className="nav-mega-card-cta">Shop now →</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+          )}
         </div>
 
         {/* Mobile search row */}
@@ -531,16 +687,19 @@ const Navigation: FC<NavigationProps> = ({
             <div className="mobile-menu-content">
               <span id="mobile-menu-title" className="sr-only">Menu</span>
               <nav className="mobile-nav-categories" role="navigation" aria-label="Mobile navigation">
-                {categories.map((category) => (
-                  <button
-                    key={category.id}
-                    onClick={() => handleCategoryClick(category)}
-                    className={`mobile-nav-category ${isActive(`/products?category=${category.id}`) ? 'mobile-nav-category-active' : ''}`}
-                    data-testid={`mobile-category-${category.id}`}
-                  >
-                    {category.name}
-                  </button>
-                ))}
+                {(categories || []).map((category) => {
+                  const label = category.category || category.name || '';
+                  return (
+                      <button
+                          key={label}
+                          onClick={() => handleCategoryClick(category)}
+                          className={`mobile-nav-category ${isActive(`/products?category=${encodeURIComponent(label)}`) ? 'mobile-nav-category-active' : ''}`}
+                          data-testid={`mobile-category-${encodeURIComponent(label)}`}
+                      >
+                        {label}
+                      </button>
+                  );
+                })}
               </nav>
 
               <div className="mobile-user-actions">

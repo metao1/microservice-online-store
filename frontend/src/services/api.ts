@@ -1,5 +1,5 @@
-import axios, { AxiosInstance } from 'axios';
-import { Product, ApiResponse, Order, Cart, Category } from '../types';
+import axios, {AxiosInstance} from 'axios';
+import {ApiResponse, Cart, Category, Order, Product} from '../types';
 
 const PRODUCTS_API_BASE_URL = import.meta.env.VITE_PRODUCTS_API_URL || 'http://localhost:8083';
 const CART_API_BASE_URL = import.meta.env.VITE_CART_API_URL || 'http://localhost:8086';
@@ -137,7 +137,7 @@ class ApiClient {
     try {
       // Backend requires category, so default to 'books' if none provided
       const categoryToUse = category || 'books';
-      const url = `/products/category/${categoryToUse}`;
+      const url = `/products/category/${encodeURIComponent(categoryToUse)}`;
       
       const response = await this.productsClient.get<Product[]>(url, {
         params: { limit, offset },
@@ -178,10 +178,21 @@ class ApiClient {
     }
   }
 
-  async getCategories(): Promise<Category[]> {
+  async getCategories(limit: number = 10, offset: number = 0): Promise<Category[]> {
     try {
-      const response = await this.productsClient.get<ApiResponse<Category[]>>('/categories');
-      return response.data.data || response.data;
+      const response = await this.productsClient.get<{ category: string }[] | ApiResponse<{
+        category: string
+      }[]>>('/products/categories', {
+        params: {limit, offset},
+      });
+      // Backend might return either a wrapped response or a direct array.
+      const raw = (response.data as ApiResponse<{ category: string }[]>).data ?? response.data;
+      const list = Array.isArray(raw) ? raw : [];
+
+      return list.map((item, index) => {
+        const name = item.category?.trim() || `Category ${index + 1}`;
+        return {category: name};
+      });
     } catch (error) {
       console.error('Failed to fetch categories:', error);
       throw error;

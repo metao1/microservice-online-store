@@ -1,5 +1,5 @@
-import { FC } from 'react';
-import { Link } from 'react-router-dom';
+import {FC} from 'react';
+import {Link} from 'react-router-dom';
 import './HomePage.css';
 
 const HomePage: FC = () => {
@@ -14,7 +14,7 @@ const HomePage: FC = () => {
               <span className="hero-title-accent"> Perfect Style</span>
             </h1>
             <p className="hero-description">
-              Curated fashion for the modern individual. Explore our latest collection 
+              Curated fashion for the modern individual. Explore our latest collection
               of premium clothing and accessories designed to elevate your wardrobe.
             </p>
             <div className="hero-actions">
@@ -28,9 +28,9 @@ const HomePage: FC = () => {
           </div>
           <div className="hero-image">
             <div className="hero-image-container">
-              <img 
-                src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
-                alt="Fashion Collection" 
+              <img
+                  src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+                  alt="Fashion Collection"
                 className="hero-img"
               />
             </div>
@@ -53,7 +53,7 @@ const HomePage: FC = () => {
                 Free shipping on orders over €50. Express delivery available.
               </p>
             </div>
-            
+
             <div className="feature-item">
               <div className="feature-icon">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -67,7 +67,7 @@ const HomePage: FC = () => {
                 Carefully selected materials and craftsmanship in every piece.
               </p>
             </div>
-            
+
             <div className="feature-item">
               <div className="feature-icon">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -94,8 +94,8 @@ const HomePage: FC = () => {
           <div className="categories-grid">
             <Link to="/products?category=clothing" className="category-card">
               <div className="category-image">
-                <img 
-                  src="https://images.unsplash.com/photo-1445205170230-053b83016050?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                <img
+                    src="https://images.unsplash.com/photo-1445205170230-053b83016050?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
                   alt="Women's Clothing"
                 />
               </div>
@@ -104,11 +104,11 @@ const HomePage: FC = () => {
                 <p>Discover the latest trends</p>
               </div>
             </Link>
-            
+
             <Link to="/products?category=accessories" className="category-card">
               <div className="category-image">
-                <img 
-                  src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                <img
+                    src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
                   alt="Accessories"
                 />
               </div>
@@ -117,11 +117,11 @@ const HomePage: FC = () => {
                 <p>Complete your look</p>
               </div>
             </Link>
-            
-            <Link to="/products?category=shoes" className="category-card">
+
+            <Link to="/products?category=books" className="category-card">
               <div className="category-image">
-                <img 
-                  src="https://images.unsplash.com/photo-1549298916-b41d501d3772?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                <img
+                    src="https://images.unsplash.com/photo-1549298916-b41d501d3772?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
                   alt="Shoes"
                 />
               </div>
@@ -140,13 +140,13 @@ const HomePage: FC = () => {
           <div className="newsletter-content">
             <h2 className="newsletter-title">Stay in Style</h2>
             <p className="newsletter-description">
-              Subscribe to our newsletter and be the first to know about new arrivals, 
+              Subscribe to our newsletter and be the first to know about new arrivals,
               exclusive offers, and style tips.
             </p>
             <div className="newsletter-form">
-              <input 
-                type="email" 
-                placeholder="Enter your email address" 
+              <input
+                  type="email"
+                  placeholder="Enter your email address"
                 className="newsletter-input"
               />
               <button className="newsletter-button">Subscribe</button>

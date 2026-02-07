@@ -91,9 +91,9 @@ export interface Order {
  * Category Types
  */
 export interface Category {
-  id: string;
-  name: string;
-  description?: string;
+  id?: string;
+  name?: string;
+  category?: string;
 }
 
 // Re-export navigation types for convenience
