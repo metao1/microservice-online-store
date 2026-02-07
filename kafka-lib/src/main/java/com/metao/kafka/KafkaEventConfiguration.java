@@ -5,7 +5,6 @@ import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
 import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -45,7 +44,7 @@ public class KafkaEventConfiguration {
 
     @PostConstruct
     public void init() {
-        classToTopicMap = new ConcurrentHashMap<>();
+        classToTopicMap = new HashMap<>();
         topic.values().forEach(topicConfig ->
             classToTopicMap.put(topicConfig.classPath(), topicConfig.name())
         );
@@ -56,9 +55,7 @@ public class KafkaEventConfiguration {
     public <K, V> KafkaTemplate<K, V> kafkaTemplate(
         ProducerFactory<K, V> producerFactory
     ) {
-        var kafkaTemplate = new KafkaTemplate<>(producerFactory);
-        //kafkaTemplate.setConsumerFactory(consumerFactory);
-        return kafkaTemplate;
+        return new KafkaTemplate<>(producerFactory);
     }
 
     @Bean

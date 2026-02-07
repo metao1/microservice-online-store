@@ -4,9 +4,9 @@
  * for the enhanced navigation system
  */
 
-import { createContext, useContext, ReactNode, useState, useCallback, useEffect } from 'react';
-import { SearchInboxState, SearchSuggestion, TrendingItem, SearchHistory, SearchEntry } from '../types/navigation';
-import { Category } from '../types';
+import {createContext, ReactNode, useCallback, useContext, useEffect, useState} from 'react';
+import {SearchEntry, SearchHistory, SearchInboxState, SearchSuggestion, TrendingItem} from '../types/navigation';
+import {Category} from '../types';
 
 interface SearchContextType {
   searchState: SearchInboxState;
@@ -260,10 +260,10 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children, userId
 
       // Mock API call - replace with actual API integration
       const mockPopularCategories: Category[] = [
-        { id: 'clothing', name: 'Clothing' },
-        { id: 'shoes', name: 'Shoes' },
-        { id: 'accessories', name: 'Accessories' },
-        { id: 'beauty', name: 'Beauty' },
+        {category: 'Clothing'},
+        {category: 'Shoes'},
+        {category: 'Accessories'},
+        {category: 'Beauty'},
       ];
 
       // Cache the results
