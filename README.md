@@ -1,4 +1,4 @@
-[![Java CI with Gradle](https://github.com/metao1/microservice-online-store/actions/workflows/gradle.yml/badge.svg)](https://github.com/metao1/microservice-online-store/actions/workflows/gradle.yml)
+ [![Java CI with Gradle](https://github.com/metao1/microservice-online-store/actions/workflows/gradle.yml/badge.svg)](https://github.com/metao1/microservice-online-store/actions/workflows/gradle.yml) [![Frontend tests](https://github.com/metao1/microservice-online-store/actions/workflows/frontend-tests.yml/badge.svg)](https://github.com/metao1/microservice-online-store/actions/workflows/frontend-tests.yml)
 
 # Microservice Online Store
 
