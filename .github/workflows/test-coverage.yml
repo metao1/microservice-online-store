@@ -7,6 +7,11 @@ on:
       - develop
     paths:
       - 'inventory-microservice/src/**'
+      - 'order-microservice/src/**'
+      - 'payment-microservice/src/**'
+      - 'kafka-lib/src/**'
+      - 'shared-kernel/src/**'
+      - 'shared-test/src/**'
       - '.github/workflows/test-coverage.yml'
 
 jobs:
