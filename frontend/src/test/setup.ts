@@ -3,3 +3,10 @@ import { vi } from 'vitest';
 
 // Make vi available globally as jest for compatibility
 (global as any).jest = vi;
+
+vi.mock('../services/api', () => ({
+  apiClient: {
+    getCategories: vi.fn().mockResolvedValue([]),
+    searchProducts: vi.fn().mockResolvedValue([]),
+  },
+}));

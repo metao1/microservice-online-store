@@ -11,6 +11,14 @@ import Navigation from './Navigation';
 import {AuthProvider, CartProvider} from '../context';
 import {Cart, CartItem, User} from '../types';
 import {useCart} from '../hooks';
+import {apiClient} from '../services/api';
+
+vi.mock('../services/api', () => ({
+  apiClient: {
+    getCategories: vi.fn(),
+    searchProducts: vi.fn(),
+  },
+}));
 
 vi.mock('../hooks/useCart', () => ({
   useCart: vi.fn()
@@ -98,6 +106,8 @@ describe('Navigation Component - Property Tests', () => {
 
   describe('Cart State Display Management', () => {
     it('should display cart badge with accurate item count for any cart state', () => {
+      (apiClient.getCategories as unknown as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+      (apiClient.searchProducts as unknown as ReturnType<typeof vi.fn>).mockResolvedValue([]);
       fc.assert(
         fc.property(
           fc.integer({ min: 0, max: 99 }),

@@ -101,7 +101,8 @@ describe('Input Component - Property Tests', () => {
 
             // Property: Label association should be correct
             if (label) {
-              const labelElement = within(container).getByText(label.trim());
+              const normalize = (value: string) => value.replace(/\s+/g, ' ').trim();
+              const labelElement = within(container).getByText((content) => normalize(content) === normalize(label));
               expect(labelElement).toBeInTheDocument();
               expect(labelElement).toHaveAttribute('for', input.getAttribute('id'));
             }
