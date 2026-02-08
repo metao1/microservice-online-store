@@ -1,3 +1,5 @@
+apply plugin: "jacoco"
+
 dependencies {
   implementation project(':shared-kernel')
   implementation project(':kafka-lib')
@@ -30,6 +32,14 @@ dependencies {
   testImplementation "org.mockito:mockito-core:4.8.0"
   testImplementation "io.rest-assured:rest-assured:5.4.0"
   testImplementation project(':shared-test')
+}
+
+jacocoTestReport {
+  dependsOn test
+  reports {
+    xml.required = true
+    html.required = true
+  }
 }
 
 protobuf {
