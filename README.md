@@ -1,4 +1,4 @@
- [![Java CI with Gradle](https://github.com/metao1/microservice-online-store/actions/workflows/gradle.yml/badge.svg)](https://github.com/metao1/microservice-online-store/actions/workflows/gradle.yml) [![Frontend tests](https://github.com/metao1/microservice-online-store/actions/workflows/frontend-tests.yml/badge.svg)](https://github.com/metao1/microservice-online-store/actions/workflows/frontend-tests.yml)
+ [![Java CI with Gradle](https://github.com/metao1/microservice-online-store/actions/workflows/gradle.yml/badge.svg)](https://github.com/metao1/microservice-online-store/actions/workflows/gradle.yml) [![Frontend tests](https://github.com/metao1/microservice-online-store/actions/workflows/frontend-tests.yml/badge.svg)](https://github.com/metao1/microservice-online-store/actions/workflows/frontend-tests.yml) [![Test Coverage Validation](https://github.com/metao1/microservice-online-store/actions/workflows/test-coverage.yml/badge.svg)](https://github.com/metao1/microservice-online-store/actions/workflows/test-coverage.yml)
 
 # Microservice Online Store
 
@@ -165,6 +165,8 @@ docker exec -it kafka kafka-topics --list --bootstrap-server localhost:9092
 ```
 
 ### Test Coverage
+
+Coverage is validated in CI for the inventory microservice by the "Test Coverage Validation" GitHub Actions workflow (`.github/workflows/test-coverage.yml`). It runs `inventory-microservice:test`, generates the JaCoCo XML report, and uploads it to Codecov.
 
 ```bash
 # Generate test coverage report
