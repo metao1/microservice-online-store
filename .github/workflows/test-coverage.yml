@@ -26,11 +26,16 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Run inventory-microservice tests
-        run: ./gradlew inventory-microservice:test --info
-
-      - name: Generate test coverage report
+      - name: Generate inventory-microservice test coverage report
         run: ./gradlew inventory-microservice:jacocoTestReport
+      - name: Run order-microservice tests
+        run: ./gradlew order-microservice:jacocoTestReport
+      - name: Generate payment-microservice test coverage report
+        run: ./gradlew payment-microservice:jacocoTestReport
+      - name: Generate shared-kernel test coverage report
+        run: ./gradlew shared-kernel:jacocoTestReport
+      - name: Generate kafka-lib test coverage report
+        run: ./gradlew kafka-lib:jacocoTestReport
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -40,7 +45,6 @@ jobs:
           fail_ci_if_error: false
 
       - name: Comment PR with coverage status
-        if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
