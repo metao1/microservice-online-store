@@ -15,15 +15,16 @@ ext {
 }
 
 subprojects {
-  group "com.metao.book"
+  group = "com.metao.book"
   apply plugin: "java"
   apply plugin: "com.google.protobuf"
   apply plugin: "io.spring.dependency-management"
+  apply plugin: "jacoco"
 
   repositories {
     mavenLocal()
     mavenCentral()
-    maven { url "https://packages.confluent.io/maven/" }
+    maven { url = "https://packages.confluent.io/maven/" }
   }
   boolean isSpringProject = gradle.springBootProjects.contains(it.path)
   if (isSpringProject) {
@@ -100,6 +101,14 @@ subprojects {
   java {
     toolchain {
       languageVersion = JavaLanguageVersion.of(21)
+    }
+  }
+
+  jacocoTestReport {
+    dependsOn test
+    reports {
+      xml.required = true
+      html.required = true
     }
   }
 }

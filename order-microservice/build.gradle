@@ -3,6 +3,8 @@ ext {
   wiremockTestcontainersVersion = "1.0-alpha-15"
 }
 
+apply plugin: "jacoco"
+
 dependencies {
   implementation project(':shared-kernel')
   implementation project(':kafka-lib')
@@ -42,8 +44,16 @@ dependencies {
 sourceSets {
   main {
     java {
-      srcDirs 'src/main/java', 'build/generated/source/proto/java/main/java'
+      srcDirs = ['src/main/java', 'build/generated/source/proto/java/main/java']
     }
+  }
+}
+
+jacocoTestReport {
+  dependsOn test
+  reports {
+    xml.required = true
+    html.required = true
   }
 }
 

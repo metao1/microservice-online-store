@@ -169,8 +169,10 @@ docker exec -it kafka kafka-topics --list --bootstrap-server localhost:9092
 Coverage is validated in CI for the inventory microservice by the "Test Coverage Validation" GitHub Actions workflow (`.github/workflows/test-coverage.yml`). It runs `inventory-microservice:test`, generates the JaCoCo XML report, and uploads it to Codecov.
 
 ```bash
-# Generate test coverage report
+# Generate test coverage report (root + service-specific)
 ./gradlew jacocoTestReport
+./gradlew :inventory-microservice:jacocoTestReport
+./gradlew :order-microservice:jacocoTestReport
 
 # View report at: build/reports/jacoco/test/html/index.html
 ```
