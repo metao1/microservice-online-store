@@ -15,7 +15,7 @@ ext {
 }
 
 subprojects {
-  group = "com.metao.book"
+  group "com.metao.book"
   apply plugin: "java"
   apply plugin: "com.google.protobuf"
   apply plugin: "io.spring.dependency-management"
@@ -24,7 +24,7 @@ subprojects {
   repositories {
     mavenLocal()
     mavenCentral()
-    maven { url = "https://packages.confluent.io/maven/" }
+    maven { url "https://packages.confluent.io/maven/" }
   }
   boolean isSpringProject = gradle.springBootProjects.contains(it.path)
   if (isSpringProject) {
