@@ -3,8 +3,7 @@ name: Test Coverage Validation
 on:
   pull_request:
     branches:
-      - main
-      - develop
+      - master
     paths:
       - 'inventory-microservice/src/**'
       - 'order-microservice/src/**'
