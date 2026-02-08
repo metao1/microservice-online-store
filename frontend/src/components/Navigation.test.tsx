@@ -8,9 +8,17 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import Navigation from './Navigation';
-import { CartProvider } from '../context/CartContext';
-import { AuthProvider } from '../context/AuthContext';
+import { CartProvider } from '../context';
+import { AuthProvider } from '../context';
 import { User } from '../types';
+import { apiClient } from '../services/api';
+
+vi.mock('../services/api', () => ({
+  apiClient: {
+    getCategories: vi.fn(),
+    searchProducts: vi.fn(),
+  },
+}));
 
 const mockUser: User = {
   id: 'test-user',
@@ -20,7 +28,7 @@ const mockUser: User = {
 };
 
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <BrowserRouter>
+  <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
     <AuthProvider initialUser={mockUser}>
       <CartProvider userId={mockUser.id}>
         {children}
@@ -29,83 +37,80 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   </BrowserRouter>
 );
 
+const renderNavigation = async (props: React.ComponentProps<typeof Navigation> = {}) => {
+  render(
+    <TestWrapper>
+      <Navigation {...props} />
+    </TestWrapper>
+  );
+
+  await waitFor(() => {
+    expect(apiClient.getCategories).toHaveBeenCalled();
+  });
+};
+
 describe('Navigation Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    (apiClient.getCategories as unknown as ReturnType<typeof vi.fn>).mockResolvedValue([
+      { category: 'Computers' },
+      { category: 'Accessories & Supplies' },
+      { category: 'Audio & Video Accessories' },
+      { category: 'Car Electronics' },
+    ]);
+    (apiClient.searchProducts as unknown as ReturnType<typeof vi.fn>).mockResolvedValue([]);
   });
 
   describe('Basic Rendering', () => {
-    it('renders the navigation component', () => {
-      render(
-        <TestWrapper>
-          <Navigation />
-        </TestWrapper>
-      );
+    it('renders the navigation component', async () => {
+      await renderNavigation();
 
       expect(screen.getByTestId('navbar')).toBeInTheDocument();
     });
 
-    it('displays the brand logo', () => {
-      render(
-        <TestWrapper>
-          <Navigation />
-        </TestWrapper>
-      );
+    it('displays the brand logo', async () => {
+      await renderNavigation();
 
       const brandLogo = screen.getByTestId('nav-brand-logo');
       expect(brandLogo).toBeInTheDocument();
       expect(brandLogo).toHaveTextContent('ModernStore');
     });
 
-    it('displays the utility bar with promotional message', () => {
-      render(
-        <TestWrapper>
-          <Navigation />
-        </TestWrapper>
-      );
+    it('displays the utility bar with promotional message', async () => {
+      await renderNavigation();
 
       expect(screen.getByText(/Free standard delivery over €29,90 & free returns/)).toBeInTheDocument();
     });
   });
 
   describe('Navigation Links', () => {
-    it('renders secondary navigation links', () => {
-      render(
-        <TestWrapper>
-          <Navigation />
-        </TestWrapper>
-      );
+    it('renders secondary navigation links', async () => {
+      await renderNavigation();
 
-      // Test secondary navigation links that are actually present
-      expect(screen.getByText('NEW IN')).toBeInTheDocument();
-      expect(screen.getByText('Clothing')).toBeInTheDocument();
-      expect(screen.getByText('Shoes')).toBeInTheDocument();
-      expect(screen.getByText('Sports')).toBeInTheDocument();
-      expect(screen.getByText('Sale %')).toBeInTheDocument();
+      // Main categories are rendered in the secondary row
+      expect(await screen.findByText('Computers & Accessories')).toBeInTheDocument();
+      expect(screen.getByText('Audio & Video')).toBeInTheDocument();
+      expect(screen.getByText('Car Electronics')).toBeInTheDocument();
+      expect(screen.getByText('GPS & Navigation')).toBeInTheDocument();
     });
 
-    it('calls onCategorySelect when secondary category is clicked', () => {
+    it('calls onCategorySelect when secondary category is clicked', async () => {
       const mockOnCategorySelect = vi.fn();
 
-      render(
-        <TestWrapper>
-          <Navigation onCategorySelect={mockOnCategorySelect} />
-        </TestWrapper>
-      );
+      await renderNavigation({ onCategorySelect: mockOnCategorySelect });
 
-      // Click on a secondary navigation button
-      fireEvent.click(screen.getByText('Clothing'));
-      expect(mockOnCategorySelect).toHaveBeenCalledWith('clothing');
+      // Hover a main category and click a subcategory from the mega panel
+      const mainCategory = await screen.findByText('Computers & Accessories');
+      fireEvent.mouseEnter(mainCategory);
+      const subcategory = await screen.findByText('Computers');
+      fireEvent.click(subcategory);
+      expect(mockOnCategorySelect).toHaveBeenCalledWith('Computers');
     });
   });
 
   describe('Search Functionality', () => {
-    it('renders the search input', () => {
-      render(
-        <TestWrapper>
-          <Navigation />
-        </TestWrapper>
-      );
+    it('renders the search input', async () => {
+      await renderNavigation();
 
       const searchInput = screen.getByTestId('search-input');
       expect(searchInput).toBeInTheDocument();
@@ -113,11 +118,7 @@ describe('Navigation Component', () => {
     });
 
     it('shows search suggestions container when typing', async () => {
-      render(
-        <TestWrapper>
-          <Navigation />
-        </TestWrapper>
-      );
+      await renderNavigation();
 
       const searchInput = screen.getByTestId('search-input');
 
@@ -129,55 +130,41 @@ describe('Navigation Component', () => {
       });
     });
 
-    it('calls onSearch when search is submitted', () => {
+    it('calls onSearch when search is submitted', async () => {
       const mockOnSearch = vi.fn();
 
-      render(
-        <TestWrapper>
-          <Navigation onSearch={mockOnSearch} />
-        </TestWrapper>
-      );
+      await renderNavigation({ onSearch: mockOnSearch });
 
       const searchInput = screen.getByTestId('search-input');
 
       fireEvent.change(searchInput, { target: { value: 'test query' } });
       fireEvent.submit(searchInput.closest('form')!);
 
-      expect(mockOnSearch).toHaveBeenCalledWith('test query');
+      await waitFor(() => {
+        expect(mockOnSearch).toHaveBeenCalledWith('test query');
+      });
     });
   });
 
   describe('Cart Functionality', () => {
-    it('renders the cart link', () => {
-      render(
-        <TestWrapper>
-          <Navigation />
-        </TestWrapper>
-      );
+    it('renders the cart link', async () => {
+      await renderNavigation();
 
       expect(screen.getByTestId('cart-link')).toBeInTheDocument();
     });
   });
 
   describe('Mobile Navigation', () => {
-    it('renders mobile menu toggle button', () => {
-      render(
-        <TestWrapper>
-          <Navigation />
-        </TestWrapper>
-      );
+    it('renders mobile menu toggle button', async () => {
+      await renderNavigation();
 
       const mobileToggle = screen.getByTestId('mobile-menu-toggle');
       expect(mobileToggle).toBeInTheDocument();
       expect(mobileToggle).toHaveAttribute('aria-label', 'Toggle mobile menu');
     });
 
-    it('toggles mobile menu when hamburger button is clicked', () => {
-      render(
-        <TestWrapper>
-          <Navigation />
-        </TestWrapper>
-      );
+    it('toggles mobile menu when hamburger button is clicked', async () => {
+      await renderNavigation();
 
       const mobileToggle = screen.getByTestId('mobile-menu-toggle');
       expect(screen.queryByTestId('mobile-menu')).not.toBeInTheDocument();
@@ -189,12 +176,8 @@ describe('Navigation Component', () => {
       expect(screen.queryByTestId('mobile-menu')).not.toBeInTheDocument();
     });
 
-    it('closes mobile menu when backdrop is clicked', () => {
-      render(
-        <TestWrapper>
-          <Navigation />
-        </TestWrapper>
-      );
+    it('closes mobile menu when backdrop is clicked', async () => {
+      await renderNavigation();
 
       const mobileToggle = screen.getByTestId('mobile-menu-toggle');
       fireEvent.click(mobileToggle);

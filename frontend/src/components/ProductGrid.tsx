@@ -5,7 +5,7 @@
  */
 
 import React, { FC, useEffect, useCallback, useRef } from 'react';
-import { Product, ProductVariant } from '../types';
+import { Product, ProductVariant } from '@types';
 import ProductCard from './ProductCard';
 import { Grid } from './layout/Grid/Grid';
 import Skeleton from './ui/Skeleton/Skeleton';

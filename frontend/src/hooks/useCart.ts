@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Cart, CartItem } from '../types';
-import { apiClient } from '../services/api';
+import { Cart, CartItem } from '@types';
+import { apiClient } from '@services/api';
 
 export const useCart = (userId: string) => {
   const [cart, setCart] = useState<Cart>({ items: [], total: 0 });

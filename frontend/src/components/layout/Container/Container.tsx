@@ -5,7 +5,6 @@
  */
 
 import React from 'react';
-import { designTokens } from '../../../styles/design-tokens';
 import './Container.css';
 
 export interface ContainerProps {

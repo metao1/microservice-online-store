@@ -1,8 +1,8 @@
-import { FC, useState } from 'react';
-import { useCartContext } from '../context/CartContext';
-import { useAuthContext } from '../context/AuthContext';
-import { useCheckout } from '../hooks/useCheckout';
-import { Link, useNavigate } from 'react-router-dom';
+import {FC, useState} from 'react';
+import {useCartContext} from '@context/CartContext';
+import {useAuthContext} from '@context/AuthContext';
+import {useCheckout} from '@hooks/useCheckout';
+import {Link, useNavigate} from 'react-router-dom';
 import './CartPage.css';
 
 const CartPage: FC = () => {

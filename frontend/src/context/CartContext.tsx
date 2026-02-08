@@ -1,5 +1,5 @@
 import { createContext, useContext, ReactNode, useCallback } from 'react';
-import { Cart, Product } from '../types';
+import { Cart, Product } from '@types';
 import { useCart as useCartHook } from '../hooks/useCart';
 
 interface CartContextType {

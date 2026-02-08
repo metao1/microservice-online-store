@@ -5,8 +5,7 @@
  */
 
 import {createContext, ReactNode, useCallback, useContext, useEffect, useState} from 'react';
-import {SearchEntry, SearchHistory, SearchInboxState, SearchSuggestion, TrendingItem} from '../types/navigation';
-import {Category} from '../types';
+import {Category, SearchEntry, SearchHistory, SearchInboxState, SearchSuggestion, TrendingItem} from '@types';
 
 interface SearchContextType {
   searchState: SearchInboxState;

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Order } from '../types';
+import { Order } from '@types';
 import { apiClient } from '../services/api';
 import { useCartContext } from '../context/CartContext';
 import { toast } from 'react-toastify';

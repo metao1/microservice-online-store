@@ -4,8 +4,8 @@
  * and user account dropdown for the enhanced navigation system
  */
 
-import { createContext, useContext, ReactNode, useState, useCallback, useEffect } from 'react';
-import { NavigationState, GenderCategory, Language, NavigationConfig, EnhancedUser } from '../types/navigation';
+import {createContext, ReactNode, useCallback, useContext, useEffect, useState} from 'react';
+import {EnhancedUser, GenderCategory, Language, NavigationConfig, NavigationState} from '@types';
 
 interface NavigationContextType {
   navigationState: NavigationState;

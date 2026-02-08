@@ -1,6 +1,6 @@
 import { FC, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Product, ProductVariant } from '../types';
+import { Product, ProductVariant } from '@types';
 import { useCartContext } from '../context/CartContext';
 import './ProductCard.css';
 
@@ -71,17 +71,12 @@ const ProductCard: FC<ProductCardProps> = ({
     return `https://via.placeholder.com/400x500/${bgColor}/FFFFFF?text=${cleanTitle}`;
   };
 
-  // Log the image URL being used for debugging
-  console.log(`Product ${product.sku} using image URL:`, product.imageUrl);
-
   const handleImageError = () => {
-    console.log('Image failed to load, using fallback for:', product.title);
     setImageError(true);
     setImageLoading(false);
   };
 
   const handleImageLoad = () => {
-    console.log('Image loaded successfully for:', product.title);
     setImageError(false);
     setImageLoading(false);
   };
@@ -99,20 +94,16 @@ const ProductCard: FC<ProductCardProps> = ({
   }, []);
 
   const handleQuickAdd = useCallback(async (e: React.MouseEvent) => {
-    console.log('Add to cart button clicked for product:', product.sku);
     e.preventDefault();
     e.stopPropagation();
     
     if (!product.inStock) {
-      console.log('Product is out of stock, not adding to cart');
       return;
     }
     
     setIsLoading(true);
     try {
-      console.log('Calling addToCart with product:', product);
       await addToCart(product, 1);
-      console.log('Product added to cart successfully:', product.title);
       
       // Pass selected variants to callback
       const selectedVariants = selectedColorVariant ? [selectedColorVariant] : [];

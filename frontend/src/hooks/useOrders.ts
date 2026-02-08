@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Order } from '../types';
+import { Order } from '@types';
 import { apiClient } from '../services/api';
 
 interface UseOrdersResult {

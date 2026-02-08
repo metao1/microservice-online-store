@@ -3,13 +3,13 @@
  * Displays user's order history and current orders
  */
 
-import { FC } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuthContext } from '../context/AuthContext';
-import { useOrders } from '../hooks/useOrders';
-import { useCheckout } from '../hooks/useCheckout';
-import { useCartContext } from '../context/CartContext';
-import { Order } from '../types';
+import {FC} from 'react';
+import {Link} from 'react-router-dom';
+import {useAuthContext} from '@context/AuthContext';
+import {useOrders} from '@hooks/useOrders';
+import {useCheckout} from '@hooks/useCheckout';
+import {useCartContext} from '@context/CartContext';
+import {Order} from '@types';
 import './OrdersPage.css';
 
 const OrdersPage: FC = () => {

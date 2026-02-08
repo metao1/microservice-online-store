@@ -4,8 +4,7 @@
  * Based on requirements 1.5, 3.2, 8.2
  */
 
-import React from 'react';
-import { render, screen } from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Badge from './Badge';
 

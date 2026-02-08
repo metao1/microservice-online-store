@@ -7,7 +7,7 @@ import {FC, useEffect, useMemo, useRef, useState} from 'react';
 import {Link, useLocation, useNavigate} from 'react-router-dom';
 import {useCartContext} from '../context/CartContext';
 import Badge from './ui/Badge/Badge';
-import {Category} from '../types';
+import {Category} from '@types';
 import {apiClient} from '../services/api';
 import './Navigation.css';
 

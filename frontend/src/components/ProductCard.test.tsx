@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 import ProductCard from './ProductCard';
-import { CartProvider } from '../context/CartContext';
+import { CartProvider } from '../context';
 import { Product } from '../types';
 
 // Mock the cart context
@@ -49,7 +49,7 @@ const mockProduct: Product = {
 
 const renderProductCard = (product: Product = mockProduct, props = {}) => {
   return render(
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <CartProvider userId="test-user">
         <ProductCard product={product} {...props} />
       </CartProvider>

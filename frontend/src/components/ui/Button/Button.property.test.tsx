@@ -5,11 +5,10 @@
  * Based on requirements 7.4, 10.1, 10.4
  */
 
-import React from 'react';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import * as fc from 'fast-check';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vitest';
 import Button from './Button';
 
 describe('Button Component - Property Tests', () => {
