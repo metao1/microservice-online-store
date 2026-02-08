@@ -5,17 +5,17 @@
  */
 
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import '@testing-library/jest-dom';
-import Skeleton, { 
-  SkeletonText, 
-  SkeletonAvatar, 
-  SkeletonButton, 
+import Skeleton, {
+  SkeletonAvatar,
+  SkeletonButton,
   SkeletonCard,
+  SkeletonNavigation,
   SkeletonProductCard,
-  SkeletonNavigation
+  SkeletonText
 } from './Skeleton';
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
 describe('Skeleton Component', () => {
   // Basic rendering tests

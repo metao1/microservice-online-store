@@ -5,7 +5,7 @@
  * Based on requirements 7.4, 10.1, 10.4
  */
 
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import * as fc from 'fast-check';
 import Input from './Input';
@@ -72,7 +72,7 @@ describe('Input Component - Property Tests', () => {
             if (error && errorMessage) props.errorMessage = errorMessage;
             if (!error && helperText) props.helperText = helperText;
 
-            const { unmount } = render(<Input {...props} />);
+            const { unmount, container } = render(<Input {...props} />);
 
             const input = screen.getByTestId(testId);
             
@@ -101,7 +101,7 @@ describe('Input Component - Property Tests', () => {
 
             // Property: Label association should be correct
             if (label) {
-              const labelElement = screen.getByText(label.trim());
+              const labelElement = within(container).getByText(label.trim());
               expect(labelElement).toBeInTheDocument();
               expect(labelElement).toHaveAttribute('for', input.getAttribute('id'));
             }

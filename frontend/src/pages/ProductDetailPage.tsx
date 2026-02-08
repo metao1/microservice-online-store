@@ -1,7 +1,7 @@
 import React, { FC, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useProduct } from '../hooks/useProducts';
-import { useCartContext } from '../context/CartContext';
+import { useProduct } from '@hooks/useProducts';
+import { useCartContext } from '@context/CartContext';
 import './ProductDetailPage.css';
 
 const ProductDetailPage: FC = () => {

@@ -1,8 +1,8 @@
 import {FC, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useLocation, useSearchParams} from 'react-router-dom';
-import {useProducts} from '../hooks/useProducts';
+import {useProducts} from '@hooks/useProducts';
 import ProductGrid from '../components/ProductGrid';
-import {Product, ProductVariant} from '../types';
+import {Product, ProductVariant} from '@types';
 import './ProductsPage.css';
 
 interface ProductsPageProps {

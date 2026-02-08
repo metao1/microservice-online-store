@@ -1,6 +1,6 @@
-import { FC, Suspense } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
+import {FC, Suspense} from 'react';
+import {BrowserRouter, Route, Routes} from 'react-router-dom';
+import {ToastContainer} from 'react-toastify';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'react-toastify/dist/ReactToastify.css';
 import './index.css';
@@ -14,9 +14,9 @@ import AccountPage from './pages/AccountPage';
 import OrdersPage from './pages/OrdersPage';
 import Navigation from './components/Navigation';
 import ErrorBoundary from './components/ErrorBoundary';
-import { AuthProvider } from './context/AuthContext';
-import { CartProvider } from './context/CartContext';
-import { User } from './types';
+import {AuthProvider} from '@context/AuthContext';
+import {CartProvider} from '@context/CartContext';
+import {User} from '@types';
 
 const LoadingFallback: FC = () => (
   <div style={{ padding: '20px', textAlign: 'center' }}>Loading...</div>
@@ -35,7 +35,7 @@ const App: FC = () => {
     <ErrorBoundary>
       <AuthProvider initialUser={defaultUser}>
         <CartProvider userId={defaultUser.id}>
-          <BrowserRouter>
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <Navigation />
             <div>
               <Suspense fallback={<LoadingFallback />}>

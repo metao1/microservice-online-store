@@ -2,22 +2,20 @@
  * Navigation Component Property-Based Tests
  */
 
-import React from 'react';
-import { render, screen, cleanup } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import {cleanup, render, screen} from '@testing-library/react';
+import {BrowserRouter} from 'react-router-dom';
 import '@testing-library/jest-dom';
 import * as fc from 'fast-check';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import Navigation from './Navigation';
-import { CartProvider } from '../context/CartContext';
-import { AuthProvider } from '../context/AuthContext';
-import { User, Cart, CartItem } from '../types';
+import {AuthProvider, CartProvider} from '../context';
+import {Cart, CartItem, User} from '../types';
+import {useCart} from '../hooks';
 
 vi.mock('../hooks/useCart', () => ({
   useCart: vi.fn()
 }));
 
-import { useCart } from '../hooks/useCart';
 const mockUseCart = vi.mocked(useCart);
 
 const mockUser: User = {
@@ -79,7 +77,7 @@ const TestWrapper: React.FC<{
     });
 
     return (
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AuthProvider initialUser={mockUser}>
           <CartProvider userId={userId}>
             {children}

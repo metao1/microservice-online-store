@@ -4,11 +4,11 @@
  * Based on requirements 1.3, 4.1, 5.1, 10.1, 10.7
  */
 
-import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { describe, expect, it, vi } from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import Input from './Input';
+import React from "react";
 
 describe('Input Component', () => {
   // Basic rendering tests

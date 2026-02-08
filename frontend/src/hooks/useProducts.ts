@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Product } from '../types';
+import { Product } from '@types';
 import { apiClient } from '../services/api';
 
 export const useProducts = () => {
