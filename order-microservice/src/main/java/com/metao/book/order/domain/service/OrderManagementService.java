@@ -42,8 +42,7 @@ public class OrderManagementService {
                 // This is a bit awkward, but we need the full cart data
                 return new ShoppingCart(customerId.getValue(), item.sku(),
                     item.price(), item.price(), item.quantity(), item.currency());
-            })
-            .toList();
+            }).toList();
 
         if (cartItems.isEmpty()) {
             throw new ShoppingCartIsEmptyException();

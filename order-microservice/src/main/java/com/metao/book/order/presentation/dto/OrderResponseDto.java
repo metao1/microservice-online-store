@@ -30,23 +30,20 @@ public class OrderResponseDto {
         response.setItems(order.getItems().stream()
             .map(item -> {
                 OrderItemResponse itemResponse = new OrderItemResponse();
-                itemResponse.setProductId(item.getProductId().getValue());
+                itemResponse.setSku(item.getProductId().getValue());
                 itemResponse.setQuantity(item.getQuantity().getValue());
                 itemResponse.setUnitPrice(item.getUnitPrice());
-                itemResponse.setTotalPrice(item.getTotalPrice());
                 return itemResponse;
             })
             .toList());
-
         return response;
     }
 
     @Data
     public static class OrderItemResponse {
 
-        private String productId;
+        private String sku;
         private BigDecimal quantity;
         private Money unitPrice;
-        private Money totalPrice;
     }
 }
