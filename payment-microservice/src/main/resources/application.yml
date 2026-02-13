@@ -16,6 +16,9 @@ spring:
       security.protocol: ${SECURITY_PROTOCOL}
       sasl.mechanism: ${SASL_MECHANISM}
       sasl.jaas.config: ${SASL_JAAS_CONFIG}
+      ssl.truststore.location: ${KAFKA_SSL_TRUSTSTORE_LOCATION}
+      ssl.truststore.password: ${KAFKA_SSL_TRUSTSTORE_PASSWORD}
+      ssl.truststore.type: ${KAFKA_SSL_TRUSTSTORE_TYPE:PKCS12}
     consumer:
       key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
