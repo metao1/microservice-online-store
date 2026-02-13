@@ -32,4 +32,9 @@ USER appuser
 # Expose port
 EXPOSE 8083
 
-ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar app.jar" ]
+ENTRYPOINT ["sh","-c", "\
+  umask 077 && \
+  echo \"$TRUSTSTORE_P12_B64\" | base64 -d > /tmp/truststore.p12 && \
+  keytool -list -storetype PKCS12 -keystore /tmp/truststore.p12 -storepass \"$TRUSTSTORE_PASSWORD\" >/dev/null && \
+  exec java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar app.jar \
+"]
