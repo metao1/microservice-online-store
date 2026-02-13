@@ -23,6 +23,7 @@ ENV JAVA_OPTS="-Xms256m -Xmx2048m"
 
 # Create non-root user
 RUN groupadd -r appuser && useradd -r -g appuser appuser && \
+    usermod -a -G 1000 appuser && \
     chown -R appuser:appuser /app
 
 # Run as non-root user
