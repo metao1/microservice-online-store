@@ -13,7 +13,6 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -32,7 +31,7 @@ import org.springframework.kafka.core.ProducerFactory;
 @AutoConfiguration
 @ConfigurationProperties("kafka")
 @ConditionalOnClass(KafkaTemplate.class)
-@EnableConfigurationProperties(KafkaProperties.class)
+@EnableConfigurationProperties(KafkaClientProperties.class)
 public class KafkaEventConfiguration {
 
     private Map<String, String> classToTopicMap;
@@ -60,7 +59,7 @@ public class KafkaEventConfiguration {
 
     @Bean
     <K, V> ProducerFactory<K, V> producerFactory(
-        KafkaProperties kafkaProperties,
+        KafkaClientProperties kafkaProperties,
         @Value("${spring.kafka.properties.schema.registry.url}") String schemaRegistryUrl
     ) {
         var bootstrapServers = kafkaProperties.getBootstrapServers();
@@ -77,7 +76,7 @@ public class KafkaEventConfiguration {
 
     @Bean
     public <K, V> ConcurrentKafkaListenerContainerFactory<K, V> kafkaListenerContainerFactory(
-        KafkaProperties kafkaProperties,
+        KafkaClientProperties kafkaProperties,
         @Value("${spring.kafka.properties.schema.registry.url}") String schemaRegistryUrl
     ) {
         var ps = kafkaProperties.getProperties();
@@ -105,7 +104,7 @@ public class KafkaEventConfiguration {
 
     public static <T> ConsumerFactory<String, T> createConsumerFactory(
         Class<T> clazz,
-        KafkaProperties kafkaProperties
+        KafkaClientProperties kafkaProperties
     ) {
         var bootstrapServers = kafkaProperties.getBootstrapServers();
         var ps = kafkaProperties.getProperties();

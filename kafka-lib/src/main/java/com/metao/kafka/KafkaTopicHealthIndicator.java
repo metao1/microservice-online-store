@@ -19,7 +19,6 @@ import org.apache.kafka.clients.admin.ListTopicsOptions;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.common.acl.AclOperation;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.availability.AvailabilityChangeEvent;
 import org.springframework.boot.availability.LivenessState;
 import org.springframework.boot.health.contributor.Health;
@@ -34,14 +33,14 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "kafka.enabled", havingValue = "true", matchIfMissing = true)
 public class KafkaTopicHealthIndicator implements HealthIndicator {
 
-    private final KafkaProperties kafkaProperties;
+    private final KafkaClientProperties kafkaProperties;
     private final ApplicationEventPublisher eventPublisher;
     private AdminClient adminClient;
 
     @PostConstruct
     public void init() {
         final Properties adminProperties = new Properties();
-        adminProperties.putAll(kafkaProperties.buildAdminProperties(null));
+        adminProperties.putAll(kafkaProperties.buildAdminProperties());
         adminClient = AdminClient.create(adminProperties);
     }
 
