@@ -164,6 +164,7 @@ services:
     build:
       context: .
       dockerfile: inventory-microservice/src/main/docker/Dockerfile
+    platform: linux/amd64
     ports:
       - "8083:8083"
     depends_on:
