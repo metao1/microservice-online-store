@@ -15,10 +15,14 @@ spring:
     properties:
       schema.registry.url: ${SCHEMA_REGISTRY_URL}
       security.protocol: ${SECURITY_PROTOCOL}
-      sasl.mechanism: ${SASL_MECHANISM}
+      #sasl.mechanism: ${SASL_MECHANISM}
       ssl.truststore.type: ${SASL_TRUSTSTORE_TYPE}
-      ssl.truststore.password: ${SASL_TRUSTSTORE_PASSWORD}
-      sasl.jaas.config: ${SASL_JAAS_CONFIG}
+      ssl.keystore.type: ${SASL_KEYSTORE_TYPE}
+      ssl.truststore.location: ${SASL_TRUSTSTORE_LOCATION}
+      ssl.keystore.location: ${SASL_KEYSTORE_LOCATION}
+      #ssl.truststore.password: ${SASL_KEYSTORE_PASSWORD}
+      #ssl.keystore.password: ${SASL_KEYSTORE_PASSWORD}
+      #sasl.jaas.config: ${SASL_JAAS_CONFIG}
     consumer:
       key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
