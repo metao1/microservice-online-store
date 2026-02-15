@@ -1,5 +1,6 @@
 package com.metao.book.product.application.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
@@ -16,8 +17,10 @@ public record CreateProductDto(
     String sku,
     @NotBlank(message = "Title cannot be blank")
     String title,
-    @NotBlank(message = "Image URL cannot be blank")
+    @NotBlank(message = "Description cannot be blank")
     String description,
+    @NotBlank(message = "Image URL cannot be blank")
+    @JsonAlias("image_url")
     @Pattern(regexp = "https?://[/|.\\w-]+\\.(?:jpg|gif|png|JPG|GIF|PNG)", message = "Invalid image URL format")
     String imageUrl,
     @NotNull(message = "Price cannot be null")

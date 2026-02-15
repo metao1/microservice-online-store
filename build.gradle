@@ -62,9 +62,9 @@ subprojects {
     annotationProcessor "org.projectlombok:lombok:1.18.36"
     testAnnotationProcessor "org.projectlombok:lombok:1.18.36"
 
-    testImplementation "org.testcontainers:junit-jupiter"
-    testImplementation "org.testcontainers:postgresql:1.17.6"
-    testImplementation "org.testcontainers:testcontainers"
+    testImplementation "org.testcontainers:testcontainers-junit-jupiter:${testcontainersVersion}"
+    testImplementation "org.testcontainers:testcontainers-postgresql:${testcontainersVersion}"
+    testImplementation "org.testcontainers:testcontainers:${testcontainersVersion}"
     testImplementation platform("org.testcontainers:testcontainers-bom:${testcontainersVersion}")
 
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

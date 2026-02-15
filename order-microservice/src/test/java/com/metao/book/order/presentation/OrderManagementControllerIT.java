@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Set;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.PartitionInfo;
+import org.apache.kafka.common.TopicPartition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -185,7 +186,14 @@ class OrderManagementControllerIT extends KafkaContainer {
                     List<PartitionInfo> partitions = kafkaTemplate.partitionsFor(kafkaTopic);
                     int partition = Math.abs(orderId.hashCode()) % partitions.size();
                     kafkaTemplate.setConsumerFactory(consumerFactory);
-                    var event = kafkaTemplate.receive(kafkaTopic, partition, 0);
+                    TopicPartition topicPartition = new TopicPartition(kafkaTopic, partition);
+                    long latestOffset;
+                    try (var consumer = consumerFactory.createConsumer()) {
+                        consumer.assign(List.of(topicPartition));
+                        consumer.seekToEnd(List.of(topicPartition));
+                        latestOffset = consumer.position(topicPartition) - 1;
+                    }
+                    var event = kafkaTemplate.receive(kafkaTopic, partition, latestOffset);
                     assertThat(event)
                         .isNotNull()
                         .extracting(ConsumerRecord::value)

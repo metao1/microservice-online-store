@@ -6,7 +6,6 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-validation"
 
   implementation "org.springframework.kafka:spring-kafka"
-  implementation "org.apache.kafka:kafka-clients:4.0.0"
   implementation "org.postgresql:postgresql:42.7.3"
   runtimeOnly "org.postgresql:postgresql:42.7.3"
 
@@ -14,13 +13,13 @@ dependencies {
   implementation "io.confluent:kafka-streams-protobuf-serde:7.8.0"
 
   implementation "org.flywaydb:flyway-database-postgresql:10.11.0"
+  implementation "org.springframework.boot:spring-boot-flyway"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
 
   implementation "org.flywaydb:flyway-core"
 
   // cache - Modern JCache with Caffeine
-  implementation "org.hibernate:hibernate-core-jakarta:5.6.12.Final"
-  implementation "org.hibernate:hibernate-jcache:5.6.15.Final"
+  implementation "org.hibernate.orm:hibernate-jcache"
   implementation "com.github.ben-manes.caffeine:caffeine:3.1.8"
   implementation "com.github.ben-manes.caffeine:jcache:3.1.8"
 
@@ -29,6 +28,9 @@ dependencies {
 
   testImplementation "org.mockito:mockito-core:4.8.0"
   testImplementation "io.rest-assured:rest-assured:5.4.0"
+  testImplementation "org.apache.groovy:groovy:4.0.16"
+  testImplementation "org.apache.groovy:groovy-json:4.0.16"
+  testImplementation "org.apache.groovy:groovy-xml:4.0.16"
   testImplementation project(':shared-test')
 }
 

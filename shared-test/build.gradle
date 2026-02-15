@@ -14,11 +14,10 @@ ext {
 }
 
 dependencies {
-  implementation "org.testcontainers:testcontainers"
-  implementation "org.testcontainers:kafka"
+  implementation "org.testcontainers:testcontainers:${testcontainersVersion}"
+  implementation "org.testcontainers:testcontainers-kafka:${testcontainersVersion}"
   implementation "org.springframework.boot:spring-boot-starter-test"
-  implementation "org.testcontainers:junit-jupiter"
-  implementation "org.testcontainers:testcontainers"
+  implementation "org.testcontainers:testcontainers-junit-jupiter:${testcontainersVersion}"
   implementation platform("org.testcontainers:testcontainers-bom:${testcontainersVersion}")
 }
 

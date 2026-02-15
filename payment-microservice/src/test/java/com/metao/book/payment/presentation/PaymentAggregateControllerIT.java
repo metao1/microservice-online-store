@@ -4,12 +4,17 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.metao.book.payment.domain.model.valueobject.PaymentId;
+import com.metao.book.payment.domain.repository.PaymentRepository;
 import com.metao.shared.test.KafkaContainer;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
@@ -18,6 +23,9 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class PaymentAggregateControllerIT extends KafkaContainer {
+
+    @Autowired
+    private PaymentRepository paymentRepository;
 
     @LocalServerPort
     private Integer port;
@@ -68,7 +76,7 @@ class PaymentAggregateControllerIT extends KafkaContainer {
             }
             """;
 
-        String paymentId = given()
+        var createdPaymentResponse = given()
             .contentType(ContentType.JSON)
             .body(requestBody)
             .when()
@@ -77,10 +85,13 @@ class PaymentAggregateControllerIT extends KafkaContainer {
             .statusCode(HttpStatus.CREATED.value())
             .body("orderId", equalTo("order-456"))
             .extract()
-            .path("paymentId");
+            .response();
+
+        String paymentId = createdPaymentResponse.jsonPath().getString("paymentId");
+        assertNotNull(paymentId);
 
         // When & Then - Process the payment
-        String processedStatus = given()
+        var processedPaymentResponse = given()
             .contentType(ContentType.JSON)
             .when()
             .post("/payments/{paymentId}/process", paymentId)
@@ -89,16 +100,12 @@ class PaymentAggregateControllerIT extends KafkaContainer {
             .body("paymentId", equalTo(paymentId))
             .body("status", anyOf(equalTo("SUCCESSFUL"), equalTo("FAILED")))
             .extract()
-            .path("status");
+            .response();
 
-        // Verify the payment status was updated (should be either SUCCESSFUL or FAILED)
-        given()
-            .contentType(ContentType.JSON)
-            .when()
-            .get("/payments/{paymentId}", paymentId)
-            .then()
-            .statusCode(HttpStatus.OK.value())
-            .body("paymentId", equalTo(paymentId))
-            .body("status", equalTo(processedStatus));
+        String processedStatus = processedPaymentResponse.jsonPath().getString("status");
+        assertNotNull(processedStatus);
+
+        var persistedPayment = paymentRepository.findById(PaymentId.of(paymentId)).orElseThrow();
+        assertEquals(processedStatus, persistedPayment.getStatus().name());
     }
 }

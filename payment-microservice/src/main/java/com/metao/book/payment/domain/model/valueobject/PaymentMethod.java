@@ -1,7 +1,10 @@
 package com.metao.book.payment.domain.model.valueobject;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.metao.book.shared.domain.base.ValueObject;
+import java.util.Arrays;
+import java.util.Locale;
 import lombok.Getter;
 import lombok.NonNull;
 
@@ -69,6 +72,26 @@ public record PaymentMethod(PaymentMethod.Type type,
         @JsonValue
         public String getDisplayName() {
             return displayName;
+        }
+
+        @JsonCreator
+        public static Type fromJson(String value) {
+            if (value == null || value.trim().isEmpty()) {
+                throw new IllegalArgumentException("Payment method type cannot be null or empty");
+            }
+
+            String normalized = value.trim();
+
+            return Arrays.stream(values())
+                .filter(type ->
+                    type.name().equalsIgnoreCase(normalized)
+                        || type.displayName.equalsIgnoreCase(normalized)
+                        || type.name().replace('_', ' ').equalsIgnoreCase(normalized)
+                        || type.displayName.replace(' ', '_').toUpperCase(Locale.ROOT)
+                        .equals(normalized.toUpperCase(Locale.ROOT))
+                )
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown payment method type: " + value));
         }
     }
 }
