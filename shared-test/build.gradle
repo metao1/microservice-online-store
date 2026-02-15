@@ -10,7 +10,7 @@ group = "com.metao.book.shared"
 
 ext {
   testcontainersVersion = "2.0.2"
-  springBootDependenciesVersion = "3.4.4"
+  springBootDependenciesVersion = "4.0.2"
 }
 
 dependencies {
