@@ -25,4 +25,4 @@ jobs:
           which docker || true
           docker version || true
           docker info || true
-          gradle build
+          ./gradlew build
