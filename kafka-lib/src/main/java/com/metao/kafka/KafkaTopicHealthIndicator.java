@@ -18,13 +18,13 @@ import org.apache.kafka.clients.admin.DescribeTopicsOptions;
 import org.apache.kafka.clients.admin.ListTopicsOptions;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.common.acl.AclOperation;
-import org.springframework.boot.actuate.health.AbstractHealthIndicator;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.Health.Builder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.availability.AvailabilityChangeEvent;
 import org.springframework.boot.availability.LivenessState;
+import org.springframework.boot.health.contributor.Health;
+import org.springframework.boot.health.contributor.Health.Builder;
+import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
 @Component("kafkaTopics")
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "kafka.enabled", havingValue = "true", matchIfMissing = true)
-public class KafkaTopicHealthIndicator extends AbstractHealthIndicator {
+public class KafkaTopicHealthIndicator implements HealthIndicator {
 
     private final KafkaProperties kafkaProperties;
     private final ApplicationEventPublisher eventPublisher;
@@ -53,7 +53,13 @@ public class KafkaTopicHealthIndicator extends AbstractHealthIndicator {
     }
 
     @Override
-    protected void doHealthCheck(Builder builder) throws Exception {
+    public Health health() {
+        final Builder builder = Health.up();
+        doHealthCheck(builder);
+        return builder.build();
+    }
+
+    private void doHealthCheck(Builder builder) {
         builder.up();
         final Set<String> knownTopics = knownTopics(builder);
         final Map<String, TopicDescription> topicDescriptions = getTopicDescriptions(builder, knownTopics);

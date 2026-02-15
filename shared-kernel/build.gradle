@@ -19,6 +19,7 @@ dependencies {
   api "org.springframework.boot:spring-boot-starter-data-jpa"
 
   // Jackson - needed for JSON annotations
+  implementation "org.springframework.boot:spring-boot-jackson"
   implementation "com.fasterxml.jackson.core:jackson-databind"
   implementation "com.fasterxml.jackson.core:jackson-annotations"
 
