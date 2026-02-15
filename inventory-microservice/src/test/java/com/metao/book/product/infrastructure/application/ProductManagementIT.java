@@ -65,6 +65,34 @@ public class ProductManagementIT extends KafkaContainer {
     }
 
     @Test
+    @DisplayName("should accept camelCase imageUrl when creating product")
+    void shouldAcceptCamelCaseImageUrlWhenCreatingProduct() {
+        // Given
+        var requestBody = """
+            {
+                "sku": "SKU1234568",
+                "title": "Test Product Camel",
+                "description": "Test Description",
+                "imageUrl": "https://example.com/image.jpg",
+                "price": 29.99,
+                "currency": "EUR",
+                "volume": 100,
+                "categories": ["Books"]
+            }
+            """;
+
+        // When & Then
+        given()
+            .contentType(ContentType.JSON)
+            .body(requestBody)
+            .when()
+            .post("/products")
+            .then()
+            .statusCode(HttpStatus.CREATED.value())
+            .header("Location", endsWith("/products/SKU1234568"));
+    }
+
+    @Test
     @DisplayName("should return 400 when creating product with invalid SKU format")
     void shouldReturn400WhenInvalidSkuFormat() {
         // Given - SKU must be exactly 10 characters

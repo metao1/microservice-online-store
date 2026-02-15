@@ -11,6 +11,6 @@ spring:
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%t]){yellow} %clr([%c{1}]){green} %clr(:){red} %clr(%m){faint}%n"
   level:
-    org.springframework: INFO
-    com.metao.book: DEBUG
-    org.hibernate: INFO
+    org.springframework: ERROR
+    org.apache.kafka: ERROR
+    org.hibernate: ERROR
