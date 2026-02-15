@@ -21,8 +21,5 @@ jobs:
       - name: Publish the libraries to maven
         run: gradle publishToMavenLocal
       - name: Build microservices and run tests with Gradle
-        run: |
-          which docker || true
-          docker version || true
-          docker info || true
+        run: |          
           ./gradlew build
