@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Transactional
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "spring.profiles.active", havingValue = "local")
+@ConditionalOnProperty(name = "spring.profiles.active", havingValue = "generator")
 public class ProductGenerator {
 
     @Value("classpath:data/products.txt")
