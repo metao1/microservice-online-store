@@ -32,6 +32,7 @@ export interface Product {
   rating?: number;
   reviews?: number;
   inStock: boolean;
+  total : number;
   quantity?: number;
   variants?: ProductVariant[];
   category?: string;
