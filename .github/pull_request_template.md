@@ -1,7 +1,12 @@
 # Test Coverage Improvement PR
 ```
-./gradlew inventory-microservice:test
+# Backend test
+./gradlew tests
+# Frontend test
+cd npm
+npm test
 ```bash
+
 Run tests locally with:
 ## Preview
 
