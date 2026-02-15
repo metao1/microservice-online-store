@@ -4,9 +4,9 @@ import static com.metao.kafka.KafkaEventConfiguration.createConsumerFactory;
 
 import com.metao.book.product.ProductCreatedEvent;
 import com.metao.book.shared.ProductUpdatedEvent;
+import com.metao.kafka.KafkaClientProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
@@ -19,7 +19,7 @@ import org.springframework.kafka.core.ConsumerFactory;
 @ConditionalOnProperty(value = "kafka.enabled", havingValue = "true", matchIfMissing = true)
 public class KafkaConsumerConfig {
 
-    private final KafkaProperties kafkaProperties;
+    private final KafkaClientProperties kafkaProperties;
 
     @Bean
     public ConsumerFactory<String, ProductCreatedEvent> productPaymentEventConsumerFactory() {
