@@ -10,9 +10,7 @@ on:
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
-
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4.2.2
       - name: Set up JDK 21
@@ -23,4 +21,8 @@ jobs:
       - name: Publish the libraries to maven
         run: gradle publishToMavenLocal
       - name: Build microservices and run tests with Gradle
-        run: gradle build
+        run: |
+          which docker || true
+          docker version || true
+          docker info || true
+          gradle build

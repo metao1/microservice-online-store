@@ -1,5 +1,5 @@
 ## Build stage
-FROM gradle:8.5-jdk21 AS build
+FROM gradle:9-jdk21 AS build
 
 # Set working directory
 WORKDIR /workspace
@@ -18,11 +18,9 @@ WORKDIR /app
 # Copy the built JAR from build stage
 COPY --from=build /workspace/order-microservice/build/libs/order-microservice.jar app.jar
 
-# Set environment variables
-ENV JAVA_OPTS="-Xms256m -Xmx2048m"
-
 # Create non-root user
 RUN groupadd -r appuser && useradd -r -g appuser appuser && \
+    usermod -a -G 1000 appuser && \
     chown -R appuser:appuser /app
 
 # Run as non-root user
