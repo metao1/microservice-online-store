@@ -1,10 +1,11 @@
 server:
-  error:
-    include-message: always
-    include-binding-errors: always
   port: ${PORT:8080}
 
 spring:
+  web:
+    error:
+      include-message: always
+      include-binding-errors: always
   application:
     name: order-microservice
   kafka:
