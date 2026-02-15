@@ -47,6 +47,7 @@ const OrdersPage: FC = () => {
           description: 'Comfortable cotton t-shirt',
           rating: 4.5,
           reviews: 120,
+          total: 10,
           inStock: true,
           quantity: 10,
           cartQuantity: 2
@@ -60,6 +61,7 @@ const OrdersPage: FC = () => {
           description: 'Classic blue denim jeans',
           rating: 4.3,
           reviews: 85,
+          total: 10,
           inStock: true,
           quantity: 5,
           cartQuantity: 1
@@ -81,6 +83,7 @@ const OrdersPage: FC = () => {
           imageUrl: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=200&h=200&fit=crop',
           description: 'Comfortable running sneakers',
           rating: 4.7,
+          total: 10,
           reviews: 200,
           inStock: true,
           quantity: 8,
@@ -229,7 +232,7 @@ const OrdersPage: FC = () => {
                     >
                       {getStatusDisplay(order.status)}
                     </span>
-                    <p className="order-total">${order.total.toFixed(2)}</p>
+                    <p className="order-total">${order.total}</p>
                   </div>
                 </div>
 
@@ -244,7 +247,7 @@ const OrdersPage: FC = () => {
                       <div className="item-details">
                         <h4>{item.title}</h4>
                         <p className="item-price">
-                          ${item.price.toFixed(2)} × {item.cartQuantity}
+                          ${item.total}
                         </p>
                       </div>
                     </div>

@@ -224,7 +224,6 @@ const ProductDetailPage: FC = () => {
             <button
               className={`add-to-bag-btn ${!selectedSize ? 'disabled' : ''}`}
               onClick={handleAddToCart}
-              disabled={!product.inStock || !selectedSize}
               data-testid="add-to-cart-button"
             >
               {!selectedSize ? 'Please select a size' : 'Add to bag'}

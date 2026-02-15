@@ -28,6 +28,7 @@ const CartPage: FC = () => {
           currency: cartItem.currency,
           imageUrl: cartItem.imageUrl,
           description: cartItem.description,
+          total: cartItem.total,
           rating: cartItem.rating,
           reviews: cartItem.reviews,
           inStock: cartItem.inStock,
