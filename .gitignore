@@ -39,3 +39,6 @@ q
 build
 bin
 /*.hprof
+*.pem
+*.key
+*.crt
