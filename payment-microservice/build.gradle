@@ -18,7 +18,8 @@ dependencies {
 
   implementation "org.flywaydb:flyway-core"
 
-  // cache - Modern JCache with Caffeine
+  // Hibernate second-level cache
+  implementation "org.hibernate.orm:hibernate-jcache"
   implementation "com.github.ben-manes.caffeine:caffeine:3.1.8"
   implementation "com.github.ben-manes.caffeine:jcache:3.1.8"
 
