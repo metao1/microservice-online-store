@@ -1,8 +1,8 @@
 import axios, {AxiosInstance} from 'axios';
 import {ApiResponse, Cart, Category, Order, Product} from '@types';
 
-const PRODUCTS_API_BASE_URL = import.meta.env.VITE_PRODUCTS_API_URL || 'http://localhost:8083';
-const CART_API_BASE_URL = import.meta.env.VITE_CART_API_URL || 'http://localhost:8086';
+const PRODUCTS_API_BASE_URL = import.meta.env.VITE_PRODUCTS_API_URL || 'https://microservice-online-store.onrender.com';
+const CART_API_BASE_URL = import.meta.env.VITE_CART_API_URL || 'https://microservice-online-store-ow52.onrender.com';
 
 class ApiClient {
   private productsClient: AxiosInstance;
