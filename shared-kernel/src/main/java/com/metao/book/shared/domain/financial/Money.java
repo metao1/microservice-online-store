@@ -46,9 +46,8 @@ public class Money implements ValueObject {
      * @return {@code this} + {@code augend}
      * @throws IllegalArgumentException if this object and {@code augend} have different currencies.
      */
-    @NonNull
-    public Money add(@NonNull Money augend) {
-        Objects.requireNonNull(augend, "augend must not be null");
+    @NotNull
+    public Money add(@NotNull Money augend) {
         if (currency != augend.currency) {
             throw new IllegalArgumentException("Cannot add two Money objects with different currencies");
         }
@@ -63,9 +62,8 @@ public class Money implements ValueObject {
      * @return {@code this} - {@code augend}
      * @throws IllegalArgumentException if this object and {@code subtrahend} have different currencies.
      */
-    @NonNull
-    public Money subtract(@NonNull Money subtrahend) {
-        Objects.requireNonNull(subtrahend, "subtrahend must not be null");
+    @NotNull
+    public Money subtract(@NotNull Money subtrahend) {
         if (currency != subtrahend.currency) {
             throw new IllegalArgumentException("Cannot subtract two Money objects with different currencies");
         }
@@ -78,7 +76,7 @@ public class Money implements ValueObject {
      * @param multiplicand the value to multiply the amount by.
      * @return {@code this} * {@code multiplicand}
      */
-    @NonNull
+    @NotNull
     public Money multiply(BigDecimal multiplicand) {
         return new Money(currency, amount.multiply(multiplicand));
     }
@@ -89,7 +87,7 @@ public class Money implements ValueObject {
      * @param divisor the value to divide the amount by.
      * @return {@code this} / {@code divisor}
      */
-    @NonNull
+    @NotNull
     public Money divide(BigDecimal divisor) {
         return new Money(currency, amount.divide(divisor, RoundingMode.HALF_UP));
     }
@@ -105,7 +103,6 @@ public class Money implements ValueObject {
      * Checks if this money amount is greater than the specified amount.
      */
     public boolean isGreaterThan(Money other) {
-        Objects.requireNonNull(other, "other must not be null");
         if (!currency.equals(other.currency)) {
             throw new IllegalArgumentException("Cannot compare Money objects with different currencies");
         }
@@ -116,7 +113,6 @@ public class Money implements ValueObject {
      * Checks if this money amount is greater than or equal to the specified amount.
      */
     public boolean isGreaterThanOrEqual(Money other) {
-        Objects.requireNonNull(other, "other must not be null");
         if (!currency.equals(other.currency)) {
             throw new IllegalArgumentException("Cannot compare Money objects with different currencies");
         }
@@ -127,7 +123,6 @@ public class Money implements ValueObject {
      * Checks if this money amount is less than the specified amount.
      */
     public boolean isLessThan(Money other) {
-        Objects.requireNonNull(other, "other must not be null");
         if (!currency.equals(other.currency)) {
             throw new IllegalArgumentException("Cannot compare Money objects with different currencies");
         }
@@ -138,7 +133,6 @@ public class Money implements ValueObject {
      * Checks if this money amount is less than or equal to the specified amount.
      */
     public boolean isLessThanOrEqual(Money other) {
-        Objects.requireNonNull(other, "other must not be null");
         if (!currency.equals(other.currency)) {
             throw new IllegalArgumentException("Cannot compare Money objects with different currencies");
         }
@@ -148,7 +142,7 @@ public class Money implements ValueObject {
     /**
      * Returns the currency.
      */
-    @NonNull
+    @NotNull
     public Currency currency() {
         return currency;
     }
