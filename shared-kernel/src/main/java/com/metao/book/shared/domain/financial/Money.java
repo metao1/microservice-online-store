@@ -4,11 +4,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.metao.book.shared.domain.base.ValueObject;
 import jakarta.persistence.Embeddable;
+import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Currency;
 import java.util.Objects;
-import org.springframework.lang.NonNull;
 
 /**
  * Value object representing an amount of money. The amount is stored as a fixed-point integer where the last two digits
@@ -34,8 +34,8 @@ public class Money implements ValueObject {
      * @param amount   fixed-point integer where the last two digits represent decimals.
      */
     @JsonCreator
-    public Money(@NonNull @JsonProperty("currency") Currency currency, @JsonProperty("amount") BigDecimal amount) {
-        this.currency = Objects.requireNonNull(currency, "currency must not be null");
+    public Money(@NotNull @JsonProperty("currency") Currency currency, @JsonProperty("amount") BigDecimal amount) {
+        this.currency = currency;
         this.amount = amount;
     }
 
