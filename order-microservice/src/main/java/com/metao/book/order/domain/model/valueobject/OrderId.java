@@ -1,7 +1,7 @@
 package com.metao.book.order.domain.model.valueobject;
 
 import java.util.UUID;
-import org.jetbrains.annotations.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 public record OrderId(String value) {
 

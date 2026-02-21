@@ -1,8 +1,8 @@
 package com.metao.book.order.infrastructure.persistence.entity;
 
-import com.metao.book.order.domain.model.valueobject.ProductId;
-import com.metao.book.order.domain.model.valueobject.Quantity;
+import com.metao.book.shared.domain.product.Quantity;
 import com.metao.book.shared.domain.financial.Money;
+import com.metao.book.shared.domain.product.ProductSku;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
@@ -34,7 +34,7 @@ public class OrderItemEntity {
     @AttributeOverrides({
         @AttributeOverride(name = "value", column = @Column(name = "product_id"))
     })
-    private ProductId productId;
+    private ProductSku productSku;
 
     @Embedded
     @AttributeOverrides({

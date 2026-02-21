@@ -19,6 +19,9 @@ management:
           include: readinessState,db,diskSpace
 
 spring:
+  threads:
+    virtual:
+      enabled: ${VIRTUAL_THREADS_ENABLED:false}
   web:
     error:
       include-message: always
@@ -71,7 +74,7 @@ spring:
   jpa:
     database: POSTGRESQL
     generate-ddl: false
-    show-sql: true
+    show-sql: false
     properties:
       open-in-view: false
       hibernate:
@@ -98,10 +101,15 @@ kafka:
       name: "order-payment"
       group-id: "order-payment-group"
       class-path: "com.metao.book.shared.OrderPaymentEvent"
+    product-updated:
+      id: "product-updated-id"
+      name: "product-updated"
+      group-id: "product-updated-group"
+      class-path: "com.metao.book.shared.ProductUpdatedEvent"
 
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%t]){yellow} %clr(:){red} %clr(%m){faint}%n"
   level:
     org.springframework.data: INFO
     org.springframework.boot.autoconfigure: ERROR
-    org.hibernate: INFO
+    org.hibernate: ERROR

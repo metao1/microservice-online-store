@@ -5,15 +5,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.metao.book.order.domain.exception.OrderStateTransitionNotAllowed;
 import com.metao.book.order.domain.model.event.DomainOrderCreatedEvent;
-import com.metao.book.order.domain.model.event.OrderItemAddedEvent;
-import com.metao.book.order.domain.model.event.OrderStatusChangedEvent;
+import com.metao.book.order.domain.model.event.DomainOrderItemAddedEvent;
+import com.metao.book.order.domain.model.event.DomainOrderStatusChangedEvent;
 import com.metao.book.order.domain.model.valueobject.CustomerId;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
-import com.metao.book.order.domain.model.valueobject.ProductId;
-import com.metao.book.order.domain.model.valueobject.Quantity;
 import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.domain.financial.Money;
+import com.metao.book.shared.domain.product.ProductSku;
+import com.metao.book.shared.domain.product.Quantity;
 import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.List;
@@ -82,32 +82,32 @@ class OrderTest {
             OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
             order.clearDomainEvents(); // Clear initial creation event
 
-            ProductId productId = new ProductId("product123");
+            ProductSku productSku = new ProductSku("product123");
             Quantity quantity = new Quantity(BigDecimal.valueOf(2.0));
             Money unitPrice = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10.0));
 
             // When
-            order.addItem(productId, quantity, unitPrice);
+            order.addItem(productSku, quantity, unitPrice);
 
             // Then
             assertThat(order.getItems()).hasSize(1);
-            assertThat(order.getItems().getFirst().getProductId()).isEqualTo(productId);
+            assertThat(order.getItems().getFirst().getProductSku()).isEqualTo(productSku);
             assertThat(order.getItems().getFirst().getQuantity()).isEqualTo(quantity);
             assertThat(order.getItems().getFirst().getUnitPrice()).isEqualTo(unitPrice);
 
             // Verify events
             List<DomainEvent> events = order.getDomainEvents();
             assertThat(events).hasSize(1);
-            assertThat(events.getFirst()).isInstanceOf(OrderItemAddedEvent.class);
+            assertThat(events.getFirst()).isInstanceOf(DomainOrderItemAddedEvent.class);
 
-            OrderItemAddedEvent addedEvent = (OrderItemAddedEvent) events.getFirst();
-            assertThat(addedEvent.getProductId()).isEqualTo(productId);
+            DomainOrderItemAddedEvent addedEvent = (DomainOrderItemAddedEvent) events.getFirst();
+            assertThat(addedEvent.getProductSku()).isEqualTo(productSku);
             assertThat(addedEvent.getQuantity()).isEqualTo(quantity);
             assertThat(addedEvent.getUnitPrice()).isEqualTo(unitPrice);
         }
 
         @Test
-        void shouldThrowExceptionForNullProductId() {
+        void shouldThrowExceptionForNullproductSku() {
             OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
             assertThatThrownBy(() -> order.addItem(null, new Quantity(BigDecimal.ONE),
                 new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10.0))))
@@ -154,9 +154,9 @@ class OrderTest {
             // Verify events
             List<DomainEvent> events = order.getDomainEvents();
             assertThat(events).hasSize(1);
-            assertThat(events.getFirst()).isInstanceOf(OrderStatusChangedEvent.class);
+            assertThat(events.getFirst()).isInstanceOf(DomainOrderStatusChangedEvent.class);
 
-            OrderStatusChangedEvent statusEvent = (OrderStatusChangedEvent) events.getFirst();
+            DomainOrderStatusChangedEvent statusEvent = (DomainOrderStatusChangedEvent) events.getFirst();
             assertThat(statusEvent.getOldStatus()).isEqualTo(OrderStatus.CREATED);
             assertThat(statusEvent.getNewStatus()).isEqualTo(newStatus);
         }
@@ -241,7 +241,7 @@ class OrderTest {
             // When
             for (OrderItemData item : items) {
                 order.addItem(
-                    new ProductId(item.productId()),
+                    new ProductSku(item.productSku()),
                     new Quantity(item.quantity()),
                     new Money(Currency.getInstance("USD"), item.unitPrice())
                 );
@@ -258,7 +258,7 @@ class OrderTest {
             assertThat(order.getTotal()).isNull();
         }
 
-        record OrderItemData(String productId, String productName, BigDecimal quantity, BigDecimal unitPrice) {}
+        record OrderItemData(String productSku, String productName, BigDecimal quantity, BigDecimal unitPrice) {}
     }
 
     @Nested
@@ -268,7 +268,7 @@ class OrderTest {
         void shouldClearDomainEvents() {
             // Given
             OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
-            order.addItem(new ProductId("product1"), new Quantity(BigDecimal.ONE),
+            order.addItem(new ProductSku("product1"), new Quantity(BigDecimal.ONE),
                 new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10.0)));
             order.updateStatus(OrderStatus.PAID);
 
@@ -291,15 +291,15 @@ class OrderTest {
         @Test
         void shouldAccumulateEventsForMultipleOperations() {
             OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
-            order.addItem(new ProductId("product1"), new Quantity(BigDecimal.ONE),
+            order.addItem(new ProductSku("product1"), new Quantity(BigDecimal.ONE),
                 new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10.0)));
             order.updateStatus(OrderStatus.PAID);
 
             List<DomainEvent> events = order.getDomainEvents();
             assertThat(events).hasSize(3); // Created + ItemAdded + StatusChanged
             assertThat(events.getFirst()).isInstanceOf(DomainOrderCreatedEvent.class);
-            assertThat(events.get(1)).isInstanceOf(OrderItemAddedEvent.class);
-            assertThat(events.get(2)).isInstanceOf(OrderStatusChangedEvent.class);
+            assertThat(events.get(1)).isInstanceOf(DomainOrderItemAddedEvent.class);
+            assertThat(events.get(2)).isInstanceOf(DomainOrderStatusChangedEvent.class);
         }
     }
 }

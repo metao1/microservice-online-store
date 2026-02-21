@@ -1,7 +1,7 @@
 package com.metao.book.order.domain.model.valueobject;
 
 import lombok.Data;
-import org.jetbrains.annotations.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 @Data
 public class CustomerId {
