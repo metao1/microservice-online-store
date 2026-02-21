@@ -202,7 +202,7 @@ services:
       context: frontend
       dockerfile: Dockerfile
     ports:
-      - "3000:80"
+      - "3000:3000"
 
   kafkacat:
     image: confluentinc/cp-kafkacat
