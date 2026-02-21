@@ -1,13 +1,15 @@
 package com.metao.book.order.application.listener;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.domain.service.OrderManagementService;
+import com.metao.book.order.infrastructure.persistence.repository.ProcessedPaymentEventRepository;
 import com.metao.book.shared.OrderPaymentEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,9 +19,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/**
- * Unit tests for PaymentEventListener
- */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PaymentEventListener")
 class PaymentEventListenerTest {
@@ -27,11 +26,17 @@ class PaymentEventListenerTest {
     @Mock
     private OrderManagementService orderManagementService;
 
+    @Mock
+    private OrderAggregate order;
+
+    @Mock
+    private ProcessedPaymentEventRepository processedPaymentEventRepository;
+
     private PaymentEventListener paymentEventListener;
 
     @BeforeEach
     void setUp() {
-        paymentEventListener = new PaymentEventListener(orderManagementService);
+        paymentEventListener = new PaymentEventListener(orderManagementService, processedPaymentEventRepository);
     }
 
     @Nested
@@ -39,47 +44,44 @@ class PaymentEventListenerTest {
     class SuccessfulPaymentEvents {
 
         @Test
-        @DisplayName("Should update order status to PAID for successful payment")
-        void shouldUpdateOrderStatusToPaidForSuccessfulPayment() {
-            // Given
-            String orderId = "order123";
+        @DisplayName("Should reduce inventory and update order status to PAID")
+        void shouldReduceInventoryAndUpdateStatusToPaid() {
+            String orderIdValue = "order123";
+            OrderId orderId = OrderId.of(orderIdValue);
             OrderPaymentEvent paymentEvent = OrderPaymentEvent.newBuilder()
-                .setOrderId(orderId)
+                .setOrderId(orderIdValue)
+                .setPaymentId("payment-1")
                 .setStatus(OrderPaymentEvent.Status.SUCCESSFUL)
-                .setCustomerId("customer123")
-                .setProductId("product123")
                 .build();
 
-            // When
+            when(processedPaymentEventRepository.markProcessed("payment-1")).thenReturn(true);
+            when(orderManagementService.getOrderByIdForUpdate(orderId)).thenReturn(order);
+            when(order.getStatus()).thenReturn(OrderStatus.CREATED);
+
             paymentEventListener.handlePaymentEvent(paymentEvent);
 
-            // Then
-            verify(orderManagementService).updateOrderStatus(
-                eq(OrderId.of(orderId)),
-                eq(OrderStatus.PAID.name())
-            );
+            verify(orderManagementService).updateItemQuantity(orderId);
+            verify(orderManagementService).updateOrderStatus(orderId, OrderStatus.PAID.name());
         }
 
         @Test
-        @DisplayName("Should handle successful payment with different products")
-        void shouldHandleSuccessfulPaymentWithDifferentProducts() {
-            // Given
-            String orderId = "order456";
+        @DisplayName("Should skip duplicate successful payment event when order already PAID")
+        void shouldSkipDuplicateSuccessfulPaymentEvent() {
+            String orderIdValue = "order123";
+            OrderId orderId = OrderId.of(orderIdValue);
             OrderPaymentEvent paymentEvent = OrderPaymentEvent.newBuilder()
-                .setOrderId(orderId)
+                .setOrderId(orderIdValue)
+                .setPaymentId("payment-2")
                 .setStatus(OrderPaymentEvent.Status.SUCCESSFUL)
-                .setCustomerId("customer456")
-                .setProductId("product789")
                 .build();
 
-            // When
+            when(processedPaymentEventRepository.markProcessed("payment-2")).thenReturn(true);
+            when(orderManagementService.getOrderByIdForUpdate(orderId)).thenReturn(order);
+            when(order.getStatus()).thenReturn(OrderStatus.PAID);
+
             paymentEventListener.handlePaymentEvent(paymentEvent);
 
-            // Then
-            verify(orderManagementService).updateOrderStatus(
-                eq(OrderId.of(orderId)),
-                eq(OrderStatus.PAID.name())
-            );
+            verify(orderManagementService, never()).updateOrderStatus(orderId, OrderStatus.PAID.name());
         }
     }
 
@@ -90,152 +92,36 @@ class PaymentEventListenerTest {
         @Test
         @DisplayName("Should update order status to PAYMENT_FAILED for failed payment")
         void shouldUpdateOrderStatusToPaymentFailedForFailedPayment() {
-            // Given
-            String orderId = "order456";
+            String orderIdValue = "order456";
+            OrderId orderId = OrderId.of(orderIdValue);
             OrderPaymentEvent paymentEvent = OrderPaymentEvent.newBuilder()
-                .setOrderId(orderId)
+                .setOrderId(orderIdValue)
+                .setPaymentId("payment-3")
                 .setStatus(OrderPaymentEvent.Status.FAILED)
-                .setCustomerId("customer456")
-                .setProductId("product456")
                 .build();
 
-            // When
+            when(processedPaymentEventRepository.markProcessed("payment-3")).thenReturn(true);
             paymentEventListener.handlePaymentEvent(paymentEvent);
 
-            // Then
-            verify(orderManagementService).updateOrderStatus(
-                eq(OrderId.of(orderId)),
-                eq(OrderStatus.PAYMENT_FAILED.name())
-            );
+            verify(orderManagementService).updateOrderStatus(eq(orderId), eq(OrderStatus.PAYMENT_FAILED.name()));
         }
 
         @Test
-        @DisplayName("Should handle failed payment with error message")
-        void shouldHandleFailedPaymentWithErrorMessage() {
-            // Given
-            String orderId = "order789";
+        @DisplayName("Should skip duplicate payment event by idempotency key")
+        void shouldSkipDuplicatePaymentEventByIdempotencyKey() {
+            String orderIdValue = "order456";
+            OrderId orderId = OrderId.of(orderIdValue);
             OrderPaymentEvent paymentEvent = OrderPaymentEvent.newBuilder()
-                .setOrderId(orderId)
+                .setOrderId(orderIdValue)
+                .setPaymentId("payment-duplicate")
                 .setStatus(OrderPaymentEvent.Status.FAILED)
-                .setCustomerId("customer789")
-                .setProductId("product789")
-                .setErrorMessage("Insufficient funds")
                 .build();
 
-            // When
+            when(processedPaymentEventRepository.markProcessed("payment-duplicate")).thenReturn(false);
+
             paymentEventListener.handlePaymentEvent(paymentEvent);
 
-            // Then
-            verify(orderManagementService).updateOrderStatus(
-                eq(OrderId.of(orderId)),
-                eq(OrderStatus.PAYMENT_FAILED.name())
-            );
-        }
-    }
-
-    @Nested
-    @DisplayName("Error Handling")
-    class ErrorHandling {
-
-        @Test
-        @DisplayName("Should handle order not found exception gracefully")
-        void shouldHandleOrderNotFoundExceptionGracefully() {
-            // Given
-            String orderId = "nonexistent-order";
-            OrderPaymentEvent paymentEvent = OrderPaymentEvent.newBuilder()
-                .setOrderId(orderId)
-                .setStatus(OrderPaymentEvent.Status.SUCCESSFUL)
-                .setCustomerId("customer123")
-                .setProductId("product123")
-                .build();
-
-            doThrow(new RuntimeException("Order not found"))
-                .when(orderManagementService)
-                .updateOrderStatus(any(), any());
-
-            // When
-            paymentEventListener.handlePaymentEvent(paymentEvent);
-
-            // Then
-            verify(orderManagementService).updateOrderStatus(
-                eq(OrderId.of(orderId)),
-                eq(OrderStatus.PAID.name())
-            );
-            // Should not re-throw the exception
-        }
-
-        @Test
-        @DisplayName("Should handle service exceptions gracefully")
-        void shouldHandleServiceExceptionsGracefully() {
-            // Given
-            String orderId = "order123";
-            OrderPaymentEvent paymentEvent = OrderPaymentEvent.newBuilder()
-                .setOrderId(orderId)
-                .setStatus(OrderPaymentEvent.Status.FAILED)
-                .setCustomerId("customer123")
-                .setProductId("product123")
-                .build();
-
-            doThrow(new RuntimeException("Database connection error"))
-                .when(orderManagementService)
-                .updateOrderStatus(any(), any());
-
-            // When
-            paymentEventListener.handlePaymentEvent(paymentEvent);
-
-            // Then
-            verify(orderManagementService).updateOrderStatus(
-                eq(OrderId.of(orderId)),
-                eq(OrderStatus.PAYMENT_FAILED.name())
-            );
-        }
-    }
-
-    @Nested
-    @DisplayName("Event Data Validation")
-    class EventDataValidation {
-
-        @Test
-        @DisplayName("Should handle empty order ID")
-        void shouldHandleEmptyOrderId() {
-            // Given
-            OrderPaymentEvent paymentEvent = OrderPaymentEvent.newBuilder()
-                .setOrderId("") // Empty order ID
-                .setStatus(OrderPaymentEvent.Status.SUCCESSFUL)
-                .setCustomerId("customer123")
-                .setProductId("product123")
-                .build();
-
-            // When
-            paymentEventListener.handlePaymentEvent(paymentEvent);
-
-            // Then
-            verify(orderManagementService).updateOrderStatus(
-                eq(OrderId.of("")),
-                eq(OrderStatus.PAID.name())
-            );
-        }
-
-        @Test
-        @DisplayName("Should handle missing customer ID")
-        void shouldHandleMissingCustomerId() {
-            // Given
-            String orderId = "order123";
-            OrderPaymentEvent paymentEvent = OrderPaymentEvent.newBuilder()
-                .setOrderId(orderId)
-                .setStatus(OrderPaymentEvent.Status.SUCCESSFUL)
-                .setProductId("product123")
-                // No customer ID set
-                .build();
-
-            // When
-            paymentEventListener.handlePaymentEvent(paymentEvent);
-
-            // Then
-            verify(orderManagementService).updateOrderStatus(
-                eq(OrderId.of(orderId)),
-                eq(OrderStatus.PAID.name())
-            );
+            verify(orderManagementService, never()).updateOrderStatus(eq(orderId), eq(OrderStatus.PAYMENT_FAILED.name()));
         }
     }
 }

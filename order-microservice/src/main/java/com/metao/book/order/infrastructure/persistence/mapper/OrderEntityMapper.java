@@ -5,6 +5,7 @@ import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.infrastructure.persistence.entity.OrderEntity;
 import com.metao.book.order.infrastructure.persistence.entity.OrderItemEntity;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.experimental.UtilityClass;
 
@@ -28,13 +29,13 @@ public class OrderEntityMapper {
         List<OrderItemEntity> itemEntities = order.getItems().stream()
             .map(item -> {
                 OrderItemEntity itemEntity = new OrderItemEntity();
-                itemEntity.setProductId(item.getProductId());
+                itemEntity.setProductSku(item.getProductSku());
                 itemEntity.setQuantity(item.getQuantity());
                 itemEntity.setUnitPrice(item.getUnitPrice());
                 itemEntity.setOrder(entity);
                 return itemEntity;
             })
-            .toList();
+            .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
 
         entity.setItems(itemEntities);
         return entity;
@@ -52,7 +53,7 @@ public class OrderEntityMapper {
 
         entity.getItems().forEach(itemEntity -> {
             order.addItem(
-                itemEntity.getProductId(),
+                itemEntity.getProductSku(),
                 itemEntity.getQuantity(),
                 itemEntity.getUnitPrice());
         });

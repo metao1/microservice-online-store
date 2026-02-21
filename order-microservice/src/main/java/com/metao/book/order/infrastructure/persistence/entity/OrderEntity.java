@@ -14,6 +14,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +39,7 @@ public class OrderEntity {
     })
     private CustomerId customerId;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<OrderItemEntity> items = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
@@ -49,4 +50,8 @@ public class OrderEntity {
 
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
 }

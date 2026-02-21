@@ -5,7 +5,10 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,30 +42,37 @@ public class ShoppingCartService {
         if (shoppingCartItems.isEmpty()) {
             return 0;
         }
-        // loop through each item and add to cart
+
+        long now = OffsetDateTime.now().toInstant().toEpochMilli();
+        Set<String> skus = shoppingCartItems.stream()
+            .map(ShoppingCartItem::sku)
+            .collect(Collectors.toSet());
+        Map<String, ShoppingCart> existingBySku = shoppingCartRepository.findByUserIdAndSkuIn(userId, skus).stream()
+            .collect(Collectors.toMap(ShoppingCart::getSku, Function.identity()));
+
         var items = shoppingCartItems.stream()
-            .map(item -> shoppingCartRepository.findByUserIdAndSku(userId, item.sku())
-                .map(existingItem -> {
+            .map(item -> {
+                ShoppingCart existingItem = existingBySku.get(item.sku());
+                if (existingItem != null) {
                     existingItem.setQuantity(existingItem.getQuantity().add(item.quantity()));
-                    existingItem.setUpdatedOn(OffsetDateTime.now().toInstant().toEpochMilli());
+                    existingItem.setUpdatedOn(now);
                     return existingItem;
-                })
-                .orElseGet(() -> {
-                    ShoppingCart newItem = new ShoppingCart(
-                        userId,
-                        item.sku(),
-                        item.price(),
-                        item.price(),
-                        item.quantity(),
-                        item.currency()
-                    );
-                    newItem.setUpdatedOn(newItem.getCreatedOn());
-                    return newItem;
-                })
-            ).toList();
-        // Save all items to the repository
+                }
+
+                ShoppingCart newItem = new ShoppingCart(
+                    userId,
+                    item.sku(),
+                    item.price(),
+                    item.price(),
+                    item.quantity(),
+                    item.currency()
+                );
+                newItem.setUpdatedOn(now);
+                return newItem;
+            })
+            .toList();
+
         shoppingCartRepository.saveAll(items);
-        // Return the last added item as a representative (could be modified as needed)
         return items.size();
     }
 

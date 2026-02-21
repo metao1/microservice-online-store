@@ -23,6 +23,11 @@ public class KafkaConfig {
         return createTopic(kafkaTopic);
     }
 
+    @Bean
+    public NewTopic productUpdatedTopic(@Value("${kafka.topic.product-updated.name}") String kafkaTopic) {
+        return createTopic(kafkaTopic);
+    }
+
     private static NewTopic createTopic(String topic) {
         return TopicBuilder
             .name(topic)

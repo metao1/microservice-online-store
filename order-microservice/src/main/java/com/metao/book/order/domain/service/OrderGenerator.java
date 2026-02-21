@@ -29,8 +29,13 @@ public class OrderGenerator {
     public void commandLineRunner() {
         var randomNumber = atomicInteger.getAndIncrement();
         var orderEvent = OrderCreatedEvent.newBuilder().setStatus(OrderCreatedEvent.Status.NEW)
-            .setId(OrderCreatedEvent.UUID.getDefaultInstance().toString()).setProductId(products.poll())
-            .setCustomerId(ACCOUNT_ID).setQuantity(randomNumber).setPrice(100).setCurrency("USD").build();
+            .setId(OrderCreatedEvent.UUID.getDefaultInstance().toString())
+            .setProductId(products.poll())
+            .setCustomerId(ACCOUNT_ID)
+            .setQuantity(randomNumber)
+            .setPrice(100)
+            .setCurrency("USD")
+            .build();
 
         var topic = eventHandler.getKafkaTopic(orderEvent.getClass());
         kafkaTemplate.send(topic, orderEvent.getCustomerId(), orderEvent);

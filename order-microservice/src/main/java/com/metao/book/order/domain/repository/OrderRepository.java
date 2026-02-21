@@ -12,6 +12,8 @@ public interface OrderRepository {
 
     Optional<OrderAggregate> findById(OrderId orderId);
 
+    Optional<OrderAggregate> findByIdForUpdate(OrderId orderId);
+
     List<OrderAggregate> findByCustomerId(CustomerId customerId);
 
     void delete(OrderId orderId);

@@ -8,13 +8,13 @@ import lombok.Getter;
 import jakarta.validation.constraints.NotNull;
 
 @Getter
-public class OrderStatusChangedEvent extends DomainEvent {
+public class DomainOrderStatusChangedEvent extends DomainEvent {
 
     private final OrderId orderId;
     private final OrderStatus oldStatus;
     private final OrderStatus newStatus;
 
-    public OrderStatusChangedEvent(OrderId orderId, OrderStatus oldStatus, OrderStatus newStatus) {
+    public DomainOrderStatusChangedEvent(OrderId orderId, OrderStatus oldStatus, OrderStatus newStatus) {
         super(Instant.now());
         this.orderId = orderId;
         this.oldStatus = oldStatus;

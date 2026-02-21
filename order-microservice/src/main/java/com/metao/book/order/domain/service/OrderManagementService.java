@@ -9,11 +9,11 @@ import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.model.valueobject.CustomerId;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
-import com.metao.book.order.domain.model.valueobject.ProductId;
-import com.metao.book.order.domain.model.valueobject.Quantity;
+import com.metao.book.shared.domain.product.Quantity;
 import com.metao.book.order.domain.repository.OrderRepository;
 import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.domain.financial.Money;
+import com.metao.book.shared.domain.product.ProductSku;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -56,7 +56,7 @@ public class OrderManagementService {
         for (ShoppingCart cartItem : cartItems) {
             // Adds priced and quantified items to order
             order.addItem(
-                new ProductId(cartItem.getSku()),
+                new ProductSku(cartItem.getSku()),
                 new Quantity(cartItem.getQuantity()),
                 new Money(cartItem.getCurrency(), cartItem.getSellPrice())
             );
@@ -67,7 +67,6 @@ public class OrderManagementService {
 
         // Clear shopping cart
         shoppingCartService.clearCart(customerId.getValue());
-
         // Publish events
         // This will send OrderCreatedEvent
         publishEvents(order);
@@ -77,7 +76,7 @@ public class OrderManagementService {
     @Transactional
     public void addItemToOrder(
         OrderId orderId,
-        ProductId productId,
+        ProductSku productId,
         Quantity quantity,
         Money unitPrice
     ) {
@@ -88,18 +87,16 @@ public class OrderManagementService {
     }
 
     @Transactional
-    public void updateItemQuantity(OrderId orderId, ProductId productId, Quantity newQuantity) {
+    public void updateItemQuantity(OrderId orderId) {
         OrderAggregate order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
-
-        order.updateItemQuantity(productId, newQuantity);
+        order.updateItemQuantity();
         OrderAggregate savedOrder = orderRepository.save(order);
         publishEvents(savedOrder);
     }
 
     @Transactional
-    public void removeItem(OrderId orderId, ProductId productId) {
+    public void removeItem(OrderId orderId, ProductSku productId) {
         OrderAggregate order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
-
         order.removeItem(productId);
         OrderAggregate savedOrder = orderRepository.save(order);
         publishEvents(savedOrder);
@@ -108,7 +105,6 @@ public class OrderManagementService {
     @Transactional
     public void updateOrderStatus(OrderId orderId, String status) {
         OrderAggregate order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
-
         order.updateStatus(OrderStatus.valueOf(status));
         OrderAggregate savedOrder = orderRepository.save(order);
         publishEvents(savedOrder);
@@ -117,6 +113,18 @@ public class OrderManagementService {
     @Transactional(readOnly = true)
     public List<OrderAggregate> getCustomerOrders(CustomerId customerId) {
         return orderRepository.findByCustomerId(customerId);
+    }
+
+    @Transactional(readOnly = true)
+    public OrderAggregate getOrderById(OrderId orderId) {
+        return orderRepository.findById(orderId)
+            .orElseThrow(() -> new OrderNotFoundException(orderId));
+    }
+
+    @Transactional(readOnly = true)
+    public OrderAggregate getOrderByIdForUpdate(OrderId orderId) {
+        return orderRepository.findByIdForUpdate(orderId)
+            .orElseThrow(() -> new OrderNotFoundException(orderId));
     }
 
     private void publishEvents(OrderAggregate order) {

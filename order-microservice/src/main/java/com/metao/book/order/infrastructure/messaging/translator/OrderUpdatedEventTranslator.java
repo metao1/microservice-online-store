@@ -2,7 +2,7 @@ package com.metao.book.order.infrastructure.messaging.translator;
 
 import com.google.protobuf.Message;
 import com.google.protobuf.Timestamp;
-import com.metao.book.order.domain.model.event.OrderStatusChangedEvent;
+import com.metao.book.order.domain.model.event.DomainOrderStatusChangedEvent;
 import com.metao.book.shared.OrderUpdatedEvent;
 import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.domain.base.ProtobufDomainTranslator;
@@ -14,7 +14,7 @@ public class OrderUpdatedEventTranslator implements ProtobufDomainTranslator {
 
     @Override
     public Message translate(DomainEvent event) {
-        OrderStatusChangedEvent domainEvent = (OrderStatusChangedEvent) event;
+        DomainOrderStatusChangedEvent domainEvent = (DomainOrderStatusChangedEvent) event;
         return OrderUpdatedEvent.newBuilder()
             .setId(domainEvent.getEventId())
             .setStatus(mapOrderStatus(domainEvent.getNewStatus().name()))
@@ -27,7 +27,7 @@ public class OrderUpdatedEventTranslator implements ProtobufDomainTranslator {
 
     @Override
     public boolean supports(DomainEvent event) {
-        return event instanceof OrderStatusChangedEvent;
+        return event instanceof DomainOrderStatusChangedEvent;
     }
 
     private OrderUpdatedEvent.Status mapOrderStatus(String status) {

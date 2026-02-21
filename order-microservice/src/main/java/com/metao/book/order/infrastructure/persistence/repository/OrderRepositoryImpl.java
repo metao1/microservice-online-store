@@ -20,6 +20,8 @@ public class OrderRepositoryImpl implements OrderRepository {
     @Override
     public OrderAggregate save(OrderAggregate order) {
         OrderEntity entity = OrderEntityMapper.toEntity(order);
+        jpaOrderRepository.findById(order.getId().value())
+            .ifPresent(existing -> entity.setVersion(existing.getVersion()));
         OrderEntity savedEntity = jpaOrderRepository.save(entity);
         return OrderEntityMapper.toDomain(savedEntity);
     }
@@ -27,6 +29,12 @@ public class OrderRepositoryImpl implements OrderRepository {
     @Override
     public Optional<OrderAggregate> findById(OrderId orderId) {
         return jpaOrderRepository.findById(orderId.value())
+            .map(OrderEntityMapper::toDomain);
+    }
+
+    @Override
+    public Optional<OrderAggregate> findByIdForUpdate(OrderId orderId) {
+        return jpaOrderRepository.findByIdForUpdate(orderId.value())
             .map(OrderEntityMapper::toDomain);
     }
 

@@ -2,14 +2,14 @@ package com.metao.book.order.presentation.controller;
 
 import com.metao.book.order.domain.model.valueobject.CustomerId;
 import com.metao.book.order.domain.model.valueobject.OrderId;
-import com.metao.book.order.domain.model.valueobject.ProductId;
-import com.metao.book.order.domain.model.valueobject.Quantity;
+import com.metao.book.shared.domain.product.Quantity;
 import com.metao.book.order.domain.service.OrderManagementService;
 import com.metao.book.order.presentation.dto.AddItemRequestDto;
 import com.metao.book.order.presentation.dto.CreateOrderRequestDTO;
 import com.metao.book.order.presentation.dto.OrderResponseDto;
 import com.metao.book.order.presentation.dto.UpdateStatusRequestDto;
 import com.metao.book.shared.domain.financial.Money;
+import com.metao.book.shared.domain.product.ProductSku;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
@@ -49,7 +49,7 @@ public class OrderManagementController {
         request.items().forEach(item -> {
             orderService.addItemToOrder(
                 OrderId.of(orderId),
-                new ProductId(item.sku()),
+                new ProductSku(item.sku()),
                 new Quantity(item.quantity()),
                 new Money(item.currency(), item.price()));
         });
