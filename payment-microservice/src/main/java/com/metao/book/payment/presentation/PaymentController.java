@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -93,9 +94,13 @@ public class PaymentController {
      * Get payments by status
      */
     @GetMapping("/status/{status}")
-    public List<PaymentDTO> getPaymentsByStatus(@PathVariable String status) {
+    public List<PaymentDTO> getPaymentsByStatus(
+        @PathVariable String status,
+        @RequestParam(value = "offset", defaultValue = "0") int offset,
+        @RequestParam(value = "limit", defaultValue = "10") int limit
+    ) {
         log.debug("Getting payments by status: {}", status);
-        return paymentApplicationService.getPaymentsByStatus(status);
+        return paymentApplicationService.getPaymentsByStatus(status, offset, limit);
     }
 
     /**

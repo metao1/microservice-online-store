@@ -19,6 +19,9 @@ management:
           include: readinessState,db,diskSpace
 
 spring:
+  threads:
+    virtual:
+      enabled: ${VIRTUAL_THREADS_ENABLED:false}
   web:
     error:
       include-message: always
@@ -86,8 +89,8 @@ spring:
           order_updates: true
           batch_versioned_data: true
         cache:
-          use_query_cache: true
-          use_second_level_cache: true
+          use_query_cache: false
+          use_second_level_cache: false
           region.factory_class: org.hibernate.cache.jcache.JCacheRegionFactory
           jcache:
             provider: com.github.benmanes.caffeine.jcache.spi.CaffeineCachingProvider

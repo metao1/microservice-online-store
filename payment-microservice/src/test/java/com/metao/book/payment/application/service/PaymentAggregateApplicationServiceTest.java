@@ -171,11 +171,11 @@ class PaymentAggregateApplicationServiceTest {
         List<PaymentAggregate> payments = List.of(createMockPayment(), createMockPayment());
         PaymentDTO expectedDTO = createMockPaymentDTO();
 
-        when(paymentRepository.findByStatus(PaymentStatus.SUCCESSFUL)).thenReturn(payments);
+        when(paymentRepository.findByStatus(PaymentStatus.SUCCESSFUL, 0, 10)).thenReturn(payments);
         when(paymentMapper.toDTO(any(PaymentAggregate.class))).thenReturn(expectedDTO);
 
         // When
-        List<PaymentDTO> result = paymentApplicationService.getPaymentsByStatus(status);
+        List<PaymentDTO> result = paymentApplicationService.getPaymentsByStatus(status, 0, 10);
 
         // Then
         assertThat(result).hasSize(2);

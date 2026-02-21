@@ -62,7 +62,7 @@ public class PaymentDomainService {
      * Process payment with business rules
      */
     public void processPayment(@NonNull PaymentId paymentId) {
-        PaymentAggregate payment = paymentRepository.findById(paymentId)
+        PaymentAggregate payment = paymentRepository.findByIdForUpdate(paymentId)
             .orElseThrow(() -> new PaymentNotFoundException(paymentId));
 
         // Business rule: Check if payment can be processed
@@ -78,7 +78,7 @@ public class PaymentDomainService {
      * Retry failed payment with business rules
      */
     public void retryPayment(@NonNull PaymentId paymentId) {
-        PaymentAggregate payment = paymentRepository.findById(paymentId)
+        PaymentAggregate payment = paymentRepository.findByIdForUpdate(paymentId)
             .orElseThrow(() -> new PaymentNotFoundException(paymentId));
 
         // Business rule: Can only retry failed payments
@@ -94,7 +94,7 @@ public class PaymentDomainService {
      * Cancel payment with business rules
      */
     public void cancelPayment(@NonNull PaymentId paymentId) {
-        PaymentAggregate payment = paymentRepository.findById(paymentId)
+        PaymentAggregate payment = paymentRepository.findByIdForUpdate(paymentId)
             .orElseThrow(() -> new PaymentNotFoundException(paymentId));
 
         // Business rule: Can only cancel pending payments
