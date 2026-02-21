@@ -36,7 +36,7 @@ public class Money implements ValueObject {
     @JsonCreator
     public Money(@NotNull @JsonProperty("currency") Currency currency, @JsonProperty("amount") BigDecimal amount) {
         this.currency = currency;
-        this.amount = amount;
+        this.amount = amount == null ? BigDecimal.ZERO : amount;
     }
 
     /**
