@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.protobuf.Message;
+import com.metao.book.payment.infrastructure.persistence.repository.ProcessedOrderCreatedEventRepository;
 import com.metao.book.payment.service.PaymentProcessingService;
 import com.metao.book.shared.OrderCreatedEvent;
 import com.metao.book.shared.OrderPaymentEvent;
@@ -30,12 +31,16 @@ class OrderCreatedEventListenerTest {
     @Mock
     private KafkaTemplate<String, Message> kafkaTemplate;
 
+    @Mock
+    private ProcessedOrderCreatedEventRepository processedOrderCreatedEventRepository;
+
     @InjectMocks
     private OrderCreatedEventListener eventListener;
 
     @BeforeEach
     void setUp() {
-        eventListener = new OrderCreatedEventListener(paymentProcessingService, eventHandler, kafkaTemplate);
+        eventListener = new OrderCreatedEventListener(paymentProcessingService, processedOrderCreatedEventRepository,
+            eventHandler, kafkaTemplate);
     }
 
     @Test
@@ -50,6 +55,7 @@ class OrderCreatedEventListenerTest {
         // When
         when(paymentProcessingService.processPayment(any(OrderCreatedEvent.class))).thenReturn(paymentEvent);
 
+        when(processedOrderCreatedEventRepository.markProcessed("orderItem123")).thenReturn(true);
         when(eventHandler.getKafkaTopic(any(Class.class))).thenReturn(topic);
 
         eventListener.handleOrderCreatedEvent(orderEvent);
@@ -59,5 +65,15 @@ class OrderCreatedEventListenerTest {
         // Verify that eventHandler.handle is called with the correct key and payload
         verify(kafkaTemplate).send(eq(topic), eq(paymentEvent.getOrderId()), eq(paymentEvent));
     }
-}
 
+    @Test
+    void handleOrderCreatedEvent_skipsDuplicateEvent() {
+        OrderCreatedEvent orderEvent = OrderCreatedEvent.newBuilder().setId("orderItem123").build();
+        when(processedOrderCreatedEventRepository.markProcessed("orderItem123")).thenReturn(false);
+
+        eventListener.handleOrderCreatedEvent(orderEvent);
+
+        verify(paymentProcessingService, org.mockito.Mockito.never()).processPayment(any(OrderCreatedEvent.class));
+        verify(kafkaTemplate, org.mockito.Mockito.never()).send(any(), any(), any());
+    }
+}

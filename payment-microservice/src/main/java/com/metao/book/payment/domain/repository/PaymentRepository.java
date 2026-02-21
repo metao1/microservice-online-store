@@ -23,6 +23,11 @@ public interface PaymentRepository {
     Optional<PaymentAggregate> findById(PaymentId paymentId);
 
     /**
+     * Find payment by ID with row lock for write operations.
+     */
+    Optional<PaymentAggregate> findByIdForUpdate(PaymentId paymentId);
+
+    /**
      * Find payment by order ID
      */
     Optional<PaymentAggregate> findByOrderId(OrderId orderId);
@@ -31,6 +36,11 @@ public interface PaymentRepository {
      * Find payments by status
      */
     List<PaymentAggregate> findByStatus(PaymentStatus status);
+
+    /**
+     * Find payments by status with pagination
+     */
+    List<PaymentAggregate> findByStatus(PaymentStatus status, int offset, int limit);
 
     /**
      * Find all payments with pagination

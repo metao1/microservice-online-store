@@ -7,10 +7,10 @@ import com.metao.book.payment.domain.model.valueobject.PaymentStatus;
 import com.metao.book.payment.domain.repository.PaymentRepository;
 import com.metao.book.payment.infrastructure.persistence.entity.PaymentEntity;
 import com.metao.book.payment.infrastructure.persistence.mapper.PaymentEntityMapper;
+import com.metao.book.shared.application.persistence.OffsetBasedPageRequest;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
@@ -38,6 +38,12 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     }
 
     @Override
+    public Optional<PaymentAggregate> findByIdForUpdate(PaymentId paymentId) {
+        return jpaPaymentRepository.findByIdForUpdate(paymentId)
+            .map(paymentEntityMapper::toDomain);
+    }
+
+    @Override
     public Optional<PaymentAggregate> findByOrderId(OrderId orderId) {
         return jpaPaymentRepository.findByOrderId(orderId.value())
             .map(paymentEntityMapper::toDomain);
@@ -53,8 +59,18 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     }
 
     @Override
+    public List<PaymentAggregate> findByStatus(PaymentStatus status, int offset, int limit) {
+        PaymentEntity.PaymentStatusEntity entityStatus = mapToEntityStatus(status);
+        Pageable pageable = new OffsetBasedPageRequest(offset, limit);
+        return jpaPaymentRepository.findByStatus(entityStatus, pageable)
+            .stream()
+            .map(paymentEntityMapper::toDomain)
+            .toList();
+    }
+
+    @Override
     public List<PaymentAggregate> findAll(int offset, int limit) {
-        Pageable pageable = PageRequest.of(offset / limit, limit);
+        Pageable pageable = new OffsetBasedPageRequest(offset, limit);
         return jpaPaymentRepository.findAll(pageable)
             .stream()
             .map(paymentEntityMapper::toDomain)

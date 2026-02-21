@@ -141,7 +141,7 @@ class PaymentAggregateDomainServiceTest {
         PaymentId paymentId = PaymentId.of("payment-123");
         PaymentAggregate payment = createMockPayment(paymentId, PaymentStatus.PENDING);
 
-        when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
+        when(paymentRepository.findByIdForUpdate(paymentId)).thenReturn(Optional.of(payment));
         when(paymentRepository.save(payment)).thenReturn(payment);
 
         // When
@@ -156,7 +156,7 @@ class PaymentAggregateDomainServiceTest {
     void processPayment_withNonExistentPayment_shouldThrowException() {
         // Given
         PaymentId paymentId = PaymentId.of("payment-123");
-        when(paymentRepository.findById(paymentId)).thenReturn(Optional.empty());
+        when(paymentRepository.findByIdForUpdate(paymentId)).thenReturn(Optional.empty());
 
         // When/Then
         assertThatThrownBy(() -> paymentDomainService.processPayment(paymentId))

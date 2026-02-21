@@ -4,6 +4,7 @@ import com.metao.book.payment.application.config.DomainEventToKafkaEventHandler;
 import com.metao.book.payment.application.dto.CreatePaymentCommand;
 import com.metao.book.payment.application.dto.PaymentDTO;
 import com.metao.book.payment.application.mapper.PaymentApplicationMapper;
+import com.metao.book.payment.domain.exception.DuplicatePaymentException;
 import com.metao.book.payment.domain.exception.PaymentNotFoundException;
 import com.metao.book.payment.domain.model.aggregate.PaymentAggregate;
 import com.metao.book.payment.domain.model.valueobject.OrderId;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,7 +56,15 @@ public class PaymentApplicationService {
         }
 
         PaymentAggregate payment = paymentDomainService.createPayment(orderId, amount, paymentMethod);
-        PaymentAggregate savedPayment = paymentRepository.save(payment);
+        final PaymentAggregate savedPayment;
+        try {
+            savedPayment = paymentRepository.save(payment);
+        } catch (DataIntegrityViolationException e) {
+            if (isDuplicateOrderPaymentViolation(e)) {
+                throw new DuplicatePaymentException("Payment already exists for order: " + orderId);
+            }
+            throw e;
+        }
 
         // Publish domain events to Kafka
         publishDomainEvents(savedPayment);
@@ -137,11 +147,11 @@ public class PaymentApplicationService {
      * Get payments by status
      */
     @Transactional(readOnly = true)
-    public List<PaymentDTO> getPaymentsByStatus(String status) {
+    public List<PaymentDTO> getPaymentsByStatus(String status, int offset, int limit) {
         log.debug("Getting payments by status: {}", status);
 
         PaymentStatus paymentStatus = PaymentStatus.valueOf(status.toUpperCase());
-        List<PaymentAggregate> payments = paymentRepository.findByStatus(paymentStatus);
+        List<PaymentAggregate> payments = paymentRepository.findByStatus(paymentStatus, offset, limit);
         return payments.stream()
             .map(paymentMapper::toDTO)
             .toList();
@@ -213,5 +223,19 @@ public class PaymentApplicationService {
 
         // Clear events after publishing
         payment.clearDomainEvents();
+    }
+
+    private boolean isDuplicateOrderPaymentViolation(Throwable throwable) {
+        Throwable current = throwable;
+        while (current != null) {
+            String message = current.getMessage();
+            if (message != null && (message.contains("uk_payment_order_id")
+                || message.contains("payment_order_id_key")
+                || message.contains("duplicate key value violates unique constraint"))) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 }

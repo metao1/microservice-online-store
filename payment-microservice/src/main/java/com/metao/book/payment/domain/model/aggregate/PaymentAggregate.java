@@ -72,6 +72,10 @@ public class PaymentAggregate extends AggregateRoot<PaymentId> {
         return payment;
     }
 
+    public void updateProduct() {
+
+    }
+
     /**
      * Process the payment - core business logic
      */
@@ -176,8 +180,7 @@ public class PaymentAggregate extends AggregateRoot<PaymentId> {
             return false;
         }
 
-        // 80% success rate for simulation
-        return Math.random() > 0.2;
+        return true;
     }
 
     /**
