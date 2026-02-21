@@ -3,13 +3,13 @@ plugins {
   id "idea"
   id "org.flywaydb.flyway" version "10.11.0" apply false
   id "com.google.cloud.tools.jib" version "3.1.4" apply false
-  id "org.springframework.boot" version "4.0.2"
+  id "org.springframework.boot" version "4.0.2" apply false
   id "io.spring.dependency-management" version "1.1.7" apply false
   id "com.google.protobuf" version "0.9.4" apply false
 }
 
 ext {
-  micrometerVersion = "1.12.3"
+  micrometerVersion = "1.16.2"
   testcontainersVersion = "2.0.2"
   springBootDependenciesVersion = "4.0.2"
 }
@@ -18,8 +18,8 @@ subprojects {
   group "com.metao.book"
   apply plugin: "java"
   apply plugin: "com.google.protobuf"
-  apply plugin: "io.spring.dependency-management"
   apply plugin: "jacoco"
+  apply plugin: "io.spring.dependency-management"
 
   repositories {
     mavenLocal()
@@ -29,7 +29,7 @@ subprojects {
   boolean isSpringProject = gradle.springBootProjects.contains(it.path)
   if (isSpringProject) {
     apply plugin: "org.springframework.boot"
-    apply plugin: "com.google.protobuf"
+    apply plugin: "io.spring.dependency-management"
     apply plugin: "org.flywaydb.flyway"
     dependencies {
       implementation("org.springframework.boot:spring-boot-starter-web") {
@@ -40,6 +40,11 @@ subprojects {
 
       testImplementation "org.springframework.boot:spring-boot-starter-test"
     }
+    dependencyManagement {
+      imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootDependenciesVersion}"
+      }
+    }
   }
 
   dependencies {
@@ -48,8 +53,6 @@ subprojects {
     implementation "io.grpc:grpc-protobuf:1.70.0"
     implementation "io.grpc:grpc-stub:1.70.0"
     runtimeOnly "io.grpc:grpc-netty-shaded:1.70.0"
-
-    // Jackson - Let Spring Boot manage the version
 
     // Test
     testImplementation "org.junit.jupiter:junit-jupiter:5.8.2"
@@ -68,8 +71,6 @@ subprojects {
     testImplementation platform("org.testcontainers:testcontainers-bom:${testcontainersVersion}")
 
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-    implementation "org.springframework.boot:spring-boot-starter-test"
 
   }
 
@@ -92,7 +93,7 @@ subprojects {
     exclude group: "org.junit.vintage:junit-vintage-engine"
     dependencyManagement {
       imports {
-        mavenBom "io.micrometer:micrometer-bom:$micrometerVersion"
+        mavenBom "io.micrometer:micrometer-bom:${micrometerVersion}"
         mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
         mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootDependenciesVersion}"
       }
@@ -102,6 +103,11 @@ subprojects {
     toolchain {
       languageVersion = JavaLanguageVersion.of(21)
     }
+  }
+
+  // Parallelize test forks to overlap I/O-heavy Testcontainers work
+  tasks.withType(Test).configureEach {
+    maxParallelForks = Math.max(1, Runtime.runtime.availableProcessors().intdiv(2))
   }
 
   jacocoTestReport {

@@ -17,15 +17,15 @@ include(':kafka-lib')
 include(':performance-loadtest')
 
 project(":inventory-microservice").projectDir = file('inventory-microservice')
+project(":performance-loadtest").projectDir = file('performance-loadtest')
 project(":payment-microservice").projectDir = file('payment-microservice')
 project(":order-microservice").projectDir = file('order-microservice')
 project(":shared-kernel").projectDir = file('shared-kernel')
 project(":shared-test").projectDir = file('shared-test')
 project(":kafka-lib").projectDir = file('kafka-lib')
-project(":performance-loadtest").projectDir = file('performance-loadtest')
 
 gradle.ext.springBootProjects = [
-    ':order-microservice',
     ':inventory-microservice',
-    ':payment-microservice'
+    ':payment-microservice',
+    ':order-microservice'
 ]
