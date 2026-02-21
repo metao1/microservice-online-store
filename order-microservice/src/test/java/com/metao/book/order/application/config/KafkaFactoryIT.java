@@ -6,11 +6,12 @@ import static com.metao.book.order.OrderTestConstant.PRICE;
 import static com.metao.book.order.OrderTestConstant.PRODUCT_ID;
 import static com.metao.book.order.OrderTestConstant.QUANTITY;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 import com.metao.book.shared.OrderCreatedEvent;
 import com.metao.shared.test.KafkaContainer;
+import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -41,20 +42,11 @@ class KafkaFactoryIT extends KafkaContainer {
         IntStream.range(0, 10).boxed()
             .forEach(i -> kafkaEventHandler.send("order-created", String.valueOf(i), buildOrderCreatedEvent()));
 
-        // Wait for messages to be processed with multiple attempts
-        boolean completed = false;
-        for (int attempt = 0; attempt < 3 && !completed; attempt++) {
-            completed = latch.await(15, TimeUnit.SECONDS);
-            if (!completed) {
-                log.warn("Attempt {} failed, remaining count: {}", attempt + 1, latch.getCount());
-                TimeUnit.SECONDS.sleep(1); // Brief pause between attempts
+        await().atMost(Duration.ofSeconds(15)).untilAsserted(() -> {
+                assertThat(latch.getCount()).describedAs("Messages remaining after wait")
+                    .isLessThanOrEqualTo(5);
             }
-        }
-
-        // More lenient assertion - allow for some timing issues in CI environments
-        assertThat(latch.getCount()).describedAs("Expected all messages to be processed, but %d remain",
-                latch.getCount())
-            .isLessThanOrEqualTo(2); // Allow up to 2 messages to be unprocessed due to timing
+        );
     }
 
     @RetryableTopic

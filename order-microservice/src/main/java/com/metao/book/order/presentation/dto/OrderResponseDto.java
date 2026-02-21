@@ -30,7 +30,7 @@ public class OrderResponseDto {
         response.setItems(order.getItems().stream()
             .map(item -> {
                 OrderItemResponse itemResponse = new OrderItemResponse();
-                itemResponse.setProductId(item.getProductId().getValue());
+                itemResponse.setProductId(item.getProductSku().value());
                 itemResponse.setQuantity(item.getQuantity().getValue());
                 itemResponse.setUnitPrice(item.getUnitPrice());
                 itemResponse.setTotalPrice(item.getTotalPrice());
