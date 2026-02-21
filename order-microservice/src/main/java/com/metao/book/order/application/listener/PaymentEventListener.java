@@ -8,6 +8,7 @@ import com.metao.book.order.infrastructure.persistence.repository.ProcessedPayme
 import com.metao.book.shared.OrderPaymentEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import io.micrometer.core.annotation.Timed;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,7 @@ public class PaymentEventListener {
         groupId = "${kafka.topic.order-payment.group-id}",
         containerFactory = "orderPaymentEventKafkaListenerContainerFactory"
     )
+    @Timed(value = "order.payment.listener", extraTags = {"listener", "order-payment"})
     public void handlePaymentEvent(OrderPaymentEvent paymentEvent) {
         OrderId orderId = OrderId.of(paymentEvent.getOrderId());
         String eventId = resolveEventId(paymentEvent);
