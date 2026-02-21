@@ -230,6 +230,23 @@ class ApiClient {
     }
   }
 
+  async getProductsBySkus(skus: string[]): Promise<Map<string, Product>> {
+    if (!skus.length) {
+      return new Map();
+    }
+    try {
+      const response = await this.productsClient.get<Product[] | ApiResponse<Product[]>>('/products/by-skus', {
+        params: { skus }
+      });
+      const raw = (response.data as ApiResponse<Product[]>).data ?? response.data;
+      const products = Array.isArray(raw) ? raw : [];
+      return new Map(products.map((product) => [product.sku, product]));
+    } catch (error) {
+      console.error('Failed to fetch products by SKUs from backend:', error);
+      return new Map();
+    }
+  }
+
   async searchProducts(query: string, limit: number = 12, offset: number = 0): Promise<Product[]> {
     try {
       const response = await this.productsClient.get<Product[]>('/products/search', {
@@ -282,49 +299,46 @@ class ApiClient {
       
       // Backend returns: { user_id: string, shopping_cart_items: ShoppingCartItem[] }
       const backendCart = response.data;
+      const cartItems: any[] = backendCart.shopping_cart_items || [];
+      const skus: string[] = Array.from(new Set(cartItems.map((item) => String(item.sku))));
+      const productsBySku = await this.getProductsBySkus(skus);
       
       // Transform backend format to frontend format and enrich with product data
-      const enrichedItems = await Promise.all(
-        (backendCart.shopping_cart_items || []).map(async (item: any) => {
-          try {
-            // Try to fetch product details for each cart item
-            const productDetails = await this.getProductById(item.sku);
-            return {
-              sku: item.sku,
-              title: productDetails.title || `Product ${item.sku}`,
-              price: item.price,
-              currency: item.currency,
-              imageUrl: productDetails.imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=500&fit=crop',
-              description: productDetails.description || 'Product description',
-              rating: productDetails.rating || 4.5,
-              reviews: productDetails.reviews || 100,
-              inStock: productDetails.inStock !== false,
-              quantity: productDetails.quantity || 10,
-              cartQuantity: item.quantity
-            };
-          } catch (error) {
-            console.warn(`Failed to fetch details for product ${item.sku}:`, error);
-            // Fallback to basic item data
-            return {
-              sku: item.sku,
-              title: `Product ${item.sku}`,
-              price: item.price,
-              currency: item.currency,
-              imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=500&fit=crop',
-              description: 'Product description',
-              rating: 4.5,
-              reviews: 100,
-              inStock: true,
-              quantity: 10,
-              cartQuantity: item.quantity
-            };
-          }
-        })
-      );
+      const enrichedItems = cartItems.map((item: any) => {
+        const productDetails = productsBySku.get(item.sku);
+        if (!productDetails) {
+          return {
+            sku: item.sku,
+            title: `Product ${item.sku}`,
+            price: item.price,
+            currency: item.currency,
+            imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=500&fit=crop',
+            description: 'Product description',
+            rating: 4.5,
+            reviews: 100,
+            inStock: true,
+            quantity: 10,
+            cartQuantity: item.quantity
+          };
+        }
+        return {
+          sku: item.sku,
+          title: productDetails.title || `Product ${item.sku}`,
+          price: item.price,
+          currency: item.currency,
+          imageUrl: productDetails.imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=500&fit=crop',
+          description: productDetails.description || 'Product description',
+          rating: productDetails.rating || 4.5,
+          reviews: productDetails.reviews || 100,
+          inStock: productDetails.inStock !== false,
+          quantity: productDetails.quantity || 10,
+          cartQuantity: item.quantity
+        };
+      });
       
       const frontendCart: Cart = {
         items: enrichedItems,
-        total: (backendCart.shopping_cart_items || []).reduce((sum: number, item: any) => 
+        total: cartItems.reduce((sum: number, item: any) => 
           sum + (item.price * item.quantity), 0)
       };
       
