@@ -23,9 +23,8 @@ dependencies {
   implementation "com.fasterxml.jackson.core:jackson-databind"
   implementation "com.fasterxml.jackson.core:jackson-annotations"
 
-  implementation "io.micrometer:micrometer-core:1.10.5"
-
-  // Prometheus
+  // Micrometer (version via BOM to stay aligned with Spring Boot)
+  implementation "io.micrometer:micrometer-core"
   implementation "io.micrometer:micrometer-registry-prometheus"
 
 }

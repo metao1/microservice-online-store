@@ -1,17 +1,21 @@
 package com.metao.book.order.infrastructure.kafka;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 import com.metao.book.shared.OrderCreatedEvent;
 import com.metao.book.shared.OrderUpdatedEvent;
 import com.metao.book.shared.OrderUpdatedEvent.Status;
 import com.metao.kafka.KafkaEventHandler;
 import com.metao.shared.test.KafkaContainer;
+import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -21,7 +25,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
+import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.MessageListenerContainer;
+import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.test.context.ActiveProfiles;
 
 @Slf4j
@@ -30,8 +37,8 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)
 class OrderEventHandlerContainerIT extends KafkaContainer {
 
-    private final CountDownLatch latch1 = new CountDownLatch(1);
-    private final CountDownLatch latch2 = new CountDownLatch(1);
+    private CountDownLatch latch1;
+    private CountDownLatch latch2;
 
     @Autowired
     KafkaEventHandler eventHandler;
@@ -41,6 +48,22 @@ class OrderEventHandlerContainerIT extends KafkaContainer {
 
     @Autowired
     KafkaTemplate<String, OrderUpdatedEvent> kafkaTemplate2;
+
+    @Autowired
+    KafkaListenerEndpointRegistry registry;
+
+    @BeforeAll
+    void waitForKafkaAssignment() {
+        for (MessageListenerContainer container : registry.getListenerContainers()) {
+            ContainerTestUtils.waitForAssignment(container, 1);
+        }
+    }
+
+    @BeforeEach
+    void resetLatches() {
+        latch1 = new CountDownLatch(1);
+        latch2 = new CountDownLatch(1);
+    }
 
     @Test
     @SneakyThrows
@@ -58,9 +81,8 @@ class OrderEventHandlerContainerIT extends KafkaContainer {
 
         var topic = eventHandler.getKafkaTopic(event.getClass());
 
-        kafkaTemplate1.send(topic, event.getId(), event);
-        latch1.await(10, TimeUnit.SECONDS);
-        assertThat(latch1.getCount()).isZero();
+        kafkaTemplate1.send(topic, event.getId(), event).get(10, TimeUnit.SECONDS);
+        await().atMost(Duration.ofSeconds(20)).untilAsserted(() -> assertThat(latch1.getCount()).isZero());
     }
 
     @Test
@@ -85,13 +107,16 @@ class OrderEventHandlerContainerIT extends KafkaContainer {
             .setStatus(Status.CONFIRMED)
             .build();
 
-        kafkaTemplate1.send(eventHandler.getKafkaTopic(event1.getClass()), event1.getId(), event1);
-        kafkaTemplate2.send(eventHandler.getKafkaTopic(event2.getClass()), event2.getId(), event2);
-        latch1.await(10, TimeUnit.SECONDS);
-        latch2.await(10, TimeUnit.SECONDS);
+        kafkaTemplate1.send(eventHandler.getKafkaTopic(event1.getClass()), event1.getId(), event1)
+            .get(10, TimeUnit.SECONDS);
+        kafkaTemplate2.send(eventHandler.getKafkaTopic(event2.getClass()), event2.getId(), event2)
+            .get(10, TimeUnit.SECONDS);
 
-        assertThat(latch1.getCount()).isZero();
-        assertThat(latch2.getCount()).isZero();
+        await().atMost(Duration.ofSeconds(20)).untilAsserted(() -> {
+            assertThat(latch1.getCount()).isZero();
+            assertThat(latch2.getCount()).isZero();
+        });
+
     }
 
     @RetryableTopic

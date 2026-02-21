@@ -13,7 +13,7 @@ public class KafkaContainer {
     @Container
     static final ConfluentKafkaContainer kafka = new ConfluentKafkaContainer(
         DockerImageName.parse("confluentinc/cp-kafka:7.8.0")
-    );
+    ).withReuse(true); // enable container reuse to speed up repeated test runs
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
