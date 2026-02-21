@@ -95,24 +95,26 @@ class PaymentAggregateTest {
 
     @Test
     void retry_withFailedPayment_shouldResetToPending() {
-        // Given
-        PaymentAggregate payment = createValidPayment();
-        payment.processPayment();
-
-        // Ensure it's failed (retry until we get a failed payment for testing)
-        while (payment.getStatus() != PaymentStatus.FAILED) {
-            payment = createValidPayment();
-            payment.processPayment();
-        }
-
-        payment.clearDomainEvents(); // Clear events from initial processing
+        // Given: start from a failed persisted payment snapshot
+        var failedPayment = PaymentAggregate.reconstruct(
+            PaymentId.generate(),
+            OrderId.of("order-123"),
+            new Money(Currency.getInstance("USD"), BigDecimal.valueOf(100.00)),
+            PaymentMethod.creditCard("****-1234"),
+            PaymentStatus.FAILED,
+            "gateway error",
+            Instant.now(),
+            Instant.now().minusSeconds(60)
+        );
+        failedPayment.clearDomainEvents();
 
         // When
-        payment.retry();
+        failedPayment.retry();
 
-        // Then
-        assertThat(payment.getStatus()).isIn(PaymentStatus.SUCCESSFUL, PaymentStatus.FAILED);
-        assertThat(payment.getDomainEvents()).isNotEmpty();
+        // Then (processing is deterministic success in aggregate)
+        assertThat(failedPayment.getStatus()).isEqualTo(PaymentStatus.SUCCESSFUL);
+        assertThat(failedPayment.getDomainEvents()).hasSize(1);
+        assertThat(failedPayment.getDomainEvents().getFirst()).isInstanceOf(PaymentProcessedEvent.class);
     }
 
     @Test
