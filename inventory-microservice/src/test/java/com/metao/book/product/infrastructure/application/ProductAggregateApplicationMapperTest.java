@@ -5,19 +5,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.metao.book.product.application.dto.CreateProductDto;
 import com.metao.book.product.application.dto.ProductDTO;
 import com.metao.book.product.application.mapper.ProductApplicationMapper;
-import com.metao.book.product.domain.model.aggregate.Product;
+import com.metao.book.product.domain.model.aggregate.ProductAggregate;
 import com.metao.book.product.domain.model.entity.ProductCategory;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.product.domain.model.valueobject.ImageUrl;
 import com.metao.book.product.domain.model.valueobject.ProductDescription;
-import com.metao.book.product.domain.model.valueobject.ProductSku;
 import com.metao.book.product.domain.model.valueobject.ProductTitle;
-import com.metao.book.product.domain.model.valueobject.ProductVolume;
 import com.metao.book.shared.domain.financial.Money;
+import com.metao.book.shared.domain.product.ProductSku;
+import com.metao.book.shared.domain.product.Quantity;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Currency;
-import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,7 +24,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @DisplayName("ProductApplicationMapper Tests")
-class ProductApplicationMapperTest {
+class ProductAggregateApplicationMapperTest {
 
     private ProductApplicationMapper mapper;
     private Currency eurCurrency;
@@ -54,15 +53,15 @@ class ProductApplicationMapperTest {
                 BigDecimal.valueOf(29.99),
                 eurCurrency,
                 BigDecimal.valueOf(100),
-                List.of("Books", "Technology")
+                Set.of("Books", "Technology")
             );
 
             // WHEN
-            Product product = ProductApplicationMapper.toDomain(dto);
+            ProductAggregate product = ProductApplicationMapper.toDomain(dto);
 
             // THEN
             assertThat(product).isNotNull();
-            assertThat(product.getId().getValue()).isEqualTo("TEST000001");
+            assertThat(product.getId().value()).isEqualTo("TEST000001");
             assertThat(product.getTitle().getValue()).isEqualTo("Test Product");
             assertThat(product.getDescription().getValue()).isEqualTo("Test Description");
             assertThat(product.getImageUrl().getValue()).isEqualTo("https://example.com/image.jpg");
@@ -84,17 +83,17 @@ class ProductApplicationMapperTest {
                 BigDecimal.valueOf(49.99),
                 eurCurrency,
                 BigDecimal.valueOf(50),
-                List.of("Books", "Technology", "Programming", "Education")
+                Set.of("books", "technology", "programming", "education")
             );
 
             // WHEN
-            Product product = ProductApplicationMapper.toDomain(dto);
+            ProductAggregate product = ProductApplicationMapper.toDomain(dto);
 
             // THEN
             assertThat(product.getCategories())
                 .hasSize(4)
                 .extracting(cat -> cat.getName().value())
-                .containsExactlyInAnyOrder("Books", "Technology", "Programming", "Education");
+                .containsExactlyInAnyOrder("books", "technology", "programming", "education");
         }
 
         @Test
@@ -109,11 +108,11 @@ class ProductApplicationMapperTest {
                 BigDecimal.valueOf(19.99),
                 eurCurrency,
                 BigDecimal.valueOf(25),
-                List.of()
+                Set.of()
             );
 
             // WHEN
-            Product product = ProductApplicationMapper.toDomain(dto);
+            ProductAggregate product = ProductApplicationMapper.toDomain(dto);
 
             // THEN
             assertThat(product.getCategories()).isEmpty();
@@ -131,13 +130,13 @@ class ProductApplicationMapperTest {
                 BigDecimal.valueOf(39.99),
                 eurCurrency,
                 BigDecimal.valueOf(75),
-                List.of("Books")
+                Set.of("Books")
             );
 
             Instant beforeMapping = Instant.now();
 
             // WHEN
-            Product product = ProductApplicationMapper.toDomain(dto);
+            ProductAggregate product = ProductApplicationMapper.toDomain(dto);
 
             Instant afterMapping = Instant.now();
 
@@ -160,11 +159,11 @@ class ProductApplicationMapperTest {
                 new BigDecimal("99.95"),
                 eurCurrency,
                 new BigDecimal("10.5"),
-                List.of("Books")
+                Set.of("Books")
             );
 
             // WHEN
-            Product product = ProductApplicationMapper.toDomain(dto);
+            ProductAggregate product = ProductApplicationMapper.toDomain(dto);
 
             // THEN
             assertThat(product.getMoney().fixedPointAmount()).isEqualByComparingTo(new BigDecimal("99.95"));
@@ -187,14 +186,15 @@ class ProductApplicationMapperTest {
             ProductDescription description = ProductDescription.of("Test Description");
             ImageUrl imageUrl = ImageUrl.of("https://example.com/image.jpg");
             Money money = new Money(eurCurrency, BigDecimal.valueOf(29.99));
-            ProductVolume volume = ProductVolume.of(BigDecimal.valueOf(100));
+            Quantity volume = Quantity.of(BigDecimal.valueOf(100));
             Instant now = Instant.now();
             Set<ProductCategory> categories = Set.of(
-                ProductCategory.of(CategoryName.of("Books")),
-                ProductCategory.of(CategoryName.of("Technology"))
+                ProductCategory.of(CategoryName.of("books")),
+                ProductCategory.of(CategoryName.of("technology"))
             );
 
-            Product product = new Product(sku, title, description, volume, money, now, now, imageUrl, categories);
+            ProductAggregate product = new ProductAggregate(sku, title, description, volume, money, now, now, imageUrl,
+                categories);
 
             // WHEN
             ProductDTO dto = mapper.toDTO(product);
@@ -218,11 +218,11 @@ class ProductApplicationMapperTest {
         @DisplayName("should map Product with empty categories")
         void toDTO_withEmptyCategories_shouldMapWithEmptySet() {
             // GIVEN
-            Product product = new Product(
+            ProductAggregate product = new ProductAggregate(
                 ProductSku.of("TEST000002"),
                 ProductTitle.of("No Category Product"),
                 ProductDescription.of("Product without categories"),
-                ProductVolume.of(BigDecimal.valueOf(50)),
+                Quantity.of(BigDecimal.valueOf(50)),
                 new Money(eurCurrency, BigDecimal.valueOf(19.99)),
                 Instant.now(),
                 Instant.now(),
@@ -241,11 +241,11 @@ class ProductApplicationMapperTest {
         @DisplayName("should correctly map inStock flag when volume is zero")
         void toDTO_withZeroVolume_shouldMapInStockAsFalse() {
             // GIVEN
-            Product product = new Product(
+            ProductAggregate product = new ProductAggregate(
                 ProductSku.of("TEST000003"),
                 ProductTitle.of("Out of Stock Product"),
                 ProductDescription.of("Product with zero volume"),
-                ProductVolume.of(BigDecimal.ZERO),
+                Quantity.of(BigDecimal.ZERO),
                 new Money(eurCurrency, BigDecimal.valueOf(29.99)),
                 Instant.now(),
                 Instant.now(),
@@ -264,11 +264,11 @@ class ProductApplicationMapperTest {
         @DisplayName("should correctly map inStock flag when volume is positive")
         void toDTO_withPositiveVolume_shouldMapInStockAsTrue() {
             // GIVEN
-            Product product = new Product(
+            ProductAggregate product = new ProductAggregate(
                 ProductSku.of("TEST000004"),
                 ProductTitle.of("In Stock Product"),
                 ProductDescription.of("Product with positive volume"),
-                ProductVolume.of(BigDecimal.valueOf(100)),
+                Quantity.of(BigDecimal.valueOf(100)),
                 new Money(eurCurrency, BigDecimal.valueOf(29.99)),
                 Instant.now(),
                 Instant.now(),
@@ -288,11 +288,11 @@ class ProductApplicationMapperTest {
         void toDTO_withDifferentCurrency_shouldPreserveCurrency() {
             // GIVEN
             Currency usdCurrency = Currency.getInstance("USD");
-            Product product = new Product(
+            ProductAggregate product = new ProductAggregate(
                 ProductSku.of("TEST000005"),
                 ProductTitle.of("USD Product"),
                 ProductDescription.of("Product with USD currency"),
-                ProductVolume.of(BigDecimal.valueOf(50)),
+                Quantity.of(BigDecimal.valueOf(50)),
                 new Money(usdCurrency, BigDecimal.valueOf(99.99)),
                 Instant.now(),
                 Instant.now(),
@@ -312,11 +312,11 @@ class ProductApplicationMapperTest {
         @DisplayName("should preserve decimal precision in price and volume")
         void toDTO_withDecimalValues_shouldPreservePrecision() {
             // GIVEN
-            Product product = new Product(
+            ProductAggregate product = new ProductAggregate(
                 ProductSku.of("TEST000006"),
                 ProductTitle.of("Decimal Product"),
                 ProductDescription.of("Product with decimal values"),
-                ProductVolume.of(new BigDecimal("10.75")),
+                Quantity.of(new BigDecimal("10.75")),
                 new Money(eurCurrency, new BigDecimal("19.95")),
                 Instant.now(),
                 Instant.now(),
@@ -351,11 +351,11 @@ class ProductApplicationMapperTest {
                 BigDecimal.valueOf(49.99),
                 eurCurrency,
                 BigDecimal.valueOf(75),
-                List.of("Books", "Technology")
+                Set.of("books", "technology")
             );
 
             // WHEN
-            Product product = ProductApplicationMapper.toDomain(originalDto);
+            ProductAggregate product = ProductApplicationMapper.toDomain(originalDto);
             ProductDTO resultDto = mapper.toDTO(product);
 
             // THEN
@@ -366,7 +366,7 @@ class ProductApplicationMapperTest {
             assertThat(resultDto.price()).isEqualByComparingTo(originalDto.price());
             assertThat(resultDto.currency()).isEqualTo(originalDto.currency());
             assertThat(resultDto.volume()).isEqualByComparingTo(originalDto.volume());
-            assertThat(resultDto.categories()).containsExactlyInAnyOrderElementsOf(originalDto.categories());
+            assertThat(resultDto.categories()).containsExactlyInAnyOrder("Books", "Technology");
         }
     }
 
@@ -388,11 +388,11 @@ class ProductApplicationMapperTest {
                 BigDecimal.valueOf(29.99),
                 eurCurrency,
                 BigDecimal.valueOf(100),
-                List.of("Books")
+                Set.of("books")
             );
 
             // WHEN
-            Product product = ProductApplicationMapper.toDomain(dto);
+            ProductAggregate product = ProductApplicationMapper.toDomain(dto);
             ProductDTO resultDto = mapper.toDTO(product);
 
             // THEN
@@ -413,11 +413,11 @@ class ProductApplicationMapperTest {
                 BigDecimal.valueOf(39.99),
                 eurCurrency,
                 BigDecimal.valueOf(50),
-                List.of("Books", "Technology", "Programming", "Education", "Science")
+                Set.of("books", "technology", "programming", "education", "science")
             );
 
             // WHEN
-            Product product = ProductApplicationMapper.toDomain(dto);
+            ProductAggregate product = ProductApplicationMapper.toDomain(dto);
             ProductDTO resultDto = mapper.toDTO(product);
 
             // THEN
@@ -438,11 +438,11 @@ class ProductApplicationMapperTest {
                 BigDecimal.valueOf(19.99),
                 eurCurrency,
                 BigDecimal.valueOf(25),
-                List.of()
+                Set.of()
             );
 
             // WHEN
-            Product product = ProductApplicationMapper.toDomain(dto);
+            ProductAggregate product = ProductApplicationMapper.toDomain(dto);
             ProductDTO resultDto = mapper.toDTO(product);
 
             // THEN
@@ -460,11 +460,11 @@ class ProductApplicationMapperTest {
         @DisplayName("should handle zero price")
         void toDTO_withZeroPrice_shouldMapCorrectly() {
             // GIVEN
-            Product product = new Product(
+            ProductAggregate product = new ProductAggregate(
                 ProductSku.of("TEST000001"),
                 ProductTitle.of("Free Product"),
                 ProductDescription.of("Product with zero price"),
-                ProductVolume.of(BigDecimal.valueOf(100)),
+                Quantity.of(BigDecimal.valueOf(100)),
                 new Money(eurCurrency, BigDecimal.ZERO),
                 Instant.now(),
                 Instant.now(),
@@ -491,11 +491,11 @@ class ProductApplicationMapperTest {
                 BigDecimal.valueOf(9.99),
                 eurCurrency,
                 new BigDecimal("1000000"),
-                List.of("Books")
+                Set.of("books")
             );
 
             // WHEN
-            Product product = ProductApplicationMapper.toDomain(dto);
+            ProductAggregate product = ProductApplicationMapper.toDomain(dto);
 
             // THEN
             assertThat(product.getVolume().getValue()).isEqualByComparingTo(new BigDecimal("1000000"));
@@ -514,11 +514,11 @@ class ProductApplicationMapperTest {
                 BigDecimal.valueOf(29.99),
                 eurCurrency,
                 BigDecimal.valueOf(50),
-                List.of("Books")
+                Set.of("books")
             );
 
             // WHEN
-            Product product = ProductApplicationMapper.toDomain(dto);
+            ProductAggregate product = ProductApplicationMapper.toDomain(dto);
 
             // THEN
             assertThat(product.getDescription().getValue()).hasSize(1000);

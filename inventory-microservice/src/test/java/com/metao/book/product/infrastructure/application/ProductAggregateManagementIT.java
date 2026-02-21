@@ -65,6 +65,88 @@ public class ProductManagementIT extends KafkaContainer {
     }
 
     @Test
+    @DisplayName("should replay create product request with same Idempotency-Key")
+    void shouldReplayCreateProductRequestWithSameIdempotencyKey() {
+        var requestBody = """
+            {
+                "sku": "SKU1234570",
+                "title": "Idempotent Product",
+                "description": "Idempotent Description",
+                "image_url": "https://example.com/image.jpg",
+                "price": 29.99,
+                "currency": "EUR",
+                "volume": 100,
+                "categories": ["Books"]
+            }
+            """;
+
+        given()
+            .contentType(ContentType.JSON)
+            .header("Idempotency-Key", "req-123")
+            .body(requestBody)
+            .when()
+            .post("/products")
+            .then()
+            .statusCode(HttpStatus.CREATED.value());
+
+        given()
+            .contentType(ContentType.JSON)
+            .header("Idempotency-Key", "req-123")
+            .body(requestBody)
+            .when()
+            .post("/products")
+            .then()
+            .statusCode(HttpStatus.OK.value());
+    }
+
+    @Test
+    @DisplayName("should return 409 when same Idempotency-Key is reused for different SKU")
+    void shouldReturn409WhenIdempotencyKeyReusedForDifferentSku() {
+        var firstBody = """
+            {
+                "sku": "SKU1234571",
+                "title": "First Product",
+                "description": "First Description",
+                "image_url": "https://example.com/image.jpg",
+                "price": 29.99,
+                "currency": "EUR",
+                "volume": 100,
+                "categories": ["Books"]
+            }
+            """;
+        var secondBody = """
+            {
+                "sku": "SKU1234572",
+                "title": "Second Product",
+                "description": "Second Description",
+                "image_url": "https://example.com/image.jpg",
+                "price": 39.99,
+                "currency": "EUR",
+                "volume": 120,
+                "categories": ["Books"]
+            }
+            """;
+
+        given()
+            .contentType(ContentType.JSON)
+            .header("Idempotency-Key", "req-456")
+            .body(firstBody)
+            .when()
+            .post("/products")
+            .then()
+            .statusCode(HttpStatus.CREATED.value());
+
+        given()
+            .contentType(ContentType.JSON)
+            .header("Idempotency-Key", "req-456")
+            .body(secondBody)
+            .when()
+            .post("/products")
+            .then()
+            .statusCode(HttpStatus.CONFLICT.value());
+    }
+
+    @Test
     @DisplayName("should accept camelCase imageUrl when creating product")
     void shouldAcceptCamelCaseImageUrlWhenCreatingProduct() {
         // Given

@@ -1,28 +1,17 @@
-package com.metao.book.product.infrastructure.repository.model;
+package com.metao.book.shared.application.persistence;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
-public class OffsetBasedPageRequest implements Pageable {
+public record OffsetBasedPageRequest(int offset, int limit) implements Pageable {
 
-    private final int limit;
-    private final int offset;
-
-    /**
-     * Creates a new {@link OffsetBasedPageRequest} with sort parameters applied.
-     *
-     * @param offset zero-based offset.
-     * @param limit  the size of the elements to be returned.
-     */
-    public OffsetBasedPageRequest(int offset, int limit) {
+    public OffsetBasedPageRequest {
         if (offset < 0) {
             throw new IllegalArgumentException("Offset index must not be less than zero");
         }
         if (limit < 1) {
             throw new IllegalArgumentException("Limit must not be less than one");
         }
-        this.offset = offset;
-        this.limit = limit;
     }
 
     @Override
@@ -47,11 +36,11 @@ public class OffsetBasedPageRequest implements Pageable {
 
     @Override
     public Pageable next() {
-        return new OffsetBasedPageRequest(getPageSize(), (int) (getOffset() + getPageSize()));
+        return new OffsetBasedPageRequest((int) (getOffset() + getPageSize()), getPageSize());
     }
 
     public Pageable previous() {
-        return hasPrevious() ? new OffsetBasedPageRequest(getPageSize(), (int) (getOffset() - getPageSize()))
+        return hasPrevious() ? new OffsetBasedPageRequest((int) (getOffset() - getPageSize()), getPageSize())
             : this;
     }
 
@@ -62,16 +51,16 @@ public class OffsetBasedPageRequest implements Pageable {
 
     @Override
     public Pageable first() {
-        return new OffsetBasedPageRequest(getPageSize(), 0);
+        return new OffsetBasedPageRequest(0, getPageSize());
     }
 
     @Override
     public boolean hasPrevious() {
-        return offset > limit;
+        return offset >= limit;
     }
 
     @Override
     public Pageable withPage(int pageNumber) {
-        return new OffsetBasedPageRequest(getPageSize(), pageNumber);
+        return new OffsetBasedPageRequest(pageNumber * getPageSize(), getPageSize());
     }
 }

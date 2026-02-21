@@ -13,7 +13,9 @@ import com.metao.book.product.application.dto.CreateProductCommand;
 import com.metao.book.product.application.dto.CreateProductDto;
 import com.metao.book.product.application.dto.UpdateProductCommand;
 import com.metao.book.product.application.mapper.ProductApplicationMapper;
+import com.metao.book.product.application.service.CreateProductResult;
 import com.metao.book.product.application.service.ProductApplicationService;
+import com.metao.book.product.domain.exception.IdempotencyKeyConflictException;
 import com.metao.book.product.domain.exception.ProductNotFoundException;
 import com.metao.book.product.domain.model.aggregate.Product;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
@@ -23,6 +25,7 @@ import com.metao.book.product.domain.model.valueobject.ProductTitle;
 import com.metao.book.product.domain.repository.CategoryRepository;
 import com.metao.book.product.domain.repository.ProductRepository;
 import com.metao.book.product.domain.service.ProductDomainService;
+import com.metao.book.product.infrastructure.persistence.repository.ProductCreateIdempotencyRepository;
 import com.metao.book.shared.domain.financial.Money;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -54,6 +57,9 @@ class ProductApplicationServiceTest {
 
     @Mock
     CategoryRepository categoryRepository;
+
+    @Mock
+    ProductCreateIdempotencyRepository productCreateIdempotencyRepository;
 
     @Test
     void getProduct_whenProductNotFound_shouldThrowsException() {
@@ -112,28 +118,51 @@ class ProductApplicationServiceTest {
     void saveProduct_whenProductIsUnique_shouldSaveProduct() {
         // GIVEN
         CreateProductDto productDto = ProductDtoGeneratorUtils.buildOneProduct();
-        when(productDomainService.isProductUnique(SKU)).thenReturn(Boolean.TRUE);
+        when(productRepository.insertIfAbsent(any(Product.class))).thenReturn(true);
 
         // WHEN
-        productService.createProduct(createProductCommand(productDto));
+        var result = productService.createProduct(createProductCommand(productDto));
 
         // THEN
-        verify(productRepository).save(any());
+        assertThat(result).isEqualTo(CreateProductResult.CREATED);
+        verify(productRepository).insertIfAbsent(any(Product.class));
     }
 
     @Test
-    void saveProduct_whenProductIsNotUnique_shouldThrowException() {
+    void saveProduct_whenProductAlreadyExists_shouldThrowException() {
         // GIVEN
         CreateProductDto productDto = ProductDtoGeneratorUtils.buildOneProduct();
-        when(productDomainService.isProductUnique(SKU)).thenReturn(Boolean.FALSE);
+        when(productRepository.insertIfAbsent(any(Product.class))).thenReturn(false);
 
         // WHEN
-        assertThrows(IllegalArgumentException.class, () ->
-            productService.createProduct(createProductCommand(productDto))
-        );
+        var result = productService.createProduct(createProductCommand(productDto));
 
         // THEN
-        verify(productRepository, never()).save(any(Product.class));
+        assertThat(result).isEqualTo(CreateProductResult.ALREADY_EXISTS);
+        verify(productRepository).insertIfAbsent(any(Product.class));
+    }
+
+    @Test
+    void saveProduct_withIdempotencyKeyReplay_shouldSkipInsert() {
+        CreateProductDto productDto = ProductDtoGeneratorUtils.buildOneProduct();
+        when(productCreateIdempotencyRepository.claim(any(), any()))
+            .thenReturn(ProductCreateIdempotencyRepository.ClaimResult.REPLAY);
+
+        var result = productService.createProduct(createProductCommand(productDto), "request-1");
+
+        assertThat(result).isEqualTo(CreateProductResult.REPLAYED);
+        verify(productRepository, never()).insertIfAbsent(any(Product.class));
+    }
+
+    @Test
+    void saveProduct_withIdempotencyKeyConflict_shouldThrowConflict() {
+        CreateProductDto productDto = ProductDtoGeneratorUtils.buildOneProduct();
+        when(productCreateIdempotencyRepository.claim(any(), any()))
+            .thenReturn(ProductCreateIdempotencyRepository.ClaimResult.CONFLICT);
+
+        assertThrows(IdempotencyKeyConflictException.class,
+            () -> productService.createProduct(createProductCommand(productDto), "request-1"));
+        verify(productRepository, never()).insertIfAbsent(any(Product.class));
     }
 
     @Test
@@ -198,14 +227,14 @@ class ProductApplicationServiceTest {
                 List.of("Books", "Technology", "Programming")
             );
 
-            when(productDomainService.isProductUnique(SKU)).thenReturn(true);
+            when(productRepository.insertIfAbsent(any(Product.class))).thenReturn(true);
 
             // WHEN
             productService.createProduct(command);
 
             // THEN
             ArgumentCaptor<Product> productCaptor = ArgumentCaptor.forClass(Product.class);
-            verify(productRepository).save(productCaptor.capture());
+            verify(productRepository).insertIfAbsent(productCaptor.capture());
             Product savedProduct = productCaptor.getValue();
 
             assertThat(savedProduct.getCategories()).hasSize(3);
@@ -228,14 +257,14 @@ class ProductApplicationServiceTest {
                 List.of()
             );
 
-            when(productDomainService.isProductUnique(SKU)).thenReturn(true);
+            when(productRepository.insertIfAbsent(any(Product.class))).thenReturn(true);
 
             // WHEN
             productService.createProduct(command);
 
             // THEN
             ArgumentCaptor<Product> productCaptor = ArgumentCaptor.forClass(Product.class);
-            verify(productRepository).save(productCaptor.capture());
+            verify(productRepository).insertIfAbsent(productCaptor.capture());
             Product savedProduct = productCaptor.getValue();
 
             assertThat(savedProduct.getCategories()).isEmpty();
@@ -258,14 +287,14 @@ class ProductApplicationServiceTest {
                 null
             );
 
-            when(productDomainService.isProductUnique(SKU)).thenReturn(true);
+            when(productRepository.insertIfAbsent(any(Product.class))).thenReturn(true);
 
             // WHEN
             productService.createProduct(command);
 
             // THEN
             ArgumentCaptor<Product> productCaptor = ArgumentCaptor.forClass(Product.class);
-            verify(productRepository).save(productCaptor.capture());
+            verify(productRepository).insertIfAbsent(productCaptor.capture());
             Product savedProduct = productCaptor.getValue();
 
             assertThat(savedProduct.getCategories()).isEmpty();

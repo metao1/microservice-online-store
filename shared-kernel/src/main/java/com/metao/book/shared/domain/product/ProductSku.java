@@ -1,32 +1,20 @@
-package com.metao.book.product.domain.model.valueobject;
+package com.metao.book.shared.domain.product;
 
 import com.metao.book.shared.domain.base.ValueObject;
 import jakarta.persistence.Embeddable;
+import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
-import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Product identifier value object
  */
 @Embeddable
-@Getter
-@EqualsAndHashCode
-@NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
-public class ProductSku implements ValueObject {
-
-    private final String value;
+public record ProductSku(String value) implements ValueObject {
 
     public ProductSku(@NonNull String value) {
         if (value.trim().isEmpty()) {
             throw new IllegalArgumentException("ProductId cannot be null or empty");
-        }
-        if (value.length() != 10) {
-            throw new IllegalArgumentException("ProductId must be exactly 10 characters (SKU format)");
         }
         this.value = value.trim();
     }
