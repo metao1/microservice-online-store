@@ -12,6 +12,7 @@ ext {
   micrometerVersion = "1.16.2"
   testcontainersVersion = "2.0.2"
   springBootDependenciesVersion = "4.0.2"
+  resilience4jVersion = "2.2.0"
 }
 
 subprojects {
@@ -37,6 +38,7 @@ subprojects {
       }
       implementation "org.springframework.boot:spring-boot-autoconfigure"
       implementation "commons-codec:commons-codec:1.17.1"
+      implementation "io.github.resilience4j:resilience4j-spring-boot3:${resilience4jVersion}"
 
       testImplementation "org.springframework.boot:spring-boot-starter-test"
     }

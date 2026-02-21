@@ -15,17 +15,23 @@ group = "com.metao.book.shared"
 
 dependencies {
   // Spring
-  api "org.springframework.boot:spring-boot-starter-validation"
-  api "org.springframework.boot:spring-boot-starter-data-jpa"
+  compileOnly "org.springframework.boot:spring-boot-starter-validation"
+  compileOnly "org.springframework.boot:spring-boot-starter-data-jpa"
+  testImplementation "org.springframework.boot:spring-boot-starter-validation"
+  testImplementation "org.springframework.boot:spring-boot-starter-data-jpa"
 
   // Jackson - needed for JSON annotations
-  implementation "org.springframework.boot:spring-boot-jackson"
-  implementation "com.fasterxml.jackson.core:jackson-databind"
-  implementation "com.fasterxml.jackson.core:jackson-annotations"
+  compileOnly "org.springframework.boot:spring-boot-jackson"
+  compileOnly "com.fasterxml.jackson.core:jackson-databind"
+  compileOnly "com.fasterxml.jackson.core:jackson-annotations"
+  testImplementation "com.fasterxml.jackson.core:jackson-databind"
+  testImplementation "com.fasterxml.jackson.core:jackson-annotations"
 
   // Micrometer (version via BOM to stay aligned with Spring Boot)
-  implementation "io.micrometer:micrometer-core"
-  implementation "io.micrometer:micrometer-registry-prometheus"
+  compileOnly "io.micrometer:micrometer-core"
+  compileOnly "io.micrometer:micrometer-registry-prometheus"
+  testImplementation "io.micrometer:micrometer-core"
+  testImplementation "io.micrometer:micrometer-registry-prometheus"
 
 }
 
