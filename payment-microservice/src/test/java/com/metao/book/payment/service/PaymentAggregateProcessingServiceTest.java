@@ -15,6 +15,8 @@ import java.util.Currency;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -25,10 +27,6 @@ class PaymentAggregateProcessingServiceTest {
     private PaymentApplicationService paymentApplicationService;
 
     private PaymentProcessingService paymentProcessingService;
-
-    // Note: Testing the exact random outcome (SUCCESSFUL/FAILED) is tricky without refactoring
-    // PaymentProcessingService to inject Random or use a different strategy.
-    // This test verifies that a valid OrderPaymentEvent is returned with one of the possible outcomes.
 
     @BeforeEach
     void setUp() {
@@ -47,17 +45,27 @@ class PaymentAggregateProcessingServiceTest {
             .build();
     }
 
-    @Test
-    void processPayment_returnsSuccessfulPaymentEvent() {
-        // Given
+    @ParameterizedTest
+    @CsvSource({
+        "true,SUCCESSFUL,,payment-123",
+        "false,FAILED,Insufficient funds,payment-456"
+    })
+    void processPayment_respectsServiceOutcome(
+        boolean success,
+        OrderPaymentEvent.Status expectedStatus,
+        String failureReason,
+        String paymentId
+    ) {
         OrderCreatedEvent orderEvent = createSampleOrderCreatedEvent();
-        PaymentDTO successfulPayment = PaymentDTO.builder()
-            .paymentId("payment-123")
+
+        PaymentDTO paymentDto = PaymentDTO.builder()
+            .paymentId(paymentId)
             .orderId(orderEvent.getId())
             .amount(BigDecimal.valueOf(orderEvent.getPrice()))
             .currency(Currency.getInstance(orderEvent.getCurrency()))
-            .status("SUCCESSFUL")
-            .isSuccessful(true)
+            .status(expectedStatus.name())
+            .failureReason(failureReason)
+            .isSuccessful(success)
             .isCompleted(true)
             .createdAt(Instant.now())
             .build();
@@ -66,58 +74,26 @@ class PaymentAggregateProcessingServiceTest {
             orderEvent.getId(),
             BigDecimal.valueOf(orderEvent.getPrice()),
             orderEvent.getCurrency()
-        )).thenReturn(successfulPayment);
+        )).thenReturn(paymentDto);
 
-        // When
         OrderPaymentEvent paymentEvent = paymentProcessingService.processPayment(orderEvent);
 
-        // Then
         assertThat(paymentEvent).isNotNull();
         assertThat(paymentEvent.getOrderId()).isEqualTo(orderEvent.getId());
-        assertThat(paymentEvent.getPaymentId()).isEqualTo("payment-123");
-        assertThat(paymentEvent.getStatus()).isEqualTo(OrderPaymentEvent.Status.SUCCESSFUL);
+        assertThat(paymentEvent.getPaymentId()).isEqualTo(paymentId);
+        assertThat(paymentEvent.getStatus()).isEqualTo(expectedStatus);
         assertThat(paymentEvent.getCreateTime()).isNotNull();
-        assertThat(paymentEvent.getErrorMessage()).isEmpty();
+        if (success) {
+            assertThat(paymentEvent.getErrorMessage()).isEmpty();
+        } else {
+            assertThat(paymentEvent.getErrorMessage()).contains("Insufficient funds");
+        }
 
         verify(paymentApplicationService).processOrderCreatedEvent(
             orderEvent.getId(),
             BigDecimal.valueOf(orderEvent.getPrice()),
             orderEvent.getCurrency()
         );
-    }
-
-    @Test
-    void processPayment_returnsFailedPaymentEvent() {
-        // Given
-        OrderCreatedEvent orderEvent = createSampleOrderCreatedEvent();
-        PaymentDTO failedPayment = PaymentDTO.builder()
-            .paymentId("payment-456")
-            .orderId(orderEvent.getId())
-            .amount(BigDecimal.valueOf(orderEvent.getPrice()))
-            .currency(Currency.getInstance(orderEvent.getCurrency()))
-            .status("FAILED")
-            .failureReason("Insufficient funds")
-            .isSuccessful(false)
-            .isCompleted(true)
-            .createdAt(Instant.now())
-            .build();
-
-        when(paymentApplicationService.processOrderCreatedEvent(
-            orderEvent.getId(),
-            BigDecimal.valueOf(orderEvent.getPrice()),
-            orderEvent.getCurrency()
-        )).thenReturn(failedPayment);
-
-        // When
-        OrderPaymentEvent paymentEvent = paymentProcessingService.processPayment(orderEvent);
-
-        // Then
-        assertThat(paymentEvent).isNotNull();
-        assertThat(paymentEvent.getOrderId()).isEqualTo(orderEvent.getId());
-        assertThat(paymentEvent.getPaymentId()).isEqualTo("payment-456");
-        assertThat(paymentEvent.getStatus()).isEqualTo(OrderPaymentEvent.Status.FAILED);
-        assertThat(paymentEvent.getCreateTime()).isNotNull();
-        assertThat(paymentEvent.getErrorMessage()).isEqualTo("Insufficient funds");
     }
 
     @Test
@@ -140,4 +116,3 @@ class PaymentAggregateProcessingServiceTest {
         assertThat(paymentEvent.getErrorMessage()).contains("Payment processing failed");
     }
 }
-
