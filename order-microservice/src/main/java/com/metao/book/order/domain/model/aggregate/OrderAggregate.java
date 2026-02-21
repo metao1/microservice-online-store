@@ -2,29 +2,28 @@ package com.metao.book.order.domain.model.aggregate;
 
 import com.metao.book.order.domain.exception.OrderStateTransitionNotAllowed;
 import com.metao.book.order.domain.model.entity.OrderItem;
+import com.metao.book.order.domain.model.event.DomainInventoryReductionRequestedEvent;
 import com.metao.book.order.domain.model.event.DomainOrderCreatedEvent;
-import com.metao.book.order.domain.model.event.OrderItemAddedEvent;
-import com.metao.book.order.domain.model.event.OrderStatusChangedEvent;
+import com.metao.book.order.domain.model.event.DomainOrderItemAddedEvent;
+import com.metao.book.order.domain.model.event.DomainOrderStatusChangedEvent;
 import com.metao.book.order.domain.model.valueobject.CustomerId;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
-import com.metao.book.order.domain.model.valueobject.ProductId;
-import com.metao.book.order.domain.model.valueobject.Quantity;
 import com.metao.book.shared.domain.base.AggregateRoot;
-import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.domain.financial.Money;
+import com.metao.book.shared.domain.product.ProductSku;
+import com.metao.book.shared.domain.product.Quantity;
+import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
 @EqualsAndHashCode(of = {"id"}, callSuper = true)
 public class OrderAggregate extends AggregateRoot<OrderId> {
-
     private final OrderId id;
     private final CustomerId customerId;
     private final List<OrderItem> items;
@@ -32,14 +31,11 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
     private Money total;
     private OrderStatus status;
     private Instant updatedAt;
-    private final List<DomainEvent> domainEvents = new ArrayList<>();
 
-    public OrderAggregate(OrderId id, CustomerId customerId) {
-        Objects.requireNonNull(id, "Order ID cannot be null");
-        Objects.requireNonNull(customerId, "Customer ID cannot be null");
-
-        this.id = id;
-        this.customerId = customerId;
+    public OrderAggregate(@NotNull OrderId id, @NotNull CustomerId customerId) {
+        super(id);
+        this.id = java.util.Objects.requireNonNull(id, "Order ID cannot be null");
+        this.customerId = java.util.Objects.requireNonNull(customerId, "Customer ID cannot be null");
         this.items = new ArrayList<>();
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
@@ -47,41 +43,36 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
         this.status = OrderStatus.CREATED;
 
         // Raise OrderCreatedEvent
-        domainEvents.add(new DomainOrderCreatedEvent(id, customerId));
+        addDomainEvent(new DomainOrderCreatedEvent(id, customerId));
     }
 
-    public void addItem(ProductId productId, Quantity quantity, Money unitPrice) {
-        Objects.requireNonNull(productId, "Product ID cannot be null");
-        Objects.requireNonNull(quantity, "Quantity cannot be null");
-        Objects.requireNonNull(unitPrice, "Unit price cannot be null");
-
+    public void addItem(@NotNull ProductSku productSku, @NotNull Quantity quantity, @NotNull Money unitPrice) {
+        java.util.Objects.requireNonNull(productSku, "Product ID cannot be null");
         // Validate order state
         if (status == OrderStatus.CANCELLED || status == OrderStatus.DELIVERED) {
             throw new IllegalStateException("Cannot add items to a " + status + " order");
         }
 
-        // Check for duplicate product
-        if (items.stream().anyMatch(item -> item.getProductId().equals(productId))) {
-            throw new IllegalStateException("Product already exists in order");
+        // Merge quantities when product already exists instead of failing
+        var existing = items.stream()
+            .filter(item -> item.getProductSku().equals(productSku))
+            .findFirst()
+            .orElse(null);
+        if (existing != null) {
+            existing.updateQuantity(existing.getQuantity().add(quantity));
+        } else {
+            OrderItem item = new OrderItem(productSku, quantity, unitPrice);
+            this.items.add(item);
         }
-
-        // Create and add order item
-        OrderItem item = new OrderItem(productId, quantity, unitPrice);
-        this.items.add(item);
         this.updatedAt = Instant.now();
         this.total = calculateTotal();
 
         // Raise OrderItemAddedEvent
-        domainEvents.add(new OrderItemAddedEvent(
-            id,
-            productId,
-            quantity,
-            unitPrice));
+        addDomainEvent(new DomainOrderItemAddedEvent(id, productSku, quantity, unitPrice));
     }
 
-    public synchronized void updateStatus(OrderStatus newStatus) {
-        Objects.requireNonNull(newStatus, "New status cannot be null");
-
+    public synchronized void updateStatus(@NotNull OrderStatus newStatus) {
+        java.util.Objects.requireNonNull(newStatus, "New status cannot be null");
         // Validate status transition
         validateStatusTransition(newStatus);
 
@@ -90,18 +81,16 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
         this.updatedAt = Instant.now();
 
         // Raise OrderStatusChangedEvent
-        domainEvents.add(new OrderStatusChangedEvent(id, oldStatus, newStatus));
+        addDomainEvent(new DomainOrderStatusChangedEvent(id, oldStatus, newStatus));
     }
 
-    public synchronized void removeItem(ProductId productId) {
-        Objects.requireNonNull(productId, "Product ID cannot be null");
-
+    public synchronized void removeItem(@NotNull ProductSku productId) {
         // Validate order state
         if (status == OrderStatus.CANCELLED || status == OrderStatus.DELIVERED) {
             throw new IllegalStateException("Cannot remove items from a " + status + " order");
         }
 
-        boolean removed = items.removeIf(item -> item.getProductId().equals(productId));
+        boolean removed = items.removeIf(item -> item.getProductSku().equals(productId));
         if (removed) {
             this.updatedAt = Instant.now();
             this.total = calculateTotal();
@@ -120,23 +109,19 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
             }).orElse(null);
     }
 
-    public synchronized void updateItemQuantity(ProductId productId, Quantity newQuantity) {
-        Objects.requireNonNull(productId, "Product ID cannot be null");
-        Objects.requireNonNull(newQuantity, "New quantity cannot be null");
-
+    public synchronized void updateItemQuantity() {
         // Validate order state
         if (status == OrderStatus.CANCELLED || status == OrderStatus.DELIVERED) {
             throw new IllegalStateException("Cannot update items in a " + status + " order");
         }
-
-        items.stream()
-            .filter(item -> item.getProductId().equals(productId))
-            .findFirst()
-            .ifPresent(item -> {
-                item.updateQuantity(newQuantity);
-                this.updatedAt = Instant.now();
-                this.total = calculateTotal();
-            });
+        items.forEach(item -> {
+            item.updateQuantity(item.getQuantity().add(Quantity.of(java.math.BigDecimal.ONE)));
+            this.updatedAt = Instant.now();
+            addDomainEvent(
+                new DomainInventoryReductionRequestedEvent(updatedAt, item.getProductSku(), item.getQuantity())
+            );
+        });
+        this.total = calculateTotal();
     }
 
     private synchronized void validateStatusTransition(OrderStatus newStatus) {
@@ -155,14 +140,6 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
 
     public synchronized Money getTotal() {
         return total;
-    }
-
-    public List<DomainEvent> getDomainEvents() {
-        return Collections.unmodifiableList(domainEvents);
-    }
-
-    public void clearDomainEvents() {
-        domainEvents.clear();
     }
 
     public List<OrderItem> getItems() {

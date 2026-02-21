@@ -1,19 +1,18 @@
 package com.metao.book.order.domain.model.entity;
 
-import com.metao.book.order.domain.model.valueobject.ProductId;
-import com.metao.book.order.domain.model.valueobject.Quantity;
+import com.metao.book.shared.domain.product.Quantity;
 import com.metao.book.shared.domain.financial.Money;
+import com.metao.book.shared.domain.product.ProductSku;
 import lombok.Getter;
 
 @Getter
 public class OrderItem {
-
-    private final ProductId productId;
+    private final ProductSku productSku;
     private final Money unitPrice;
     private Quantity quantity;
 
-    public OrderItem(ProductId productId, Quantity quantity, Money unitPrice) {
-        this.productId = productId;
+    public OrderItem(ProductSku productSku, Quantity quantity, Money unitPrice) {
+        this.productSku = productSku;
         this.quantity = quantity;
         this.unitPrice = unitPrice;
     }

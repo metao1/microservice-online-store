@@ -2,8 +2,8 @@ package com.metao.book.order.domain.model.entity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.metao.book.order.domain.model.valueobject.ProductId;
-import com.metao.book.order.domain.model.valueobject.Quantity;
+import com.metao.book.shared.domain.product.ProductSku;
+import com.metao.book.shared.domain.product.Quantity;
 import com.metao.book.shared.domain.financial.Money;
 import java.math.BigDecimal;
 import java.util.Currency;
@@ -27,15 +27,15 @@ class OrderItemTest {
         @DisplayName("should create order item with valid parameters")
         void createOrderItem_withValidParameters_shouldSucceed() {
             // GIVEN
-            ProductId productId = new ProductId("product-123");
+            ProductSku productSku = ProductSku.of("PRODUCT1234");
             Quantity quantity = new Quantity(BigDecimal.valueOf(2));
             Money unitPrice = new Money(USD, BigDecimal.valueOf(10.00));
 
             // WHEN
-            OrderItem orderItem = new OrderItem(productId, quantity, unitPrice);
+            OrderItem orderItem = new OrderItem(productSku, quantity, unitPrice);
 
             // THEN
-            assertThat(orderItem.getProductId()).isEqualTo(productId);
+            assertThat(orderItem.getProductSku()).isEqualTo(productSku);
             assertThat(orderItem.getQuantity()).isEqualTo(quantity);
             assertThat(orderItem.getUnitPrice()).isEqualTo(unitPrice);
         }
@@ -44,12 +44,12 @@ class OrderItemTest {
         @DisplayName("should create order item with decimal quantity")
         void createOrderItem_withDecimalQuantity_shouldSucceed() {
             // GIVEN
-            ProductId productId = new ProductId("product-456");
+            ProductSku productSku = ProductSku.of("PRODUCT456");
             Quantity quantity = new Quantity(new BigDecimal("2.5"));
             Money unitPrice = new Money(USD, BigDecimal.valueOf(8.00));
 
             // WHEN
-            OrderItem orderItem = new OrderItem(productId, quantity, unitPrice);
+            OrderItem orderItem = new OrderItem(productSku, quantity, unitPrice);
 
             // THEN
             assertThat(orderItem.getQuantity().getValue())
@@ -60,12 +60,12 @@ class OrderItemTest {
         @DisplayName("should create order item with different currency")
         void createOrderItem_withDifferentCurrency_shouldSucceed() {
             // GIVEN
-            ProductId productId = new ProductId("product-789");
+            ProductSku productSku = ProductSku.of("PRODUCT789");
             Quantity quantity = new Quantity(BigDecimal.ONE);
             Money unitPrice = new Money(EUR, BigDecimal.valueOf(15.00));
 
             // WHEN
-            OrderItem orderItem = new OrderItem(productId, quantity, unitPrice);
+            OrderItem orderItem = new OrderItem(productSku, quantity, unitPrice);
 
             // THEN
             assertThat(orderItem.getUnitPrice().currency()).isEqualTo(EUR);
@@ -83,7 +83,7 @@ class OrderItemTest {
         void getTotalPrice_withIntegerQuantity_shouldCalculateCorrectly() {
             // GIVEN
             OrderItem orderItem = new OrderItem(
-                new ProductId("product-123"),
+                new ProductSku("product-123"),
                 new Quantity(BigDecimal.valueOf(3)),
                 new Money(USD, BigDecimal.valueOf(10.00))
             );
@@ -102,7 +102,7 @@ class OrderItemTest {
         void getTotalPrice_withDecimalQuantity_shouldCalculateCorrectly() {
             // GIVEN
             OrderItem orderItem = new OrderItem(
-                new ProductId("product-456"),
+                new ProductSku("product-456"),
                 new Quantity(new BigDecimal("2.5")),
                 new Money(USD, BigDecimal.valueOf(8.00))
             );
@@ -120,7 +120,7 @@ class OrderItemTest {
         void getTotalPrice_withDecimalUnitPrice_shouldCalculateCorrectly() {
             // GIVEN
             OrderItem orderItem = new OrderItem(
-                new ProductId("product-789"),
+                new ProductSku("product-789"),
                 new Quantity(BigDecimal.valueOf(4)),
                 new Money(USD, new BigDecimal("12.99"))
             );
@@ -139,7 +139,7 @@ class OrderItemTest {
             // GIVEN
             Money unitPrice = new Money(USD, BigDecimal.valueOf(25.00));
             OrderItem orderItem = new OrderItem(
-                new ProductId("product-single"),
+                new ProductSku("product-single"),
                 new Quantity(BigDecimal.ONE),
                 unitPrice
             );
@@ -156,7 +156,7 @@ class OrderItemTest {
         void getTotalPrice_withLargeQuantity_shouldCalculateCorrectly() {
             // GIVEN
             OrderItem orderItem = new OrderItem(
-                new ProductId("product-bulk"),
+                new ProductSku("product-bulk"),
                 new Quantity(new BigDecimal("1000")),
                 new Money(USD, new BigDecimal("0.99"))
             );
@@ -174,7 +174,7 @@ class OrderItemTest {
         void getTotalPrice_shouldPreserveCurrency() {
             // GIVEN
             OrderItem orderItem = new OrderItem(
-                new ProductId("product-eur"),
+                new ProductSku("product-eur"),
                 new Quantity(BigDecimal.valueOf(2)),
                 new Money(EUR, BigDecimal.valueOf(15.00))
             );
@@ -200,7 +200,7 @@ class OrderItemTest {
         void updateQuantity_withNewQuantity_shouldUpdate() {
             // GIVEN
             OrderItem orderItem = new OrderItem(
-                new ProductId("product-123"),
+                new ProductSku("product-123"),
                 new Quantity(BigDecimal.valueOf(2)),
                 new Money(USD, BigDecimal.valueOf(10.00))
             );
@@ -221,7 +221,7 @@ class OrderItemTest {
         void updateQuantity_toDecimalValue_shouldUpdate() {
             // GIVEN
             OrderItem orderItem = new OrderItem(
-                new ProductId("product-456"),
+                new ProductSku("product-456"),
                 new Quantity(BigDecimal.valueOf(3)),
                 new Money(USD, BigDecimal.valueOf(10.00))
             );
@@ -241,7 +241,7 @@ class OrderItemTest {
         void updateQuantity_shouldAffectTotalPrice() {
             // GIVEN
             OrderItem orderItem = new OrderItem(
-                new ProductId("product-789"),
+                new ProductSku("product-789"),
                 new Quantity(BigDecimal.valueOf(2)),
                 new Money(USD, BigDecimal.valueOf(10.00))
             );
@@ -264,7 +264,7 @@ class OrderItemTest {
         void updateQuantity_multipleTimes_shouldRetainLastValue() {
             // GIVEN
             OrderItem orderItem = new OrderItem(
-                new ProductId("product-multi"),
+                new ProductSku("product-multi"),
                 new Quantity(BigDecimal.valueOf(1)),
                 new Money(USD, BigDecimal.valueOf(10.00))
             );
@@ -291,7 +291,7 @@ class OrderItemTest {
         void shouldHandleVerySmallUnitPrice() {
             // GIVEN
             OrderItem orderItem = new OrderItem(
-                new ProductId("product-penny"),
+                new ProductSku("product-penny"),
                 new Quantity(BigDecimal.valueOf(100)),
                 new Money(USD, new BigDecimal("0.01"))
             );
@@ -309,7 +309,7 @@ class OrderItemTest {
         void shouldHandleVeryLargeTotalPrice() {
             // GIVEN
             OrderItem orderItem = new OrderItem(
-                new ProductId("product-expensive"),
+                new ProductSku("product-expensive"),
                 new Quantity(new BigDecimal("1000")),
                 new Money(USD, new BigDecimal("999.99"))
             );
@@ -327,7 +327,7 @@ class OrderItemTest {
         void shouldHandlePreciseDecimalCalculations() {
             // GIVEN
             OrderItem orderItem = new OrderItem(
-                new ProductId("product-precise"),
+                new ProductSku("product-precise"),
                 new Quantity(new BigDecimal("3.33")),
                 new Money(USD, new BigDecimal("7.77"))
             );
@@ -346,7 +346,7 @@ class OrderItemTest {
             // GIVEN
             Money unitPrice = new Money(USD, BigDecimal.valueOf(10.00));
             OrderItem orderItem = new OrderItem(
-                new ProductId("product-immutable"),
+                new ProductSku("product-immutable"),
                 new Quantity(BigDecimal.valueOf(2)),
                 unitPrice
             );
@@ -364,9 +364,9 @@ class OrderItemTest {
         @DisplayName("should maintain product ID through quantity updates")
         void updateQuantity_shouldMaintainProductId() {
             // GIVEN
-            ProductId productId = new ProductId("product-stable");
+            ProductSku productSku = ProductSku.of("PRODUCTSTB");
             OrderItem orderItem = new OrderItem(
-                productId,
+                productSku,
                 new Quantity(BigDecimal.valueOf(2)),
                 new Money(USD, BigDecimal.valueOf(10.00))
             );
@@ -375,7 +375,7 @@ class OrderItemTest {
             orderItem.updateQuantity(new Quantity(BigDecimal.valueOf(10)));
 
             // THEN
-            assertThat(orderItem.getProductId()).isEqualTo(productId);
+            assertThat(orderItem.getProductSku()).isEqualTo(productSku);
         }
     }
 }

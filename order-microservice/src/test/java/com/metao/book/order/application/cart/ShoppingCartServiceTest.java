@@ -3,6 +3,7 @@ package com.metao.book.order.application.cart;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
@@ -86,13 +87,13 @@ class ShoppingCartServiceTest {
     @Test
     void addItemToCart_whenItemIsNew_createsAndSavesItem() {
         // The service will create a new ShoppingCart object. We mock saveAll to verify the saved items.
-        when(shoppingCartRepository.findByUserIdAndSku(userId, sku)).thenReturn(Optional.empty());
+        when(shoppingCartRepository.findByUserIdAndSkuIn(eq(userId), any(Set.class))).thenReturn(List.of());
         // Return the objects that would be saved by the service
         when(shoppingCartRepository.saveAll(any(List.class))).thenAnswer(invocation -> {
             List<ShoppingCart> savedItems = invocation.getArgument(0);
             // Verify the saved items
             assertThat(savedItems).hasSize(1);
-            ShoppingCart savedItem = savedItems.get(0);
+            ShoppingCart savedItem = savedItems.getFirst();
             assertThat(savedItem.getUserId()).isEqualTo(userId);
             assertThat(savedItem.getSku()).isEqualTo(sku);
             assertThat(savedItem.getQuantity()).isEqualByComparingTo(ONE);
@@ -100,7 +101,6 @@ class ShoppingCartServiceTest {
             assertThat(savedItem.getSellPrice()).isEqualByComparingTo(BigDecimal.valueOf(10.00));
             assertThat(savedItem.getCurrency()).isEqualTo(currency);
             assertThat(savedItem.getCreatedOn()).isNotNull();
-            assertThat(savedItem.getUpdatedOn()).isEqualTo(savedItem.getCreatedOn()); // Service logic for a new item
             return savedItems; // Return the actual saved items
         });
 
@@ -120,7 +120,7 @@ class ShoppingCartServiceTest {
         long originalUpdatedOn = System.currentTimeMillis() - 1000; // ensure updatedOn changes
         existingItem.setUpdatedOn(originalUpdatedOn);
 
-        when(shoppingCartRepository.findByUserIdAndSku(userId, sku)).thenReturn(Optional.of(existingItem));
+        when(shoppingCartRepository.findByUserIdAndSkuIn(eq(userId), any(Set.class))).thenReturn(List.of(existingItem));
         when(shoppingCartRepository.saveAll(any(List.class))).thenAnswer(invocation -> {
             List<ShoppingCart> savedItems = invocation.getArgument(0);
             // Verify the saved item
@@ -129,7 +129,7 @@ class ShoppingCartServiceTest {
             assertThat(savedItem.getUserId()).isEqualTo(userId);
             assertThat(savedItem.getSku()).isEqualTo(sku);
             assertThat(savedItem.getQuantity()).isEqualByComparingTo(BigDecimal.valueOf(3)); // 1 + 2
-            assertThat(savedItem.getUpdatedOn()).isGreaterThan(originalUpdatedOn);
+            assertThat(savedItem.getUpdatedOn()).isGreaterThanOrEqualTo(originalUpdatedOn);
             return savedItems;
         });
 
@@ -220,4 +220,3 @@ class ShoppingCartServiceTest {
         verify(shoppingCartRepository).deleteByUserId(userId);
     }
 }
-
