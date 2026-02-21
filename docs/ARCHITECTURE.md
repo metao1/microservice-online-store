@@ -17,131 +17,65 @@ This document describes the complete microservices architecture for the online s
 - **Frontend**: React
 - **Containerization**: Docker, Docker Compose
 
-## System Architecture Diagram
+## Service Maps (per microservice)
+
+### Inventory / Product Service (port 8083)
 
 ```mermaid
-graph TB
-    subgraph "Client Layer"
-        WebApp[React Web Application<br/>Port: 3000]
-    end
-
-    subgraph "Product Microservice - Port 8083"
-        ProductAPI[Product REST API<br/>ProductController]
-        ProductAppService[ProductApplicationService]
-        ProductDomain[Product Aggregate<br/>Value Objects: ProductSku, Money, ProductVolume<br/>Entities: ProductCategory]
-        ProductRepo[(PostgreSQL<br/>bookstore DB<br/>Port 5432)]
-        ProductPublisher[Domain Event Publisher<br/>ProductCreatedEvent<br/>ProductUpdatedEvent]
-        ProductListener[ProductKafkaListener<br/>Event Consumer]
-    end
-
-    subgraph "Order Microservice - Port 8080"
-        OrderAPI[Order Management API<br/>OrderManagementController]
-        CartAPI[Shopping Cart API<br/>ShoppingCartController]
-        OrderAppService[OrderManagementService]
-        CartService[ShoppingCartService]
-        OrderDomain[Order Aggregate<br/>Value Objects: OrderId, CustomerId<br/>Entities: OrderItem<br/>Status: CREATED→PAID→SHIPPED→DELIVERED]
-        OrderRepo[(PostgreSQL<br/>bookstore-order DB<br/>Port 5433)]
-        OrderPublisher[DomainEventToKafkaEventHandler<br/>OrderCreatedEvent<br/>OrderStatusChangedEvent]
-        PaymentListener[PaymentEventListener<br/>OrderPaymentEvent Consumer]
-    end
-
-    subgraph "Payment Microservice - Port 8084"
-        PaymentAPI[Payment REST API<br/>PaymentController]
-        PaymentAppService[PaymentApplicationService]
-        PaymentProcessing[PaymentProcessingService]
-        PaymentDomain[Payment Aggregate<br/>Value Objects: PaymentId, Money<br/>Status: PENDING→SUCCESSFUL/FAILED<br/>Simulates 80% success rate]
-        PaymentRepo[(PostgreSQL<br/>Payment DB<br/>Flyway Migrations)]
-        PaymentPublisher[Event Publisher<br/>PaymentProcessedEvent<br/>PaymentFailedEvent<br/>OrderPaymentEvent]
-        OrderCreatedListener[OrderCreatedEventListener<br/>OrderCreatedEvent Consumer]
-    end
-
-    subgraph "Message Broker Infrastructure"
-        Kafka[Apache Kafka Broker<br/>Ports: 9092 internal, 9094 external]
-        Zookeeper[Zookeeper<br/>Port 2181]
-        SchemaRegistry[Confluent Schema Registry<br/>Port 8081<br/>Protobuf Schemas]
-
-        subgraph "Kafka Topics"
-            ProductCreatedTopic[product-created]
-            ProductUpdatedTopic[product-updated]
-            OrderCreatedTopic[order-created-events]
-            OrderUpdatedTopic[order-updated]
-            OrderPaymentTopic[order-payment-events]
-        end
-    end
-
-    subgraph "Shared Infrastructure"
-        SharedKernel[Shared Kernel Module<br/>AggregateRoot, Entity, ValueObject<br/>DomainEvent, Money, VAT<br/>ProtobufDomainTranslator]
-        KafkaLib[Kafka Library Module<br/>KafkaEventHandler<br/>KafkaEventConfiguration<br/>Topic Health Indicators]
-        ProtoSchemas[Protobuf Schemas<br/>OrderCreatedEvent.proto<br/>OrderPaymentEvent.proto<br/>ProductUpdatedEvent.proto<br/>Category.proto]
-    end
-
-    %% Client to Services
-    WebApp --> ProductAPI
-    WebApp --> OrderAPI
-    WebApp --> CartAPI
-    WebApp --> PaymentAPI
-
-    %% Product Microservice Flow
-    ProductAPI --> ProductAppService
-    ProductAppService --> ProductDomain
-    ProductDomain --> ProductRepo
-    ProductDomain --> ProductPublisher
-    ProductPublisher --> Kafka
-    Kafka --> ProductCreatedTopic
-    Kafka --> ProductUpdatedTopic
-    ProductCreatedTopic --> ProductListener
-    ProductUpdatedTopic --> ProductListener
-
-    %% Order Microservice Flow
-    OrderAPI --> OrderAppService
-    CartAPI --> CartService
-    OrderAppService --> OrderDomain
-    OrderDomain --> OrderRepo
-    OrderDomain --> OrderPublisher
-    OrderPublisher --> Kafka
-    Kafka --> OrderCreatedTopic
-    Kafka --> OrderUpdatedTopic
-    Kafka --> OrderPaymentTopic
-    OrderPaymentTopic --> PaymentListener
-    PaymentListener --> OrderAppService
-
-    %% Payment Microservice Flow
-    PaymentAPI --> PaymentAppService
-    PaymentAppService --> PaymentProcessing
-    PaymentProcessing --> PaymentDomain
-    PaymentDomain --> PaymentRepo
-    PaymentDomain --> PaymentPublisher
-    PaymentPublisher --> Kafka
-    OrderCreatedTopic --> OrderCreatedListener
-    OrderCreatedListener --> PaymentAppService
-
-    %% Kafka Infrastructure
-    Kafka --> Zookeeper
-    Kafka --> SchemaRegistry
-    SchemaRegistry --> ProtoSchemas
-
-    %% Shared Dependencies
-    ProductPublisher -.->|uses| SharedKernel
-    OrderPublisher -.->|uses| SharedKernel
-    PaymentPublisher -.->|uses| SharedKernel
-    ProductPublisher -.->|uses| KafkaLib
-    OrderPublisher -.->|uses| KafkaLib
-    PaymentPublisher -.->|uses| KafkaLib
-
-    classDef serviceStyle fill:#4A90E2,stroke:#2E5C8A,stroke-width:2px,color:#fff
-    classDef dbStyle fill:#50C878,stroke:#2E7D4E,stroke-width:2px,color:#fff
-    classDef msgStyle fill:#FF6B6B,stroke:#C92A2A,stroke-width:2px,color:#fff
-    classDef infraStyle fill:#9B59B6,stroke:#6C3483,stroke-width:2px,color:#fff
-    classDef domainStyle fill:#F39C12,stroke:#B8860B,stroke-width:2px,color:#fff
-    classDef topicStyle fill:#E74C3C,stroke:#A93226,stroke-width:2px,color:#fff
-
-    class ProductAPI,OrderAPI,PaymentAPI,CartAPI serviceStyle
-    class ProductRepo,OrderRepo,PaymentRepo dbStyle
-    class Kafka,Zookeeper,SchemaRegistry msgStyle
-    class SharedKernel,KafkaLib,ProtoSchemas infraStyle
-    class ProductDomain,OrderDomain,PaymentDomain domainStyle
-    class ProductCreatedTopic,ProductUpdatedTopic,OrderCreatedTopic,OrderUpdatedTopic,OrderPaymentTopic topicStyle
+graph LR
+    UI[Web / Admin UI] -->|REST| ProdAPI(ProductController)
+    ProdAPI --> Mapper(ProductApplicationMapper)
+    Mapper --> Domain(ProductAggregate)
+    Domain --> Repo[(PostgreSQL: product_table)]
+    Domain --> Events(ProductDomainEvents)
+    Events -->|Protobuf| Kafka((Kafka))
+    Kafka -->|product-updated| InventoryListener(ProductKafkaListenerComponent)
 ```
+
+Notes:
+- Controller delegates to `ProductDomainService` via mapper; idempotency support persists to `product_create_request`.
+- `ProductKafkaListenerComponent` consumes `product-updated` events with `INVENTORY_REDUCTION` markers to adjust stock.
+- Categories are natural-ID cached (`CategoryEntityMapper` uses Hibernate simple natural ID).
+
+### Order Service (port 8080)
+
+```mermaid
+graph LR
+    UI -->|REST| OrderAPI(OrderManagementController)
+    UI -->|REST| CartAPI(ShoppingCartController)
+    OrderAPI --> OrderSvc(OrderManagementService)
+    CartAPI --> CartSvc(ShoppingCartService)
+    OrderSvc --> OrderAgg(OrderAggregate)
+    OrderAgg --> OrderRepo[(PostgreSQL: order_table)]
+    OrderAgg --> OrderEvents(DomainOrder events)
+    OrderEvents -->|order-created-events| Kafka((Kafka))
+    Kafka -->|order-payment-events| PaymentListener(PaymentEventListener)
+    PaymentListener --> OrderSvc
+    OrderAgg -.-> InventoryMarker(DomainInventoryReductionRequestedEvent)
+    InventoryMarker --> ProductUpdatedTranslator(ProductUpdatedEventTranslator)
+    ProductUpdatedTranslator -->|product-updated| Kafka
+```
+
+Notes:
+- Adding the same SKU merges quantities instead of erroring.
+- `updateItemQuantity` emits inventory-reduction markers via `product-updated` topic for inventory service to consume.
+
+### Payment Service (port 8084)
+
+```mermaid
+graph LR
+    Kafka((Kafka)) -->|order-created-events| OrderCreatedListener
+    OrderCreatedListener --> PayApp(PaymentApplicationService)
+    PayApp --> PayProc(PaymentProcessingService)
+    PayProc --> PayAgg(PaymentAggregate)
+    PayAgg --> PayRepo[(PostgreSQL: payment_table)]
+    PayProc --> PayEvents(OrderPaymentEvent)
+    PayEvents -->|order-payment-events| Kafka
+```
+
+Notes:
+- `PaymentProcessingService` deterministically maps `PaymentApplicationService` result to SUCCESSFUL/FAILED `OrderPaymentEvent`.
+
 
 ## Complete Order Processing Saga Flow
 
@@ -346,7 +280,7 @@ sequenceDiagram
 
     ProductService->>ProductDomain: Create Product Aggregate
     activate ProductDomain
-    Note over ProductDomain: Validates:<br/>- ProductSku uniqueness<br/>- Money (price, VAT)<br/>- ProductVolume<br/>- ImageUrl format<br/>Raises ProductCreatedEvent
+    Note over ProductDomain: Validates:<br/>- ProductSku uniqueness<br/>- Money (price, VAT)<br/>- Quantity<br/>- ImageUrl format<br/>Raises ProductCreatedEvent
     ProductDomain-->>ProductService: Product created
     deactivate ProductDomain
 
@@ -448,7 +382,7 @@ sequenceDiagram
 
     ProductService->>ProductDomain: reduceVolume(quantity)
     activate ProductDomain
-    Note over ProductDomain: Validates:<br/>- Sufficient stock available<br/>- Quantity > 0<br/>Updates ProductVolume<br/>Raises ProductUpdatedEvent
+    Note over ProductDomain: Validates:<br/>- Sufficient stock available<br/>- Quantity > 0<br/>Updates Quantity<br/>Raises ProductUpdatedEvent
 
     alt Sufficient Stock
         ProductDomain-->>ProductService: Volume reduced
@@ -713,7 +647,7 @@ Product (Aggregate Root)
 ├── ProductTitle (Value Object)
 ├── ProductDescription (Value Object)
 ├── Money (Value Object) - Price with VAT
-├── ProductVolume (Value Object) - Stock quantity
+├── Quantity (Value Object) - Stock quantity
 ├── ImageUrl (Value Object) - Product image
 └── ProductCategory (Entity) - Many-to-many relationship
 
