@@ -2,36 +2,47 @@ package com.metao.book.order.application.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.Instant;
+import com.metao.book.shared.OrderPaymentEvent;
+import com.metao.kafka.KafkaClientProperties;
 import java.util.List;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.TopicPartition;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.Mockito;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.listener.DefaultErrorHandler;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
-@SpringBootTest
-@ActiveProfiles("test")
 class KafkaErrorHandlerConfigTest {
 
-    @Autowired
-    ConcurrentKafkaListenerContainerFactory<String, ?> orderPaymentEventKafkaListenerContainerFactory;
+    private KafkaConsumerConfig config;
+
+    @BeforeEach
+    void setUp() {
+        KafkaClientProperties props = new KafkaClientProperties();
+        props.setBootstrapServers(List.of("localhost:9092"));
+        this.config = new KafkaConsumerConfig(props);
+        // inject bootstrap servers field
+        ReflectionTestUtils.setField(config, "bootstrapServers", "localhost:9092");
+    }
 
     @Test
-    void errorHandlerRoutesToDltWithSuffix() {
-        var handler = (DefaultErrorHandler) orderPaymentEventKafkaListenerContainerFactory.getCommonErrorHandler();
-        assertThat(handler).isNotNull();
-
+    void dltRecovererAppendsSuffix() {
+        var recoverer = config.orderDlqRecoverer(Mockito.mock(org.springframework.kafka.core.KafkaTemplate.class));
         @SuppressWarnings("unchecked")
-        var recoverer = (java.util.function.BiFunction<ConsumerRecord<?, ?>, Exception, TopicPartition>)
-            ReflectionTestUtils.getField(handler, "recoverer");
+        var destinationResolver = (java.util.function.BiFunction<ConsumerRecord<?, ?>, Exception, TopicPartition>)
+            ReflectionTestUtils.getField(recoverer, "destinationResolver");
+        var tp = destinationResolver.apply(new ConsumerRecord<>("order-payment", 0, 0L, "k", "v"), new RuntimeException("boom"));
+        assertThat(tp).isEqualTo(new TopicPartition("order-payment.DLT", 0));
+    }
 
-        var record = new ConsumerRecord<>("order-payment", 0, 0L, "key", "value");
-        var tp = recoverer.apply(record, new RuntimeException("boom"));
-        assertThat(tp.topic()).isEqualTo("order-payment.DLT");
+    @Test
+    void listenerFactorySetsErrorHandler() {
+        var factory = config.orderPaymentEventKafkaListenerContainerFactory(
+            config.orderErrorHandler(config.orderDlqRecoverer(Mockito.mock(org.springframework.kafka.core.KafkaTemplate.class)))
+        );
+        var handler = ReflectionTestUtils.getField(factory, "commonErrorHandler");
+        assertThat(handler).isInstanceOf(DefaultErrorHandler.class);
     }
 }

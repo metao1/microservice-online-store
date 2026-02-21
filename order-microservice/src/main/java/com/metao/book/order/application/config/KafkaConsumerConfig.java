@@ -18,6 +18,10 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
+import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.util.backoff.FixedBackOff;
 
 @EnableKafka
 @Configuration
@@ -28,6 +32,20 @@ public class KafkaConsumerConfig {
     private final KafkaClientProperties kafkaProperties;
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
+
+    @Bean
+    DeadLetterPublishingRecoverer orderDlqRecoverer(KafkaTemplate<Object, Object> kafkaTemplate) {
+        return new DeadLetterPublishingRecoverer(
+            kafkaTemplate,
+            (record, ex) -> new org.apache.kafka.common.TopicPartition(record.topic() + ".DLT", record.partition()));
+    }
+
+    @Bean
+    DefaultErrorHandler orderErrorHandler(DeadLetterPublishingRecoverer recoverer) {
+        var handler = new DefaultErrorHandler(recoverer, new FixedBackOff(500L, 3));
+        handler.addNotRetryableExceptions(IllegalArgumentException.class);
+        return handler;
+    }
 
     @Bean
     public ConsumerFactory<String, OrderPaymentEvent> orderPaymentEventConsumerFactory() {
@@ -45,11 +63,14 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, OrderPaymentEvent> orderPaymentEventKafkaListenerContainerFactory() {
+    public ConcurrentKafkaListenerContainerFactory<String, OrderPaymentEvent> orderPaymentEventKafkaListenerContainerFactory(
+        DefaultErrorHandler orderErrorHandler
+    ) {
         var factory = new ConcurrentKafkaListenerContainerFactory<String, OrderPaymentEvent>();
         factory.setConsumerFactory(orderPaymentEventConsumerFactory());
         factory.setConcurrency(3);
         factory.getContainerProperties().setPollTimeout(3000);
+        factory.setCommonErrorHandler(orderErrorHandler);
         return factory;
     }
 
@@ -70,12 +91,15 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, OrderCreatedEvent> orderCreatedEventKafkaListenerContainerFactory() {
+    public ConcurrentKafkaListenerContainerFactory<String, OrderCreatedEvent> orderCreatedEventKafkaListenerContainerFactory(
+        DefaultErrorHandler orderErrorHandler
+    ) {
         var factory = new ConcurrentKafkaListenerContainerFactory<String, OrderCreatedEvent>();
         factory.setConsumerFactory(orderCreatedEventConsumerFactory());
 
         factory.setConcurrency(3);
         factory.getContainerProperties().setPollTimeout(3000);
+        factory.setCommonErrorHandler(orderErrorHandler);
 
         return factory;
     }
@@ -97,11 +121,14 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, OrderUpdatedEvent> orderUpdatedEventKafkaListenerContainerFactory() {
+    public ConcurrentKafkaListenerContainerFactory<String, OrderUpdatedEvent> orderUpdatedEventKafkaListenerContainerFactory(
+        DefaultErrorHandler orderErrorHandler
+    ) {
         var factory = new ConcurrentKafkaListenerContainerFactory<String, OrderUpdatedEvent>();
         factory.setConsumerFactory(orderUpdatedEventConsumerFactory());
         factory.setConcurrency(3);
         factory.getContainerProperties().setPollTimeout(3000);
+        factory.setCommonErrorHandler(orderErrorHandler);
         return factory;
     }
 
