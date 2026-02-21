@@ -21,7 +21,7 @@ const HomePage: FC = () => {
               <Link to="/products" className="btn-primary" data-testid="shop-now-button">
                 Shop Collection
               </Link>
-              <Link to="/products?category=sale" className="btn-secondary">
+              <Link to="/products?category=books" className="btn-secondary">
                 View Sale
               </Link>
             </div>

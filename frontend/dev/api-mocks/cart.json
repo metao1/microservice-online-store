@@ -1,0 +1,11 @@
+{
+  "user_id": "demo-user",
+  "shopping_cart_items": [
+    {
+      "sku": "BOOK-001",
+      "quantity": 1,
+      "price": 54.99,
+      "currency": "USD"
+    }
+  ]
+}

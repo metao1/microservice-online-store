@@ -23,9 +23,16 @@ const OrdersPage: FC = () => {
       return;
     }
 
-    const order = await processCheckout(user.id, (newOrder) => {
-      // Refresh orders list after successful checkout
-      refetch();
+    await processCheckout(user.id, {
+      payment: {
+        method: 'CREDIT_CARD',
+        currency: cart.items[0]?.currency || 'USD',
+        amount: cart.items.reduce((sum, item) => sum + item.price * item.cartQuantity, 0)
+      },
+      onSuccess: () => {
+        // Refresh orders list after successful checkout
+        refetch();
+      }
     });
   };
 

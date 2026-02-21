@@ -96,5 +96,49 @@ export interface Category {
   category?: string;
 }
 
+/**
+ * Payment Types
+ */
+export type PaymentMethodType =
+  | 'CREDIT_CARD'
+  | 'DEBIT_CARD'
+  | 'PAYPAL'
+  | 'BANK_TRANSFER'
+  | 'DIGITAL_WALLET';
+
+export type PaymentStatus =
+  | 'CREATED'
+  | 'PROCESSING'
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'CANCELLED'
+  | 'PENDING'
+  | 'SUCCESSFUL'
+  | string;
+
+export interface Payment {
+  paymentId: string;
+  orderId: string;
+  amount: number;
+  currency: string;
+  paymentMethodType: PaymentMethodType;
+  paymentMethodDetails?: string;
+  status: PaymentStatus;
+  failureReason?: string;
+  processedAt?: string;
+  createdAt?: string;
+  isCompleted?: boolean;
+  isSuccessful?: boolean;
+}
+
+export interface PaymentStatistics {
+  totalPayments: number;
+  successfulPayments: number;
+  failedPayments: number;
+  pendingPayments: number;
+  successRate: number;
+  failureRate: number;
+}
+
 // Re-export navigation types for convenience
 export * from './navigation';
