@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import io.micrometer.core.annotation.Timed;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
@@ -35,6 +36,7 @@ public class ProductKafkaListenerComponent {
         topics = "${kafka.topic.product-created.name}",
         groupId = "${kafka.topic.product-created.group-id}",
         containerFactory = "productCreatedEventKafkaListenerContainerFactory")
+    @Timed(value = "inventory.listener.product-created", extraTags = {"listener", "product-created"})
     public void onProductCreatedEvent(ConsumerRecord<String, ProductCreatedEvent> event) {
         var productCreatedEvent = event.value();
         log.debug("Consumed {}", productCreatedEvent);
@@ -65,6 +67,7 @@ public class ProductKafkaListenerComponent {
         topics = "${kafka.topic.product-updated.name}",
         groupId = "${kafka.topic.product-updated.group-id}",
         containerFactory = "productUpdatedEventKafkaListenerContainerFactory")
+    @Timed(value = "inventory.listener.product-updated", extraTags = {"listener", "product-updated"})
     public void onProductUpdateEvent(ConsumerRecord<String, ProductUpdatedEvent> event) {
         var productUpdatedEvent = event.value();
         log.debug("Consumed {}", productUpdatedEvent);

@@ -139,9 +139,22 @@ public class ProductController {
         @RequestParam(value = "offset", defaultValue = "0") int offset,
         @RequestParam(value = "limit", defaultValue = "10") int limit
     ) {
-        var products = productDomainService.getCategories(offset, limit);
-        return products.stream()
+        var categories = productDomainService.getCategories(offset, limit);
+        return categories.stream()
             .map(category-> new CategoryDTO(category.getName().value()))
+            .toList();
+    }
+
+    @GetMapping("/categories/{category}/subcategories")
+    public List<CategoryDTO> getSubcategories(
+        @PathVariable String category,
+        @RequestParam(value = "offset", defaultValue = "0") int offset,
+        @RequestParam(value = "limit", defaultValue = "12") int limit
+    ) {
+        var parent = CategoryName.of(category);
+        var subcategories = productDomainService.getSubcategories(parent, offset, limit);
+        return subcategories.stream()
+            .map(sub -> new CategoryDTO(sub.getName().value()))
             .toList();
     }
 
