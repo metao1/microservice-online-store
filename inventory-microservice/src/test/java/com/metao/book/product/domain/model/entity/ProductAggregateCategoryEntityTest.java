@@ -9,7 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 @DisplayName("ProductCategory Entity Tests")
-class ProductCategoryEntityTest {
+class ProductAggregateCategoryEntityTest {
 
     @Test
     @DisplayName("should create category with factory method of(CategoryId, CategoryName)")
@@ -63,7 +63,7 @@ class ProductCategoryEntityTest {
         // THEN
         assertThat(stringRepresentation)
             .isEqualTo(categoryName.toString())
-            .contains("Fiction");
+            .contains("fiction");
     }
 
     @Test
@@ -150,7 +150,7 @@ class ProductCategoryEntityTest {
         // THEN
         assertThat(retrievedName)
             .isEqualTo(categoryName)
-            .hasFieldOrPropertyWithValue("value", "Science Fiction");
+            .hasFieldOrPropertyWithValue("value", "science fiction");
     }
 
     @Test
@@ -159,7 +159,7 @@ class ProductCategoryEntityTest {
         // GIVEN
         String categoryIdValue = UUID.randomUUID().toString();
         CategoryId categoryId = CategoryId.of(categoryIdValue);
-        CategoryName categoryName = CategoryName.of("Books");
+        CategoryName categoryName = CategoryName.of("books");
         ProductCategory category = ProductCategory.of(categoryId, categoryName);
 
         // WHEN
@@ -175,7 +175,7 @@ class ProductCategoryEntityTest {
     @DisplayName("generated categories should have unique IDs")
     void testGeneratedCategoriesHaveUniqueIds() {
         // GIVEN
-        CategoryName categoryName = CategoryName.of("Books");
+        CategoryName categoryName = CategoryName.of("books");
 
         // WHEN
         ProductCategory category1 = ProductCategory.of(categoryName);
@@ -193,7 +193,7 @@ class ProductCategoryEntityTest {
     @DisplayName("should handle category names with various characters")
     void testCategoryNameWithVariousCharacters() {
         // GIVEN
-        String complexName = "Science & Technology Books (2024)";
+        String complexName = "science & technology books (2024)";
 
         // WHEN
         ProductCategory category = ProductCategory.of(CategoryName.of(complexName));

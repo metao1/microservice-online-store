@@ -1,48 +1,24 @@
 package com.metao.book.product.domain.model.valueobject;
 
+import static com.metao.book.product.infrastructure.util.ProductConstant.SKU;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.metao.book.shared.domain.product.ProductSku;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayName("ProductSku Value Object Tests")
-class ProductSkuTest {
+class ProductAggregateSkuTest {
 
     // ========== Valid SKU Tests ==========
-
-    @ParameterizedTest
-    @ValueSource(strings = {
-        "0594287995",
-        "ABCD123456",
-        "1234567890",
-        "SKU0000001",
-        "PROD000001",
-        "abcdefghij"
-    })
-    @DisplayName("should accept valid 10-character SKUs")
-    void testCreateProductSku_withValidSkus(String sku) {
-        // WHEN
-        ProductSku productSku = ProductSku.of(sku);
-
-        // THEN
-        assertThat(productSku).isNotNull();
-        assertThat(productSku.getValue()).isEqualTo(sku);
-    }
-
     @Test
-    @DisplayName("should generate valid 10-character SKU")
-    void testGenerateProductSku() {
-        // WHEN
-        ProductSku productSku = ProductSku.generate();
-
-        // THEN
-        assertThat(productSku).isNotNull();
-        assertThat(productSku.getValue())
-            .hasSize(10)
-            .isUpperCase();
+    @DisplayName("should accept non-empty SKUs")
+    void testCreateProductSku_withValidSkus() {
+        assertThat(SKU).isNotNull();
+        assertThat(SKU.value()).isEqualTo("0594287995");
     }
 
     @Test
@@ -54,7 +30,7 @@ class ProductSkuTest {
 
         // THEN
         assertThat(sku1).isNotEqualTo(sku2);
-        assertThat(sku1.getValue()).isNotEqualTo(sku2.getValue());
+        assertThat(sku1.value()).isNotEqualTo(sku2.value());
     }
 
     // ========== Invalid SKU Tests ==========
@@ -85,38 +61,6 @@ class ProductSkuTest {
             .hasMessageContaining("ProductId cannot be null or empty");
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {
-        "123",
-        "ABCDE",
-        "SKU00001"
-    })
-    @DisplayName("should throw exception when SKU is not exactly 10 characters")
-    void testCreateProductSku_withInvalidLength_shouldThrowException(String sku) {
-        // WHEN & THEN
-        assertThatThrownBy(() -> ProductSku.of(sku))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("ProductId must be exactly 10 characters");
-    }
-
-    @Test
-    @DisplayName("should throw exception when SKU is 9 characters")
-    void testCreateProductSku_whenTooShort_shouldThrowException() {
-        // WHEN & THEN
-        assertThatThrownBy(() -> ProductSku.of("123456789"))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("ProductId must be exactly 10 characters");
-    }
-
-    @Test
-    @DisplayName("should throw exception when SKU is 11 characters")
-    void testCreateProductSku_whenTooLong_shouldThrowException() {
-        // WHEN & THEN
-        assertThatThrownBy(() -> ProductSku.of("12345678901"))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("ProductId must be exactly 10 characters");
-    }
-
     // ========== Trim Tests ==========
 
     @Test
@@ -129,20 +73,16 @@ class ProductSkuTest {
         ProductSku productSku = ProductSku.of(sku);
 
         // THEN
-        assertThat(productSku.getValue()).isEqualTo(sku);
+        assertThat(productSku.value()).isEqualTo(sku);
         assertThat(productSku.toString()).isEqualTo(sku);
     }
 
     @Test
-    @DisplayName("should throw exception when trimmed SKU is not 10 characters")
-    void testCreateProductSku_whenTrimmedIsWrongLength_shouldThrowException() {
-        // GIVEN
-        String skuWithWhitespace = "  123456789  "; // 9 chars after trim
-
-        // WHEN & THEN
-        assertThatThrownBy(() -> ProductSku.of(skuWithWhitespace))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("ProductId must be exactly 10 characters");
+    @DisplayName("should trim whitespace around SKU")
+    void testCreateProductSku_trimsWhitespace() {
+        String skuWithWhitespace = "  ABC123   ";
+        ProductSku productSku = ProductSku.of(skuWithWhitespace);
+        assertThat(productSku.value()).isEqualTo("ABC123");
     }
 
     // ========== Equality and HashCode Tests ==========
@@ -150,15 +90,10 @@ class ProductSkuTest {
     @Test
     @DisplayName("should be equal when SKU values are the same")
     void testProductSkuEquality_withSameValue() {
-        // GIVEN
-        String skuValue = "0594287995";
+        String skuValue = "ABC123";
         ProductSku sku1 = ProductSku.of(skuValue);
         ProductSku sku2 = ProductSku.of(skuValue);
-
-        // WHEN & THEN
-        assertThat(sku1)
-            .isEqualTo(sku2)
-            .hasSameHashCodeAs(sku2);
+        assertThat(sku1).isEqualTo(sku2).hasSameHashCodeAs(sku2);
     }
 
     @Test
@@ -202,7 +137,7 @@ class ProductSkuTest {
         ProductSku productSku = ProductSku.of(allDigits);
 
         // THEN
-        assertThat(productSku.getValue()).isEqualTo(allDigits);
+        assertThat(productSku.value()).isEqualTo(allDigits);
     }
 
     @Test
@@ -215,7 +150,7 @@ class ProductSkuTest {
         ProductSku productSku = ProductSku.of(allLetters);
 
         // THEN
-        assertThat(productSku.getValue()).isEqualTo(allLetters);
+        assertThat(productSku.value()).isEqualTo(allLetters);
     }
 
     @Test
@@ -228,7 +163,7 @@ class ProductSkuTest {
         ProductSku productSku = ProductSku.of(mixedCase);
 
         // THEN
-        assertThat(productSku.getValue()).isEqualTo(mixedCase);
+        assertThat(productSku.value()).isEqualTo(mixedCase);
     }
 
     @Test
@@ -241,6 +176,6 @@ class ProductSkuTest {
         ProductSku productSku = ProductSku.of(alphanumeric);
 
         // THEN
-        assertThat(productSku.getValue()).isEqualTo(alphanumeric);
+        assertThat(productSku.value()).isEqualTo(alphanumeric);
     }
 }

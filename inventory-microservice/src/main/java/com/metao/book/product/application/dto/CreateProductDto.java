@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import java.math.BigDecimal;
 import java.util.Currency;
-import java.util.List;
+import java.util.Set;
 
 @Valid
 public record CreateProductDto(
@@ -32,6 +32,6 @@ public record CreateProductDto(
     @DecimalMin(value = "0.00", message = "Volume must be greater than or equal to zero")
     BigDecimal volume,
     @NotNull(message = "Categories cannot be null")
-    List<String> categories
+    Set<String> categories
 ) {
 }

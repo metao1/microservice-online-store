@@ -19,6 +19,9 @@ management:
           include: readinessState,db,diskSpace
 
 spring:
+  threads:
+    virtual:
+      enabled: ${VIRTUAL_THREADS_ENABLED:false}
   web:
     error:
       include-message: always
@@ -90,8 +93,8 @@ spring:
           order_updates: true
           batch_versioned_data: true
         cache:
-          use_query_cache: true
-          use_second_level_cache: true
+          use_query_cache: false
+          use_second_level_cache: false
           region.factory_class: org.hibernate.cache.jcache.JCacheRegionFactory
           jcache:
             provider: com.github.benmanes.caffeine.jcache.spi.CaffeineCachingProvider
@@ -110,16 +113,16 @@ kafka:
       id: "product-created-id"
       name: "product-created"
       group-id: "product-created-group"
-      class-path: "com.metao.book.product.ProductCreatedEvent"
+      class-path: "com.metao.book.product.domain.model.event.DomainProductCreatedEvent"
     product-updated:
       id: "product-updated-id"
       name: "product-updated"
       group-id: "product-updated-group"
-      class-path: "com.metao.book.shared.ProductUpdatedEvent"
+      class-path: "com.metao.book.product.domain.model.event.DomainProductUpdatedEvent"
 
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%t]){yellow} %clr(:){red} %clr(%m){faint}%n"
   level:
     org.springframework.data: INFO
     org.springframework.boot.autoconfigure: ERROR
-    org.hibernate: INFO
+    org.hibernate: ERROR

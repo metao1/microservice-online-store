@@ -5,9 +5,13 @@ import com.metao.book.product.application.dto.CreateProductDto;
 import com.metao.book.product.application.dto.ProductDTO;
 import com.metao.book.product.application.dto.UpdateProductCommand;
 import com.metao.book.product.application.mapper.ProductApplicationMapper;
-import com.metao.book.product.application.service.ProductApplicationService;
+import com.metao.book.product.application.service.CreateProductResult;
+import com.metao.book.product.application.service.ProductDomainService;
 import com.metao.book.product.domain.category.dto.CategoryDTO;
-import com.metao.book.product.domain.model.aggregate.Product;
+import com.metao.book.product.domain.model.aggregate.ProductAggregate;
+import com.metao.book.product.domain.model.valueobject.CategoryName;
+import com.metao.book.shared.domain.product.ProductSku;
+import com.metao.book.shared.domain.product.Quantity;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.math.BigDecimal;
@@ -23,6 +27,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -35,20 +40,31 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RequestMapping(path = "/products")
 public class ProductController {
 
-    private final ProductApplicationService productApplicationService;
+    private final ProductDomainService productDomainService;
     private final ProductApplicationMapper productMapper;
 
     @GetMapping(value = "/{sku}")
-    public ProductDTO getProduct(@PathVariable @Valid @NotBlank String sku) {
+    public ProductDTO getProduct(@PathVariable @Valid @NotBlank ProductSku sku) {
         log.info("Getting product with SKU: {}", sku);
-        Product product = productApplicationService.getProductBySku(sku);
+        ProductAggregate product = productDomainService.getProductBySku(sku);
         return productMapper.toDTO(product);
     }
 
+    @GetMapping(value = "/by-skus")
+    public List<ProductDTO> getProductsBySkus(@RequestParam("skus") List<String> skus) {
+        var products = productDomainService.getProductsBySkus(skus);
+        return products.stream()
+            .map(productMapper::toDTO)
+            .toList();
+    }
+
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<String> createProduct(@Valid @RequestBody CreateProductDto dto) {
+    public ResponseEntity<String> createProduct(
+        @Valid @RequestBody CreateProductDto dto,
+        @RequestHeader(name = "Idempotency-Key", required = false) String idempotencyKey
+    ) {
         log.debug("Creating product: {}", dto);
+        var createdTime = Instant.now();
         var command = new CreateProductCommand(
             dto.sku(),
             dto.title(),
@@ -57,17 +73,24 @@ public class ProductController {
             dto.price(),
             dto.currency(),
             dto.volume(),
-            Instant.now(),
+            createdTime,
             dto.categories()
         );
-        productApplicationService.createProduct(command);
         URI location = ServletUriComponentsBuilder
             .fromCurrentRequest()
             .path("/{sku}")
             .buildAndExpand(dto.sku())
             .toUri();
 
-        return ResponseEntity.created(location).build();
+        CreateProductResult result = productDomainService.createProduct(command, idempotencyKey);
+        if (result == null) {
+            result = CreateProductResult.CREATED;
+        }
+        return switch (result) {
+            case CREATED -> ResponseEntity.created(location).build();
+            case REPLAYED -> ResponseEntity.ok().location(location).build();
+            case ALREADY_EXISTS -> ResponseEntity.status(HttpStatus.CONFLICT).location(location).build();
+        };
     }
 
     @PutMapping("/{sku}")
@@ -81,18 +104,18 @@ public class ProductController {
         var updatedCommand = new UpdateProductCommand(
             sku, command.title(), command.description(), command.price(), command.currency()
         );
-        var product = productApplicationService.updateProduct(updatedCommand);
+        var product = productDomainService.updateProduct(updatedCommand);
         return productMapper.toDTO(product);
     }
 
     @GetMapping("/category/{categoryName}")
     public List<ProductDTO> getProductsByCategory(
-        @PathVariable String categoryName,
+        @PathVariable CategoryName categoryName,
         @RequestParam(value = "offset", defaultValue = "0") int offset,
         @RequestParam(value = "limit", defaultValue = "10") int limit
     ) {
         log.info("Getting products by category: {}", categoryName);
-        var productsByCategory = productApplicationService.getProductsByCategory(categoryName, offset, limit);
+        var productsByCategory = productDomainService.getProductsByCategory(categoryName, offset, limit);
         return productsByCategory.stream()
             .map(productMapper::toDTO)
             .toList();
@@ -105,7 +128,7 @@ public class ProductController {
         @RequestParam(value = "limit", defaultValue = "10") int limit
     ) {
         log.info("Searching products with keyword: {}", keyword);
-        var products = productApplicationService.searchProducts(keyword, offset, limit);
+        var products = productDomainService.searchProducts(keyword, offset, limit);
         return products.stream()
             .map(productMapper::toDTO)
             .toList();
@@ -116,7 +139,7 @@ public class ProductController {
         @RequestParam(value = "offset", defaultValue = "0") int offset,
         @RequestParam(value = "limit", defaultValue = "10") int limit
     ) {
-        var products = productApplicationService.getCategories(offset, limit);
+        var products = productDomainService.getCategories(offset, limit);
         return products.stream()
             .map(category-> new CategoryDTO(category.getName().value()))
             .toList();
@@ -128,7 +151,7 @@ public class ProductController {
         @RequestParam(value = "limit", defaultValue = "5") int limit
     ) {
         log.info("Getting related products for SKU: {}", sku);
-        var relatedProducts = productApplicationService.getRelatedProducts(sku, limit);
+        var relatedProducts = productDomainService.getRelatedProducts(ProductSku.of(sku), limit);
         return relatedProducts.stream()
             .map(productMapper::toDTO)
             .toList();
@@ -141,7 +164,7 @@ public class ProductController {
         @PathVariable String categoryName
     ) {
         log.info("Assigning product {} to category {}", sku, categoryName);
-        productApplicationService.assignProductToCategory(sku, categoryName);
+        productDomainService.assignProductToCategory(ProductSku.of(sku), CategoryName.of(categoryName));
     }
 
     @PostMapping("/{sku}/volume/reduce")
@@ -151,7 +174,7 @@ public class ProductController {
         @RequestParam BigDecimal quantity
     ) {
         log.info("Reducing volume for product {} by {}", sku, quantity);
-        productApplicationService.reduceProductVolume(sku, quantity);
+        productDomainService.reduceProductVolume(ProductSku.of(sku), Quantity.of(quantity));
     }
 
     @PostMapping("/{sku}/volume/increase")
@@ -161,6 +184,6 @@ public class ProductController {
         @RequestParam BigDecimal quantity
     ) {
         log.info("Increasing volume for product {} by {}", sku, quantity);
-        productApplicationService.increaseProductVolume(sku, quantity);
+        productDomainService.increaseProductVolume(ProductSku.of(sku), Quantity.of(quantity));
     }
 }

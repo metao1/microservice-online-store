@@ -15,7 +15,7 @@ public record CategoryName(String value) implements ValueObject {
         if (value.length() > 100) {
             throw new IllegalArgumentException("Category name cannot exceed 100 characters");
         }
-        this.value = value.trim();
+        this.value = value.trim().toLowerCase();
     }
 
     public static CategoryName of(String value) {

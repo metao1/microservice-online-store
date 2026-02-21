@@ -13,7 +13,7 @@ message CreatedEventTest {
   // Last updated date.
   optional google.protobuf.Timestamp update_time = 8;
   string customerId = 10;
-  string productId = 2;
+  string productSku = 2;
   Status status = 3;
   double quantity = 4;
   double price = 5;

@@ -129,7 +129,7 @@ public class ProductTestBuilder {
             ProductSku.of("TEST000001"),
             ProductTitle.of("Test Product"),
             ProductDescription.of("Test Description"),
-            ProductVolume.of(BigDecimal.valueOf(100)),
+            Quantity.of(BigDecimal.valueOf(100)),
             new Money("EUR", 29.99),
             Instant.now(),
             Instant.now(),

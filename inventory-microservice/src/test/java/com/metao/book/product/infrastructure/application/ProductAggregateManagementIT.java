@@ -25,7 +25,7 @@ import org.springframework.test.context.TestPropertySource;
 @TestPropertySource(properties = "kafka.enabled=true")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DisplayName("Product Management Integration Tests")
-public class ProductManagementIT extends KafkaContainer {
+public class ProductAggregateManagementIT extends KafkaContainer {
 
     @LocalServerPort
     private Integer port;

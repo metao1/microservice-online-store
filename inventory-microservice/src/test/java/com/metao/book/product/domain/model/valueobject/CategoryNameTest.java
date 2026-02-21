@@ -15,15 +15,15 @@ class CategoryNameTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
-        "Books",
-        "Electronics",
-        "Home & Garden",
-        "Sports & Outdoors",
-        "Toys & Games",
-        "Health & Beauty",
-        "Automotive & Industrial",
-        "Technology",
-        "Food & Beverage"
+        "books",
+        "electronics",
+        "home & garden",
+        "sports & outdoors",
+        "toys & games",
+        "health & beauty",
+        "automotive & industrial",
+        "technology",
+        "food & beverage"
     })
     @DisplayName("should accept valid category names")
     void testCreateCategoryName_withValidNames(String name) {
@@ -42,7 +42,7 @@ class CategoryNameTest {
         CategoryName categoryName = CategoryName.of("A");
 
         // THEN
-        assertThat(categoryName.value()).isEqualTo("A");
+        assertThat(categoryName.value()).isEqualTo("a");
     }
 
     @Test
@@ -110,7 +110,7 @@ class CategoryNameTest {
         CategoryName categoryName = CategoryName.of(nameWithWhitespace);
 
         // THEN
-        assertThat(categoryName.value()).isEqualTo("Books");
+        assertThat(categoryName.value()).isEqualTo("books");
     }
 
     @Test
@@ -123,7 +123,7 @@ class CategoryNameTest {
         CategoryName categoryName = CategoryName.of(nameWithSpaces);
 
         // THEN
-        assertThat(categoryName.value()).isEqualTo("Home & Garden");
+        assertThat(categoryName.value()).isEqualTo("home & garden");
     }
 
     // ========== Equality Tests ==========
@@ -145,8 +145,8 @@ class CategoryNameTest {
     @DisplayName("should not be equal when category names are different")
     void testCategoryNameInequality_withDifferentNames() {
         // GIVEN
-        CategoryName name1 = CategoryName.of("Books");
-        CategoryName name2 = CategoryName.of("Electronics");
+        CategoryName name1 = CategoryName.of("books");
+        CategoryName name2 = CategoryName.of("electronics");
 
         // WHEN & THEN
         assertThat(name1).isNotEqualTo(name2);
@@ -165,7 +165,7 @@ class CategoryNameTest {
         CategoryName categoryName = CategoryName.of(nameWithAmpersand);
 
         // THEN
-        assertThat(categoryName.value()).contains("&");
+        assertThat(categoryName.value()).contains("arts & crafts");
     }
 
     @Test
@@ -178,7 +178,7 @@ class CategoryNameTest {
         CategoryName categoryName = CategoryName.of(nameWithParens);
 
         // THEN
-        assertThat(categoryName.value()).contains("(").contains(")");
+        assertThat(categoryName.value()).isEqualTo("books (fiction)");
     }
 
     @Test
@@ -213,13 +213,13 @@ class CategoryNameTest {
     @DisplayName("should accept category name with unicode characters")
     void testCreateCategoryName_withUnicode() {
         // GIVEN
-        String unicodeName = "Bücher"; // German for Books
+        String unicodeName = "bücher"; // German for Books
 
         // WHEN
         CategoryName categoryName = CategoryName.of(unicodeName);
 
         // THEN
-        assertThat(categoryName.value()).isEqualTo("Bücher");
+        assertThat(categoryName.value()).isEqualTo("bücher");
     }
 
     @Test
