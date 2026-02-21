@@ -1,6 +1,6 @@
 package com.metao.book.product.domain.exception;
 
-import com.metao.book.product.domain.model.valueobject.ProductSku;
+import com.metao.book.shared.domain.product.ProductSku;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 

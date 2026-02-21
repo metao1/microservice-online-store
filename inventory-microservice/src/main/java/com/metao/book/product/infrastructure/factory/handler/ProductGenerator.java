@@ -3,7 +3,7 @@ package com.metao.book.product.infrastructure.factory.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.metao.book.product.application.dto.ProductDTO;
 import com.metao.book.product.application.mapper.ProductApplicationMapper;
-import com.metao.book.product.domain.model.aggregate.Product;
+import com.metao.book.product.domain.model.aggregate.ProductAggregate;
 import com.metao.book.product.domain.repository.ProductRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
@@ -56,7 +56,7 @@ public class ProductGenerator {
     @Transactional
     public void loadProducts() {
         log.info("importing products data from resources");
-        final List<Product> products;
+        final List<ProductAggregate> products;
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
             products = reader.lines()
                 .map(this::parseProduct)
@@ -71,30 +71,47 @@ public class ProductGenerator {
 
         // Save in batches of 50
         int batchSize = 50;
-        for (int i = 0; i < products.size(); i += batchSize) {
-            int end = Math.min(i + batchSize, products.size());
-            List<Product> batch = products.subList(i, end);
-
-            batch.forEach(product -> {
-                try {
-                    productRepository.save(product);
+        int savedCount = 0;
+        int skippedDuplicateCount = 0;
+        int processed = 0;
+        for (ProductAggregate product : products) {
+            try {
+                boolean inserted = productRepository.insertIfAbsent(product);
+                if (!inserted) {
+                    skippedDuplicateCount++;
+                    log.warn("Skipping duplicate product SKU: {}", product.getId());
+                } else {
+                    savedCount++;
                     log.debug("Saved product: {}", product.getId());
-                } catch (Exception e) {
-                    log.error("Failed to save product: {}", product.getId(), e);
                 }
-            });
+            } catch (Exception e) {
+                log.error("Failed to save product: {}", product.getId(), e);
+            }
 
-            // Flush and clear session every batch
-            productRepository.flush();
-            entityManager.clear(); // If using JPA
-
-            log.info("Saved batch {}/{}", end, products.size());
+            processed++;
+            if (processed % batchSize == 0) {
+                // Flush and clear session every batch
+                productRepository.flush();
+                entityManager.clear();
+                log.info("Saved batch {}/{}", processed, products.size());
+            }
         }
 
-        log.info("finished publishing {} products.", products.size());
+        if (processed % batchSize != 0) {
+            productRepository.flush();
+            entityManager.clear();
+            log.info("Saved batch {}/{}", processed, products.size());
+        }
+
+        log.info(
+            "finished publishing products. parsed={}, saved={}, duplicates_skipped={}",
+            products.size(),
+            savedCount,
+            skippedDuplicateCount
+        );
     }
 
-    private Product parseProduct(String str) {
+    private ProductAggregate parseProduct(String str) {
         try {
             ProductDTO productDto = dtoMapper.readValue(str, ProductDTO.class);
             productDto = ProductDTO.builder()

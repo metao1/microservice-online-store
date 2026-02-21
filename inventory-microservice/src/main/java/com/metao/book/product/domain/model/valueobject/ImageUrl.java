@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import org.jetbrains.annotations.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * Product image URL value object
@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 public class ImageUrl implements ValueObject {
 
     private static final Pattern URL_PATTERN = Pattern.compile(
-        "https?://[/|.\\w-]+\\.(?:jpg|gif|png)",
+        "^https://[A-Za-z0-9.-]+(?:/[A-Za-z0-9._~!$&'()*+,;=:@%-]*)*\\.(?:jpg|gif|png)$",
         Pattern.CASE_INSENSITIVE
     );
 
@@ -35,7 +35,7 @@ public class ImageUrl implements ValueObject {
         }
         if (!URL_PATTERN.matcher(value).matches()) {
             throw new IllegalArgumentException(
-                "Invalid image URL format. Must be http(s) and end with jpg, gif, or png");
+                "Invalid image URL format. Must be https and end with jpg, gif, or png");
         }
         this.value = value.trim();
     }

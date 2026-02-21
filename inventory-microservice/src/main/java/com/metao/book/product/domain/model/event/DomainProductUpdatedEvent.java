@@ -15,14 +15,14 @@ import jakarta.validation.constraints.NotNull;
  */
 @Getter
 @EqualsAndHashCode(callSuper = true)
-public class ProductUpdatedEvent extends DomainEvent {
+public class DomainProductUpdatedEvent extends DomainEvent {
 
     private final ProductSku productSku;
     private final ProductTitle title;
     private final Money oldPrice;
     private final Money newPrice;
 
-    public ProductUpdatedEvent(
+    public DomainProductUpdatedEvent(
         @NonNull ProductSku productSku,
         @NonNull ProductTitle title,
         @NonNull Money oldPrice,

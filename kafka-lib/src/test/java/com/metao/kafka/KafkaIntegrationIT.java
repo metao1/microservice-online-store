@@ -56,7 +56,7 @@ class KafkaIntegrationIT extends KafkaContainer {
         CreatedEventTest createdEventTest = CreatedEventTest.newBuilder()
             .setId(orderId)
             .setCustomerId("custIntegrationTest")
-            .setProductId("prodIntegrationTest")
+            .setProductSku("prodIntegrationTest")
             .setPrice(19.99)
             .setQuantity(1.0)
             .setCurrency("EUR")
@@ -79,7 +79,7 @@ class KafkaIntegrationIT extends KafkaContainer {
                     .satisfies(createdEvent -> {
                         assertThat(createdEvent.getId()).isEqualTo("integrationTestOrderId");
                         assertThat(createdEvent.getCustomerId()).isEqualTo("custIntegrationTest");
-                        assertThat(createdEvent.getProductId()).isEqualTo("prodIntegrationTest");
+                        assertThat(createdEvent.getProductSku()).isEqualTo("prodIntegrationTest");
                         assertThat(createdEvent.getQuantity()).isEqualTo(1.0);
                         assertThat(createdEvent.getPrice()).isEqualTo(19.99);
                         assertThat(createdEvent.getCurrency()).isEqualTo("EUR");
@@ -131,7 +131,7 @@ class KafkaIntegrationIT extends KafkaContainer {
                 CreatedEventTest event = CreatedEventTest.newBuilder()
                     .setId(orderIdPrefix + i)
                     .setCustomerId("cust-" + i)
-                    .setProductId("prod-" + i)
+                    .setProductSku("prod-" + i)
                     .setPrice(10.0 + i)
                     .setQuantity(1.0)
                     .setCurrency("USD")
@@ -211,7 +211,7 @@ class KafkaIntegrationIT extends KafkaContainer {
                     CreatedEventTest event = CreatedEventTest.newBuilder()
                         .setId(id)
                         .setCustomerId("cust-" + producerIndex + "-" + i)
-                        .setProductId("prod-" + producerIndex + "-" + i)
+                        .setProductSku("prod-" + producerIndex + "-" + i)
                         .setPrice(20.0 + i)
                         .setQuantity(1.0)
                         .setCurrency("USD")

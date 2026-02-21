@@ -2,9 +2,9 @@ package com.metao.book.product.infrastructure.persistence.entity;
 
 import com.metao.book.product.domain.model.valueobject.ImageUrl;
 import com.metao.book.product.domain.model.valueobject.ProductDescription;
-import com.metao.book.product.domain.model.valueobject.ProductSku;
+import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.product.domain.model.valueobject.ProductTitle;
-import com.metao.book.product.domain.model.valueobject.ProductVolume;
+import com.metao.book.shared.domain.product.Quantity;
 import com.metao.book.shared.domain.financial.Money;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
@@ -52,7 +52,7 @@ public class ProductEntity implements Serializable {
 
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "volume", nullable = false))
-    private ProductVolume volume;
+    private Quantity volume;
 
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "title", nullable = false))
@@ -93,7 +93,7 @@ public class ProductEntity implements Serializable {
         ProductSku sku,
         ProductTitle title,
         ProductDescription description,
-        ProductVolume volume,
+        Quantity volume,
         Money price,
         ImageUrl imageUrl,
         Instant createdTime,

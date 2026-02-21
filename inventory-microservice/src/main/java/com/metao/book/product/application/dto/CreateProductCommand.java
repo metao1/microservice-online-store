@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Currency;
-import java.util.List;
+import java.util.Set;
 import org.hibernate.validator.constraints.Length;
 
 /**
@@ -42,6 +42,6 @@ public record CreateProductCommand(
 
     Instant createdTime,
 
-    List<String> categoryNames
+    Set<String> categoryNames
 ) {
 }

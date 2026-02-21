@@ -2,7 +2,7 @@ package com.metao.book.product.domain.model.valueobject;
 
 import com.metao.book.shared.domain.base.ValueObject;
 import jakarta.validation.constraints.NotBlank;
-import org.jetbrains.annotations.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * Category identifier value object
