@@ -1,0 +1,54 @@
+[
+  {
+    "sku": "BOOK-001",
+    "title": "Domain-Driven Design",
+    "price": 54.99,
+    "currency": "USD",
+    "imageUrl": "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f",
+    "description": "Tackling complexity in the heart of software.",
+    "rating": 4.8,
+    "reviews": 1120,
+    "inStock": true,
+    "quantity": 42,
+    "category": "books"
+  },
+  {
+    "sku": "BOOK-002",
+    "title": "Clean Architecture",
+    "price": 39.99,
+    "currency": "USD",
+    "imageUrl": "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
+    "description": "A craftsman's guide to software structure and design.",
+    "rating": 4.7,
+    "reviews": 980,
+    "inStock": true,
+    "quantity": 30,
+    "category": "books"
+  },
+  {
+    "sku": "ELEC-001",
+    "title": "Wireless Headphones",
+    "price": 129.0,
+    "currency": "USD",
+    "imageUrl": "https://images.unsplash.com/photo-1518441902119-31f61a05fff1",
+    "description": "Noise cancelling over-ear headphones.",
+    "rating": 4.5,
+    "reviews": 560,
+    "inStock": true,
+    "quantity": 25,
+    "category": "electronics"
+  },
+  {
+    "sku": "APP-001",
+    "title": "Athletic Sneakers",
+    "price": 89.0,
+    "currency": "USD",
+    "imageUrl": "https://images.unsplash.com/photo-1528701800489-20be9e1e8a3f",
+    "description": "Lightweight running shoes for daily wear.",
+    "rating": 4.3,
+    "reviews": 310,
+    "inStock": true,
+    "quantity": 60,
+    "category": "apparel"
+  }
+]

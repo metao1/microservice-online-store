@@ -1,0 +1,15 @@
+[
+  {
+    "paymentId": "PAY-9001",
+    "orderId": "ORDER-1001",
+    "amount": 54.99,
+    "currency": "USD",
+    "paymentMethodType": "CREDIT_CARD",
+    "paymentMethodDetails": "**** **** **** 4242",
+    "status": "COMPLETED",
+    "isCompleted": true,
+    "isSuccessful": true,
+    "createdAt": "2024-12-01T10:01:00Z",
+    "processedAt": "2024-12-01T10:02:00Z"
+  }
+]

@@ -1,0 +1,17 @@
+[
+  {
+    "id": "ORDER-1001",
+    "userId": "demo-user",
+    "items": [
+      {
+        "sku": "BOOK-001",
+        "quantity": 1,
+        "price": 54.99,
+        "currency": "USD"
+      }
+    ],
+    "total": 54.99,
+    "status": "CONFIRMED",
+    "createdAt": "2024-12-01T10:00:00Z"
+  }
+]

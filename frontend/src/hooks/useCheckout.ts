@@ -1,40 +1,92 @@
 import { useState } from 'react';
-import { Order } from '@types';
+import { Order, Payment, PaymentMethodType } from '@types';
 import { apiClient } from '../services/api';
 import { useCartContext } from '../context/CartContext';
 import { toast } from 'react-toastify';
 
+interface PaymentInput {
+  method?: PaymentMethodType;
+  details?: string;
+  currency?: string;
+  amount?: number;
+}
+
+interface CheckoutOptions {
+  payment?: PaymentInput;
+  onSuccess?: (order: Order, payment?: Payment) => void;
+}
+
+interface CheckoutResult {
+  order: Order;
+  payment?: Payment;
+}
+
 interface UseCheckoutResult {
   isProcessing: boolean;
   error: string | null;
-  processCheckout: (userId: string, onSuccess?: (order: Order) => void) => Promise<Order | null>;
+  processCheckout: (userId: string, options?: CheckoutOptions) => Promise<CheckoutResult | null>;
 }
 
 export const useCheckout = (): UseCheckoutResult => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { clearCart } = useCartContext();
+  const { cart, clearCart, getCartTotal } = useCartContext();
 
-  const processCheckout = async (userId: string, onSuccess?: (order: Order) => void): Promise<Order | null> => {
+  const processCheckout = async (userId: string, options?: CheckoutOptions): Promise<CheckoutResult | null> => {
     try {
       setIsProcessing(true);
       setError(null);
-      
-      // Create the order
+
       const order = await apiClient.createOrder(userId);
-      
-      // Clear the cart after successful order creation
-      await clearCart();
-      
-      // Show success message
-      toast.success('Order placed successfully!');
-      
-      // Call success callback if provided
-      if (onSuccess) {
-        onSuccess(order);
+
+      const currency =
+        options?.payment?.currency ||
+        cart.items[0]?.currency ||
+        'USD';
+
+      const amount = Number(
+        options?.payment?.amount ??
+        getCartTotal() ??
+        0
+      );
+
+      const paymentMethod = options?.payment?.method || 'CREDIT_CARD';
+      const paymentDetails = options?.payment?.details || '';
+
+      let payment: Payment | undefined;
+
+      try {
+        const createdPayment = await apiClient.createPayment({
+          orderId: order.id,
+          amount: Number(amount.toFixed(2)),
+          currency,
+          paymentMethodType: paymentMethod,
+          paymentMethodDetails: paymentDetails
+        });
+
+        // Immediately process payment to keep flow simple for checkout
+        payment = await apiClient.processPayment(createdPayment.paymentId);
+      } catch (paymentError) {
+        console.error('Payment attempt failed:', paymentError);
+        const message = 'Order created but payment failed. Please retry payment from your orders page.';
+        setError(message);
+        toast.error(message);
       }
-      
-      return order;
+
+      const paymentSuccessful = payment?.isSuccessful || payment?.status === 'COMPLETED' || payment?.status === 'SUCCESSFUL';
+
+      if (paymentSuccessful) {
+        await clearCart();
+        toast.success('Payment processed and order placed successfully!');
+      } else {
+        toast.warn('Order created. Payment is pending or failed, please retry.');
+      }
+
+      if (options?.onSuccess) {
+        options.onSuccess(order, payment);
+      }
+
+      return { order, payment };
     } catch (err) {
       console.error('Checkout failed:', err);
       const errorMessage = 'Failed to process checkout. Please try again.';
