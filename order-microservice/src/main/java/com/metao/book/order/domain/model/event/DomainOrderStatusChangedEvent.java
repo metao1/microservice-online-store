@@ -5,7 +5,7 @@ import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.shared.domain.base.DomainEvent;
 import java.time.Instant;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 @Getter
 public class OrderStatusChangedEvent extends DomainEvent {

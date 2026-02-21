@@ -4,14 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.metao.book.product.domain.model.entity.ProductCategory;
-import com.metao.book.product.domain.model.event.ProductCreatedEvent;
-import com.metao.book.product.domain.model.event.ProductUpdatedEvent;
+import com.metao.book.product.domain.model.event.DomainProductCreatedEvent;
+import com.metao.book.product.domain.model.event.DomainProductUpdatedEvent;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.product.domain.model.valueobject.ImageUrl;
 import com.metao.book.product.domain.model.valueobject.ProductDescription;
-import com.metao.book.product.domain.model.valueobject.ProductSku;
+import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.product.domain.model.valueobject.ProductTitle;
-import com.metao.book.product.domain.model.valueobject.ProductVolume;
+import com.metao.book.shared.domain.product.Quantity;
 import com.metao.book.shared.domain.financial.Money;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -22,12 +22,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 @DisplayName("Product Aggregate Root Tests")
-class ProductTest {
+class ProductAggregateTest {
 
     private ProductSku productSku;
     private ProductTitle productTitle;
     private ProductDescription productDescription;
-    private ProductVolume productVolume;
+    private Quantity productVolume;
     private Money money;
     private ImageUrl imageUrl;
     private Instant createdTime;
@@ -39,7 +39,7 @@ class ProductTest {
         productSku = ProductSku.of("0594287995");
         productTitle = ProductTitle.of("Test Product");
         productDescription = ProductDescription.of("Test Description");
-        productVolume = ProductVolume.of(BigDecimal.valueOf(100));
+        productVolume = Quantity.of(BigDecimal.valueOf(100));
         money = Money.of(BigDecimal.valueOf(29.99), Currency.getInstance("EUR"));
         imageUrl = ImageUrl.of("https://example.com/image.jpg");
         createdTime = Instant.now();
@@ -51,7 +51,7 @@ class ProductTest {
     @DisplayName("should create product with valid parameters")
     void testCreateProductWithValidParameters() {
         // WHEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
@@ -79,7 +79,7 @@ class ProductTest {
     @DisplayName("should create products with same parameters that are equal")
     void testCreateProductsWithSameParametersAreEqual() {
         // WHEN
-        Product Product1 = new Product(
+        ProductAggregate Product1 = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
@@ -91,7 +91,7 @@ class ProductTest {
             categories
         );
 
-        Product Product2 = new Product(
+        ProductAggregate Product2 = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
@@ -111,7 +111,7 @@ class ProductTest {
     @DisplayName("should raise ProductCreatedEvent when product is created")
     void testProductCreatedEventRaisedOnCreation() {
         // WHEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
@@ -128,9 +128,9 @@ class ProductTest {
             .isNotNull()
             .isNotEmpty()
             .hasSize(1)
-            .allMatch(event -> event instanceof ProductCreatedEvent);
+            .allMatch(event -> event instanceof DomainProductCreatedEvent);
 
-        ProductCreatedEvent createdEvent = (ProductCreatedEvent) Product.getDomainEvents().stream()
+        DomainProductCreatedEvent createdEvent = (DomainProductCreatedEvent) Product.getDomainEvents().stream()
             .findFirst()
             .orElseThrow();
 
@@ -144,7 +144,7 @@ class ProductTest {
     @DisplayName("should initialize with empty categories when null is provided")
     void testProductInitializeWithEmptyCategoriesWhenNull() {
         // WHEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
@@ -166,7 +166,7 @@ class ProductTest {
     @DisplayName("should add category to product")
     void testAddCategoryToProduct() {
         // GIVEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
@@ -197,7 +197,7 @@ class ProductTest {
     void testAddDuplicateCategoryIsIdempotent() {
         // GIVEN
         ProductCategory category = ProductCategory.of(CategoryName.of("Books"));
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
@@ -226,7 +226,7 @@ class ProductTest {
     @DisplayName("should update product price and raise event")
     void testUpdatePriceRaisesProductUpdatedEvent() {
         // GIVEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
@@ -252,7 +252,7 @@ class ProductTest {
             .hasSize(2)
             .anySatisfy(event ->
                 assertThat(event)
-                    .isInstanceOf(ProductUpdatedEvent.class)
+                    .isInstanceOf(DomainProductUpdatedEvent.class)
                     .hasFieldOrPropertyWithValue("productSku", productSku)
             );
     }
@@ -261,7 +261,7 @@ class ProductTest {
     @DisplayName("should not raise event when updating to same price")
     void testUpdatePriceWithSamePriceDoesNotRaiseEvent() {
         // GIVEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
@@ -286,7 +286,7 @@ class ProductTest {
     @DisplayName("should update product title")
     void testUpdateTitle() {
         // GIVEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
@@ -312,7 +312,7 @@ class ProductTest {
     @DisplayName("should not update title when same value is provided")
     void testUpdateTitleWithSameValueDoesNotChange() {
         // GIVEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
@@ -337,7 +337,7 @@ class ProductTest {
     @DisplayName("should update product description")
     void testUpdateDescription() {
         // GIVEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
@@ -363,11 +363,11 @@ class ProductTest {
     @DisplayName("should correctly identify product in stock")
     void testIsInStock_whenVolumeGreaterThanZero() {
         // GIVEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
-            ProductVolume.of(BigDecimal.valueOf(50)),
+            Quantity.of(BigDecimal.valueOf(50)),
             money,
             createdTime,
             updatedTime,
@@ -383,11 +383,11 @@ class ProductTest {
     @DisplayName("should correctly identify product out of stock")
     void testIsInStock_whenVolumeIsZero() {
         // GIVEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
-            ProductVolume.of(BigDecimal.ZERO),
+            Quantity.of(BigDecimal.ZERO),
             money,
             createdTime,
             updatedTime,
@@ -403,11 +403,11 @@ class ProductTest {
     @DisplayName("should reduce volume successfully")
     void testReduceVolume() {
         // GIVEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
-            ProductVolume.of(BigDecimal.valueOf(100)),
+            Quantity.of(BigDecimal.valueOf(100)),
             money,
             createdTime,
             updatedTime,
@@ -415,14 +415,14 @@ class ProductTest {
             categories
         );
 
-        ProductVolume reduction = ProductVolume.of(BigDecimal.valueOf(30));
+        Quantity reduction = Quantity.of(BigDecimal.valueOf(30));
 
         // WHEN
         Product.reduceVolume(reduction);
 
         // THEN
         assertThat(Product.getVolume())
-            .isEqualTo(ProductVolume.of(BigDecimal.valueOf(70)));
+            .isEqualTo(Quantity.of(BigDecimal.valueOf(70)));
 
         assertThat(Product.getUpdatedTime()).isAfter(createdTime);
     }
@@ -431,11 +431,11 @@ class ProductTest {
     @DisplayName("should throw exception when reducing volume more than available")
     void testReduceVolume_whenReductionExceedsAvailable() {
         // GIVEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
-            ProductVolume.of(BigDecimal.valueOf(50)),
+            Quantity.of(BigDecimal.valueOf(50)),
             money,
             createdTime,
             updatedTime,
@@ -443,7 +443,7 @@ class ProductTest {
             categories
         );
 
-        ProductVolume excessiveReduction = ProductVolume.of(BigDecimal.valueOf(100));
+        Quantity excessiveReduction = Quantity.of(BigDecimal.valueOf(100));
 
         // WHEN & THEN
         assertThatThrownBy(() -> Product.reduceVolume(excessiveReduction))
@@ -455,11 +455,11 @@ class ProductTest {
     @DisplayName("should increase volume successfully")
     void testIncreaseVolume() {
         // GIVEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
-            ProductVolume.of(BigDecimal.valueOf(100)),
+            Quantity.of(BigDecimal.valueOf(100)),
             money,
             createdTime,
             updatedTime,
@@ -467,14 +467,14 @@ class ProductTest {
             categories
         );
 
-        ProductVolume increase = ProductVolume.of(BigDecimal.valueOf(50));
+        Quantity increase = Quantity.of(BigDecimal.valueOf(50));
 
         // WHEN
         Product.increaseVolume(increase);
 
         // THEN
         assertThat(Product.getVolume())
-            .isEqualTo(ProductVolume.of(BigDecimal.valueOf(150)));
+            .isEqualTo(Quantity.of(BigDecimal.valueOf(150)));
 
         assertThat(Product.getUpdatedTime()).isAfter(createdTime);
     }
@@ -483,11 +483,11 @@ class ProductTest {
     @DisplayName("should increase volume to zero from zero")
     void testIncreaseVolumeFromZero() {
         // GIVEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
-            ProductVolume.of(BigDecimal.ZERO),
+            Quantity.of(BigDecimal.ZERO),
             money,
             createdTime,
             updatedTime,
@@ -495,14 +495,14 @@ class ProductTest {
             categories
         );
 
-        ProductVolume increase = ProductVolume.of(BigDecimal.valueOf(100));
+        Quantity increase = Quantity.of(BigDecimal.valueOf(100));
 
         // WHEN
         Product.increaseVolume(increase);
 
         // THEN
         assertThat(Product.getVolume())
-            .isEqualTo(ProductVolume.of(BigDecimal.valueOf(100)));
+            .isEqualTo(Quantity.of(BigDecimal.valueOf(100)));
 
         assertThat(Product.isInStock()).isTrue();
     }
@@ -511,7 +511,7 @@ class ProductTest {
     @DisplayName("products with same SKU should be equal")
     void testProductEquality_withSameSku() {
         // GIVEN
-        Product Product1 = new Product(
+        ProductAggregate Product1 = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
@@ -523,11 +523,11 @@ class ProductTest {
             categories
         );
 
-        Product Product2 = new Product(
+        ProductAggregate Product2 = new ProductAggregate(
             productSku,
             ProductTitle.of("Different Title"),
             ProductDescription.of("Different Description"),
-            ProductVolume.of(BigDecimal.valueOf(200)),
+            Quantity.of(BigDecimal.valueOf(200)),
             Money.of(BigDecimal.valueOf(99.99), Currency.getInstance("EUR")),
             createdTime,
             updatedTime,
@@ -545,7 +545,7 @@ class ProductTest {
     @DisplayName("products with different SKU should not be equal")
     void testProductInequality_withDifferentSku() {
         // GIVEN
-        Product Product1 = new Product(
+        ProductAggregate Product1 = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
@@ -557,7 +557,7 @@ class ProductTest {
             categories
         );
 
-        Product Product2 = new Product(
+        ProductAggregate Product2 = new ProductAggregate(
             ProductSku.of("0594287996"),
             productTitle,
             productDescription,
@@ -579,7 +579,7 @@ class ProductTest {
     @DisplayName("product should not be equal to null")
     void testProductNotEqualToNull() {
         // GIVEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
@@ -599,7 +599,7 @@ class ProductTest {
     @DisplayName("product should not be equal to object of different type")
     void testProductNotEqualToDifferentType() {
         // GIVEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
@@ -625,7 +625,7 @@ class ProductTest {
         ProductCategory category2 = ProductCategory.of(CategoryName.of("Electronics"));
         Set<ProductCategory> initialCategories = Set.of(category1);
 
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
@@ -652,11 +652,11 @@ class ProductTest {
     @DisplayName("should reduce volume to exactly zero")
     void testReduceVolume_toExactlyZero() {
         // GIVEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
-            ProductVolume.of(BigDecimal.valueOf(50)),
+            Quantity.of(BigDecimal.valueOf(50)),
             money,
             createdTime,
             updatedTime,
@@ -664,14 +664,14 @@ class ProductTest {
             categories
         );
 
-        ProductVolume reduction = ProductVolume.of(BigDecimal.valueOf(50));
+        Quantity reduction = Quantity.of(BigDecimal.valueOf(50));
 
         // WHEN
         Product.reduceVolume(reduction);
 
         // THEN
         assertThat(Product.getVolume())
-            .isEqualTo(ProductVolume.of(BigDecimal.ZERO));
+            .isEqualTo(Quantity.of(BigDecimal.ZERO));
         assertThat(Product.isInStock()).isFalse();
     }
 
@@ -679,11 +679,11 @@ class ProductTest {
     @DisplayName("should handle decimal volume operations precisely")
     void testVolumeOperations_withDecimals() {
         // GIVEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
-            ProductVolume.of(new BigDecimal("10.5")),
+            Quantity.of(new BigDecimal("10.5")),
             money,
             createdTime,
             updatedTime,
@@ -692,19 +692,19 @@ class ProductTest {
         );
 
         // WHEN
-        Product.reduceVolume(ProductVolume.of(new BigDecimal("3.2")));
-        Product.increaseVolume(ProductVolume.of(new BigDecimal("1.7")));
+        Product.reduceVolume(Quantity.of(new BigDecimal("3.2")));
+        Product.increaseVolume(Quantity.of(new BigDecimal("1.7")));
 
         // THEN
         assertThat(Product.getVolume())
-            .isEqualTo(ProductVolume.of(new BigDecimal("9.0")));
+            .isEqualTo(Quantity.of(new BigDecimal("9.0")));
     }
 
     @Test
     @DisplayName("should throw exception when updating to null price")
     void testUpdatePrice_whenNullPrice_shouldThrowException() {
         // GIVEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
@@ -725,7 +725,7 @@ class ProductTest {
     @DisplayName("should handle multiple sequential price updates")
     void testMultipleSequentialPriceUpdates() {
         // GIVEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
@@ -756,7 +756,7 @@ class ProductTest {
     @DisplayName("should handle multiple category additions")
     void testMultipleCategoryAdditions() {
         // GIVEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
@@ -787,7 +787,7 @@ class ProductTest {
     @DisplayName("should not update timestamp when adding null category")
     void testAddCategory_whenNullCategory_shouldNotUpdateTimestamp() {
         // GIVEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
@@ -813,7 +813,7 @@ class ProductTest {
         ProductCategory category1 = ProductCategory.of(CategoryName.of("Books"));
         Set<ProductCategory> originalCategories = Set.of(category1);
 
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
@@ -839,7 +839,7 @@ class ProductTest {
     @DisplayName("should handle zero price updates")
     void testUpdatePrice_withZeroPrice() {
         // GIVEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
@@ -865,7 +865,7 @@ class ProductTest {
     @DisplayName("should update description to empty string")
     void testUpdateDescription_withEmptyString() {
         // GIVEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
@@ -888,11 +888,11 @@ class ProductTest {
     @DisplayName("should correctly handle volume reduction leaving fractional remainder")
     void testReduceVolume_withFractionalRemainder() {
         // GIVEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
-            ProductVolume.of(new BigDecimal("100.75")),
+            Quantity.of(new BigDecimal("100.75")),
             money,
             createdTime,
             updatedTime,
@@ -900,21 +900,21 @@ class ProductTest {
             categories
         );
 
-        ProductVolume reduction = ProductVolume.of(new BigDecimal("50.5"));
+        Quantity reduction = Quantity.of(new BigDecimal("50.5"));
 
         // WHEN
         Product.reduceVolume(reduction);
 
         // THEN
         assertThat(Product.getVolume())
-            .isEqualTo(ProductVolume.of(new BigDecimal("50.25")));
+            .isEqualTo(Quantity.of(new BigDecimal("50.25")));
     }
 
     @Test
     @DisplayName("should verify all domain events maintain correct order")
     void testDomainEvents_maintainOrder() {
         // GIVEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
@@ -935,21 +935,21 @@ class ProductTest {
         // THEN
         assertThat(Product.getDomainEvents())
             .hasSize(2)  // Created + Price Updated (title update does not raise event)
-            .element(0).isInstanceOf(ProductCreatedEvent.class);
+            .element(0).isInstanceOf(DomainProductCreatedEvent.class);
 
         assertThat(Product.getDomainEvents())
-            .element(1).isInstanceOf(ProductUpdatedEvent.class);
+            .element(1).isInstanceOf(DomainProductUpdatedEvent.class);
     }
 
     @Test
     @DisplayName("should handle volume increase with large numbers")
     void testIncreaseVolume_withLargeNumbers() {
         // GIVEN
-        Product Product = new Product(
+        ProductAggregate Product = new ProductAggregate(
             productSku,
             productTitle,
             productDescription,
-            ProductVolume.of(new BigDecimal("1000000")),
+            Quantity.of(new BigDecimal("1000000")),
             money,
             createdTime,
             updatedTime,
@@ -957,15 +957,14 @@ class ProductTest {
             categories
         );
 
-        ProductVolume largeIncrease = ProductVolume.of(new BigDecimal("5000000"));
+        Quantity largeIncrease = Quantity.of(new BigDecimal("5000000"));
 
         // WHEN
         Product.increaseVolume(largeIncrease);
 
         // THEN
         assertThat(Product.getVolume())
-            .isEqualTo(ProductVolume.of(new BigDecimal("6000000")));
+            .isEqualTo(Quantity.of(new BigDecimal("6000000")));
         assertThat(Product.isInStock()).isTrue();
     }
 }
-

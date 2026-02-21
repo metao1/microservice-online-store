@@ -1,0 +1,15 @@
+plugins {
+  id 'application'
+}
+
+dependencies {
+  implementation project(':shared-kernel')
+}
+
+application {
+  mainClass = 'com.metao.book.performance.HttpLoadTestRunner'
+}
+
+tasks.named('run') {
+  standardInput = System.in
+}

@@ -33,6 +33,6 @@ class CategoryEntityMapperIT extends KafkaContainer {
 
         // Then
         assertNotNull(result);
-        assertEquals("Books", result.getCategory());
+        assertEquals("books", result.getCategory());
     }
 }

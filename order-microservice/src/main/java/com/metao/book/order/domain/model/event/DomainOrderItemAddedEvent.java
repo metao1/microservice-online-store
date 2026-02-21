@@ -7,7 +7,7 @@ import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.domain.financial.Money;
 import java.time.Instant;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 @Getter
 public class OrderItemAddedEvent extends DomainEvent {
