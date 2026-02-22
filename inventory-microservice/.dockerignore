@@ -1,0 +1,10 @@
+# exclude hidden dirs / IDE / build artifacts
+.git
+.gitignore
+.DS_Store
+*.iml
+.idea
+**/.gradle
+build/
+!build/docker
+src/main/resources/data

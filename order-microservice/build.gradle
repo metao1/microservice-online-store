@@ -1,24 +1,22 @@
 dependencies {
   implementation project(':shared-kernel')
   implementation project(':kafka-lib')
+  // Make shared proto files available to protoc
+  protobuf project(':shared-kernel')
 
   implementation "org.springframework.boot:spring-boot-starter-data-jpa"
   implementation "org.springframework.boot:spring-boot-starter-validation"
 
   implementation "org.springframework.kafka:spring-kafka"
-  implementation "org.postgresql:postgresql:42.7.3"
+  runtimeOnly "org.postgresql:postgresql:42.7.3"
 
   implementation "io.confluent:kafka-protobuf-serializer:7.8.0"
-  implementation "io.confluent:kafka-streams-protobuf-serde:7.8.0"
 
   implementation "org.flywaydb:flyway-database-postgresql:10.11.0"
   implementation "org.springframework.boot:spring-boot-flyway"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
 
   implementation "org.flywaydb:flyway-core"
-
-  implementation "io.grpc:grpc-protobuf:1.70.0"
-  implementation "io.grpc:grpc-stub:1.70.0"
 
   testImplementation "io.rest-assured:rest-assured:5.4.0"
   testImplementation "org.apache.groovy:groovy:4.0.16"
@@ -60,6 +58,15 @@ protobuf {
       grpc {}
     }
   }
+}
+
+bootJar {
+  layered { enabled = true }
+}
+
+// Drop unused compression native dependency (~7MB) from Kafka clients
+configurations.configureEach {
+  exclude group: "com.github.luben", module: "zstd-jni"
 }
 
 tasks.named('build') {

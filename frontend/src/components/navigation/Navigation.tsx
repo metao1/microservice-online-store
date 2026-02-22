@@ -56,6 +56,8 @@ const Navigation: FC<NavigationProps> = ({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSearchActive, setIsMobileSearchActive] = useState(false);
   const [activeMegaCategory, setActiveMegaCategory] = useState<string | null>(null);
+  const [subcategoryCache, setSubcategoryCache] = useState<Record<string, Category[]>>({});
+  const [isLoadingSubcategories, setIsLoadingSubcategories] = useState(false);
   const [isMobileView, setIsMobileView] = useState(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return false;
     return window.matchMedia('(max-width: 900px)').matches;
@@ -224,6 +226,20 @@ const Navigation: FC<NavigationProps> = ({
     }
   };
 
+  const loadSubcategories = async (category: string) => {
+    setActiveMegaCategory(category);
+    if (subcategoryCache[category]) return;
+    setIsLoadingSubcategories(true);
+    try {
+      const subs = await apiClient.getSubcategories(category, 20, 0);
+      setSubcategoryCache((prev) => ({ ...prev, [category]: subs }));
+    } catch (error) {
+      console.error('Failed to fetch subcategories:', error);
+    } finally {
+      setIsLoadingSubcategories(false);
+    }
+  };
+
   const handleMobileSearchBack = () => {
     setIsMobileSearchActive(false);
     setIsSearchFocused(false);
@@ -385,8 +401,8 @@ const Navigation: FC<NavigationProps> = ({
                     <button
                         key={category}
                         className={`nav-secondary-link ${/sale/i.test(category) ? 'sale' : ''}`}
-                        onMouseEnter={() => setActiveMegaCategory(category)}
-                        onFocus={() => setActiveMegaCategory(category)}
+                        onMouseEnter={() => loadSubcategories(category)}
+                        onFocus={() => loadSubcategories(category)}
                     >
                       {category}
                     </button>
@@ -395,11 +411,19 @@ const Navigation: FC<NavigationProps> = ({
 
             {activeMegaCategory && (
                 <div className="nav-mega-panel" role="dialog" aria-label={`${activeMegaCategory} categories`}>
+                  {isLoadingSubcategories && !subcategoryCache[activeMegaCategory] && (
+                      <div className="nav-mega-loading">Loading categories...</div>
+                  )}
+                  {(() => {
+                    const items = subcategoryCache[activeMegaCategory] || groupedSecondaryCategories.groups[activeMegaCategory] || [];
+                    const primary = items.slice(0, 10);
+                    const more = items.slice(10, 20);
+                    return (
                   <div className="nav-mega-columns">
                     <div className="nav-mega-column">
                       <h4>Categories</h4>
                       <ul>
-                        {(groupedSecondaryCategories.groups[activeMegaCategory] || []).slice(0, 6).map((item) => {
+                        {primary.slice(0, 6).map((item) => {
                           const label = item.category || item.name || '';
                           return (
                               <li key={label}>
@@ -414,7 +438,7 @@ const Navigation: FC<NavigationProps> = ({
                     <div className="nav-mega-column">
                       <h4>More categories</h4>
                       <ul>
-                        {(groupedSecondaryCategories.groups[activeMegaCategory] || []).slice(6, 12).map((item) => {
+                        {(more.length ? more : primary.slice(6, 12)).map((item) => {
                           const label = item.category || item.name || '';
                           return (
                               <li key={label}>
@@ -448,6 +472,8 @@ const Navigation: FC<NavigationProps> = ({
                       </div>
                     </div>
                   </div>
+                    );
+                  })()}
                 </div>
             )}
           </div>

@@ -6,12 +6,10 @@ import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.product.infrastructure.persistence.entity.CategoryEntity;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 /**
  * Mapper between ProductCategory domain object and CategoryEntity
@@ -37,11 +35,11 @@ public class CategoryEntityMapper {
             if (existing != null) {
                 return existing;
             }
-            return new CategoryEntity(normalizedName);
+            return new CategoryEntity(CategoryName.of(normalizedName));
         } catch (Exception e) {
             // Fall back to a detached entity instead of failing the mapping inside tests
             log.warn("Falling back to new CategoryEntity for {} due to {}", category.getName(), e.toString());
-            return new CategoryEntity(category.getName().value());
+            return new CategoryEntity(category.getName());
         }
     }
 

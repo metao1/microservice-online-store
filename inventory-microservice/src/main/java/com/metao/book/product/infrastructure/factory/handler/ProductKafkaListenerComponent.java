@@ -40,6 +40,17 @@ public class ProductKafkaListenerComponent {
     public void onProductCreatedEvent(ConsumerRecord<String, ProductCreatedEvent> event) {
         var productCreatedEvent = event.value();
         log.debug("Consumed {}", productCreatedEvent);
+        String eventId = event.key();
+        if (eventId == null || eventId.isBlank()) {
+            log.warn("Skipping ProductCreatedEvent without idempotency key for sku {}", productCreatedEvent.getSku());
+            return;
+        }
+
+        boolean firstProcessing = processedInventoryEventRepository.markProcessed(eventId);
+        if (!firstProcessing) {
+            log.info("Product created event {} already processed, skipping.", eventId);
+            return;
+        }
         // This would require mapping from ProductCreatedEvent to CreateProductCommand
         var command = new CreateProductCommand(
             productCreatedEvent.getSku(),

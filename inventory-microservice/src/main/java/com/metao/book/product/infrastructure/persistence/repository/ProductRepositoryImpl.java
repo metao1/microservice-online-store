@@ -3,12 +3,12 @@ package com.metao.book.product.infrastructure.persistence.repository;
 import com.metao.book.product.domain.model.aggregate.ProductAggregate;
 import com.metao.book.product.domain.model.entity.ProductCategory;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
-import com.metao.book.shared.domain.product.ProductSku;
-import com.metao.book.product.infrastructure.persistence.entity.CategoryEntity;
 import com.metao.book.product.domain.repository.ProductRepository;
+import com.metao.book.product.infrastructure.persistence.entity.CategoryEntity;
 import com.metao.book.product.infrastructure.persistence.entity.ProductEntity;
 import com.metao.book.product.infrastructure.persistence.mapper.ProductEntityMapper;
 import com.metao.book.shared.application.persistence.OffsetBasedPageRequest;
+import com.metao.book.shared.domain.product.ProductSku;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
@@ -83,10 +83,8 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public List<ProductAggregate> findByCategories(List<CategoryName> categoryNames, int offset, int limit) {
-        List<String> names = categoryNames.stream()
-            .map(CategoryName::value)
-            .toList();
         Pageable pageable = new OffsetBasedPageRequest(offset, limit);
+        var names = categoryNames.stream().map(CategoryName::value).toList();
         return jpaProductRepository.findByCategories(names, pageable)
             .stream()
             .map(productEntityMapper::toDomain)
@@ -119,13 +117,12 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public boolean reduceVolumeAtomically(ProductSku sku, BigDecimal quantity) {
-        return jpaProductRepository.decrementVolumeIfEnough(sku.value(), quantity) > 0;
+        return jpaProductRepository.decrementVolumeIfEnough(sku, quantity) > 0;
     }
 
     private CategoryEntity resolveCategoryEntity(ProductCategory category) {
-        String categoryName = category.getName().value();
-        return jpaCategoryRepository.findByCategory(categoryName)
-            .orElseGet(() -> new CategoryEntity(categoryName));
+        return jpaCategoryRepository.findByCategory(category.getName().value())
+            .orElseGet(() -> new CategoryEntity(category.getName()));
     }
 
 }

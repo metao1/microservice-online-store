@@ -1,16 +1,16 @@
 dependencies {
   implementation project(':shared-kernel')
   implementation project(':kafka-lib')
+  // Make shared proto files available to protoc (Category.proto, etc.)
+  protobuf project(':shared-kernel')
 
   implementation "org.springframework.boot:spring-boot-starter-data-jpa"
   implementation "org.springframework.boot:spring-boot-starter-validation"
 
   implementation "org.springframework.kafka:spring-kafka"
-  implementation "org.postgresql:postgresql:42.7.3"
   runtimeOnly "org.postgresql:postgresql:42.7.3"
 
   implementation "io.confluent:kafka-protobuf-serializer:7.8.0"
-  implementation "io.confluent:kafka-streams-protobuf-serde:7.8.0"
 
   implementation "org.flywaydb:flyway-database-postgresql:10.11.0"
   implementation "org.springframework.boot:spring-boot-flyway"
@@ -23,9 +23,6 @@ dependencies {
   implementation "com.github.ben-manes.caffeine:caffeine:3.1.8"
   implementation "com.github.ben-manes.caffeine:jcache:3.1.8"
 
-  implementation "io.grpc:grpc-protobuf:1.70.0"
-  implementation "io.grpc:grpc-stub:1.70.0"
-
   testImplementation "org.mockito:mockito-core:4.8.0"
   testImplementation "io.rest-assured:rest-assured:5.4.0"
   testImplementation "org.apache.groovy:groovy:4.0.16"
@@ -33,6 +30,11 @@ dependencies {
   testImplementation "org.apache.groovy:groovy-xml:4.0.16"
   testImplementation 'org.springframework.boot:spring-boot-starter-test'
   testImplementation project(':shared-test')
+}
+
+bootJar {
+  exclude("data/**")
+  layered { enabled = true }
 }
 
 protobuf {
@@ -43,17 +45,11 @@ protobuf {
       artifact = 'com.google.protobuf:protoc:3.25.5'
     }
   }
+}
 
-  plugins {
-    grpc {
-      artifact = 'io.grpc:protoc-gen-grpc-java:1.70.0'
-    }
-  }
-  generateProtoTasks {
-    all()*.plugins {
-      grpc {}
-    }
-  }
+// Trim heavy transitive compression libs we don't use (drops zstd-jni ~7MB)
+configurations.configureEach {
+  exclude group: "com.github.luben", module: "zstd-jni"
 }
 
 tasks.named('build') {

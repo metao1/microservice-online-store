@@ -1,14 +1,11 @@
 package com.metao.book.product.infrastructure.persistence.repository;
 
-import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.product.infrastructure.persistence.entity.ProductEntity;
-import jakarta.persistence.LockModeType;
+import com.metao.book.shared.domain.product.ProductSku;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,10 +16,6 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface JpaProductRepository extends JpaRepository<ProductEntity, ProductSku> {
-
-    @Lock(LockModeType.OPTIMISTIC)
-    @Query("SELECT p FROM product p WHERE p.sku = :sku")
-    Optional<ProductEntity> findBySkuForUpdate(ProductSku sku);
 
     @Query("SELECT p FROM product p JOIN p.categories c WHERE LOWER(c.category) = LOWER(:categoryName)")
     List<ProductEntity> findByCategory(@Param("categoryName") String categoryName, Pageable pageable);
@@ -69,7 +62,7 @@ public interface JpaProductRepository extends JpaRepository<ProductEntity, Produ
             """,
         nativeQuery = true
     )
-    int decrementVolumeIfEnough(@Param("sku") String sku, @Param("quantity") BigDecimal quantity);
+    int decrementVolumeIfEnough(@Param("sku") ProductSku sku, @Param("quantity") BigDecimal quantity);
 
     boolean existsBySku(ProductSku sku);
 }

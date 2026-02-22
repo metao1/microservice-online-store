@@ -1,7 +1,5 @@
 package com.metao.book.product.application.service;
 
-import static com.metao.book.product.infrastructure.util.ProductConstant.SKU;
-
 import com.metao.book.product.application.dto.CreateProductCommand;
 import com.metao.book.product.application.dto.UpdateProductCommand;
 import com.metao.book.product.domain.exception.CategoryNotFoundException;
@@ -271,7 +269,7 @@ public class ProductDomainService {
         }
         log.info("Reducing volume atomically for product {} by {}", sku, quantity);
 
-        ProductSku productSku = SKU;
+        ProductSku productSku = ProductSku.of(sku);
         Quantity.of(quantity);
 
         boolean updated = productRepository.reduceVolumeAtomically(productSku, quantity);

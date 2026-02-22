@@ -14,6 +14,7 @@ export interface ApiClientContract {
   getProductById(sku: string): Promise<Product>;
   getProductsBySkus(skus: string[]): Promise<Map<string, Product>>;
   searchProducts(query: string, limit?: number, offset?: number): Promise<Product[]>;
+  getSubcategories(query: string, limit?: number, offset?: number): Promise<Category[]>;
   getCart(userId: string): Promise<Cart>;
   addToCart(userId: string, productId: string, quantity: number, price: number, currency: string): Promise<Cart>;
   removeFromCart(userId: string, productId: string): Promise<Cart>;
