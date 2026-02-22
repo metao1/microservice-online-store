@@ -42,6 +42,10 @@ export class MockApiClient extends BaseApiClient implements ApiClientContract {
     return this.categories.slice(offset, offset + limit);
   }
 
+  async getSubcategories(query: string, limit?: number, offset?: number): Promise<Category[]>{
+    return this.categories.slice(offset, offset + limit);
+  }
+
   async getProductById(sku: string): Promise<Product> {
     const product = this.products.find((p) => p.sku === sku);
     if (!product) throw new Error('Product not found');

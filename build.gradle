@@ -47,14 +47,13 @@ subprojects {
         mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootDependenciesVersion}"
       }
     }
+
+    bootJar {
+      exclude("data/**")
+    }
   }
 
   dependencies {
-
-    // GRPC
-    implementation "io.grpc:grpc-protobuf:1.70.0"
-    implementation "io.grpc:grpc-stub:1.70.0"
-    runtimeOnly "io.grpc:grpc-netty-shaded:1.70.0"
 
     // Test
     testImplementation "org.junit.jupiter:junit-jupiter:5.8.2"
@@ -101,6 +100,7 @@ subprojects {
       }
     }
   }
+
   java {
     toolchain {
       languageVersion = JavaLanguageVersion.of(21)

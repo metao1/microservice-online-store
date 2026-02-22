@@ -33,6 +33,9 @@ dependencies {
   testImplementation "io.micrometer:micrometer-core"
   testImplementation "io.micrometer:micrometer-registry-prometheus"
 
+  // Protobuf runtime needed by generated domain events
+  api "com.google.protobuf:protobuf-java:3.25.5"
+
 }
 
 publishing {

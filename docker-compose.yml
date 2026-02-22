@@ -149,6 +149,7 @@ services:
       - kafka-schema-registry
 
   inventory-microservice:
+    image: 287910172838.dkr.ecr.eu-central-1.amazonaws.com/onlinestore/invetory
     container_name: inventory-microservice
     hostname: inventory-microservice
     #restart: on-failure
@@ -164,7 +165,7 @@ services:
     build:
       context: .
       dockerfile: inventory-microservice/src/main/docker/Dockerfile
-    platform: linux/amd64
+    #platform: linux/amd64
     ports:
       - "8083:8083"
     depends_on:

@@ -1,9 +1,9 @@
 package com.metao.book.product.infrastructure.application;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
@@ -12,6 +12,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import com.metao.shared.test.KafkaContainer;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
+@Slf4j
 @ActiveProfiles("test")
 @TestPropertySource(properties = "kafka.enabled=true")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -279,7 +281,7 @@ public class ProductAggregateManagementIT extends KafkaContainer {
             .post("/products");
 
         // When & Then - Retrieve products by category and validate all fields in response
-        given()
+        var response = given()
             .when()
             .get("/products/category/{category}", "Books")
             .then()
@@ -293,7 +295,7 @@ public class ProductAggregateManagementIT extends KafkaContainer {
             .body("price", hasItem(49.99f))
             .body("currency", hasItem("EUR"))
             .body("volume", hasItem(50))
-            .body("categories", hasItem(containsInAnyOrder("Books")));
+            .body("categories.flatten()", hasItem(equalToIgnoringCase("books")));
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.metao.book.product.infrastructure.persistence.entity;
 
+import com.metao.book.product.domain.model.valueobject.CategoryName;
 import jakarta.persistence.Cacheable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -21,15 +22,16 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.NaturalId;
 import org.hibernate.annotations.NaturalIdCache;
 
+
 /**
  * JPA entity for ProductCategory persistence
  */
 @Setter
 @Getter
-@NoArgsConstructor
 @Cacheable
-@Entity(name = "product_category")
+@NoArgsConstructor
 @Table(name = "product_category")
+@Entity(name = "product_category")
 @NaturalIdCache(region = "CategoryEntity_NaturalId")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class CategoryEntity implements Serializable {
@@ -45,8 +47,13 @@ public class CategoryEntity implements Serializable {
     @ManyToMany(mappedBy = "categories")
     private Set<ProductEntity> products = new HashSet<>();
 
+    public CategoryEntity(@NotNull CategoryName category) {
+        this.category = category.value();
+        this.products = new HashSet<>();
+    }
+
     public CategoryEntity(@NotNull String category) {
-        this.category = category;
+        this.category = CategoryName.of(category).value();
         this.products = new HashSet<>();
     }
 

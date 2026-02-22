@@ -301,6 +301,12 @@
     z-index: 1200;
 }
 
+.nav-mega-loading {
+    padding: 0 1.75rem 0.75rem;
+    font-size: 0.9rem;
+    color: #888888;
+}
+
 .nav-mega-columns {
     display: grid;
     grid-template-columns: 1.1fr 1.1fr 1fr 1.2fr;

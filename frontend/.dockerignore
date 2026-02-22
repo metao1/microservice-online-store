@@ -1,0 +1,15 @@
+# exclude hidden dirs .git etc.
+.*
+*.iml
+node_modules
+dist
+# exclude build artifacts
+build/*
+# keep docker context assets if any
+!build/docker
+npm-debug.log*
+yarn-error.log*
+.pnp.*
+.pnp.js
+.cache
+coverage
