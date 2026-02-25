@@ -145,19 +145,6 @@ public class ProductController {
             .toList();
     }
 
-    @GetMapping("/categories/{category}/subcategories")
-    public List<CategoryDTO> getSubcategories(
-        @PathVariable String category,
-        @RequestParam(value = "offset", defaultValue = "0") int offset,
-        @RequestParam(value = "limit", defaultValue = "12") int limit
-    ) {
-        var parent = CategoryName.of(category);
-        var subcategories = productDomainService.getSubcategories(parent, offset, limit);
-        return subcategories.stream()
-            .map(sub -> new CategoryDTO(sub.getName().value()))
-            .toList();
-    }
-
     @GetMapping("/{sku}/related")
     public List<ProductDTO> getRelatedProducts(
         @PathVariable String sku,

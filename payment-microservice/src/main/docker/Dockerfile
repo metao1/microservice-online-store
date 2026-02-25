@@ -1,29 +1,30 @@
+# syntax=docker/dockerfile:1.6
 ## Build stage
 FROM gradle:9-jdk21 AS build
 
-# Set working directory
 WORKDIR /workspace
 
-COPY . /workspace/
+# Copy Gradle wrapper and root build files (preserve structure)
+COPY gradle /workspace/gradle
+COPY gradlew settings.gradle build.gradle /workspace/
+# Copy shared libs and this service sources
+COPY shared-kernel /workspace/shared-kernel
+COPY shared-test /workspace/shared-test
+COPY kafka-lib /workspace/kafka-lib
+COPY payment-microservice /workspace/payment-microservice
 
-# Build the payment-microservice
-RUN gradle :payment-microservice:clean :payment-microservice:build -x test --no-daemon
+# Build layered fat jar (skip tests; they should run in CI)
+RUN ./gradlew :payment-microservice:bootJar -x test --no-daemon --configuration-cache
+# Extract layers for slimmer runtime image
+RUN java -Djarmode=layertools -jar payment-microservice/build/libs/payment-microservice.jar extract --destination /workspace/layers
 
 ## Runtime stage
-FROM eclipse-temurin:21-jre AS payment-microservice
+FROM gcr.io/distroless/java21-debian12 AS payment-microservice
 
 # Set working directory
 WORKDIR /app
 
-# Copy the built JAR from build stage
-COPY --from=build /workspace/payment-microservice/build/libs/payment-microservice.jar app.jar
+# Copy layers separately to leverage Docker cache
+COPY --from=build /workspace/layers/dependencies/ /workspace/layers/snapshot-dependencies/ /workspace/layers/spring-boot-loader/ /workspace/layers/application/ ./
 
-# Create non-root user
-RUN groupadd -r appuser && useradd -r -g appuser appuser && \
-    usermod -a -G 1000 appuser && \
-    chown -R appuser:appuser /app
-
-# Run as non-root user
-USER appuser
-
-ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar app.jar" ]
+ENTRYPOINT ["java","org.springframework.boot.loader.launch.JarLauncher"]
