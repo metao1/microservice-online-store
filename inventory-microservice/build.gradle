@@ -29,7 +29,9 @@ dependencies {
   testImplementation "org.apache.groovy:groovy-json:4.0.16"
   testImplementation "org.apache.groovy:groovy-xml:4.0.16"
   testImplementation 'org.springframework.boot:spring-boot-starter-test'
-  testImplementation project(':shared-test')
+  if (rootProject.findProject(':shared-test') != null) {
+    testImplementation project(':shared-test')
+  }
 }
 
 bootJar {

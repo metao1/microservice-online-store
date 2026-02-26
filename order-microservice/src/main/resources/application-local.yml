@@ -5,9 +5,9 @@ spring:
     password: bookstore
   jpa:
     database: POSTGRESQL
+    open-in-view: false
     generate-ddl: true
     properties:
-      open-in-view: false
       hibernate:
         connection:
           provider_disables_autocommit: true

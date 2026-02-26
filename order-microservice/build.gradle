@@ -23,7 +23,9 @@ dependencies {
   testImplementation "org.apache.groovy:groovy-json:4.0.16"
   testImplementation "org.apache.groovy:groovy-xml:4.0.16"
   testImplementation 'org.mockito:mockito-core:5.7.0'
-  testImplementation project(':shared-test')
+  if (rootProject.findProject(':shared-test') != null) {
+    testImplementation project(':shared-test')
+  }
   testImplementation 'org.springframework.boot:spring-boot-starter-test'
   testImplementation 'org.springframework.kafka:spring-kafka-test'
   testImplementation "org.testcontainers:testcontainers-postgresql:${testcontainersVersion}"

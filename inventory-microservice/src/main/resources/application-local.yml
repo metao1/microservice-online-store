@@ -6,8 +6,8 @@ spring:
   jpa:
     database: POSTGRESQL
     generate-ddl: true
+    open-in-view: false
     properties:
-      open-in-view: false
       hibernate:
         connection:
           provider_disables_autocommit: true

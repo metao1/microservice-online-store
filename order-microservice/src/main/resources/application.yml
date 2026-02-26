@@ -78,10 +78,10 @@ spring:
     clean-disabled: true
   jpa:
     database: POSTGRESQL
+    open-in-view: false
     generate-ddl: false
     show-sql: false
     properties:
-      open-in-view: false
       hibernate:
         connection:
           provider_disables_autocommit: true
@@ -115,6 +115,8 @@ kafka:
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%t]){yellow} %clr(:){red} %clr(%m){faint}%n"
   level:
+    org.apache.kafka.clients.consumer.ConsumerConfig: WARN
+    io.confluent.kafka.serializers.KafkaProtobufDeserializerConfig: WARN
     org.springframework.data: INFO
     org.springframework.boot.autoconfigure: ERROR
     org.hibernate: ERROR

@@ -79,8 +79,8 @@ spring:
   jpa:
     database: POSTGRESQL
     generate-ddl: false
+    open-in-view: false
     properties:
-      open-in-view: false
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc:

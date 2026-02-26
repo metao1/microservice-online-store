@@ -24,7 +24,9 @@ dependencies {
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.springframework.boot:spring-boot-test"
 
-  testImplementation project(':shared-test')
+  if (rootProject.findProject(':shared-test') != null) {
+    testImplementation project(':shared-test')
+  }
 }
 
 publishing {
