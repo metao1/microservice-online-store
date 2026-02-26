@@ -7,6 +7,7 @@ import com.metao.book.shared.ProductUpdatedEvent;
 import com.metao.kafka.KafkaClientProperties;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.common.TopicPartition;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,6 +26,8 @@ import org.springframework.util.backoff.FixedBackOff;
 public class KafkaConsumerConfig {
 
     private final KafkaClientProperties kafkaProperties;
+    @Value("${kafka.consumer.concurrency:1}")
+    private int consumerConcurrency;
 
     @Bean
     DeadLetterPublishingRecoverer productDlqRecoverer(KafkaTemplate<Object, Object> kafkaTemplate) {
@@ -41,7 +44,7 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public ConsumerFactory<String, ProductCreatedEvent> productPaymentEventConsumerFactory() {
+    public ConsumerFactory<String, ProductCreatedEvent> productCreatedEventConsumerFactory() {
         return createConsumerFactory(ProductCreatedEvent.class, kafkaProperties);
     }
 
@@ -52,15 +55,10 @@ public class KafkaConsumerConfig {
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, ProductCreatedEvent> productCreatedEventKafkaListenerContainerFactory(
-        ConsumerFactory<String, ProductCreatedEvent> productPaymentEventConsumerFactory,
+        ConsumerFactory<String, ProductCreatedEvent> productCreatedEventConsumerFactory,
         DefaultErrorHandler productErrorHandler
     ) {
-        ConcurrentKafkaListenerContainerFactory<String, ProductCreatedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(productPaymentEventConsumerFactory);
-        factory.setConcurrency(1);
-        factory.setCommonErrorHandler(productErrorHandler);
-
-        return factory;
+        return createListenerContainerFactory(productCreatedEventConsumerFactory, productErrorHandler);
     }
 
     @Bean
@@ -68,11 +66,17 @@ public class KafkaConsumerConfig {
         ConsumerFactory<String, ProductUpdatedEvent> productUpdatedEventConsumerFactory,
         DefaultErrorHandler productErrorHandler
     ) {
-        ConcurrentKafkaListenerContainerFactory<String, ProductUpdatedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(productUpdatedEventConsumerFactory);
-        factory.setConcurrency(1);
-        factory.setCommonErrorHandler(productErrorHandler);
+        return createListenerContainerFactory(productUpdatedEventConsumerFactory, productErrorHandler);
+    }
 
+    private <T> ConcurrentKafkaListenerContainerFactory<String, T> createListenerContainerFactory(
+        ConsumerFactory<String, T> consumerFactory,
+        DefaultErrorHandler errorHandler
+    ) {
+        var factory = new ConcurrentKafkaListenerContainerFactory<String, T>();
+        factory.setConsumerFactory(consumerFactory);
+        factory.setConcurrency(consumerConcurrency);
+        factory.setCommonErrorHandler(errorHandler);
         return factory;
     }
 

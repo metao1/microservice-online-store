@@ -32,6 +32,8 @@ public class KafkaConsumerConfig {
     private final KafkaClientProperties kafkaProperties;
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
+    @Value("${kafka.consumer.concurrency:1}")
+    private int consumerConcurrency;
 
     @Bean
     DeadLetterPublishingRecoverer orderDlqRecoverer(KafkaTemplate<Object, Object> kafkaTemplate) {
@@ -49,84 +51,61 @@ public class KafkaConsumerConfig {
 
     @Bean
     public ConsumerFactory<String, OrderPaymentEvent> orderPaymentEventConsumerFactory() {
-        var ps = kafkaProperties.getProperties();
-        var props = new HashMap<String, Object>();
-
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaProtobufDeserializer.class.getName());
-        props.put(KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_VALUE_TYPE, OrderPaymentEvent.class.getName());
-
-        props.putAll(ps);
-
-        return new DefaultKafkaConsumerFactory<>(props);
+        return createConsumerFactory(OrderPaymentEvent.class);
     }
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, OrderPaymentEvent> orderPaymentEventKafkaListenerContainerFactory(
         DefaultErrorHandler orderErrorHandler
     ) {
-        var factory = new ConcurrentKafkaListenerContainerFactory<String, OrderPaymentEvent>();
-        factory.setConsumerFactory(orderPaymentEventConsumerFactory());
-        factory.setConcurrency(3);
-        factory.getContainerProperties().setPollTimeout(3000);
-        factory.setCommonErrorHandler(orderErrorHandler);
-        return factory;
+        return createListenerContainerFactory(orderPaymentEventConsumerFactory(), orderErrorHandler);
     }
 
-    // Configuration for OrderCreatedEvent
     @Bean
     public ConsumerFactory<String, OrderCreatedEvent> orderCreatedEventConsumerFactory() {
-        var ps = kafkaProperties.getProperties();
-        var props = new HashMap<String, Object>();
-
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaProtobufDeserializer.class.getName());
-        props.put(KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_VALUE_TYPE, OrderCreatedEvent.class.getName());
-
-        props.putAll(ps);
-
-        return new DefaultKafkaConsumerFactory<>(props);
+        return createConsumerFactory(OrderCreatedEvent.class);
     }
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, OrderCreatedEvent> orderCreatedEventKafkaListenerContainerFactory(
         DefaultErrorHandler orderErrorHandler
     ) {
-        var factory = new ConcurrentKafkaListenerContainerFactory<String, OrderCreatedEvent>();
-        factory.setConsumerFactory(orderCreatedEventConsumerFactory());
-
-        factory.setConcurrency(3);
-        factory.getContainerProperties().setPollTimeout(3000);
-        factory.setCommonErrorHandler(orderErrorHandler);
-
-        return factory;
+        return createListenerContainerFactory(orderCreatedEventConsumerFactory(), orderErrorHandler);
     }
 
-    // Configuration for OrderCreatedEvent
     @Bean
     public ConsumerFactory<String, OrderUpdatedEvent> orderUpdatedEventConsumerFactory() {
-        var ps = kafkaProperties.getProperties();
-        var props = new HashMap<String, Object>();
-
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaProtobufDeserializer.class.getName());
-        props.put(KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_VALUE_TYPE, OrderUpdatedEvent.class.getName());
-
-        props.putAll(ps);
-
-        return new DefaultKafkaConsumerFactory<>(props);
+        return createConsumerFactory(OrderUpdatedEvent.class);
     }
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, OrderUpdatedEvent> orderUpdatedEventKafkaListenerContainerFactory(
         DefaultErrorHandler orderErrorHandler
     ) {
-        var factory = new ConcurrentKafkaListenerContainerFactory<String, OrderUpdatedEvent>();
-        factory.setConsumerFactory(orderUpdatedEventConsumerFactory());
-        factory.setConcurrency(3);
+        return createListenerContainerFactory(orderUpdatedEventConsumerFactory(), orderErrorHandler);
+    }
+
+    private <T> ConsumerFactory<String, T> createConsumerFactory(Class<T> eventType) {
+        var ps = kafkaProperties.getProperties();
+        var props = new HashMap<String, Object>();
+
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaProtobufDeserializer.class.getName());
+        props.put(KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_VALUE_TYPE, eventType.getName());
+
+        props.putAll(ps);
+
+        return new DefaultKafkaConsumerFactory<>(props);
+    }
+
+    private <T> ConcurrentKafkaListenerContainerFactory<String, T> createListenerContainerFactory(
+        ConsumerFactory<String, T> consumerFactory,
+        DefaultErrorHandler orderErrorHandler
+    ) {
+        var factory = new ConcurrentKafkaListenerContainerFactory<String, T>();
+        factory.setConsumerFactory(consumerFactory);
+        factory.setConcurrency(consumerConcurrency);
         factory.getContainerProperties().setPollTimeout(3000);
         factory.setCommonErrorHandler(orderErrorHandler);
         return factory;

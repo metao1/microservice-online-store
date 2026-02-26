@@ -45,7 +45,7 @@ class KafkaErrorHandlerConfigTest {
     @Test
     void listenerFactorySetsErrorHandler() {
         var factory = config.productCreatedEventKafkaListenerContainerFactory(
-            config.productPaymentEventConsumerFactory(),
+            config.productCreatedEventConsumerFactory(),
             config.productErrorHandler(
                 config.productDlqRecoverer(Mockito.mock(org.springframework.kafka.core.KafkaTemplate.class)))
         );
