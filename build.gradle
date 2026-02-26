@@ -27,7 +27,8 @@ subprojects {
     mavenCentral()
     maven { url "https://packages.confluent.io/maven/" }
   }
-  boolean isSpringProject = gradle.springBootProjects.contains(it.path)
+  List<String> springBootProjects = (gradle.ext.has('springBootProjects') ? gradle.springBootProjects : []) as List<String>
+  boolean isSpringProject = springBootProjects.contains(it.path)
   if (isSpringProject) {
     apply plugin: "org.springframework.boot"
     apply plugin: "io.spring.dependency-management"
@@ -122,18 +123,23 @@ subprojects {
 }
 
 tasks.register('buildDependencies') {
-  dependsOn ':shared-kernel:publishAllPublicationsToLocalRepository'
-  dependsOn ':kafka-lib:publishAllPublicationsToLocalRepository'
-  dependsOn ':shared-test:publishAllPublicationsToLocalRepository'
-  dependsOn ':inventory-microservice:build'
-  dependsOn ':payment-microservice:build'
-  dependsOn ':order-microservice:build'
-  dependsOn ':payment-microservice:build'
+  [':shared-kernel', ':kafka-lib', ':shared-test'].each { modulePath ->
+    if (findProject(modulePath) != null) {
+      dependsOn "${modulePath}:publishAllPublicationsToLocalRepository"
+    }
+  }
+  [':inventory-microservice', ':payment-microservice', ':order-microservice'].each { modulePath ->
+    if (findProject(modulePath) != null) {
+      dependsOn "${modulePath}:build"
+    }
+  }
 }
 
 tasks.named('build') {
   dependsOn ':buildDependencies'
-  dependsOn ':shared-kernel:build'
-  dependsOn ':kafka-lib:build'
-  dependsOn ':shared-test:build'
+  [':shared-kernel', ':kafka-lib', ':shared-test'].each { modulePath ->
+    if (findProject(modulePath) != null) {
+      dependsOn "${modulePath}:build"
+    }
+  }
 }

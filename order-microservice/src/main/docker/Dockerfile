@@ -4,17 +4,18 @@ FROM gradle:9-jdk21 AS build
 
 WORKDIR /workspace
 
-# Copy Gradle wrapper and root build files (preserve structure)
-COPY gradle /workspace/gradle
-COPY gradlew settings.gradle build.gradle /workspace/
-# Copy shared libs and this service sources
-COPY shared-kernel /workspace/shared-kernel
-COPY shared-test /workspace/shared-test
-COPY kafka-lib /workspace/kafka-lib
-COPY order-microservice /workspace/order-microservice
+COPY settings.gradle build.gradle gradle.properties /workspace/
+COPY shared-kernel/build.gradle /workspace/shared-kernel/build.gradle
+COPY shared-kernel/src/main /workspace/shared-kernel/src/main
+COPY kafka-lib/build.gradle /workspace/kafka-lib/build.gradle
+COPY kafka-lib/src/main /workspace/kafka-lib/src/main
+COPY order-microservice/build.gradle /workspace/order-microservice/build.gradle
+COPY order-microservice/src/main /workspace/order-microservice/src/main
 
 # Build layered fat jar (skip tests; they should run in CI)
-RUN ./gradlew :order-microservice:bootJar -x test --no-daemon --configuration-cache
+RUN --mount=type=cache,id=gradle-user-home,target=/home/gradle/.gradle \
+    --mount=type=cache,id=gradle-project-cache,target=/workspace/.gradle \
+    gradle :order-microservice:bootJar -x test --no-daemon --configuration-cache --build-cache --parallel
 # Extract layers for slimmer runtime image
 RUN java -Djarmode=layertools -jar order-microservice/build/libs/order-microservice.jar extract --destination /workspace/layers
 

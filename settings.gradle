@@ -8,24 +8,30 @@ pluginManagement {
 
 rootProject.name = 'microservice-online-store'
 
-include(':inventory-microservice')
-include(':payment-microservice')
-include(':order-microservice')
-include(':shared-kernel')
-include(':shared-test')
-include(':kafka-lib')
-include(':performance-loadtest')
+def includeIfDirExists = { String projectPath, String dirPath ->
+  File projectDir = file(dirPath)
+  if (projectDir.exists() && projectDir.isDirectory()) {
+    include(projectPath)
+    project(projectPath).projectDir = projectDir
+    return true
+  }
+  return false
+}
 
-project(":inventory-microservice").projectDir = file('inventory-microservice')
-project(":performance-loadtest").projectDir = file('performance-loadtest')
-project(":payment-microservice").projectDir = file('payment-microservice')
-project(":order-microservice").projectDir = file('order-microservice')
-project(":shared-kernel").projectDir = file('shared-kernel')
-project(":shared-test").projectDir = file('shared-test')
-project(":kafka-lib").projectDir = file('kafka-lib')
+def springBootProjects = []
+if (includeIfDirExists(':inventory-microservice', 'inventory-microservice')) {
+  springBootProjects << ':inventory-microservice'
+}
+if (includeIfDirExists(':payment-microservice', 'payment-microservice')) {
+  springBootProjects << ':payment-microservice'
+}
+if (includeIfDirExists(':order-microservice', 'order-microservice')) {
+  springBootProjects << ':order-microservice'
+}
 
-gradle.ext.springBootProjects = [
-    ':inventory-microservice',
-    ':payment-microservice',
-    ':order-microservice'
-]
+includeIfDirExists(':shared-kernel', 'shared-kernel')
+includeIfDirExists(':shared-test', 'shared-test')
+includeIfDirExists(':kafka-lib', 'kafka-lib')
+includeIfDirExists(':performance-loadtest', 'performance-loadtest')
+
+gradle.ext.springBootProjects = springBootProjects
