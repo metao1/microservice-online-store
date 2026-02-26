@@ -82,7 +82,7 @@ const CartPage: FC = () => {
   };
 
   const subtotal = getCartTotal() || 0;
-  const delivery = 0; // Free delivery
+  const delivery: number = 0; // Free delivery
   const total = subtotal + delivery;
   const totalItems = cart.items.reduce((acc, item) => acc + item.cartQuantity, 0);
   const currency = cart.items.length > 0 ? cart.items[0].currency : 'EUR';

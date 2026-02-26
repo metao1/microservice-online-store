@@ -42,8 +42,12 @@ export class MockApiClient extends BaseApiClient implements ApiClientContract {
     return this.categories.slice(offset, offset + limit);
   }
 
-  async getSubcategories(query: string, limit?: number, offset?: number): Promise<Category[]>{
-    return this.categories.slice(offset, offset + limit);
+  async getSubcategories(query: string, limit = 12, offset = 0): Promise<Category[]>{
+    const normalized = query.toLowerCase();
+    const filtered = this.categories.filter((category) =>
+      (category.name ?? '').toLowerCase().includes(normalized),
+    );
+    return filtered.slice(offset, offset + limit);
   }
 
   async getProductById(sku: string): Promise<Product> {
