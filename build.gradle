@@ -123,23 +123,22 @@ subprojects {
 }
 
 tasks.register('buildDependencies') {
-  [':shared-kernel', ':kafka-lib', ':shared-test'].each { modulePath ->
-    if (findProject(modulePath) != null) {
-      dependsOn "${modulePath}:publishAllPublicationsToLocalRepository"
-    }
-  }
-  [':inventory-microservice', ':payment-microservice', ':order-microservice'].each { modulePath ->
+  [':shared-kernel', ':kafka-lib', ':shared-test',
+   ':inventory-microservice', ':payment-microservice', ':order-microservice'].each { modulePath ->
     if (findProject(modulePath) != null) {
       dependsOn "${modulePath}:build"
     }
   }
 }
 
-tasks.named('build') {
-  dependsOn ':buildDependencies'
+tasks.register('publishLocalDependencies') {
   [':shared-kernel', ':kafka-lib', ':shared-test'].each { modulePath ->
     if (findProject(modulePath) != null) {
-      dependsOn "${modulePath}:build"
+      dependsOn "${modulePath}:publishToMavenLocal"
     }
   }
+}
+
+tasks.named('build') {
+  dependsOn ':buildDependencies'
 }
