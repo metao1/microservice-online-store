@@ -6,7 +6,7 @@
         "amazon-product-api": "^0.0.5",
         "axios": "^1.7.7",
         "bootstrap": "^5.3.3",
-        "http-proxy-middleware": "3.0.3",
+        "http-proxy-middleware": "3.0.5",
         "lodash": "^4.17.15",
         "prop-types": "^15.8.1",
         "react": "^18.3.1",
