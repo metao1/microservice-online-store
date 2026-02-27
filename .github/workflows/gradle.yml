@@ -4,9 +4,39 @@ on:
   push:
     branches:
       - '**'
+    paths:
+      - 'inventory-microservice/**'
+      - 'order-microservice/**'
+      - 'payment-microservice/**'
+      - 'kafka-lib/**'
+      - 'shared-kernel/**'
+      - 'shared-test/**'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - '.github/workflows/gradle.yml'
+      - '.github/workflows/test-coverage.yml'
   pull_request:
     branches:
       - '**'
+    paths:
+      - 'inventory-microservice/**'
+      - 'order-microservice/**'
+      - 'payment-microservice/**'
+      - 'kafka-lib/**'
+      - 'shared-kernel/**'
+      - 'shared-test/**'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - '.github/workflows/gradle.yml'
+      - '.github/workflows/test-coverage.yml'
 
 jobs:
   build:

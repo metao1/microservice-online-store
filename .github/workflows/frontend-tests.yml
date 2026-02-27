@@ -4,9 +4,15 @@ on:
   push:
     branches:
       - '**'
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-tests.yml'
   pull_request:
     branches:
       - '**'
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-tests.yml'
 jobs:
   test-frontend:
     runs-on: ubuntu-latest
