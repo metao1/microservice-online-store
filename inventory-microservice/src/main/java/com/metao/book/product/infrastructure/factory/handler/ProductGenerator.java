@@ -35,9 +35,7 @@ public class ProductGenerator {
     Resource resource;
 
     private final ObjectMapper dtoMapper;
-
-    private final ProductRepository productRepository;
-
+     private final ProductRepository productRepository;
     private final EntityManager entityManager;
 
     /**
