@@ -19,7 +19,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
       - name: Publish the libraries to maven
-        run: gradle publishToMavenLocal
+        run: ./gradlew publishToMavenLocal --no-configuration-cache
       - name: Build microservices and run tests with Gradle
         run: |          
           ./gradlew build
