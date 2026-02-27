@@ -3,14 +3,20 @@ name: Test Coverage Validation
 on:
   pull_request:
     branches:
-      - master
+      - '**'
     paths:
-      - 'inventory-microservice/src/**'
-      - 'order-microservice/src/**'
-      - 'payment-microservice/src/**'
-      - 'kafka-lib/src/**'
-      - 'shared-kernel/src/**'
-      - 'shared-test/src/**'
+      - 'inventory-microservice/**'
+      - 'order-microservice/**'
+      - 'payment-microservice/**'
+      - 'kafka-lib/**'
+      - 'shared-kernel/**'
+      - 'shared-test/**'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'gradlew.bat'
       - '.github/workflows/test-coverage.yml'
 
 jobs:
@@ -59,4 +65,3 @@ jobs:
               repo: context.repo.repo,
               body: `📊 **Test Coverage Report**\n\n✓ All tests passed\n📈 Coverage: ${coverage}%\n\n> See [plan-strengthenInventoryMicroserviceTestCoverage.prompt.md](../../plan-strengthenInventoryMicroserviceTestCoverage.prompt.md) for coverage improvement goals.`
             });
-
