@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.kafka.annotation.DltHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
 import org.springframework.stereotype.Component;
@@ -81,5 +82,15 @@ public class ProductKafkaListenerComponent {
 
         log.info("Inventory reduced for sku {} by {} (event {}).",
             productUpdatedEvent.getSku(), productUpdatedEvent.getVolume(), eventId);
+    }
+
+    @DltHandler
+    public void onProductCreatedDlt(ConsumerRecord<String, ProductCreatedEvent> event) {
+        log.error("Product created event sent to DLT: key={}, value={}", event.key(), event.value());
+    }
+
+    @DltHandler
+    public void onProductUpdatedDlt(ConsumerRecord<String, ProductUpdatedEvent> event) {
+        log.error("Product updated event sent to DLT: key={}, value={}", event.key(), event.value());
     }
 }
