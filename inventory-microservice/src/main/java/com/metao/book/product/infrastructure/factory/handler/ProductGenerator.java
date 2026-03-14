@@ -1,16 +1,17 @@
 package com.metao.book.product.infrastructure.factory.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.metao.book.product.application.dto.CreateProductCommand;
 import com.metao.book.product.application.dto.ProductDTO;
 import com.metao.book.product.application.mapper.ProductApplicationMapper;
-import com.metao.book.product.domain.model.aggregate.ProductAggregate;
-import com.metao.book.product.domain.repository.ProductRepository;
+import com.metao.book.product.application.service.CreateProductResult;
+import com.metao.book.product.application.service.ProductDomainService;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -34,8 +35,8 @@ public class ProductGenerator {
     @Value("classpath:data/products.txt")
     Resource resource;
 
+    private final ProductDomainService productDomainService;
     private final ObjectMapper dtoMapper;
-     private final ProductRepository productRepository;
     private final EntityManager entityManager;
 
     /**
@@ -54,11 +55,12 @@ public class ProductGenerator {
     @Transactional
     public void loadProducts() {
         log.info("importing products data from resources");
-        final List<ProductAggregate> products;
+        final List<CreateProductCommand> products;
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
             products = reader.lines()
                 .map(this::parseProduct)
                 .filter(Objects::nonNull)
+                .map(this::toCommand)
                 .toList();
         } catch (IOException e) {
             log.error("Error reading products file", e);
@@ -72,32 +74,25 @@ public class ProductGenerator {
         int savedCount = 0;
         int skippedDuplicateCount = 0;
         int processed = 0;
-        for (ProductAggregate product : products) {
+        for (CreateProductCommand product : products) {
             try {
-                boolean inserted = productRepository.insertIfAbsent(product);
-                if (!inserted) {
+                var createProductResult = productDomainService.createProduct(product);
+                if (createProductResult.equals(CreateProductResult.ALREADY_EXISTS)) {
                     skippedDuplicateCount++;
-                    log.warn("Skipping duplicate product SKU: {}", product.getId());
                 } else {
                     savedCount++;
-                    log.debug("Saved product: {}", product.getId());
                 }
             } catch (Exception e) {
-                log.error("Failed to save product: {}", product.getId(), e);
+                log.error("Failed to save product: {}", product, e);
             }
 
             processed++;
             if (processed % batchSize == 0) {
-                // Flush and clear session every batch
-                productRepository.flush();
-                entityManager.clear();
                 log.info("Saved batch {}/{}", processed, products.size());
             }
         }
 
         if (processed % batchSize != 0) {
-            productRepository.flush();
-            entityManager.clear();
             log.info("Saved batch {}/{}", processed, products.size());
         }
 
@@ -109,7 +104,21 @@ public class ProductGenerator {
         );
     }
 
-    private ProductAggregate parseProduct(String str) {
+    private CreateProductCommand toCommand(ProductDTO dto) {
+        return new CreateProductCommand(
+            dto.sku(),
+            dto.title(),
+            dto.description(),
+            dto.imageUrl(),
+            dto.price(),
+            dto.currency(),
+            dto.volume(),
+            dto.createdTime(),
+            dto.categories()
+        );
+    }
+
+    private ProductDTO parseProduct(String str) {
         try {
             ProductDTO productDto = dtoMapper.readValue(str, ProductDTO.class);
             productDto = ProductDTO.builder()
@@ -120,9 +129,10 @@ public class ProductGenerator {
                 .price(productDto.price())
                 .currency(productDto.currency())
                 .categories(productDto.categories())
-                .volume(BigDecimal.ZERO)
+                .createdTime(Instant.now())
+                .volume(productDto.volume())
                 .build();
-            return ProductApplicationMapper.toDomain(productDto);
+            return ProductApplicationMapper.validateAndSetDefault(productDto);
         } catch (Exception e) {
             log.error("Error parsing product: {}", str, e);
             return null;

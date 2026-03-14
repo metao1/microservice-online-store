@@ -3,7 +3,6 @@ package com.metao.book.order.application.config;
 import com.metao.book.shared.OrderCreatedEvent;
 import com.metao.book.shared.OrderPaymentEvent;
 import com.metao.book.shared.OrderUpdatedEvent;
-import com.metao.kafka.KafkaClientProperties;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
 import java.util.HashMap;
@@ -12,6 +11,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
@@ -29,9 +29,8 @@ import org.springframework.util.backoff.FixedBackOff;
 @ConditionalOnProperty(value = "kafka.enabled", havingValue = "true", matchIfMissing = true)
 public class KafkaConsumerConfig {
 
-    private final KafkaClientProperties kafkaProperties;
-    @Value("${spring.kafka.bootstrap-servers}")
-    private String bootstrapServers;
+    private final KafkaProperties kafkaProperties;
+
     @Value("${kafka.consumer.concurrency:1}")
     private int consumerConcurrency;
 
@@ -56,9 +55,10 @@ public class KafkaConsumerConfig {
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, OrderPaymentEvent> orderPaymentEventKafkaListenerContainerFactory(
-        DefaultErrorHandler orderErrorHandler
+        DefaultErrorHandler orderErrorHandler,
+        ConsumerFactory<String, OrderPaymentEvent> orderPaymentEventConsumerFactory
     ) {
-        return createListenerContainerFactory(orderPaymentEventConsumerFactory(), orderErrorHandler);
+        return createListenerContainerFactory(orderPaymentEventConsumerFactory, orderErrorHandler);
     }
 
     @Bean
@@ -67,35 +67,33 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, OrderCreatedEvent> orderCreatedEventKafkaListenerContainerFactory(
-        DefaultErrorHandler orderErrorHandler
-    ) {
-        return createListenerContainerFactory(orderCreatedEventConsumerFactory(), orderErrorHandler);
-    }
-
-    @Bean
     public ConsumerFactory<String, OrderUpdatedEvent> orderUpdatedEventConsumerFactory() {
         return createConsumerFactory(OrderUpdatedEvent.class);
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, OrderUpdatedEvent> orderUpdatedEventKafkaListenerContainerFactory(
-        DefaultErrorHandler orderErrorHandler
+    public ConcurrentKafkaListenerContainerFactory<String, OrderCreatedEvent> orderCreatedEventKafkaListenerContainerFactory(
+        DefaultErrorHandler orderErrorHandler,
+        ConsumerFactory<String, OrderCreatedEvent> orderCreatedEventConsumerFactory
     ) {
-        return createListenerContainerFactory(orderUpdatedEventConsumerFactory(), orderErrorHandler);
+        return createListenerContainerFactory(orderCreatedEventConsumerFactory, orderErrorHandler);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, OrderUpdatedEvent> orderUpdatedEventKafkaListenerContainerFactory(
+        DefaultErrorHandler orderErrorHandler,
+        ConsumerFactory<String, OrderUpdatedEvent> orderUpdatedEventConsumerFactory
+    ) {
+        return createListenerContainerFactory(orderUpdatedEventConsumerFactory, orderErrorHandler);
     }
 
     private <T> ConsumerFactory<String, T> createConsumerFactory(Class<T> eventType) {
-        var ps = kafkaProperties.getProperties();
         var props = new HashMap<String, Object>();
-
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaProtobufDeserializer.class.getName());
         props.put(KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_VALUE_TYPE, eventType.getName());
-
-        props.putAll(ps);
-
+        props.putAll(kafkaProperties.getProperties());
         return new DefaultKafkaConsumerFactory<>(props);
     }
 

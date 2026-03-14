@@ -6,13 +6,16 @@ import static org.awaitility.Awaitility.await;
 import com.metao.shared.test.KafkaContainer;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
 import lombok.SneakyThrows;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.PartitionInfo;
@@ -71,6 +74,9 @@ class KafkaIntegrationIT extends KafkaContainer {
                 List<PartitionInfo> partitions = kafkaTemplate.partitionsFor(kafkaTopic);
                 int partition = Math.abs(createdEventTest.getId().hashCode()) % partitions.size();
                 ConsumerFactory<String, CreatedEventTest> bean = beanFactory.getBean(ConsumerFactory.class);
+                Map<String, Object> props = new HashMap<>();
+                props.put(KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_VALUE_TYPE, CreatedEventTest.class);
+                bean.updateConfigs(props);
                 kafkaTemplate.setConsumerFactory(bean);
                 var event = kafkaTemplate.receive(kafkaTopic, partition, 0);
                 assertThat(event)

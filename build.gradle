@@ -11,7 +11,7 @@ plugins {
 ext {
   micrometerVersion = "1.16.2"
   testcontainersVersion = "2.0.2"
-  springBootDependenciesVersion = "4.0.2"
+  springBootDependenciesVersion = "4.0.3"
   resilience4jVersion = "2.2.0"
 }
 
@@ -38,6 +38,7 @@ subprojects {
         exclude group: "org.springframework.boot", module: "spring-boot-starter-logging"
       }
       implementation "org.springframework.boot:spring-boot-autoconfigure"
+      implementation "org.springframework.boot:spring-boot-kafka"
       implementation "commons-codec:commons-codec:1.17.1"
       implementation "io.github.resilience4j:resilience4j-spring-boot3:${resilience4jVersion}"
 
@@ -118,6 +119,21 @@ subprojects {
     reports {
       xml.required = true
       html.required = true
+    }
+  }
+
+  // Gradle configuration cache currently doesn't support Maven publishing tasks in this build.
+  // Keep config cache enabled for normal builds, but opt publishing tasks out so `publishToMavenLocal`
+  // works without requiring `--no-configuration-cache`.
+  plugins.withId('maven-publish') {
+    tasks.withType(org.gradle.api.publish.maven.tasks.GenerateMavenPom).configureEach {
+      notCompatibleWithConfigurationCache("maven-publish POM generation is not configuration-cache compatible in this build")
+    }
+    tasks.withType(org.gradle.api.publish.maven.tasks.PublishToMavenLocal).configureEach {
+      notCompatibleWithConfigurationCache("maven-publish is not configuration-cache compatible in this build")
+    }
+    tasks.withType(org.gradle.api.publish.maven.tasks.PublishToMavenRepository).configureEach {
+      notCompatibleWithConfigurationCache("maven-publish is not configuration-cache compatible in this build")
     }
   }
 }

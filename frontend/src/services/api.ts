@@ -227,7 +227,7 @@ class RemoteApiClient extends BaseApiClient implements ApiClientContract {
               description: productDetails.description || 'Product description',
               rating: productDetails.rating || 4.5,
               reviews: productDetails.reviews || 100,
-              inStock: productDetails.inStock !== false,
+              inStock: productDetails.inStock,
               quantity: productDetails.quantity || 10,
               cartQuantity: item.quantity,
             };
@@ -277,7 +277,7 @@ class RemoteApiClient extends BaseApiClient implements ApiClientContract {
                 description: productDetails.description || 'Product description',
                 rating: productDetails.rating || 4.5,
                 reviews: productDetails.reviews || 100,
-                inStock: productDetails.inStock !== false,
+                inStock: productDetails.inStock,
                 quantity: productDetails.quantity || 10,
                 cartQuantity: item.quantity,
               };

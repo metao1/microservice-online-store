@@ -26,6 +26,8 @@ FROM gcr.io/distroless/java21-debian12 AS payment-microservice
 # Set working directory
 WORKDIR /app
 
+EXPOSE 8084
+
 # Copy layers separately to leverage Docker cache
 COPY --from=build /workspace/layers/dependencies/ /workspace/layers/snapshot-dependencies/ /workspace/layers/spring-boot-loader/ /workspace/layers/application/ ./
 

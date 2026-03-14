@@ -5,7 +5,7 @@ plugins {
 }
 
 ext {
-  springBootDependenciesVersion = "4.0.2"
+  springBootDependenciesVersion = "4.0.3"
 }
 
 def commitRefName = System.getenv("CI_COMMIT_REF_NAME") ?: "1.0"
@@ -19,9 +19,11 @@ dependencies {
 
   implementation "org.springframework.boot:spring-boot-starter-actuator"
 
-  implementation "io.confluent:kafka-protobuf-serializer:7.8.0"
+  implementation "io.confluent:kafka-protobuf-serializer:8.1.1"
+  implementation 'org.springframework.boot:spring-boot-starter-kafka'
 
   testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "org.springframework.kafka:spring-kafka-test"
   testImplementation "org.springframework.boot:spring-boot-test"
 
   if (rootProject.findProject(':shared-test') != null) {
@@ -57,9 +59,9 @@ sourceSets {
 protobuf {
   protoc {
     if (osdetector.os == "osx") {
-      artifact = 'com.google.protobuf:protoc:3.25.5:osx-x86_64'
+      artifact = 'com.google.protobuf:protoc:4.31.1:osx-x86_64'
     } else {
-      artifact = 'com.google.protobuf:protoc:3.25.5'
+      artifact = 'com.google.protobuf:protoc:4.31.1'
     }
   }
 

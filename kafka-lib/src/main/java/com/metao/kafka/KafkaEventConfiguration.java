@@ -1,7 +1,6 @@
 package com.metao.kafka;
 
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
-import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
 import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,9 +14,9 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -27,19 +26,14 @@ import org.springframework.kafka.core.ProducerFactory;
 
 @Getter
 @Setter
-@EnableKafka
 @AutoConfiguration
 @ConfigurationProperties("kafka")
 @ConditionalOnClass(KafkaTemplate.class)
-@EnableConfigurationProperties(KafkaClientProperties.class)
+@EnableConfigurationProperties(KafkaProperties.class)
 public class KafkaEventConfiguration {
 
     private Map<String, String> classToTopicMap;
     private Map<String, KafkaPropertyTopic> topic;
-
-    record KafkaPropertyTopic(String id, String name, String groupId, String classPath) {
-
-    }
 
     @PostConstruct
     public void init() {
@@ -49,6 +43,9 @@ public class KafkaEventConfiguration {
         );
     }
 
+    record KafkaPropertyTopic(String id, String name, String groupId, String classPath) {
+
+    }
     @Bean
     @Primary
     public <K, V> KafkaTemplate<K, V> kafkaTemplate(
@@ -59,24 +56,31 @@ public class KafkaEventConfiguration {
 
     @Bean
     <K, V> ProducerFactory<K, V> producerFactory(
-        KafkaClientProperties kafkaProperties,
-        @Value("${spring.kafka.properties.schema.registry.url}") String schemaRegistryUrl
+        KafkaProperties kafkaProperties,
+        @Value("${spring.kafka.properties.schema.registry.url}") String schemaRegistryUrl,
+        @Value("${spring.kafka.producer.transaction-id-prefix:}") String transactionIdPrefix
     ) {
         var bootstrapServers = kafkaProperties.getBootstrapServers();
-        Map<String, Object> configProps = new HashMap<>();
-        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+        var ps = kafkaProperties.getProperties();
+        Map<String, Object> props = new HashMap<>();
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
             org.apache.kafka.common.serialization.StringSerializer.class);
-        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
             io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer.class);
-        configProps.put("schema.registry.url", schemaRegistryUrl);
+        props.put("schema.registry.url", schemaRegistryUrl);
+        props.putAll(ps);
 
-        return new DefaultKafkaProducerFactory<>(configProps);
+        var factory = new DefaultKafkaProducerFactory<K, V>(props);
+        if (transactionIdPrefix != null && !transactionIdPrefix.isBlank()) {
+            factory.setTransactionIdPrefix(transactionIdPrefix);
+        }
+        return factory;
     }
 
     @Bean
     public <K, V> ConcurrentKafkaListenerContainerFactory<K, V> kafkaListenerContainerFactory(
-        KafkaClientProperties kafkaProperties,
+        KafkaProperties kafkaProperties,
         @Value("${spring.kafka.properties.schema.registry.url}") String schemaRegistryUrl
     ) {
         var ps = kafkaProperties.getProperties();
@@ -102,9 +106,9 @@ public class KafkaEventConfiguration {
         return factory;
     }
 
-    public static <T> ConsumerFactory<String, T> createConsumerFactory(
-        Class<T> clazz,
-        KafkaClientProperties kafkaProperties
+    @Bean
+    public <T> ConsumerFactory<String, T> consumerFactory(
+        KafkaProperties kafkaProperties
     ) {
         var bootstrapServers = kafkaProperties.getBootstrapServers();
         var ps = kafkaProperties.getProperties();
@@ -113,7 +117,6 @@ public class KafkaEventConfiguration {
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaProtobufDeserializer.class.getName());
-        props.put(KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_VALUE_TYPE, clazz.getName());
         props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 300000); // Increase poll interval
         props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 10); // Reduce poll records
 

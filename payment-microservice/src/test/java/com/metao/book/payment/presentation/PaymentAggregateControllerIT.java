@@ -10,8 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.metao.book.payment.domain.model.valueobject.PaymentId;
 import com.metao.book.payment.domain.repository.PaymentRepository;
 import com.metao.shared.test.KafkaContainer;
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +17,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

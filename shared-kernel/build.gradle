@@ -5,7 +5,7 @@ plugins {
 }
 
 ext {
-  springBootDependenciesVersion = "4.0.2"
+  springBootDependenciesVersion = "4.0.3"
 }
 
 def commitRefName = System.getenv("CI_COMMIT_REF_NAME") ?: "1.0"
@@ -34,7 +34,7 @@ dependencies {
   testImplementation "io.micrometer:micrometer-registry-prometheus"
 
   // Protobuf runtime needed by generated domain events
-  api "com.google.protobuf:protobuf-java:3.25.5"
+  api "com.google.protobuf:protobuf-java:4.31.1"
 
 }
 
@@ -66,9 +66,9 @@ sourceSets {
 protobuf {
   protoc {
     if (osdetector.os == "osx") {
-      artifact = 'com.google.protobuf:protoc:3.25.5:osx-x86_64'
+      artifact = 'com.google.protobuf:protoc:4.31.1:osx-x86_64'
     } else {
-      artifact = 'com.google.protobuf:protoc:3.25.5'
+      artifact = 'com.google.protobuf:protoc:4.31.1'
     }
   }
 

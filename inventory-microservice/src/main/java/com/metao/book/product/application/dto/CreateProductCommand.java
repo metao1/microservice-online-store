@@ -26,7 +26,10 @@ public record CreateProductCommand(
     String description,
 
     @NotBlank
-    @Pattern(regexp = "https?://[/|.\\w-]+\\.(?:jpg|gif|png|JPG|GIF|PNG)", message = "Invalid image URL format")
+    @Pattern(
+        regexp = "https?://\\S+?\\.(jpg|jpeg|png|gif|webp|svg|bmp|tiff?|avif|ico)(\\?\\S*)?$",
+        message = "Invalid image URL format"
+    )
     String imageUrl,
 
     @NotNull

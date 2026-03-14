@@ -242,7 +242,7 @@ const CartPage: FC = () => {
                 </div>
                 <div className="price-row">
                   <span>Delivery</span>
-                  <span>{delivery === 0 ? '0,00 €' : `${delivery.toFixed(2)} ${currency}`}</span>
+                  <span>{delivery.toFixed(2)} {currency}</span>
                 </div>
                 <div className="price-row total-row">
                   <span>Total <span className="vat-note">VAT included</span></span>
