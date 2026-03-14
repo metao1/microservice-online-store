@@ -1,19 +1,14 @@
 package com.metao.book.product.infrastructure.factory.handler;
 
 import com.metao.book.product.ProductCreatedEvent;
-import com.metao.book.product.application.dto.CreateProductCommand;
 import com.metao.book.product.application.service.ProductDomainService;
 import com.metao.book.product.infrastructure.persistence.repository.ProcessedInventoryEventRepository;
-import com.metao.book.shared.CategoryOuterClass.Category;
 import com.metao.book.shared.ProductUpdatedEvent;
+import io.micrometer.core.annotation.Timed;
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.Currency;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import io.micrometer.core.annotation.Timed;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
@@ -51,24 +46,6 @@ public class ProductKafkaListenerComponent {
             log.info("Product created event {} already processed, skipping.", eventId);
             return;
         }
-        // This would require mapping from ProductCreatedEvent to CreateProductCommand
-        var command = new CreateProductCommand(
-            productCreatedEvent.getSku(),
-            productCreatedEvent.getTitle(),
-            productCreatedEvent.getDescription(),
-            productCreatedEvent.getImageUrl(),
-            BigDecimal.valueOf(productCreatedEvent.getPrice()),
-            Currency.getInstance(productCreatedEvent.getCurrency()),
-            BigDecimal.valueOf(productCreatedEvent.getVolume()),
-            Instant.ofEpochSecond(productCreatedEvent.getCreateTime().getSeconds(),
-                productCreatedEvent.getCreateTime().getNanos()),
-
-            productCreatedEvent.getCategoriesList()
-                .stream()
-                .map(Category::getName)
-                .collect(Collectors.toSet())
-        );
-        productService.createProduct(command);
         log.info("Product created event received for SKU: {}", productCreatedEvent.getSku());
     }
 

@@ -28,7 +28,8 @@ public class OrderCreatedEventListener {
     @KafkaListener(
         id = "${kafka.topic.order-created.id}",
         topics = "${kafka.topic.order-created.name}",
-        groupId = "${kafka.topic.order-created.group-id}"
+        groupId = "${kafka.topic.order-created.group-id}",
+        containerFactory = "orderCreatedEventKafkaListenerContainerFactory"
     )
     public void handleOrderCreatedEvent(OrderCreatedEvent orderEvent) {
         log.info("Received OrderCreatedEvent for order item: {}, product: {}", orderEvent.getId(),

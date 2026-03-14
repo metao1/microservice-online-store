@@ -6,6 +6,7 @@ import com.metao.book.order.domain.model.event.DomainOrderCreatedEvent;
 import com.metao.book.shared.OrderCreatedEvent;
 import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.domain.base.ProtobufDomainTranslator;
+import java.time.ZoneOffset;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -19,7 +20,7 @@ public class OrderCreatedEventTranslator implements ProtobufDomainTranslator {
             .setCustomerId(domainEvent.getCustomerId().getValue())
             .setStatus(OrderCreatedEvent.Status.NEW)
             .setCreateTime(Timestamp.newBuilder()
-                .setSeconds(domainEvent.getOccurredOn().atZone(java.time.ZoneOffset.UTC).toEpochSecond())
+                    .setSeconds(domainEvent.getOccurredOn().atZone(ZoneOffset.UTC).toEpochSecond())
                 .setNanos(domainEvent.getOccurredOn().getNano())
                 .build())
             .build();

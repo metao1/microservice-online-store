@@ -21,24 +21,26 @@ import org.apache.kafka.common.acl.AclOperation;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.availability.AvailabilityChangeEvent;
 import org.springframework.boot.availability.LivenessState;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.Health.Builder;
 import org.springframework.boot.health.contributor.HealthIndicator;
+import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component("kafkaTopics")
 @RequiredArgsConstructor
+@EnableConfigurationProperties(KafkaProperties.class)
 @ConditionalOnProperty(name = "kafka.enabled", havingValue = "true", matchIfMissing = true)
 public class KafkaTopicHealthIndicator implements HealthIndicator {
 
-    private final KafkaClientProperties kafkaProperties;
     private final ApplicationEventPublisher eventPublisher;
     private AdminClient adminClient;
 
     @PostConstruct
-    public void init() {
+    public void init(KafkaProperties kafkaProperties) {
         final Properties adminProperties = new Properties();
         adminProperties.putAll(kafkaProperties.buildAdminProperties());
         adminClient = AdminClient.create(adminProperties);

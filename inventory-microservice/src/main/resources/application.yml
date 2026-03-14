@@ -31,18 +31,21 @@ spring:
   kafka:
     # Required connection configs for Kafka producer, consumer, and admin
     bootstrap-servers: ${BOOTSTRAP_SERVERS}
-    # Required connection configs for Confluent Cloud Schema Registry
     properties:
       schema.registry.url: ${SCHEMA_REGISTRY_URL}
+      basic.auth.credentials.source: USER_INFO
+      basic.auth.user.info: ${SCHEMA_REGISTRY_AUTH}
       security.protocol: ${SECURITY_PROTOCOL}
-      #sasl.mechanism: ${SASL_MECHANISM}
+      sasl.mechanism: ${SASL_MECHANISM}
+      schema.registry.ssl.truststore.location: ${SASL_TRUSTSTORE_LOCATION}
+      schema.registry.ssl.truststore.password: ${TRUSTSTORE_PASSWORD}
+      schema.registry.ssl.truststore.type: JKS
+      schema.registry.ssl.endpoint.identification.algorithm: https
       ssl.truststore.type: ${SASL_TRUSTSTORE_TYPE}
-      ssl.keystore.type: ${SASL_KEYSTORE_TYPE}
+      ssl.endpoint.identification.algorithm: "https"
       ssl.truststore.location: ${SASL_TRUSTSTORE_LOCATION}
-      ssl.keystore.location: ${SASL_KEYSTORE_LOCATION}
-      #ssl.truststore.password: ${SASL_KEYSTORE_PASSWORD}
-      #ssl.keystore.password: ${SASL_KEYSTORE_PASSWORD}
-      #sasl.jaas.config: ${SASL_JAAS_CONFIG}
+      ssl.truststore.password: ${TRUSTSTORE_PASSWORD}
+      sasl.jaas.config: "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"${SASL_USERNAME}\" password=\"${SASL_PASSWORD}\";"
     consumer:
       key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
@@ -53,10 +56,9 @@ spring:
       properties:
         session.timeout.ms: 30000
         max.poll.interval.ms: 300
-        max.idle.time.ms: 60000
         heartbeat.interval.ms: 1000
         auto.offset.reset: latest
-        allow.auto.create.topics: 'false'
+        allow.auto.create.topics: 'true'
         spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
         spring.deserializer.value.delegate.class: io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer
     producer:

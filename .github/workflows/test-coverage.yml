@@ -1,6 +1,23 @@
 name: Test Coverage Validation
 
 on:
+  push:
+    branches:
+      - '**'
+    paths:
+      - 'inventory-microservice/**'
+      - 'order-microservice/**'
+      - 'payment-microservice/**'
+      - 'kafka-lib/**'
+      - 'shared-kernel/**'
+      - 'shared-test/**'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - '.github/workflows/test-coverage.yml'
   pull_request:
     branches:
       - '**'

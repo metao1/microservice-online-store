@@ -44,7 +44,7 @@ public class ProductController {
     private final ProductApplicationMapper productMapper;
 
     @GetMapping(value = "/{sku}")
-    public ProductDTO getProduct(@PathVariable @Valid @NotBlank ProductSku sku) {
+    public ProductDTO getProduct(@PathVariable @Valid @NotBlank String sku) {
         log.info("Getting product with SKU: {}", sku);
         ProductAggregate product = productDomainService.getProductBySku(sku);
         return productMapper.toDTO(product);
@@ -65,6 +65,7 @@ public class ProductController {
     ) {
         log.debug("Creating product: {}", dto);
         var createdTime = Instant.now();
+
         var command = new CreateProductCommand(
             dto.sku(),
             dto.title(),
@@ -82,7 +83,7 @@ public class ProductController {
             .buildAndExpand(dto.sku())
             .toUri();
 
-        CreateProductResult result = productDomainService.createProduct(command, idempotencyKey);
+        var result = productDomainService.createProduct(command, idempotencyKey);
         if (result == null) {
             result = CreateProductResult.CREATED;
         }

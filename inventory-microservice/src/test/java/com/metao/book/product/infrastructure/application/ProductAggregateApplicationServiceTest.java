@@ -30,7 +30,6 @@ import com.metao.book.product.infrastructure.persistence.repository.ProductCreat
 import com.metao.book.product.infrastructure.persistence.repository.ProductCreateIdempotencyRepository.ClaimResult;
 import com.metao.book.shared.domain.base.DomainEventPublisher;
 import com.metao.book.shared.domain.financial.Money;
-import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.domain.product.Quantity;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -77,7 +76,7 @@ class ProductAggregateApplicationServiceTest {
             .thenReturn(Optional.empty());
 
         assertThrows(ProductNotFoundException.class, () ->
-            productService.getProductBySku(SKU)
+            productService.getProductBySku(SKU.toString())
         );
 
         verify(productRepository).findBySku(SKU);
@@ -87,7 +86,7 @@ class ProductAggregateApplicationServiceTest {
     void testGetProductsByCategory() {
         var generatedProducts = ProductDtoGeneratorUtils.buildMultipleProducts(50)
             .stream()
-            .map(ProductApplicationMapper::toDomain)
+            .map(ProductApplicationMapper::validateAndSetDefault)
             .toList();
 
         when(productRepository.findByCategory(CATEGORY, 0, 50))
@@ -112,12 +111,12 @@ class ProductAggregateApplicationServiceTest {
             "description",
             CATEGORY
         );
-        var product = ProductApplicationMapper.toDomain(pe);
+        var product = ProductApplicationMapper.validateAndSetDefault(pe);
 
         when(productRepository.findBySku(SKU))
             .thenReturn(Optional.of(product));
 
-        assertThat(productService.getProductBySku(SKU))
+        assertThat(productService.getProductBySku(SKU.toString()))
             .isNotNull()
             .usingRecursiveComparison()
             .isEqualTo(product);
@@ -182,7 +181,7 @@ class ProductAggregateApplicationServiceTest {
     void updateProduct_whenProductExists_shouldUpdateProduct() {
         // GIVEN
         CreateProductDto originalProductDto = ProductDtoGeneratorUtils.buildOneProduct();
-        var existingProduct = ProductApplicationMapper.toDomain(originalProductDto);
+        var existingProduct = ProductApplicationMapper.validateAndSetDefault(originalProductDto);
         when(productRepository.findBySku(SKU)).thenReturn(Optional.of(existingProduct));
 
         CreateProductDto updatedProductDto = ProductDtoGeneratorUtils.buildOneProduct(
@@ -342,7 +341,7 @@ class ProductAggregateApplicationServiceTest {
         void updateProduct_onlyPrice_shouldUpdateSuccessfully() {
             // GIVEN
             CreateProductDto originalDto = ProductDtoGeneratorUtils.buildOneProduct();
-            ProductAggregate existingProduct = ProductApplicationMapper.toDomain(originalDto);
+            ProductAggregate existingProduct = ProductApplicationMapper.validateAndSetDefault(originalDto);
 
             when(productRepository.findBySku(SKU)).thenReturn(Optional.of(existingProduct));
 
@@ -380,7 +379,7 @@ class ProductAggregateApplicationServiceTest {
             String keyword = "book";
             List<ProductAggregate> expectedProducts = ProductDtoGeneratorUtils.buildMultipleProducts(5)
                 .stream()
-                .map(ProductApplicationMapper::toDomain)
+                .map(ProductApplicationMapper::validateAndSetDefault)
                 .toList();
 
             when(productRepository.searchByKeyword(keyword, 0, 10))
@@ -414,7 +413,7 @@ class ProductAggregateApplicationServiceTest {
             // GIVEN
             List<ProductAggregate> expectedProducts = ProductDtoGeneratorUtils.buildMultipleProducts(20)
                 .stream()
-                .map(ProductApplicationMapper::toDomain)
+                .map(ProductApplicationMapper::validateAndSetDefault)
                 .toList();
 
             when(productRepository.findByCategory(CATEGORY, 10, 10))
@@ -445,11 +444,11 @@ class ProductAggregateApplicationServiceTest {
             // GIVEN
             List<ProductAggregate> relatedProducts = ProductDtoGeneratorUtils.buildMultipleProducts(5)
                 .stream()
-                .map(ProductApplicationMapper::toDomain)
+                .map(ProductApplicationMapper::validateAndSetDefault)
                 .toList();
 
             // Stub repository lookup path used by real service
-            var baseProduct = ProductApplicationMapper.toDomain(ProductDtoGeneratorUtils.buildOneProduct(
+            var baseProduct = ProductApplicationMapper.validateAndSetDefault(ProductDtoGeneratorUtils.buildOneProduct(
                 SKU, "title", "description", CATEGORY));
             when(productRepository.findBySku(SKU)).thenReturn(Optional.of(baseProduct));
             when(productRepository.findByCategories(anyList(), anyInt(), anyInt()))
@@ -491,7 +490,7 @@ class ProductAggregateApplicationServiceTest {
                 "description",
                 CATEGORY
             );
-            var product = ProductApplicationMapper.toDomain(pe);
+            var product = ProductApplicationMapper.validateAndSetDefault(pe);
 
             var testCategory = ProductCategory.of(CategoryId.of(UUID.randomUUID().toString()), CATEGORY);
 
@@ -539,7 +538,7 @@ class ProductAggregateApplicationServiceTest {
         void reduceProductVolume_withValidInputs_shouldReduceSuccessfully() {
             // GIVEN
             CreateProductDto productDto = ProductDtoGeneratorUtils.buildOneProduct();
-            ProductAggregate existingProduct = ProductApplicationMapper.toDomain(productDto);
+            ProductAggregate existingProduct = ProductApplicationMapper.validateAndSetDefault(productDto);
 
             when(productRepository.findBySku(SKU))
                 .thenReturn(Optional.of(existingProduct));
@@ -596,7 +595,7 @@ class ProductAggregateApplicationServiceTest {
         void increaseProductVolume_withValidInputs_shouldIncreaseSuccessfully() {
             // GIVEN
             CreateProductDto productDto = ProductDtoGeneratorUtils.buildOneProduct();
-            ProductAggregate existingProduct = ProductApplicationMapper.toDomain(productDto);
+            ProductAggregate existingProduct = ProductApplicationMapper.validateAndSetDefault(productDto);
 
             when(productRepository.findBySku(SKU))
                 .thenReturn(Optional.of(existingProduct));
@@ -657,10 +656,10 @@ class ProductAggregateApplicationServiceTest {
     class BoundaryAndErrorCases {
 
         @Test
-        @DisplayName("should throw IllegalArgumentException when getting product with null SKU")
+        @DisplayName("should throw NullPointerException when getting product with null SKU")
         void getProductBySku_withNullSku_shouldThrowException() {
             // WHEN & THEN
-            assertThrows(ProductNotFoundException.class, () ->
+            assertThrows(NullPointerException.class, () ->
                 productService.getProductBySku(null)
             );
         }
@@ -670,7 +669,7 @@ class ProductAggregateApplicationServiceTest {
         void getProductBySku_withBlankSku_shouldThrowException() {
             // WHEN & THEN
             assertThrows(IllegalArgumentException.class, () ->
-                productService.getProductBySku(ProductSku.of("  "))
+                productService.getProductBySku("  ")
             );
 
             verify(productRepository, never()).findBySku(any());

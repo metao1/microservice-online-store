@@ -10,7 +10,7 @@ dependencies {
   implementation "org.springframework.kafka:spring-kafka"
   runtimeOnly "org.postgresql:postgresql:42.7.3"
 
-  implementation "io.confluent:kafka-protobuf-serializer:7.8.0"
+  implementation "io.confluent:kafka-protobuf-serializer:8.1.1"
 
   implementation "org.flywaydb:flyway-database-postgresql:10.11.0"
   implementation "org.springframework.boot:spring-boot-flyway"
@@ -42,9 +42,9 @@ bootJar {
 protobuf {
   protoc {
     if (osdetector.os == "osx") {
-      artifact = 'com.google.protobuf:protoc:3.25.5:osx-x86_64'
+      artifact = 'com.google.protobuf:protoc:4.31.1:osx-x86_64'
     } else {
-      artifact = 'com.google.protobuf:protoc:3.25.5'
+      artifact = 'com.google.protobuf:protoc:4.31.1'
     }
   }
 }

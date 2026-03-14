@@ -105,6 +105,7 @@ public class ProductDomainService {
                 categories.add(category);
             }
         }
+
         var product = new ProductAggregate(
             productSku,
             title,
@@ -148,10 +149,10 @@ public class ProductDomainService {
      * Get product by SKU
      */
     @Transactional(readOnly = true)
-    public ProductAggregate getProductBySku(@NotNull ProductSku sku) {
+    public ProductAggregate getProductBySku(@NotNull String sku) {
         log.debug("Getting product by SKU: {}", sku);
-        return productRepository.findBySku(sku)
-            .orElseThrow(() -> new ProductNotFoundException(sku));
+        return productRepository.findBySku(ProductSku.of(sku))
+            .orElseThrow(() -> new ProductNotFoundException(ProductSku.of(sku)));
     }
 
     /**

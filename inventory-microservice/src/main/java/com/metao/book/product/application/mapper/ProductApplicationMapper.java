@@ -28,9 +28,8 @@ public class ProductApplicationMapper {
 
     private static final String DEFAULT_TITLE = "Untitled";
     private static final String DEFAULT_DESCRIPTION = "No description provided";
-    private static final String DEFAULT_IMAGE_URL = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=500&fit=crop";
+    private static final String DEFAULT_IMAGE_URL = "https://ecx.images-amazon.com/images/I/51QBqN3F8hL._SY300_.jpg";
     private static final String DEFAULT_CURRENCY = "EUR";
-    private static final BigDecimal DEFAULT_VOLUME = BigDecimal.ONE;
 
     /**
      * Convert domain Product to ProductDTO
@@ -51,32 +50,21 @@ public class ProductApplicationMapper {
             .build();
     }
 
-    public static ProductAggregate toDomain(ProductDTO productDTO) {
-        var createdTime = Instant.now();
-        var title = ProductTitle.of(productDTO.title() != null ? productDTO.title() : DEFAULT_TITLE);
-        var description = ProductDescription.of(
-            productDTO.description() != null ? productDTO.description() : DEFAULT_DESCRIPTION);
-        var volume = Quantity.of(productDTO.volume() != null ? productDTO.volume() : DEFAULT_VOLUME);
-        var currency = productDTO.currency() != null ? productDTO.currency() : Currency.getInstance(DEFAULT_CURRENCY);
-        var money = new Money(currency, productDTO.price());
-        var imageUrl = ImageUrl.of(productDTO.imageUrl() != null ? productDTO.imageUrl() : DEFAULT_IMAGE_URL);
-
-        var categories = mapToProductCategories(productDTO.categories());
-
-        return new ProductAggregate(
-            ProductSku.of(productDTO.sku()),
-            title,
-            description,
-            volume,
-            money,
-            createdTime,
-            createdTime,
-            imageUrl,
-            categories
-        );
+    public static ProductDTO validateAndSetDefault(ProductDTO productDTO) {
+        return ProductDTO.builder()
+            .sku(productDTO.sku())
+            .title(productDTO.title() != null ? productDTO.title() : DEFAULT_TITLE)
+            .description(productDTO.description() != null ? productDTO.description() : DEFAULT_DESCRIPTION)
+            .currency(productDTO.currency() != null ? productDTO.currency() : Currency.getInstance(DEFAULT_CURRENCY))
+            .createdTime(productDTO.createdTime())
+            .volume(productDTO.volume() == null ? BigDecimal.TEN : productDTO.volume())
+            .price(productDTO.price() == null ? BigDecimal.TEN : productDTO.price())
+            .imageUrl(productDTO.imageUrl() != null ? productDTO.imageUrl() : DEFAULT_IMAGE_URL)
+            .categories(productDTO.categories())
+            .build();
     }
 
-    public static ProductAggregate toDomain(CreateProductDto createProductDto) {
+    public static ProductAggregate validateAndSetDefault(CreateProductDto createProductDto) {
         var createdTime = Instant.now();
 
         var imageUrl = ImageUrl.of(

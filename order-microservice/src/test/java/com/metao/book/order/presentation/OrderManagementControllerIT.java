@@ -32,6 +32,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
@@ -56,6 +57,7 @@ class OrderManagementControllerIT extends KafkaContainer {
     private Integer port;
 
     @Autowired
+    @Qualifier("orderUpdatedEventConsumerFactory")
     ConsumerFactory<String, OrderUpdatedEvent> consumerFactory;
 
     @Autowired
@@ -183,28 +185,36 @@ class OrderManagementControllerIT extends KafkaContainer {
 
             await().atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
-                    List<PartitionInfo> partitions = kafkaTemplate.partitionsFor(kafkaTopic);
-                    int partition = Math.abs(orderId.hashCode()) % partitions.size();
                     kafkaTemplate.setConsumerFactory(consumerFactory);
-                    TopicPartition topicPartition = new TopicPartition(kafkaTopic, partition);
-                    long latestOffset;
                     try (var consumer = consumerFactory.createConsumer()) {
-                        consumer.assign(List.of(topicPartition));
-                        consumer.seekToEnd(List.of(topicPartition));
-                        latestOffset = consumer.position(topicPartition) - 1;
+                        List<PartitionInfo> partitions = consumer.partitionsFor(kafkaTopic);
+                        assertThat(partitions).isNotEmpty();
+                        List<TopicPartition> topicPartitions = partitions.stream()
+                            .map(partition -> new TopicPartition(kafkaTopic, partition.partition()))
+                            .toList();
+                        consumer.assign(topicPartitions);
+                        var endOffsets = consumer.endOffsets(topicPartitions);
+                        for (var topicPartition : topicPartitions) {
+                            long endOffset = endOffsets.getOrDefault(topicPartition, 0L);
+                            long startOffset = Math.max(0L, endOffset - 10);
+                            consumer.seek(topicPartition, startOffset);
+                        }
+                        var records = consumer.poll(Duration.ofSeconds(2));
+                        ConsumerRecord<String, OrderUpdatedEvent> matchedRecord = null;
+                        for (var record : records.records(kafkaTopic)) {
+                            if ("order123".equals(record.value().getId())) {
+                                matchedRecord = record;
+                                break;
+                            }
+                        }
+                        assertThat(matchedRecord).isNotNull();
+                        var orderUpdatedEvent = matchedRecord.value();
+                        assertThat(orderUpdatedEvent.getProductId()).isEqualTo(sku);
+                        assertThat(orderUpdatedEvent.getQuantity()).isEqualTo(1.0);
+                        assertThat(orderUpdatedEvent.getPrice()).isEqualTo(12.99);
+                        assertThat(orderUpdatedEvent.getCurrency()).isEqualTo("EUR");
+                        assertThat(orderUpdatedEvent.hasUpdateTime()).isTrue();
                     }
-                    var event = kafkaTemplate.receive(kafkaTopic, partition, latestOffset);
-                    assertThat(event)
-                        .isNotNull()
-                        .extracting(ConsumerRecord::value)
-                        .satisfies(orderUpdatedEvent -> {
-                            assertThat(orderUpdatedEvent.getId()).isEqualTo("order123");
-                            assertThat(orderUpdatedEvent.getProductId()).isEqualTo(sku);
-                            assertThat(orderUpdatedEvent.getQuantity()).isEqualTo(1.0);
-                            assertThat(orderUpdatedEvent.getPrice()).isEqualTo(12.99);
-                            assertThat(orderUpdatedEvent.getCurrency()).isEqualTo("EUR");
-                            assertThat(orderUpdatedEvent.hasUpdateTime()).isTrue();
-                        });
                 });
         }
     }
