@@ -51,7 +51,9 @@ public class KafkaEventConfiguration {
     public <K, V> KafkaTemplate<K, V> kafkaTemplate(
         ProducerFactory<K, V> producerFactory
     ) {
-        return new KafkaTemplate<>(producerFactory);
+        var template = new KafkaTemplate<>(producerFactory);
+        template.setAllowNonTransactional(true);
+        return template;
     }
 
     @Bean
