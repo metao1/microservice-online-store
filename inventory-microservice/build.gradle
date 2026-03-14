@@ -49,11 +49,6 @@ protobuf {
   }
 }
 
-// Trim heavy transitive compression libs we don't use (drops zstd-jni ~7MB)
-configurations.configureEach {
-  exclude group: "com.github.luben", module: "zstd-jni"
-}
-
 tasks.named('build') {
   dependsOn 'generateProto'
 }
