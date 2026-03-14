@@ -68,6 +68,7 @@ jobs:
           fail_ci_if_error: false
 
       - name: Comment PR with coverage status
+        if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
@@ -75,9 +76,14 @@ jobs:
             const report = fs.readFileSync('./inventory-microservice/build/reports/jacoco/test/jacocoTestReport.xml', 'utf8');
             const match = report.match(/linerate="([^"]+)"/);
             const coverage = match ? (parseFloat(match[1]) * 100).toFixed(2) : 'unknown';
+            const issueNumber = context.issue.number;
+            if (!issueNumber) {
+              core.info('No pull request context found; skipping comment.');
+              return;
+            }
             
             github.rest.issues.createComment({
-              issue_number: context.issue.number,
+              issue_number: issueNumber,
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: `📊 **Test Coverage Report**\n\n✓ All tests passed\n📈 Coverage: ${coverage}%\n\n> See [plan-strengthenInventoryMicroserviceTestCoverage.prompt.md](../../plan-strengthenInventoryMicroserviceTestCoverage.prompt.md) for coverage improvement goals.`
