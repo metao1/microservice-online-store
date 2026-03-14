@@ -27,6 +27,7 @@ import java.util.Currency;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +37,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -77,12 +80,19 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
     @Autowired
     private KafkaEventHandler kafkaEventHandler;
 
+    @Autowired
+    private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
+
     @BeforeEach
     void setUp() {
         jpaOrderRepository.deleteAll();
         shoppingCartRepository.deleteAll();
         productUpdatedEvents.clear();
         RestAssured.port = orderMicroservicePort;
+        var container = kafkaListenerEndpointRegistry.getListenerContainer("order-payment-id");
+        if (container != null) {
+            ContainerTestUtils.waitForAssignment(container, 1);
+        }
     }
 
     @Test
@@ -123,7 +133,15 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
             .setCreateTime(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
             .build();
 
-        kafkaTemplate.send(kafkaEventHandler.getKafkaTopic(paymentEvent.getClass()), orderId.value(), paymentEvent);
+        kafkaTemplate.executeInTransaction(template -> {
+            try {
+                template.send(kafkaEventHandler.getKafkaTopic(paymentEvent.getClass()), orderId.value(), paymentEvent)
+                    .get(5, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                throw new IllegalStateException("Failed to publish payment event", e);
+            }
+            return null;
+        });
 
         await().atMost(Duration.ofSeconds(20)).pollInterval(Duration.ofMillis(300)).untilAsserted(() -> {
             OrderAggregate order = orderRepository.findById(orderId).orElseThrow();
