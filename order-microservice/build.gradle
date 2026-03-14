@@ -66,11 +66,6 @@ bootJar {
   layered { enabled = true }
 }
 
-// Drop unused compression native dependency (~7MB) from Kafka clients
-configurations.configureEach {
-  exclude group: "com.github.luben", module: "zstd-jni"
-}
-
 tasks.named('build') {
   dependsOn 'generateProto'
 }
