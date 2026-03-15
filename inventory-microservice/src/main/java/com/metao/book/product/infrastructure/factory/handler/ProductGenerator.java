@@ -129,6 +129,7 @@ public class ProductGenerator {
                 .price(productDto.price())
                 .currency(productDto.currency())
                 .categories(productDto.categories())
+                .variants(productDto.variants())
                 .createdTime(Instant.now())
                 .volume(productDto.volume())
                 .build();

@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useProduct } from '@hooks/useProducts';
 import { useCartContext } from '@context/CartContext';
@@ -10,18 +10,17 @@ const ProductDetailPage: FC = () => {
   const { addToCart } = useCartContext();
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState('');
-  const [selectedColor, setSelectedColor] = useState(0);
+  const [selectedColorIndex, setSelectedColorIndex] = useState(0);
   const [addedToCart, setAddedToCart] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
-  // Mock data for enhanced product details (in real app, this would come from API)
-  const availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-  const availableColors = [
-    { name: 'Black', value: '#000000', image: product?.imageUrl },
-    { name: 'Navy', value: '#1a237e', image: product?.imageUrl },
-    { name: 'Gray', value: '#757575', image: product?.imageUrl },
-  ];
+  const colorVariants = (product?.variants || []).filter((variant) => variant.type === 'color');
+  const sizeVariants = (product?.variants || []).filter((variant) => variant.type === 'size');
+  const hasColors = colorVariants.length > 0;
+  const hasSizes = sizeVariants.length > 0;
+  const safeColorIndex = Math.min(selectedColorIndex, Math.max(colorVariants.length - 1, 0));
+  const selectedColorVariant = hasColors ? colorVariants[safeColorIndex] : undefined;
   const productImages = [
     product?.imageUrl,
     product?.imageUrl,
@@ -29,8 +28,13 @@ const ProductDetailPage: FC = () => {
     product?.imageUrl,
   ].filter(Boolean);
 
+  useEffect(() => {
+    setSelectedSize('');
+    setSelectedColorIndex(0);
+  }, [product?.sku]);
+
   const handleAddToCart = async () => {
-    if (product && selectedSize) {
+    if (product && (!hasSizes || selectedSize)) {
       try {
         await addToCart(product, quantity);
         setAddedToCart(true);
@@ -69,6 +73,10 @@ const ProductDetailPage: FC = () => {
       </div>
     );
   }
+
+  const requiresSizeSelection = hasSizes;
+  const addToCartDisabled = !product.inStock || (requiresSizeSelection && !selectedSize);
+  const addToCartLabel = requiresSizeSelection && !selectedSize ? 'Please select a size' : 'Add to bag';
 
   return (
     <div className="product-detail-page">
@@ -164,41 +172,45 @@ const ProductDetailPage: FC = () => {
 
           {/* Color Selection */}
           <div className="selection-section">
-            <div className="color-selection">
-              <label className="selection-label">
-                Colour: <span className="selected-value">{availableColors[selectedColor].name}</span>
-              </label>
-              <div className="color-options">
-                {availableColors.map((color, index) => (
-                  <button
-                    key={index}
-                    className={`color-option ${index === selectedColor ? 'selected' : ''}`}
-                    style={{ backgroundColor: color.value }}
-                    onClick={() => setSelectedColor(index)}
-                    aria-label={`Select ${color.name} color`}
-                  />
-                ))}
+            {hasColors && (
+              <div className="color-selection">
+                <label className="selection-label">
+                  Colour: <span className="selected-value">{selectedColorVariant?.name}</span>
+                </label>
+                <div className="color-options">
+                  {colorVariants.map((color, index) => (
+                    <button
+                      key={color.id || `${color.name}-${index}`}
+                      className={`color-option ${index === safeColorIndex ? 'selected' : ''}`}
+                      style={{ backgroundColor: color.hexColor || color.value }}
+                      onClick={() => setSelectedColorIndex(index)}
+                      aria-label={`Select ${color.name} color`}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Size Selection */}
-            <div className="size-selection">
-              <div className="size-header">
-                <label className="selection-label">Choose your size</label>
-                <button className="size-guide-btn">Size guide</button>
+            {hasSizes && (
+              <div className="size-selection">
+                <div className="size-header">
+                  <label className="selection-label">Choose your size</label>
+                  <button className="size-guide-btn">Size guide</button>
+                </div>
+                <div className="size-options">
+                  {sizeVariants.map((size) => (
+                    <button
+                      key={size.id || size.value}
+                      className={`size-option ${selectedSize === size.value ? 'selected' : ''}`}
+                      onClick={() => setSelectedSize(size.value)}
+                    >
+                      {size.value}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="size-options">
-                {availableSizes.map((size) => (
-                  <button
-                    key={size}
-                    className={`size-option ${selectedSize === size ? 'selected' : ''}`}
-                    onClick={() => setSelectedSize(size)}
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Add to Cart Section */}
@@ -222,12 +234,12 @@ const ProductDetailPage: FC = () => {
             </div>
 
             <button
-              className={`add-to-bag-btn ${!selectedSize ? 'disabled' : ''}`}
+              className={`add-to-bag-btn ${addToCartDisabled ? 'disabled' : ''}`}
               onClick={handleAddToCart}
-              disabled={!product.inStock || !selectedSize}
+              disabled={addToCartDisabled}
               data-testid="add-to-cart-button"
             >
-              {!selectedSize ? 'Please select a size' : 'Add to bag'}
+              {addToCartLabel}
             </button>
           </div>
 

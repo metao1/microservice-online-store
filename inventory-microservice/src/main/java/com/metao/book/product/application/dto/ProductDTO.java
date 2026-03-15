@@ -6,6 +6,7 @@ import com.metao.book.product.application.config.CurrencyDeserializer;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Currency;
+import java.util.List;
 import java.util.Set;
 import lombok.Builder;
 
@@ -38,6 +39,9 @@ public record ProductDTO(
 
     @JsonProperty("categories")
     Set<String> categories,
+
+    @JsonProperty("variants")
+    List<ProductVariantDTO> variants,
 
     @JsonProperty("createdTime")
     Instant createdTime,
