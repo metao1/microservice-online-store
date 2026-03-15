@@ -102,6 +102,7 @@ public class ProductAggregate extends AggregateRoot<ProductSku> {
     }
 
     public void addCategory(@NotNull ProductCategory category) {
+        Objects.requireNonNull(category, "category can't be null");
         if (this.categories.add(category)) {
             this.updatedTime = Instant.now();
             addDomainEvent(new DomainProductUpdatedEvent(
@@ -121,7 +122,7 @@ public class ProductAggregate extends AggregateRoot<ProductSku> {
         if (reduction.value().compareTo(this.volume.value()) > 0) {
             throw new IllegalArgumentException("Cannot reduce volume by more than available");
         }
-        this.volume = new Quantity(this.volume.value().subtract(reduction.value()));
+        this.volume = Quantity.of(this.volume.value().subtract(reduction.value()));
         this.updatedTime = Instant.now();
         addDomainEvent(new DomainProductUpdatedEvent(
             this.getId(),
@@ -132,7 +133,7 @@ public class ProductAggregate extends AggregateRoot<ProductSku> {
     }
 
     public void increaseVolume(@NotNull Quantity increase) {
-        this.volume = new Quantity(this.volume.value().add(increase.value()));
+        this.volume = Quantity.of(this.volume.value().add(increase.value()));
         this.updatedTime = Instant.now();
         addDomainEvent(new DomainProductUpdatedEvent(
             this.getId(),

@@ -51,7 +51,7 @@ public class Money implements ValueObject {
         if (currency != augend.currency) {
             throw new IllegalArgumentException("Cannot add two Money objects with different currencies");
         }
-        return new Money(currency, amount.add(augend.amount));
+        return Money.of(currency, amount.add(augend.amount));
     }
 
     /**
@@ -67,7 +67,7 @@ public class Money implements ValueObject {
         if (currency != subtrahend.currency) {
             throw new IllegalArgumentException("Cannot subtract two Money objects with different currencies");
         }
-        return new Money(currency, amount.subtract(subtrahend.amount));
+        return Money.of(currency, amount.subtract(subtrahend.amount));
     }
 
     /**
@@ -78,7 +78,7 @@ public class Money implements ValueObject {
      */
     @NotNull
     public Money multiply(BigDecimal multiplicand) {
-        return new Money(currency, amount.multiply(multiplicand));
+        return Money.of(currency, amount.multiply(multiplicand));
     }
 
     /**
@@ -89,13 +89,13 @@ public class Money implements ValueObject {
      */
     @NotNull
     public Money divide(BigDecimal divisor) {
-        return new Money(currency, amount.divide(divisor, RoundingMode.HALF_UP));
+        return Money.of(currency, amount.divide(divisor, RoundingMode.HALF_UP));
     }
 
     /**
-     * Creates a new Money object with the specified amount and currency.
+     * Creates a Money.of( object with the specified amount and currency.
      */
-    public static Money of(BigDecimal amount, Currency currency) {
+    public static Money of(Currency currency, BigDecimal amount) {
         return new Money(currency, amount);
     }
 

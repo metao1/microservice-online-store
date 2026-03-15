@@ -8,14 +8,13 @@ import static org.hamcrest.Matchers.matchesPattern;
 import com.metao.book.order.application.cart.ShoppingCartItem;
 import com.metao.book.order.application.cart.ShoppingCartService;
 import com.metao.book.order.domain.model.aggregate.OrderAggregate;
-import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.domain.model.valueobject.OrderId;
+import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.domain.repository.OrderRepository;
 import com.metao.book.order.presentation.dto.AddItemRequestDto;
 import com.metao.book.order.presentation.dto.CreateOrderRequestDTO;
 import com.metao.book.order.presentation.dto.UpdateStatusRequestDto;
 import com.metao.book.shared.OrderUpdatedEvent;
-import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.kafka.KafkaEventHandler;
 import com.metao.shared.test.KafkaContainer;
 import io.restassured.RestAssured;
@@ -49,7 +48,7 @@ import org.springframework.test.context.ActiveProfiles;
 class OrderManagementControllerIT extends KafkaContainer {
 
     private static final BigDecimal ONE = BigDecimal.ONE;
-    private final String userId = "customer123";
+    private final String userId = "user123";
     private final String sku = "SKU_E2E_001"; // Assume this product exists in inventory-microservice
     private final String productTitle = "product123";
     private final BigDecimal unitPrice = BigDecimal.valueOf(12.99);
@@ -86,10 +85,10 @@ class OrderManagementControllerIT extends KafkaContainer {
         @DisplayName("Should create order successfully")
         void shouldCreateOrderSuccessfully() {
             // Given
-            var dto = new CreateOrderRequestDTO("customer123");
+            var dto = new CreateOrderRequestDTO("user123");
 
             shoppingCartService.addItemToCart(
-                "customer123",
+                "user123",
                 Set.of(new ShoppingCartItem(sku, productTitle, ONE, unitPrice, currency))
             );
 
@@ -113,8 +112,7 @@ class OrderManagementControllerIT extends KafkaContainer {
                 Set.of(new ShoppingCartItem(sku, productTitle, ONE, BigDecimal.valueOf(12.99),
                     Currency.getInstance("EUR")))
             );
-            OrderAggregate orderAggregate = new OrderAggregate(orderId, ProductTitle.of(productTitle),
-                UserId.of(userId));
+            OrderAggregate orderAggregate = new OrderAggregate(orderId, UserId.of(userId));
 
             orderRepository.save(orderAggregate);
 
@@ -132,7 +130,7 @@ class OrderManagementControllerIT extends KafkaContainer {
         void shouldUpdateStatusOfAnOrderSuccessfully() {
             // GIVEN
             var orderId = new OrderId("order123");
-            var orderAggregate = new OrderAggregate(orderId, ProductTitle.of(productTitle), UserId.of(userId));
+            var orderAggregate = new OrderAggregate(orderId, UserId.of(userId));
             orderRepository.save(orderAggregate);
 
             var paidStatusUpdate = new UpdateStatusRequestDto("PAID");
@@ -166,8 +164,7 @@ class OrderManagementControllerIT extends KafkaContainer {
         void shouldAddItemToOrderSuccessfully() {
             // Given
             var orderId = new OrderId("order123");
-            OrderAggregate orderAggregate = new OrderAggregate(orderId, ProductTitle.of(productTitle),
-                UserId.of(userId));
+            OrderAggregate orderAggregate = new OrderAggregate(orderId, UserId.of(userId));
             orderRepository.save(orderAggregate);
             AddItemRequestDto addItemRequestDto = new AddItemRequestDto(userId,
                 Set.of(new ShoppingCartItem(sku, productTitle, ONE, unitPrice, currency))
@@ -214,7 +211,7 @@ class OrderManagementControllerIT extends KafkaContainer {
                         }
                         assertThat(matchedRecord).isNotNull();
                         var orderUpdatedEvent = matchedRecord.value();
-                        assertThat(orderUpdatedEvent.getsku()).isEqualTo(sku);
+                        assertThat(orderUpdatedEvent.getSku()).isEqualTo(sku);
                         assertThat(orderUpdatedEvent.getQuantity()).isEqualTo(1.0);
                         assertThat(orderUpdatedEvent.getPrice()).isEqualTo(12.99);
                         assertThat(orderUpdatedEvent.getCurrency()).isEqualTo("EUR");
@@ -234,8 +231,7 @@ class OrderManagementControllerIT extends KafkaContainer {
             // Given
             // Given
             var orderId = new OrderId("order123");
-            OrderAggregate orderAggregate = new OrderAggregate(orderId, ProductTitle.of(productTitle),
-                UserId.of("customer123"));
+            OrderAggregate orderAggregate = new OrderAggregate(orderId, UserId.of("user123"));
             orderRepository.save(orderAggregate);
             AddItemRequestDto addItemRequestDto = new AddItemRequestDto(userId,
                 Set.of(new ShoppingCartItem(sku, productTitle, ONE, unitPrice, currency))

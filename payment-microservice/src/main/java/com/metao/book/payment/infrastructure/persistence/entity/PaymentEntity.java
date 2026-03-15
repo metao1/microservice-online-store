@@ -19,8 +19,8 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@NoArgsConstructor
 @Entity
+@NoArgsConstructor
 @Table(name = "payment")
 public class PaymentEntity extends AbstractEntity<PaymentId> {
 

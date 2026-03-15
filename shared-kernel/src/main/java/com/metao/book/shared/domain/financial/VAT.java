@@ -76,7 +76,7 @@ public class VAT implements ValueObject {
         var withoutTax = (amount.fixedPointAmount().multiply(BigDecimal.valueOf(100))
             .divide(BigDecimal.valueOf(percentage + 100), RoundingMode.HALF_UP));
         Objects.requireNonNull(amount, "amount must not be null");
-        return new Money(amount.currency(), withoutTax);
+        return Money.of(amount.currency(), withoutTax);
     }
 
     /**
@@ -90,7 +90,7 @@ public class VAT implements ValueObject {
         Objects.requireNonNull(amount, "amount must not be null");
         var tax = amount.fixedPointAmount()
             .multiply(BigDecimal.valueOf(percentage).divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP));
-        return new Money(amount.currency(), tax);
+        return Money.of(amount.currency(), tax);
     }
 
     @Override

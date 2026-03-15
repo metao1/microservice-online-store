@@ -126,7 +126,7 @@ public class ProductApplicationMapper {
             ProductTitle.of(createProductDto.title()),
             ProductDescription.of(createProductDto.description()),
             Quantity.of(createProductDto.volume()),
-            new Money(createProductDto.currency(), createProductDto.price()),
+            Money.of(createProductDto.currency(), createProductDto.price()),
             createdTime,
             createdTime,
             imageUrl,

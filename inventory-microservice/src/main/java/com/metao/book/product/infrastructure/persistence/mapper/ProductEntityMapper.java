@@ -28,7 +28,7 @@ public class ProductEntityMapper {
             product.getTitle(),
             product.getDescription(),
             product.getVolume(),
-            new Money(product.getMoney().currency(), product.getMoney().doubleAmount()),
+            Money.of(product.getMoney().currency(), product.getMoney().doubleAmount()),
             product.getImageUrl(),
             product.getCreatedTime(),
             product.getUpdatedTime()
@@ -56,7 +56,7 @@ public class ProductEntityMapper {
             entity.getTitle(),
             entity.getDescription(),
             entity.getVolume(),
-            new Money(entity.getPrice().currency(), entity.getPrice().doubleAmount()),
+            Money.of(entity.getPrice().currency(), entity.getPrice().doubleAmount()),
             entity.getCreatedTime(),
             entity.getUpdateTime(),
             entity.getImageUrl(),

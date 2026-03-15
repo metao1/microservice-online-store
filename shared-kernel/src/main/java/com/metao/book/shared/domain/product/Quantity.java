@@ -26,7 +26,7 @@ public record Quantity(BigDecimal value) implements ValueObject {
     }
 
     public Quantity add(@NonNull Quantity other) {
-        return new Quantity(this.value.add(other.value));
+        return Quantity.of(this.value.add(other.value));
     }
 
     public Quantity subtract(@NonNull Quantity other) {
@@ -34,7 +34,7 @@ public record Quantity(BigDecimal value) implements ValueObject {
         if (newValue.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Resulting quantity cannot be negative");
         }
-        return new Quantity(newValue);
+        return Quantity.of(newValue);
     }
 
     @NotNull

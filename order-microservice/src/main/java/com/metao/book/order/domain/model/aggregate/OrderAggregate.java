@@ -19,6 +19,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -35,6 +36,7 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
 
     public OrderAggregate(@NotNull OrderId id, @NotNull UserId userId) {
         super(id);
+        Objects.requireNonNull(userId, "userId can't be null");
         this.id = id;
         this.userId = userId;
         this.items = new ArrayList<>();
@@ -53,6 +55,11 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
         @NotNull Quantity quantity,
         @NotNull Money unitPrice
     ) {
+        Objects.requireNonNull(productSku, "productSku can't be null");
+        Objects.requireNonNull(productSku, "productTitle can't be null");
+        Objects.requireNonNull(productSku, "quantity can't be null");
+        Objects.requireNonNull(productSku, "unitPrice can't be null");
+
         // Validate order state
         if (status == OrderStatus.CANCELLED || status == OrderStatus.DELIVERED) {
             throw new IllegalStateException("Cannot add items to a " + status + " order");
@@ -77,7 +84,8 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
         addDomainEvent(new DomainOrderItemAddedEvent(id, productSku, quantity, unitPrice));
     }
 
-    public synchronized void updateStatus(@NotNull OrderStatus newStatus) {
+    public synchronized void updateStatus(OrderStatus newStatus) {
+        Objects.requireNonNull(newStatus, "newStatus can't be null");
         // Validate status transition
         validateStatusTransition(newStatus);
 
