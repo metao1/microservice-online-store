@@ -21,7 +21,7 @@ public record ProductSku(String value) implements ValueObject {
 
     public static ProductSku generate() {
         // Generate a 10-character SKU-like identifier
-        return new ProductSku(UUID.randomUUID().toString().replace("-", "").substring(0, 10).toUpperCase());
+        return ProductSku.of(UUID.randomUUID().toString().replace("-", "").substring(0, 10).toUpperCase());
     }
 
     public static ProductSku of(String value) {

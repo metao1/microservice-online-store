@@ -362,7 +362,7 @@ class ProductAggregateApplicationServiceTest {
             ProductAggregate savedProduct = productCaptor.getValue();
 
             assertThat(savedProduct.getMoney())
-                .isEqualTo(new Money(Currency.getInstance("EUR"), BigDecimal.valueOf(99.99)));
+                .isEqualTo(Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(99.99)));
         }
     }
 

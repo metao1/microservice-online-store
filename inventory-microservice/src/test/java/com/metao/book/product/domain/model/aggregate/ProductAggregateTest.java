@@ -9,10 +9,10 @@ import com.metao.book.product.domain.model.event.DomainProductUpdatedEvent;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.product.domain.model.valueobject.ImageUrl;
 import com.metao.book.product.domain.model.valueobject.ProductDescription;
+import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.book.shared.domain.product.Quantity;
-import com.metao.book.shared.domain.financial.Money;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Currency;
@@ -40,7 +40,7 @@ class ProductAggregateTest {
         productTitle = ProductTitle.of("Test Product");
         productDescription = ProductDescription.of("Test Description");
         productVolume = Quantity.of(BigDecimal.valueOf(100));
-        money = Money.of(BigDecimal.valueOf(29.99), Currency.getInstance("EUR"));
+        money = Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(29.99));
         imageUrl = ImageUrl.of("https://example.com/image.jpg");
         createdTime = Instant.now();
         updatedTime = createdTime;
@@ -238,7 +238,7 @@ class ProductAggregateTest {
             categories
         );
 
-        Money newPrice = Money.of(BigDecimal.valueOf(39.99), Currency.getInstance("EUR"));
+        Money newPrice = Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(39.99));
 
         // WHEN
         Product.updatePrice(newPrice);
@@ -528,7 +528,7 @@ class ProductAggregateTest {
             ProductTitle.of("Different Title"),
             ProductDescription.of("Different Description"),
             Quantity.of(BigDecimal.valueOf(200)),
-            Money.of(BigDecimal.valueOf(99.99), Currency.getInstance("EUR")),
+            Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(99.99)),
             createdTime,
             updatedTime,
             imageUrl,
@@ -737,9 +737,9 @@ class ProductAggregateTest {
             categories
         );
 
-        Money price1 = Money.of(BigDecimal.valueOf(35.00), Currency.getInstance("EUR"));
-        Money price2 = Money.of(BigDecimal.valueOf(40.00), Currency.getInstance("EUR"));
-        Money price3 = Money.of(BigDecimal.valueOf(45.00), Currency.getInstance("EUR"));
+        Money price1 = Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(35.00));
+        Money price2 = Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(40.00));
+        Money price3 = Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(45.00));
 
         // WHEN
         Product.updatePrice(price1);
@@ -799,8 +799,6 @@ class ProductAggregateTest {
             Set.of()
         );
 
-        Instant timeBeforeAddition = Product.getUpdatedTime();
-
         // WHEN & THEN - Should not throw, just ignore
         assertThatThrownBy(() -> Product.addCategory(null))
             .isInstanceOf(NullPointerException.class);
@@ -851,7 +849,7 @@ class ProductAggregateTest {
             categories
         );
 
-        Money zeroPrice = Money.of(BigDecimal.ZERO, Currency.getInstance("EUR"));
+        Money zeroPrice = Money.of(Currency.getInstance("EUR"), BigDecimal.ZERO);
 
         // WHEN
         Product.updatePrice(zeroPrice);
@@ -926,7 +924,7 @@ class ProductAggregateTest {
             categories
         );
 
-        Money newPrice = Money.of(BigDecimal.valueOf(39.99), Currency.getInstance("EUR"));
+        Money newPrice = Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(39.99));
 
         // WHEN
         Product.updatePrice(newPrice);

@@ -11,11 +11,11 @@ import com.metao.book.product.domain.model.entity.ProductCategory;
 import com.metao.book.product.domain.model.valueobject.CategoryId;
 import com.metao.book.product.domain.model.valueobject.ImageUrl;
 import com.metao.book.product.domain.model.valueobject.ProductDescription;
-import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.book.product.domain.repository.ProductRepository;
 import com.metao.book.product.domain.service.ProductCategoriesService;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.product.ProductSku;
+import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.book.shared.domain.product.Quantity;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -56,8 +56,8 @@ class ProductAggregateCategoriesServiceTest {
             ProductDescription.of("description"),
             Quantity.of(BigDecimal.valueOf(12.00)),
             Money.of(
-                BigDecimal.valueOf(12.00),
-                Currency.getInstance("EUR")
+                Currency.getInstance("EUR"),
+                BigDecimal.valueOf(12.00)
             ),
             createdTime,
             createdTime,

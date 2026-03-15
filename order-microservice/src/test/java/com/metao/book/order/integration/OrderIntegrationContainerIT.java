@@ -6,16 +6,17 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.metao.book.order.application.cart.ShoppingCartItem;
 import com.metao.book.order.application.cart.ShoppingCartService;
 import com.metao.book.order.domain.exception.OrderNotFoundException;
-import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
-import com.metao.book.shared.domain.product.Quantity;
+import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.domain.service.OrderManagementService;
 import com.metao.book.order.infrastructure.persistence.mapper.OrderEntityMapper;
 import com.metao.book.order.infrastructure.persistence.repository.JpaOrderRepository;
 import com.metao.book.order.presentation.dto.OrderResponseDto;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.product.ProductSku;
+import com.metao.book.shared.domain.product.ProductTitle;
+import com.metao.book.shared.domain.product.Quantity;
 import com.metao.shared.test.KafkaContainer;
 import java.math.BigDecimal;
 import java.util.Currency;
@@ -41,6 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
 @TestPropertySource(properties = "kafka.enabled=true")
 class OrderIntegrationContainerIT extends KafkaContainer {
 
+    private final ProductTitle productTitle = new ProductTitle("product123");
     private static final BigDecimal ONE = BigDecimal.ONE;
 
     @Autowired
@@ -52,13 +54,14 @@ class OrderIntegrationContainerIT extends KafkaContainer {
     @Autowired
     private ShoppingCartService shoppingCartService;
 
+
     private final String sku = UUID.randomUUID().toString().replace("-", "").substring(0, 10).toUpperCase();
 
     @BeforeEach
     void setUp() {
         orderRepository.deleteAll();
         // Clear shopping cart for all test users
-        shoppingCartService.clearCart("customer123");
+        shoppingCartService.clearCart("user123");
     }
 
     /**
@@ -75,6 +78,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
             Set.of(
                 new ShoppingCartItem(
                     productSku,
+                    productTitle.value(),
                     quantity,
                     price,
                     Currency.getInstance("USD")
@@ -99,13 +103,14 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Transactional
         void shouldCreateOrderAndPublishEvent() {
             // Given
-            UserId userId = UserId.of("customer123");
+            UserId userId = UserId.of("user123");
 
             // Add items to shopping cart first
             shoppingCartService.addItemToCart(userId.value(),
                 Set.of(
                     new ShoppingCartItem(
                         sku,
+                        productTitle.value(),
                         BigDecimal.TWO,
                         BigDecimal.valueOf(10),
                         Currency.getInstance("USD")
@@ -139,13 +144,14 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Transactional
         void shouldCreateMultipleOrdersForSameCustomer() {
             // Given
-            UserId userId = UserId.of("customer123");
+            UserId userId = UserId.of("user123");
 
             // Add items to shopping cart for first order
             shoppingCartService.addItemToCart(userId.value(),
                 Set.of(
                     new ShoppingCartItem(
                         sku,
+                        productTitle.value(),
                         BigDecimal.TWO,
                         BigDecimal.valueOf(10),
                         Currency.getInstance("USD")
@@ -161,6 +167,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
                 Set.of(
                     new ShoppingCartItem(
                         sku,
+                        productTitle.value(),
                         BigDecimal.valueOf(1),
                         BigDecimal.valueOf(15),
                         Currency.getInstance("USD")
@@ -184,13 +191,14 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Transactional
         void shouldAddItemToOrderAndPublishEvent() {
             // Given
-            UserId userId = UserId.of("customer123");
+            UserId userId = UserId.of("user123");
 
             // Add items to shopping cart first
             shoppingCartService.addItemToCart(userId.value(),
                 Set.of(
                     new ShoppingCartItem(
                         sku,
+                        productTitle.value(),
                         BigDecimal.TWO,
                         BigDecimal.valueOf(10),
                         Currency.getInstance("USD")
@@ -199,12 +207,12 @@ class OrderIntegrationContainerIT extends KafkaContainer {
             );
 
             OrderId orderId = orderService.createOrder(userId);
-            ProductSku productSku = new ProductSku("product456");
-            Quantity quantity = new Quantity(BigDecimal.ONE);
-            Money unitPrice = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(15));
+            ProductSku productSku = ProductSku.of("product456");
+            Quantity quantity = Quantity.of(BigDecimal.ONE);
+            Money unitPrice = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(15));
 
             // When
-            orderService.addItemToOrder(orderId, productSku, , quantity, unitPrice);
+            orderService.addItemToOrder(orderId, productSku, productTitle, quantity, unitPrice);
 
             // Then
             // Note: Using real KafkaEventHandler instead of mocking
@@ -219,12 +227,13 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Transactional
         void shouldNotAddItemToNonExistentOrder() {
             OrderId nonExistentOrderId = OrderId.generate();
-            ProductSku productSku = new ProductSku(sku);
-            Quantity quantity = new Quantity(BigDecimal.ONE);
-            Money unitPrice = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10));
+            ProductSku productSku = ProductSku.of(sku);
+            Quantity quantity = Quantity.of(BigDecimal.ONE);
+            Money unitPrice = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10));
 
             assertThatThrownBy(
-                () -> orderService.addItemToOrder(nonExistentOrderId, productSku, , quantity, unitPrice)).isInstanceOf(
+                () -> orderService.addItemToOrder(nonExistentOrderId, productSku, productTitle, quantity,
+                    unitPrice)).isInstanceOf(
                     OrderNotFoundException.class)
                 .hasMessage("order not found with id: %s".formatted(nonExistentOrderId.value()));
 
@@ -234,13 +243,13 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Test
         @Transactional
         void shouldNotAddItemWithInvalidData() {
-           /* userId userId = userId.of("customer123");
+           /* userId userId = userId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, sku, BigDecimal.ONE, BigDecimal.valueOf(10));
-            ProductSku productSku = new ProductSku("product456");
+            ProductSku productSku = ProductSku.of("product456");
 
             assertThatThrownBy(
-                () -> orderService.addItemToOrder(orderId, productSku, new Quantity(BigDecimal.valueOf(-1)),
-                    new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10)))).isInstanceOf(
+                () -> orderService.addItemToOrder(orderId, productSku, Quantity.of(BigDecimal.valueOf(-1)),
+                    Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10)))).isInstanceOf(
                 IllegalArgumentException.class).hasMessage("Quantity must be positive");
 
             // Note: Using real KafkaEventHandler instead of mocking*/
@@ -252,19 +261,19 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Transactional
         void shouldAddMultipleItemsToOrder() {
             // Given
-            UserId userId = UserId.of("customer123");
+            UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, "product0", BigDecimal.ONE,
                 BigDecimal.valueOf(5.00));
-            ProductSku productSku1 = new ProductSku("product1");
-            ProductSku productSku2 = new ProductSku("product2");
-            Quantity quantity1 = new Quantity(BigDecimal.TWO);
-            Quantity quantity2 = new Quantity(BigDecimal.ONE);
-            Money unitPrice1 = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10));
-            Money unitPrice2 = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(15));
+            ProductSku productSku1 = ProductSku.of("product1");
+            ProductSku productSku2 = ProductSku.of("product2");
+            Quantity quantity1 = Quantity.of(BigDecimal.TWO);
+            Quantity quantity2 = Quantity.of(BigDecimal.ONE);
+            Money unitPrice1 = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10));
+            Money unitPrice2 = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(15));
 
             // When
-            orderService.addItemToOrder(orderId, productSku1, , quantity1, unitPrice1);
-            orderService.addItemToOrder(orderId, productSku2, , quantity2, unitPrice2);
+            orderService.addItemToOrder(orderId, productSku1, productTitle, quantity1, unitPrice1);
+            orderService.addItemToOrder(orderId, productSku2, productTitle, quantity2, unitPrice2);
 
             // Then
             var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
@@ -280,14 +289,14 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Transactional
         void shouldNotAddDuplicateProduct() {
             // Given
-            UserId userId = UserId.of("customer123");
+            UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, sku, BigDecimal.TWO, BigDecimal.valueOf(10));
-            ProductSku productSku = new ProductSku(sku); // Same product as in cart
-            Quantity quantity = new Quantity(BigDecimal.ONE);
-            Money unitPrice = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10));
+            ProductSku productSku = ProductSku.of(sku); // Same product as in cart
+            Quantity quantity = Quantity.of(BigDecimal.ONE);
+            Money unitPrice = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10));
 
             // When - trying to add the same product again should be idempotent (no duplicate lines)
-            orderService.addItemToOrder(orderId, productSku, , quantity, unitPrice);
+            orderService.addItemToOrder(orderId, productSku, productTitle, quantity, unitPrice);
 
             var order = orderRepository.findById(orderId.value()).orElseThrow();
             assertThat(order.getItems()).hasSize(1);
@@ -297,16 +306,16 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Transactional
         void shouldUpdateItemQuantity() {
             // Given
-            UserId userId = UserId.of("customer123");
+            UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, sku, BigDecimal.TWO, BigDecimal.valueOf(10));
-            ProductSku productSku = new ProductSku(sku);
+            ProductSku productSku = ProductSku.of(sku);
 
             // When
             orderService.updateItemQuantity(orderId);
 
             // Then
             var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
-            assertThat(order.getItems().getFirst().getQuantity().getValue())
+            assertThat(order.getItems().getFirst().getQuantity().value())
                 .isGreaterThanOrEqualTo(BigDecimal.valueOf(2.0));
             assertThat(order.getTotal().fixedPointAmount()).isEqualByComparingTo(BigDecimal.valueOf(30.00));
         }
@@ -315,9 +324,9 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Transactional
         void shouldRemoveItem() {
             // Given
-            UserId userId = UserId.of("customer123");
+            UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, sku, ONE, BigDecimal.valueOf(10));
-            ProductSku productSku = new ProductSku(sku);
+            ProductSku productSku = ProductSku.of(sku);
 
             // When
             orderService.removeItem(orderId, productSku);
@@ -342,7 +351,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Transactional
         void shouldUpdateOrderStatusAndPublishEvent() {
             // Given
-            UserId userId = UserId.of("customer123");
+            UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, sku, ONE, BigDecimal.valueOf(10));
 
             // When
@@ -370,7 +379,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Test
         @Transactional
         void shouldNotUpdateStatusWithInvalidStatus() {
-            UserId userId = UserId.of("customer123");
+            UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, sku, ONE, BigDecimal.valueOf(10));
 
             assertThatThrownBy(() -> orderService.updateOrderStatus(orderId, "INVALID_STATUS")).isInstanceOf(
@@ -384,7 +393,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Transactional
         void shouldFollowValidStatusTransition(List<OrderStatus> statusSequence, String testDescription) {
             // Given
-            UserId userId = UserId.of("customer123");
+            UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, sku, ONE, BigDecimal.valueOf(10));
 
             // When/Then
@@ -399,7 +408,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Transactional
         void shouldNotAllowInvalidStatusTransition() {
             // Given
-            UserId userId = UserId.of("customer123");
+            UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, sku, ONE, BigDecimal.valueOf(10));
             orderService.updateOrderStatus(orderId, OrderStatus.PAID.name());
 
@@ -413,16 +422,16 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @SneakyThrows
         void shouldNotAllowItemModificationAfterDelivery() {
             // Given
-            UserId userId = UserId.of("customer123");
+            UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, sku, ONE, BigDecimal.valueOf(10));
             orderService.updateOrderStatus(orderId, OrderStatus.PAID.name());
-            ProductSku productSku = new ProductSku("product456");
-            Quantity quantity = new Quantity(BigDecimal.ONE);
-            Money unitPrice = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10));
+            ProductSku productSku = ProductSku.of("product456");
+            Quantity quantity = Quantity.of(BigDecimal.ONE);
+            Money unitPrice = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10));
 
             // When/Then - trying to add items to a PAID order might be restricted
             // If not restricted, this test should pass; if restricted, it should throw an exception
-            orderService.addItemToOrder(orderId, productSku, , quantity, unitPrice);
+            orderService.addItemToOrder(orderId, productSku, productTitle, quantity, unitPrice);
             // If we get here, the operation was allowed, which is also valid
             var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
             assertThat(order.getItems()).hasSizeGreaterThan(1);
@@ -436,7 +445,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Transactional
         void shouldGetCustomerOrders() {
             // Given
-            UserId userId = UserId.of("customer123");
+            UserId userId = UserId.of("user123");
             createOrderWithCartItems(userId, "product1", BigDecimal.ONE, BigDecimal.valueOf(10));
 
             // Clear cart and add different items for the second order
@@ -449,7 +458,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
 
             // Then
             assertThat(orders).hasSize(2);
-            assertThat(orders).allSatisfy(order -> assertThat(order.getuserId()).isEqualTo(userId.value()));
+            assertThat(orders).allSatisfy(order -> assertThat(order.getUserId()).isEqualTo(userId.value()));
         }
 
         @Test
@@ -466,18 +475,18 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Transactional
         void shouldGetOrdersWithCorrectTotal() {
             // Given
-            UserId userId = UserId.of("customer123");
+            UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, "product0", BigDecimal.ONE,
                 BigDecimal.valueOf(5.00));
-            ProductSku productSku1 = new ProductSku("product1");
-            ProductSku productSku2 = new ProductSku("product2");
-            Quantity quantity1 = new Quantity(BigDecimal.valueOf(2.0));
-            Quantity quantity2 = new Quantity(BigDecimal.ONE);
-            Money unitPrice1 = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10));
-            Money unitPrice2 = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(15));
+            ProductSku productSku1 = ProductSku.of("product1");
+            ProductSku productSku2 = ProductSku.of("product2");
+            Quantity quantity1 = Quantity.of(BigDecimal.valueOf(2.0));
+            Quantity quantity2 = Quantity.of(BigDecimal.ONE);
+            Money unitPrice1 = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10));
+            Money unitPrice2 = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(15));
 
-            orderService.addItemToOrder(orderId, productSku1, , quantity1, unitPrice1);
-            orderService.addItemToOrder(orderId, productSku2, , quantity2, unitPrice2);
+            orderService.addItemToOrder(orderId, productSku1, productTitle, quantity1, unitPrice1);
+            orderService.addItemToOrder(orderId, productSku2, productTitle, quantity2, unitPrice2);
 
             // When
             List<OrderResponseDto> orders = orderService.getCustomerOrders(userId).stream()
@@ -493,7 +502,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Transactional
         void shouldGetOrdersByStatus() {
             // Given
-            UserId userId = UserId.of("customer123");
+            UserId userId = UserId.of("user123");
             OrderId orderId1 = createOrderWithCartItems(userId, "product1", BigDecimal.ONE, BigDecimal.valueOf(10));
 
             // Clear cart and create second order
@@ -529,15 +538,15 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Transactional
         void shouldRollbackOnException() {
             // Given
-            UserId userId = UserId.of("customer123");
+            UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, "product0", BigDecimal.ONE,
                 BigDecimal.valueOf(5.00));
 
             // When
             assertThatThrownBy(
-                () -> orderService.addItemToOrder(orderId, new ProductSku(sku), ,
-                    new Quantity(BigDecimal.valueOf(-1)),
-                    new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10)))).isInstanceOf(
+                () -> orderService.addItemToOrder(orderId, ProductSku.of(sku), productTitle,
+                    Quantity.of(BigDecimal.valueOf(-1)),
+                    Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10)))).isInstanceOf(
                 IllegalArgumentException.class);
 
             // Then
@@ -549,15 +558,15 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Transactional
         void shouldMaintainConsistencyAcrossOperations() {
             // Given
-            UserId userId = UserId.of("customer123");
+            UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, "product0", BigDecimal.ONE,
                 BigDecimal.valueOf(5.00));
-            ProductSku productSku = new ProductSku("product1");
-            Quantity quantity = new Quantity(BigDecimal.valueOf(2.0));
-            Money unitPrice = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10));
+            ProductSku productSku = ProductSku.of("product1");
+            Quantity quantity = Quantity.of(BigDecimal.valueOf(2.0));
+            Money unitPrice = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10));
 
             // When
-            orderService.addItemToOrder(orderId, productSku, , quantity, unitPrice);
+            orderService.addItemToOrder(orderId, productSku, productTitle, quantity, unitPrice);
             orderService.updateOrderStatus(orderId, OrderStatus.PAID.name());
 
             // Then
@@ -571,19 +580,19 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Transactional
         void shouldRollbackAllChangesOnException() {
             // Given
-            UserId userId = UserId.of("customer123");
+            UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, "product0", BigDecimal.ONE,
                 BigDecimal.valueOf(5.00));
-            ProductSku productSku1 = new ProductSku("product1");
-            ProductSku productSku2 = new ProductSku("product2");
-            Quantity quantity = new Quantity(BigDecimal.ONE);
-            Money unitPrice = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10));
+            ProductSku productSku1 = ProductSku.of("product1");
+            ProductSku productSku2 = ProductSku.of("product2");
+            Quantity quantity = Quantity.of(BigDecimal.ONE);
+            Money unitPrice = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10));
 
             // When
             try {
-                orderService.addItemToOrder(orderId, productSku1, , quantity, unitPrice);
-                orderService.addItemToOrder(orderId, productSku2, ,
-                    new Quantity(BigDecimal.valueOf(-1)), unitPrice); // This will fail
+                orderService.addItemToOrder(orderId, productSku1, productTitle, quantity, unitPrice);
+                orderService.addItemToOrder(orderId, productSku2, productTitle,
+                    Quantity.of(BigDecimal.valueOf(-1)), unitPrice); // This will fail
             } catch (IllegalArgumentException e) {
                 // Expected exception
             }
@@ -598,20 +607,20 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Transactional
         void shouldHandleConcurrentOrderUpdates() {
             // Given
-            UserId userId = UserId.of("customer123");
+            UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, "product0", BigDecimal.ONE,
                 BigDecimal.valueOf(5.00));
-            ProductSku productSku1 = new ProductSku("product1");
-            ProductSku productSku2 = new ProductSku("product2");
-            Quantity quantity1 = new Quantity(BigDecimal.valueOf(2.0));
-            Quantity quantity2 = new Quantity(BigDecimal.ONE);
-            Money unitPrice1 = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10));
-            Money unitPrice2 = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(15));
+            ProductSku productSku1 = ProductSku.of("product1");
+            ProductSku productSku2 = ProductSku.of("product2");
+            Quantity quantity1 = Quantity.of(BigDecimal.valueOf(2.0));
+            Quantity quantity2 = Quantity.of(BigDecimal.ONE);
+            Money unitPrice1 = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10));
+            Money unitPrice2 = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(15));
 
             // When
-            orderService.addItemToOrder(orderId, productSku1, , quantity1, unitPrice1);
+            orderService.addItemToOrder(orderId, productSku1, productTitle, quantity1, unitPrice1);
             orderService.updateOrderStatus(orderId, OrderStatus.PAID.name());
-            orderService.addItemToOrder(orderId, productSku2, , quantity2, unitPrice2);
+            orderService.addItemToOrder(orderId, productSku2, productTitle, quantity2, unitPrice2);
 
             // Then
             var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
@@ -629,15 +638,15 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Transactional
         void shouldHandleLargeOrderQuantities() {
             // Given
-            UserId userId = UserId.of("customer123");
+            UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, "product0", BigDecimal.ONE,
                 BigDecimal.valueOf(5.00));
-            ProductSku productSku = new ProductSku("product1");
-            Quantity largeQuantity = new Quantity(BigDecimal.valueOf(1000));
-            Money unitPrice = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10));
+            ProductSku productSku = ProductSku.of("product1");
+            Quantity largeQuantity = Quantity.of(BigDecimal.valueOf(1000));
+            Money unitPrice = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10));
 
             // When
-            orderService.addItemToOrder(orderId, productSku, , largeQuantity, unitPrice);
+            orderService.addItemToOrder(orderId, productSku, productTitle, largeQuantity, unitPrice);
 
             // Then
             var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
@@ -649,15 +658,15 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Transactional
         void shouldHandleHighPrecisionPrices() {
             // Given
-            UserId userId = UserId.of("customer123");
+            UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, "product0", BigDecimal.ONE,
                 BigDecimal.valueOf(5.00));
-            ProductSku productSku = new ProductSku("product1");
-            Quantity quantity = new Quantity(BigDecimal.ONE);
-            Money precisePrice = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10.999));
+            ProductSku productSku = ProductSku.of("product1");
+            Quantity quantity = Quantity.of(BigDecimal.ONE);
+            Money precisePrice = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10.999));
 
             // When
-            orderService.addItemToOrder(orderId, productSku, , quantity, precisePrice);
+            orderService.addItemToOrder(orderId, productSku, productTitle, quantity, precisePrice);
 
             // Then
             var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
@@ -672,15 +681,15 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Transactional
         void shouldHandleSpecialCharactersInProductNames() {
             // Given
-            UserId userId = UserId.of("customer123");
+            UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, "product0", BigDecimal.ONE,
                 BigDecimal.valueOf(5.00));
-            var specialproductSku = new ProductSku("Product!@#$%^&*()_+");
-            Quantity quantity = new Quantity(BigDecimal.ONE);
-            Money unitPrice = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10));
+            var specialproductSku = ProductSku.of("Product!@#$%^&*()_+");
+            Quantity quantity = Quantity.of(BigDecimal.ONE);
+            Money unitPrice = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10));
 
             // When
-            orderService.addItemToOrder(orderId, specialproductSku, , quantity, unitPrice);
+            orderService.addItemToOrder(orderId, specialproductSku, productTitle, quantity, unitPrice);
 
             // Then
             var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());

@@ -62,12 +62,12 @@ class ProductAggregateApplicationMapperTest {
             // THEN
             assertThat(product).isNotNull();
             assertThat(product.getId().value()).isEqualTo("TEST000001");
-            assertThat(product.getTitle().getValue()).isEqualTo("Test Product");
-            assertThat(product.getDescription().getValue()).isEqualTo("Test Description");
+            assertThat(product.getTitle().value()).isEqualTo("Test Product");
+            assertThat(product.getDescription().value()).isEqualTo("Test Description");
             assertThat(product.getImageUrl().getValue()).isEqualTo("https://example.com/image.jpg");
             assertThat(product.getMoney().fixedPointAmount()).isEqualByComparingTo(BigDecimal.valueOf(29.99));
             assertThat(product.getMoney().currency()).isEqualTo(eurCurrency);
-            assertThat(product.getVolume().getValue()).isEqualByComparingTo(BigDecimal.valueOf(100));
+            assertThat(product.getVolume().value()).isEqualByComparingTo(BigDecimal.valueOf(100));
             assertThat(product.getCategories()).hasSize(2);
         }
 
@@ -167,7 +167,7 @@ class ProductAggregateApplicationMapperTest {
 
             // THEN
             assertThat(product.getMoney().fixedPointAmount()).isEqualByComparingTo(new BigDecimal("99.95"));
-            assertThat(product.getVolume().getValue()).isEqualByComparingTo(new BigDecimal("10.5"));
+            assertThat(product.getVolume().value()).isEqualByComparingTo(new BigDecimal("10.5"));
         }
     }
 
@@ -185,7 +185,7 @@ class ProductAggregateApplicationMapperTest {
             ProductTitle title = ProductTitle.of("Test Product");
             ProductDescription description = ProductDescription.of("Test Description");
             ImageUrl imageUrl = ImageUrl.of("https://example.com/image.jpg");
-            Money money = new Money(eurCurrency, BigDecimal.valueOf(29.99));
+            Money money = Money.of(eurCurrency, BigDecimal.valueOf(29.99));
             Quantity volume = Quantity.of(BigDecimal.valueOf(100));
             Instant now = Instant.now();
             Set<ProductCategory> categories = Set.of(
@@ -223,7 +223,7 @@ class ProductAggregateApplicationMapperTest {
                 ProductTitle.of("No Category Product"),
                 ProductDescription.of("Product without categories"),
                 Quantity.of(BigDecimal.valueOf(50)),
-                new Money(eurCurrency, BigDecimal.valueOf(19.99)),
+                Money.of(eurCurrency, BigDecimal.valueOf(19.99)),
                 Instant.now(),
                 Instant.now(),
                 ImageUrl.of("https://example.com/nocategory.jpg"),
@@ -246,7 +246,7 @@ class ProductAggregateApplicationMapperTest {
                 ProductTitle.of("Out of Stock Product"),
                 ProductDescription.of("Product with zero volume"),
                 Quantity.of(BigDecimal.ZERO),
-                new Money(eurCurrency, BigDecimal.valueOf(29.99)),
+                Money.of(eurCurrency, BigDecimal.valueOf(29.99)),
                 Instant.now(),
                 Instant.now(),
                 ImageUrl.of("https://example.com/outofstock.jpg"),
@@ -269,7 +269,7 @@ class ProductAggregateApplicationMapperTest {
                 ProductTitle.of("In Stock Product"),
                 ProductDescription.of("Product with positive volume"),
                 Quantity.of(BigDecimal.valueOf(100)),
-                new Money(eurCurrency, BigDecimal.valueOf(29.99)),
+                Money.of(eurCurrency, BigDecimal.valueOf(29.99)),
                 Instant.now(),
                 Instant.now(),
                 ImageUrl.of("https://example.com/instock.jpg"),
@@ -293,7 +293,7 @@ class ProductAggregateApplicationMapperTest {
                 ProductTitle.of("USD Product"),
                 ProductDescription.of("Product with USD currency"),
                 Quantity.of(BigDecimal.valueOf(50)),
-                new Money(usdCurrency, BigDecimal.valueOf(99.99)),
+                Money.of(usdCurrency, BigDecimal.valueOf(99.99)),
                 Instant.now(),
                 Instant.now(),
                 ImageUrl.of("https://example.com/usd.jpg"),
@@ -317,7 +317,7 @@ class ProductAggregateApplicationMapperTest {
                 ProductTitle.of("Decimal Product"),
                 ProductDescription.of("Product with decimal values"),
                 Quantity.of(new BigDecimal("10.75")),
-                new Money(eurCurrency, new BigDecimal("19.95")),
+                Money.of(eurCurrency, new BigDecimal("19.95")),
                 Instant.now(),
                 Instant.now(),
                 ImageUrl.of("https://example.com/decimal.jpg"),
@@ -465,7 +465,7 @@ class ProductAggregateApplicationMapperTest {
                 ProductTitle.of("Free Product"),
                 ProductDescription.of("Product with zero price"),
                 Quantity.of(BigDecimal.valueOf(100)),
-                new Money(eurCurrency, BigDecimal.ZERO),
+                Money.of(eurCurrency, BigDecimal.ZERO),
                 Instant.now(),
                 Instant.now(),
                 ImageUrl.of("https://example.com/free.jpg"),
@@ -498,7 +498,7 @@ class ProductAggregateApplicationMapperTest {
             ProductAggregate product = ProductApplicationMapper.validateAndSetDefault(dto);
 
             // THEN
-            assertThat(product.getVolume().getValue()).isEqualByComparingTo(new BigDecimal("1000000"));
+            assertThat(product.getVolume().value()).isEqualByComparingTo(new BigDecimal("1000000"));
         }
 
         @Test
@@ -521,7 +521,7 @@ class ProductAggregateApplicationMapperTest {
             ProductAggregate product = ProductApplicationMapper.validateAndSetDefault(dto);
 
             // THEN
-            assertThat(product.getDescription().getValue()).hasSize(1000);
+            assertThat(product.getDescription().value()).hasSize(1000);
         }
     }
 }

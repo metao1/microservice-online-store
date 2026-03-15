@@ -52,10 +52,10 @@ public class OrderManagementController {
         request.items().forEach(item -> {
             orderService.addItemToOrder(
                 OrderId.of(orderId),
-                new ProductSku(item.sku()),
+                ProductSku.of(item.sku()),
                 new ProductTitle(item.productTitle()),
-                new Quantity(item.quantity()),
-                new Money(item.currency(), item.price()));
+                Quantity.of(item.quantity()),
+                Money.of(item.currency(), item.price()));
         });
     }
 

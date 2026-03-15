@@ -86,7 +86,7 @@ public class ProductDomainService {
         var title = ProductTitle.of(command.title());
         var description = ProductDescription.of(command.description());
         var volume = Quantity.of(command.volume());
-        var price = new Money(command.currency(), command.price());
+        var price = Money.of(command.currency(), command.price());
         var imageUrl = ImageUrl.of(command.imageUrl());
         var createdTime = command.createdTime();
 
@@ -135,7 +135,7 @@ public class ProductDomainService {
         product.updateTitle(ProductTitle.of(command.title()));
 
         product.updateDescription(ProductDescription.of(command.description()));
-        Money newPrice = new Money(command.currency(), command.price());
+        Money newPrice = Money.of(command.currency(), command.price());
         product.updatePrice(newPrice);
 
         productRepository.save(product);

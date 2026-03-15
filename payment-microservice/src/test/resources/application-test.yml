@@ -4,13 +4,16 @@ spring:
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
     hikari:
       auto-commit: false
+      schema: "public"
   kafka:
     properties:
       security.protocol: PLAINTEXT
       sasl.mechanism: PLAIN
       schema.registry.url: mock://not-used
   jpa:
-    generate-ddl: true
+    generate-ddl: false
+    hibernate:
+      ddl-auto: create-drop
     properties:
       hibernate:
         show_sql: true

@@ -58,13 +58,13 @@
 //        if (amount.currency() == Currency.EUR) {
 //            return amount;
 //        } else {
-//            return new Money(Currency.EUR,
+//            return Money.of(Currency.EUR,
 //                amount.doubleAmount().divide(getConversionRateFor(amount.currency()), RoundingMode.HALF_UP));
 //        }
 //    }
 //
 //    private Money convertEuroTo(@NonNull Money amount, @NonNull Currency newCurrency) {
-//        return new Money(newCurrency, amount.doubleAmount().multiply(getConversionRateFor(newCurrency)));
+//        return Money.of(newCurrency, amount.doubleAmount().multiply(getConversionRateFor(newCurrency)));
 //    }
 //
 //    private BigDecimal getConversionRateFor(@NonNull Currency currency) {

@@ -47,7 +47,7 @@ public class PaymentApplicationService {
 
         // Use domain service to create payment with business rules
         OrderId orderId = OrderId.of(command.orderId());
-        Money amount = new Money(Currency.getInstance(command.currency()), command.amount());
+        Money amount = Money.of(Currency.getInstance(command.currency()), command.amount());
         PaymentMethod paymentMethod = createPaymentMethod(command);
 
         // Validate payment method for amount

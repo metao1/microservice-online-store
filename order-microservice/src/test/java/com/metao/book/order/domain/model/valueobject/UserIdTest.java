@@ -1,6 +1,7 @@
 package com.metao.book.order.domain.model.valueobject;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,10 +26,10 @@ class UserIdTest {
     @DisplayName("should create customer ID with default constructor for Hibernate")
     void createuserId_withDefaultConstructor_shouldSucceed() {
         // WHEN
-        UserId userId = UserId.of();
+        UserId userId = UserId.of("");
 
         // THEN
-        assertThat(userId.value()).isNull();
+        assertThat(userId.value()).isEmpty();
     }
 
     @Test
@@ -71,12 +72,9 @@ class UserIdTest {
 
     @Test
     @DisplayName("should handle null value gracefully")
-    void createuserId_withNullValue_shouldAllowForOrm() {
-        // WHEN
-        UserId userId = UserId.of(null);
-
-        // THEN
-        assertThat(userId.value()).isNull();
+    void createuserId_withNullValue_shouldNotAllowForOrm() {
+        // WHEN & THEN
+        assertThatThrownBy(() -> UserId.of(null)).isInstanceOf(NullPointerException.class);
     }
 
     @Test

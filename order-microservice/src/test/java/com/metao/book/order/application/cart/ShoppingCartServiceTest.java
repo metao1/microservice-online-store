@@ -38,6 +38,7 @@ class ShoppingCartServiceTest {
 
     private String userId;
     private String sku;
+    private String productTitle;
     private ShoppingCart cartItem;
     private Currency currency;
 
@@ -45,9 +46,12 @@ class ShoppingCartServiceTest {
     void setUp() {
         userId = "testUser";
         sku = "B00TESTSKU";
+        productTitle = "product-123";
         currency = Currency.getInstance("USD");
         // Constructor: public ShoppingCart(String userId, String sku, BigDecimal buyPrice, BigDecimal sellPrice, BigDecimal quantity, Currency currency)
-        cartItem = new ShoppingCart(userId, sku, BigDecimal.valueOf(10.00), BigDecimal.valueOf(10.00), ONE, currency);
+        BigDecimal buyPrice = BigDecimal.valueOf(10.00);
+        BigDecimal sellPrice = BigDecimal.valueOf(10.00);
+        cartItem = new ShoppingCart(userId, sku, productTitle, buyPrice, sellPrice, ONE, currency);
         // Manually set createdOn and updatedOn as the service might rely on them, and constructor sets createdOn.
         // The service sets updatedOn to createdOn for new items in addItemToCart.
         // For existing items, updatedOn is set when quantity changes.
@@ -106,7 +110,7 @@ class ShoppingCartServiceTest {
 
         var result = shoppingCartService.addItemToCart(userId,
             Set.of(
-                new ShoppingCartItem(sku, ONE, BigDecimal.valueOf(10.00), currency)
+                new ShoppingCartItem(sku, productTitle, ONE, BigDecimal.valueOf(10.00), currency)
             ));
 
         assertThat(result).isPositive();
@@ -127,17 +131,17 @@ class ShoppingCartServiceTest {
             List<ShoppingCart> savedItems = invocation.getArgument(0);
             // Verify the saved item
             assertThat(savedItems).hasSize(1); // Set deduplicates identical items
-            ShoppingCart savedItem = savedItems.get(0);
-            assertThat(savedItem.getUserId()).isEqualTo(userId);
-            assertThat(savedItem.getSku()).isEqualTo(sku);
-            assertThat(savedItem.getQuantity()).isEqualByComparingTo(BigDecimal.valueOf(3)); // 1 + 2
-            assertThat(savedItem.getUpdatedOn()).isGreaterThanOrEqualTo(originalUpdatedOn);
+            Optional<ShoppingCart> savedItem = savedItems.stream().findFirst();
+            assertThat(savedItem.get().getUserId()).isEqualTo(userId);
+            assertThat(savedItem.get().getSku()).isEqualTo(sku);
+            assertThat(savedItem.get().getQuantity()).isEqualByComparingTo(BigDecimal.valueOf(3)); // 1 + 2
+            assertThat(savedItem.get().getUpdatedOn()).isGreaterThanOrEqualTo(originalUpdatedOn);
             return savedItems;
         });
 
         var result = shoppingCartService.addItemToCart(userId,
             Set.of(
-                new ShoppingCartItem(sku, TWO, BigDecimal.valueOf(10.00), currency)
+                new ShoppingCartItem(sku, productTitle, TWO, BigDecimal.valueOf(10.00), currency)
             )
         ); // Adding 2 to existing quantity of 1
 

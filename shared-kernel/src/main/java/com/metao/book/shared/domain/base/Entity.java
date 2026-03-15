@@ -1,5 +1,6 @@
 package com.metao.book.shared.domain.base;
 
+import java.util.Objects;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,6 +20,7 @@ public abstract class Entity<D> {
     }
 
     protected Entity(D id) {
+        Objects.requireNonNull(id, "id can't be null");
         this.id = id;
     }
 

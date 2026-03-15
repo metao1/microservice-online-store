@@ -311,7 +311,7 @@ class ProductAggregateDomainServiceTest {
             ProductTitle.of("Test Product"),
             ProductDescription.of("Test Description"),
             Quantity.of(BigDecimal.valueOf(100)),
-            new Money(Currency.getInstance("EUR"), BigDecimal.valueOf(29.99)),
+            Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(29.99)),
             Instant.now(),
             Instant.now(),
             ImageUrl.of("https://example.com/test.jpg"),

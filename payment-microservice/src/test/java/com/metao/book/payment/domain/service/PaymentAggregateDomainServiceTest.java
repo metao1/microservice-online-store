@@ -74,7 +74,7 @@ class PaymentAggregateDomainServiceTest {
     void createPayment_withValidData_shouldCreatePayment() {
         // Given
         OrderId orderId = OrderId.of("order-123");
-        Money amount = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(100.00));
+        Money amount = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(100.00));
         PaymentMethod paymentMethod = PaymentMethod.creditCard("****-1234");
 
         when(paymentRepository.existsByOrderId(orderId)).thenReturn(false);
@@ -94,7 +94,7 @@ class PaymentAggregateDomainServiceTest {
     void createPayment_whenPaymentAlreadyExists_shouldThrowException() {
         // Given
         OrderId orderId = OrderId.of("order-123");
-        Money amount = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(100.00));
+        Money amount = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(100.00));
         PaymentMethod paymentMethod = PaymentMethod.creditCard("****-1234");
 
         when(paymentRepository.existsByOrderId(orderId)).thenReturn(true);
@@ -109,7 +109,7 @@ class PaymentAggregateDomainServiceTest {
     void createPayment_withAmountTooSmall_shouldThrowException() {
         // Given
         OrderId orderId = OrderId.of("order-123");
-        Money amount = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(0.005)); // Less than 0.01
+        Money amount = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(0.005)); // Less than 0.01
         PaymentMethod paymentMethod = PaymentMethod.creditCard("****-1234");
 
         when(paymentRepository.existsByOrderId(orderId)).thenReturn(false);
@@ -124,7 +124,7 @@ class PaymentAggregateDomainServiceTest {
     void createPayment_withAmountTooLarge_shouldThrowException() {
         // Given
         OrderId orderId = OrderId.of("order-123");
-        Money amount = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(15000)); // More than 10,000
+        Money amount = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(15000)); // More than 10,000
         PaymentMethod paymentMethod = PaymentMethod.creditCard("****-1234");
 
         when(paymentRepository.existsByOrderId(orderId)).thenReturn(false);
@@ -168,7 +168,7 @@ class PaymentAggregateDomainServiceTest {
     void isPaymentMethodValidForAmount_withCardPaymentUnderLimit_shouldReturnTrue() {
         // Given
         PaymentMethod cardMethod = PaymentMethod.creditCard("****-1234");
-        Money amount = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(3000));
+        Money amount = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(3000));
 
         // When
         boolean result = paymentDomainService.isPaymentMethodValidForAmount(cardMethod, amount);
@@ -181,7 +181,7 @@ class PaymentAggregateDomainServiceTest {
     void isPaymentMethodValidForAmount_withCardPaymentOverLimit_shouldReturnFalse() {
         // Given
         PaymentMethod cardMethod = PaymentMethod.creditCard("****-1234");
-        Money amount = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(6000));
+        Money amount = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(6000));
 
         // When
         boolean result = paymentDomainService.isPaymentMethodValidForAmount(cardMethod, amount);
@@ -194,7 +194,7 @@ class PaymentAggregateDomainServiceTest {
     void isPaymentMethodValidForAmount_withDigitalPaymentUnderLimit_shouldReturnTrue() {
         // Given
         PaymentMethod digitalMethod = PaymentMethod.paypal("user@example.com");
-        Money amount = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(1500));
+        Money amount = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(1500));
 
         // When
         boolean result = paymentDomainService.isPaymentMethodValidForAmount(digitalMethod, amount);

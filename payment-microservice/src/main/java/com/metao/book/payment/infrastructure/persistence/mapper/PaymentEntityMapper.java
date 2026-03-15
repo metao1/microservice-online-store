@@ -35,7 +35,7 @@ public class PaymentEntityMapper {
      */
     public PaymentAggregate toDomain(PaymentEntity payment) {
         OrderId orderId = OrderId.of(payment.getOrderId());
-        Money amount = new Money(payment.getCurrency(), payment.getAmount());
+        Money amount = Money.of(payment.getCurrency(), payment.getAmount());
         PaymentMethod paymentMethod = mapPaymentMethod(payment.getPaymentMethodType(),
             payment.getPaymentMethodDetails());
         PaymentStatus status = mapPaymentStatus(payment.getStatus());

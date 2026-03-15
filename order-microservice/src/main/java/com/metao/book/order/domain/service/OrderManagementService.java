@@ -57,10 +57,10 @@ public class OrderManagementService {
         for (ShoppingCart cartItem : cartItems) {
             // Adds priced and quantified items to order
             order.addItem(
-                new ProductSku(cartItem.getSku()),
+                ProductSku.of(cartItem.getSku()),
                 new ProductTitle(cartItem.getProductTitle()),
-                new Quantity(cartItem.getQuantity()),
-                new Money(cartItem.getCurrency(), cartItem.getSellPrice()));
+                Quantity.of(cartItem.getQuantity()),
+                Money.of(cartItem.getCurrency(), cartItem.getSellPrice()));
         }
 
         // Save order
