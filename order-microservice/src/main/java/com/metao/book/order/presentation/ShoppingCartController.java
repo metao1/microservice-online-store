@@ -5,8 +5,9 @@ import com.metao.book.order.application.cart.ShoppingCartDto;
 import com.metao.book.order.application.cart.ShoppingCartService;
 import com.metao.book.order.application.cart.UpdateCartItemQtyDTO;
 import com.metao.book.order.presentation.dto.AddItemRequestDto;
-import lombok.RequiredArgsConstructor;
 import io.micrometer.core.annotation.Timed;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -37,11 +38,9 @@ public class ShoppingCartController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public int addItemToCart(
-        @Validated @RequestBody AddItemRequestDto dto
+        @Valid @RequestBody AddItemRequestDto dto
     ) {
-        return shoppingCartService.addItemToCart(
-            dto.userId(), dto.items()
-        );
+        return shoppingCartService.addItemToCart(dto.userId(), dto.items());
     }
 
     @PutMapping("/{userId}/{sku}")

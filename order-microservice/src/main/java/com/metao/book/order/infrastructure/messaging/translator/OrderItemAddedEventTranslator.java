@@ -17,8 +17,8 @@ public class OrderItemAddedEventTranslator implements ProtobufDomainTranslator {
         DomainOrderItemAddedEvent domainEvent = (DomainOrderItemAddedEvent) event;
         return OrderUpdatedEvent.newBuilder()
             .setId(domainEvent.getOrderId().value())
-            .setProductId(domainEvent.getProductSku().value())
-            .setQuantity(domainEvent.getQuantity().getValue().doubleValue())
+            .setSku(domainEvent.getProductSku().value())
+            .setQuantity(domainEvent.getQuantity().value().doubleValue())
             .setPrice(domainEvent.getUnitPrice().doubleAmount().doubleValue())
             .setCurrency(domainEvent.getUnitPrice().currency().getCurrencyCode())
             .setUpdateTime(Timestamp.newBuilder()

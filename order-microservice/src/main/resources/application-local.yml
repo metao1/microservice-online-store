@@ -20,6 +20,7 @@ spring:
     baseline-version: 0
     outOfOrder: false
     clean-disabled: true
+    validate-on-migrate: true
   kafka:
     # Required connection configs for Kafka producer, consumer, and admin
     bootstrap-servers: "PLAINTEXT://localhost:9094"

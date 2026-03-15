@@ -33,7 +33,7 @@ public class OrderCreatedEventListener {
     )
     public void handleOrderCreatedEvent(OrderCreatedEvent orderEvent) {
         log.info("Received OrderCreatedEvent for order item: {}, product: {}", orderEvent.getId(),
-            orderEvent.getProductId());
+            orderEvent.getSku());
         String eventId = orderEvent.getId();
         if (!processedOrderCreatedEventRepository.markProcessed(eventId)) {
             log.info("OrderCreatedEvent {} already processed; skipping duplicate.", eventId);

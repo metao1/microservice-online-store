@@ -55,6 +55,7 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
 
     private final String userId = "e2eUser";
     private final String sku1 = "SKU_E2E_001";
+    private final String productTitle = "productTitle";
     private final BigDecimal quantity1 = BigDecimal.ONE;
     private final BigDecimal price1 = BigDecimal.valueOf(12.99);
     private final Currency currency = Currency.getInstance("EUR");
@@ -99,7 +100,7 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
     void shouldCompletePurchaseFlowAndPublishInventoryReductionEvent() {
         AddItemRequestDto addItemDTO = new AddItemRequestDto(
             userId,
-            Set.of(new ShoppingCartItem(sku1, quantity1, price1, currency))
+                Set.of(new ShoppingCartItem(sku1, productTitle, quantity1, price1, currency))
         );
 
         given()
@@ -158,7 +159,7 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
     void shouldNotPublishDuplicateInventoryReductionEventForDuplicateSuccessfulPayment() {
         AddItemRequestDto addItemDTO = new AddItemRequestDto(
             userId,
-            Set.of(new ShoppingCartItem(sku1, quantity1, price1, currency))
+                Set.of(new ShoppingCartItem(sku1, productTitle, quantity1, price1, currency))
         );
 
         given()

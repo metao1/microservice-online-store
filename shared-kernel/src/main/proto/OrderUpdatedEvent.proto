@@ -10,8 +10,8 @@ message OrderUpdatedEvent {
   string id = 1;
   // Last updated date.
   optional google.protobuf.Timestamp update_time = 8;
-  string customerId = 10;
-  string productId = 2;
+  string userId = 10;
+  string sku = 2;
   Status status = 3;
   double quantity = 4;
   double price = 5;

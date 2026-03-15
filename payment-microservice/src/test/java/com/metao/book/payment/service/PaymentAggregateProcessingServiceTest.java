@@ -36,8 +36,8 @@ class PaymentAggregateProcessingServiceTest {
     private OrderCreatedEvent createSampleOrderCreatedEvent() {
         return OrderCreatedEvent.newBuilder()
             .setId("orderItem123")
-            .setProductId("prod789")
-            .setCustomerId("cust456")
+            .setSku("prod789")
+            .setUserId("cust456")
             .setPrice(100.00)
             .setQuantity(1.0)
             .setCurrency("USD")

@@ -47,7 +47,7 @@ class ProductAggregateSkuTest {
         // WHEN & THEN
         assertThatThrownBy(() -> ProductSku.of(""))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("ProductId cannot be null or empty");
+            .hasMessageContaining("sku cannot be null or empty");
     }
 
     @Test
@@ -56,7 +56,7 @@ class ProductAggregateSkuTest {
         // WHEN & THEN
         assertThatThrownBy(() -> ProductSku.of("          "))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("ProductId cannot be null or empty");
+            .hasMessageContaining("sku cannot be null or empty");
     }
 
     // ========== Trim Tests ==========

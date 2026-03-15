@@ -28,9 +28,9 @@ interface Product {
 interface ProductCardExampleProps {
   product?: Product;
   loading?: boolean;
-  onAddToCart?: (productId: string) => void;
-  onToggleWishlist?: (productId: string) => void;
-  onQuickView?: (productId: string) => void;
+  onAddToCart?: (sku: string) => void;
+  onToggleWishlist?: (sku: string) => void;
+  onQuickView?: (sku: string) => void;
 }
 
 const ProductCardExample: React.FC<ProductCardExampleProps> = ({

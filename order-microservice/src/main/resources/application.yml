@@ -53,7 +53,7 @@ spring:
         max.poll.interval.ms: 300
         heartbeat.interval.ms: 1000
         auto.offset.reset: earliest
-        allow.auto.create.topics: "false"
+        allow.auto.create.topics: "true"
         spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
         spring.deserializer.value.delegate.class: io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer
     producer:
@@ -79,11 +79,14 @@ spring:
     outOfOrder: false
     locations: classpath:migration
     clean-disabled: true
+    validate-on-migrate: true
   jpa:
     database: POSTGRESQL
     open-in-view: false
     generate-ddl: false
     show-sql: false
+    hibernate:
+      ddl-auto: validate
     properties:
       hibernate:
         connection:

@@ -7,7 +7,7 @@ import com.metao.book.product.domain.model.entity.ProductCategory;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.product.domain.model.valueobject.ImageUrl;
 import com.metao.book.product.domain.model.valueobject.ProductDescription;
-import com.metao.book.product.domain.model.valueobject.ProductTitle;
+import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.domain.product.Quantity;
@@ -37,12 +37,12 @@ public class ProductApplicationMapper {
     public ProductDTO toDTO(ProductAggregate product) {
         return ProductDTO.builder()
             .sku(product.getId().value())
-            .title(product.getTitle().getValue())
-            .description(product.getDescription().getValue())
+            .title(product.getTitle().value())
+            .description(product.getDescription().value())
             .imageUrl(product.getImageUrl().getValue())
             .price(product.getMoney().fixedPointAmount())
             .currency(product.getMoney().currency())
-            .volume(product.getVolume().getValue())
+            .volume(product.getVolume().value())
             .categories(mapCategoriesToNames(product.getCategories()))
             .createdTime(product.getCreatedTime())
             .updatedTime(product.getUpdatedTime())

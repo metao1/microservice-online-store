@@ -29,7 +29,7 @@ export interface ProductGridProps {
   /** Callback when a product is added to cart */
   onAddToCart?: (product: Product, selectedVariants?: ProductVariant[]) => void;
   /** Callback when wishlist is toggled */
-  onToggleWishlist?: (productId: string) => void;
+  onToggleWishlist?: (sku: string) => void;
   /** Callback when quick view is requested */
   onQuickView?: (product: Product) => void;
   /** Callback to load more products */
@@ -156,8 +156,8 @@ export const ProductGrid: FC<ProductGridProps> = ({
     onAddToCart?.(product, selectedVariants);
   }, [onAddToCart]);
 
-  const handleToggleWishlist = useCallback((productId: string) => {
-    onToggleWishlist?.(productId);
+  const handleToggleWishlist = useCallback((sku: string) => {
+    onToggleWishlist?.(sku);
   }, [onToggleWishlist]);
 
   const handleQuickView = useCallback((product: Product) => {

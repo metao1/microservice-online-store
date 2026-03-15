@@ -54,7 +54,7 @@ spring:
         max.idle.time.ms: 60000
         heartbeat.interval.ms: 1000
         auto.offset.reset: latest
-        allow.auto.create.topics: 'false'
+        allow.auto.create.topics: "true"
         spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
         spring.deserializer.value.delegate.class: io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer
     producer:
@@ -70,6 +70,11 @@ spring:
     hikari:
       auto-commit: false
       schema: "bookstore"
+      maximum-pool-size: 10
+      minimum-idle: 2
+      max-lifetime: 600000      # 10 minutes
+      idle-timeout: 300000      # 5 minutes
+      keepalive-time: 300000    # ping connection
   flyway:
     enabled: true
     baseline-version: 0
@@ -79,13 +84,17 @@ spring:
     create-schemas: true
     baseline-on-migrate: true
     validate-on-migrate: true
+    default-schema: bookstore
   jpa:
     database: POSTGRESQL
     generate-ddl: false
     open-in-view: false
+    hibernate:
+      ddl-auto: validate
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        ddl-auto: validate
         jdbc:
           batch_size: 20
           order_inserts: true

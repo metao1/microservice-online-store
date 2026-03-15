@@ -14,7 +14,7 @@ public record ProductSku(String value) implements ValueObject {
 
     public ProductSku(@NonNull String value) {
         if (value.trim().isEmpty()) {
-            throw new IllegalArgumentException("ProductId cannot be null or empty");
+            throw new IllegalArgumentException("sku cannot be null or empty");
         }
         this.value = value.trim();
     }

@@ -11,7 +11,7 @@ import lombok.Data;
 public class OrderResponseDto {
 
     private String id;
-    private String customerId;
+    private String userId;
     private List<OrderItemResponse> items;
     private String status;
     private Instant createdAt;
@@ -21,7 +21,7 @@ public class OrderResponseDto {
     public static OrderResponseDto fromDomain(OrderAggregate order) {
         OrderResponseDto response = new OrderResponseDto();
         response.setId(order.getId().value());
-        response.setCustomerId(order.getCustomerId().getValue());
+        response.setUserId(order.getUserId().value());
         response.setStatus(order.getStatus().name());
         response.setCreatedAt(order.getCreatedAt());
         response.setUpdatedAt(order.getUpdatedAt());
@@ -30,8 +30,9 @@ public class OrderResponseDto {
         response.setItems(order.getItems().stream()
             .map(item -> {
                 OrderItemResponse itemResponse = new OrderItemResponse();
-                itemResponse.setProductId(item.getProductSku().value());
-                itemResponse.setQuantity(item.getQuantity().getValue());
+                itemResponse.setSku(item.getProductSku().value());
+                itemResponse.setProductTitle(item.getTitle().value());
+                itemResponse.setQuantity(item.getQuantity().value());
                 itemResponse.setUnitPrice(item.getUnitPrice());
                 itemResponse.setTotalPrice(item.getTotalPrice());
                 return itemResponse;
@@ -44,7 +45,8 @@ public class OrderResponseDto {
     @Data
     public static class OrderItemResponse {
 
-        private String productId;
+        private String sku;
+        private String productTitle;
         private BigDecimal quantity;
         private Money unitPrice;
         private Money totalPrice;

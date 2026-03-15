@@ -1,7 +1,7 @@
 package com.metao.book.order.infrastructure.persistence.repository;
 
 import com.metao.book.order.domain.model.aggregate.OrderAggregate;
-import com.metao.book.order.domain.model.valueobject.CustomerId;
+import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.repository.OrderRepository;
 import com.metao.book.order.infrastructure.persistence.entity.OrderEntity;
@@ -39,8 +39,8 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public List<OrderAggregate> findByCustomerId(CustomerId customerId) {
-        return jpaOrderRepository.findByCustomerId(customerId).stream()
+    public List<OrderAggregate> findByuserId(UserId userId) {
+        return jpaOrderRepository.findByuserId(userId).stream()
             .map(OrderEntityMapper::toDomain)
             .toList();
     }

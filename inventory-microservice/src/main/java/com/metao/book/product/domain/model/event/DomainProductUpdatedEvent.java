@@ -1,7 +1,7 @@
 package com.metao.book.product.domain.model.event;
 
 import com.metao.book.shared.domain.product.ProductSku;
-import com.metao.book.product.domain.model.valueobject.ProductTitle;
+import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.domain.financial.Money;
 import java.time.Instant;

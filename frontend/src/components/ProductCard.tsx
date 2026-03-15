@@ -9,7 +9,7 @@ interface ProductCardProps {
   variant?: 'default' | 'compact' | 'featured';
   showQuickActions?: boolean;
   onAddToCart?: (product: Product, selectedVariants?: ProductVariant[]) => void;
-  onToggleWishlist?: (productId: string) => void;
+  onToggleWishlist?: (sku: string) => void;
   onQuickView?: (product: Product) => void;
 }
 

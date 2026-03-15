@@ -236,7 +236,7 @@ const OrdersPage: FC = () => {
                     >
                       {getStatusDisplay(order.status)}
                     </span>
-                    <p className="order-total">${order.total.toFixed(2)}</p>
+                    <p className="order-total">${order.total}</p>
                   </div>
                 </div>
 
@@ -251,7 +251,7 @@ const OrdersPage: FC = () => {
                       <div className="item-details">
                         <h4>{item.title}</h4>
                         <p className="item-price">
-                          ${item.price.toFixed(2)} × {item.cartQuantity}
+                          ${item.price} × ${item.cartQuantity}
                         </p>
                       </div>
                     </div>

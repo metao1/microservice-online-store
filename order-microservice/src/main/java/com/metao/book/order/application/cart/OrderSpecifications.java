@@ -14,16 +14,16 @@ import org.springframework.util.CollectionUtils;
 public class OrderSpecifications {
 
     public static Specification<OrderEntity> findByOrdersByCriteria(
-        Set<String> productIds, Set<OrderStatus> statuses
+        Set<String> skus, Set<OrderStatus> statuses
     ) {
         return (root, query, criteriaBuilder) -> {
             Predicate predicate = criteriaBuilder.conjunction();
 
-            // For productIds, we need to join with OrderItemEntity
-            if (!CollectionUtils.isEmpty(productIds)) {
+            // For skus, we need to join with OrderItemEntity
+            if (!CollectionUtils.isEmpty(skus)) {
                 var itemsJoin = root.join("items");
-                var productIdPath = itemsJoin.get("productId").get("value");
-                predicate = criteriaBuilder.and(predicate, productIdPath.in(productIds));
+                var skuPath = itemsJoin.get("sku").get("value");
+                predicate = criteriaBuilder.and(predicate, skuPath.in(skus));
             }
 
             // For status, we can use the direct field

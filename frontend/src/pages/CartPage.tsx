@@ -56,13 +56,13 @@ const CartPage: FC = () => {
   const paymentMethod: PaymentMethodType = 'CREDIT_CARD';
   const paymentDetails = '**** **** **** 4242';
 
-  const handleRemoveItem = async (productId: string) => {
-    await removeFromCart(productId);
+  const handleRemoveItem = async (sku: string) => {
+    await removeFromCart(sku);
   };
 
-  const handleQuantityChange = async (productId: string, quantity: number) => {
+  const handleQuantityChange = async (sku: string, quantity: number) => {
     if (quantity > 0) {
-      const cartItem = cart.items.find((item) => item.sku === productId);
+      const cartItem = cart.items.find((item) => item.sku === sku);
       if (cartItem) {
         const product = {
           sku: cartItem.sku,

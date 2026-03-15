@@ -26,7 +26,7 @@ public class ProductUpdatedEventTranslator implements ProtobufDomainTranslator {
                 .setNanos(event.getOccurredOn().getNano())
                 .build())
             .setSku(domainEvent.getSku().value())
-            .setVolume(domainEvent.getVolume().getValue().doubleValue())
+            .setVolume(domainEvent.getVolume().value().doubleValue())
             .build();
     }
 

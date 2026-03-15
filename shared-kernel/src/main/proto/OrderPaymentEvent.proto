@@ -10,8 +10,8 @@ message OrderPaymentEvent {
   string id = 1;
   // Created updated date.
   google.protobuf.Timestamp create_time = 2;
-  string customerId = 3;
-  string productId = 4;
+  string userId = 3;
+  string sku = 4;
   string paymentId = 5;
   string orderId = 6;
   Status status = 7;

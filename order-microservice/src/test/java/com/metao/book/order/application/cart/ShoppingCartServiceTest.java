@@ -115,7 +115,9 @@ class ShoppingCartServiceTest {
 
     @Test
     void addItemToCart_whenItemExists_updatesQuantityAndSaves() {
-        ShoppingCart existingItem = new ShoppingCart(userId, sku, BigDecimal.valueOf(10.00), BigDecimal.valueOf(10.00),
+        ShoppingCart existingItem = new ShoppingCart(userId, sku,
+                cartItem.getProductTitle(),
+                BigDecimal.valueOf(10.00), BigDecimal.valueOf(10.00),
             ONE, currency);
         long originalUpdatedOn = System.currentTimeMillis() - 1000; // ensure updatedOn changes
         existingItem.setUpdatedOn(originalUpdatedOn);

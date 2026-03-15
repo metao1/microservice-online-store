@@ -1,6 +1,6 @@
-import { Cart, Category, Order, Payment, PaymentMethodType, PaymentStatistics, Product } from '@types';
-import { ApiClientContract, PaymentCommand } from './api.types';
-import { BaseApiClient } from './api.base';
+import {Cart, Category, Order, Payment, PaymentStatistics, Product} from '@types';
+import {ApiClientContract, PaymentCommand} from './api.types';
+import {BaseApiClient} from './api.base';
 import mockProducts from '../../dev/api-mocks/products.json';
 import mockCategories from '../../dev/api-mocks/categories.json';
 import mockCart from '../../dev/api-mocks/cart.json';
@@ -113,29 +113,29 @@ export class MockApiClient extends BaseApiClient implements ApiClientContract {
     };
   }
 
-  async addToCart(userId: string, productId: string, quantity: number, price: number, currency: string): Promise<Cart> {
-    const item = this.cartData.shopping_cart_items.find((i: any) => i.sku === productId);
+  async addToCart(userId: string, sku: string, productTitle: string, quantity: number, price: number, currency: string): Promise<Cart> {
+    const item = this.cartData.shopping_cart_items.find((i: any) => i.sku === sku);
     if (item) {
       item.quantity += quantity;
     } else {
-      this.cartData.shopping_cart_items.push({ sku: productId, quantity, price, currency });
+      this.cartData.shopping_cart_items.push({sku: sku, productTitle, quantity, price, currency});
     }
     return this.getCart(userId);
   }
 
-  async removeFromCart(userId: string, productId: string): Promise<Cart> {
-    this.cartData.shopping_cart_items = this.cartData.shopping_cart_items.filter((i: any) => i.sku !== productId);
+  async removeFromCart(userId: string, sku: string): Promise<Cart> {
+    this.cartData.shopping_cart_items = this.cartData.shopping_cart_items.filter((i: any) => i.sku !== sku);
     return this.getCart(userId);
   }
 
   async updateCartItem(
     userId: string,
-    productId: string,
+    sku: string,
     quantity: number,
     price: number,
     currency: string,
   ): Promise<Cart> {
-    const item = this.cartData.shopping_cart_items.find((i: any) => i.sku === productId);
+    const item = this.cartData.shopping_cart_items.find((i: any) => i.sku === sku);
     if (item) {
       item.quantity = quantity;
       item.price = price;
