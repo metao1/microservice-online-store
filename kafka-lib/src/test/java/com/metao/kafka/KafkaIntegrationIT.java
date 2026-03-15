@@ -84,7 +84,7 @@ class KafkaIntegrationIT extends KafkaContainer {
                     .extracting(ConsumerRecord::value)
                     .satisfies(createdEvent -> {
                         assertThat(createdEvent.getId()).isEqualTo("integrationTestOrderId");
-                        assertThat(createdEvent.getuserId()).isEqualTo("custIntegrationTest");
+                        assertThat(createdEvent.getUserId()).isEqualTo("custIntegrationTest");
                         assertThat(createdEvent.getProductSku()).isEqualTo("prodIntegrationTest");
                         assertThat(createdEvent.getQuantity()).isEqualTo(1.0);
                         assertThat(createdEvent.getPrice()).isEqualTo(19.99);
