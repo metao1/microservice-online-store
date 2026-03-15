@@ -31,9 +31,8 @@ public abstract class AbstractEntity<T extends ValueObject> implements Identifia
      *
      * @param source the entity to copy from.
      */
-    protected AbstractEntity(@NonNull AbstractEntity<T> source) {
-        Objects.requireNonNull(source, "source must not be null");
-        this.id = source.id;
+    protected AbstractEntity(AbstractEntity<T> source) {
+        this.id = Objects.requireNonNull(source.id, "source.id must not be null");
     }
 
     /**
@@ -41,7 +40,7 @@ public abstract class AbstractEntity<T extends ValueObject> implements Identifia
      *
      * @param id the ID to assign to the entity.
      */
-    protected AbstractEntity(@NonNull T id) {
+    protected AbstractEntity(T id) {
         this.id = Objects.requireNonNull(id, "id must not be null");
     }
 

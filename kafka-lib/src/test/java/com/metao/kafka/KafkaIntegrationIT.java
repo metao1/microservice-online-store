@@ -58,7 +58,7 @@ class KafkaIntegrationIT extends KafkaContainer {
         String orderId = "integrationTestOrderId";
         CreatedEventTest createdEventTest = CreatedEventTest.newBuilder()
             .setId(orderId)
-            .setCustomerId("custIntegrationTest")
+            .setUserId("custIntegrationTest")
             .setProductSku("prodIntegrationTest")
             .setPrice(19.99)
             .setQuantity(1.0)
@@ -84,7 +84,7 @@ class KafkaIntegrationIT extends KafkaContainer {
                     .extracting(ConsumerRecord::value)
                     .satisfies(createdEvent -> {
                         assertThat(createdEvent.getId()).isEqualTo("integrationTestOrderId");
-                        assertThat(createdEvent.getCustomerId()).isEqualTo("custIntegrationTest");
+                        assertThat(createdEvent.getuserId()).isEqualTo("custIntegrationTest");
                         assertThat(createdEvent.getProductSku()).isEqualTo("prodIntegrationTest");
                         assertThat(createdEvent.getQuantity()).isEqualTo(1.0);
                         assertThat(createdEvent.getPrice()).isEqualTo(19.99);
@@ -136,7 +136,7 @@ class KafkaIntegrationIT extends KafkaContainer {
             for (int i = 0; i < messageCount; i++) {
                 CreatedEventTest event = CreatedEventTest.newBuilder()
                     .setId(orderIdPrefix + i)
-                    .setCustomerId("cust-" + i)
+                    .setUserId("cust-" + i)
                     .setProductSku("prod-" + i)
                     .setPrice(10.0 + i)
                     .setQuantity(1.0)
@@ -216,7 +216,7 @@ class KafkaIntegrationIT extends KafkaContainer {
                     String id = orderIdPrefix + "-p" + producerIndex + "-" + i;
                     CreatedEventTest event = CreatedEventTest.newBuilder()
                         .setId(id)
-                        .setCustomerId("cust-" + producerIndex + "-" + i)
+                        .setUserId("cust-" + producerIndex + "-" + i)
                         .setProductSku("prod-" + producerIndex + "-" + i)
                         .setPrice(20.0 + i)
                         .setQuantity(1.0)

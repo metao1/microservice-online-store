@@ -16,9 +16,9 @@ export interface ApiClientContract {
   searchProducts(query: string, limit?: number, offset?: number): Promise<Product[]>;
   getSubcategories(query: string, limit?: number, offset?: number): Promise<Category[]>;
   getCart(userId: string): Promise<Cart>;
-  addToCart(userId: string, productId: string, quantity: number, price: number, currency: string): Promise<Cart>;
-  removeFromCart(userId: string, productId: string): Promise<Cart>;
-  updateCartItem(userId: string, productId: string, quantity: number, price: number, currency: string): Promise<Cart>;
+  addToCart(userId: string, sku: string, productTitle: string, quantity: number, price: number, currency: string): Promise<Cart>;
+  removeFromCart(userId: string, sku: string): Promise<Cart>;
+  updateCartItem(userId: string, sku: string, quantity: number, price: number, currency: string): Promise<Cart>;
   createOrder(userId: string): Promise<Order>;
   getOrders(userId: string): Promise<Order[]>;
   createPayment(command: PaymentCommand): Promise<Payment>;

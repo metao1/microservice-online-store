@@ -7,7 +7,7 @@ interface CartContextType {
   loading: boolean;
   error: string | null;
   addToCart: (product: Product, quantity: number) => Promise<void>;
-  removeFromCart: (productId: string) => Promise<void>;
+  removeFromCart: (sku: string) => Promise<void>;
   updateCartItem: (product: Product, quantity: number) => Promise<void>;
   clearCart: () => void;
   getCartTotal: () => number;
@@ -28,7 +28,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children, userId }) 
     async (product: Product, quantity: number) => {
       try {
         console.log('CartContext: Adding product to cart:', product.sku);
-        await hookAddToCart(product.sku, quantity, product.price, product.currency);
+        await hookAddToCart(product.sku, product.title, quantity, product.price, product.currency);
         console.log('CartContext: Product added successfully');
         console.log('CartContext: Current cart after add:', cart);
       } catch (error) {
@@ -41,8 +41,8 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children, userId }) 
   );
 
   const removeFromCart = useCallback(
-    async (productId: string) => {
-      await hookRemoveFromCart(productId);
+    async (sku: string) => {
+      await hookRemoveFromCart(sku);
     },
     [hookRemoveFromCart]
   );

@@ -5,10 +5,6 @@ import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.Objects;
-import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 /**
@@ -16,12 +12,7 @@ import lombok.NonNull;
  * Allows zero but disallows negative amounts.
  */
 @Embeddable
-@Getter
-@EqualsAndHashCode
-@NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
-public class Quantity implements ValueObject {
-
-    private final BigDecimal value;
+public record Quantity(BigDecimal value) implements ValueObject {
 
     public Quantity(@NonNull BigDecimal value) {
         if (value.compareTo(BigDecimal.ZERO) < 0) {

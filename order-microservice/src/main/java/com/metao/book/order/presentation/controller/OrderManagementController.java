@@ -1,8 +1,7 @@
 package com.metao.book.order.presentation.controller;
 
-import com.metao.book.order.domain.model.valueobject.CustomerId;
 import com.metao.book.order.domain.model.valueobject.OrderId;
-import com.metao.book.shared.domain.product.Quantity;
+import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.domain.service.OrderManagementService;
 import com.metao.book.order.presentation.dto.AddItemRequestDto;
 import com.metao.book.order.presentation.dto.CreateOrderRequestDTO;
@@ -10,11 +9,13 @@ import com.metao.book.order.presentation.dto.OrderResponseDto;
 import com.metao.book.order.presentation.dto.UpdateStatusRequestDto;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.product.ProductSku;
+import com.metao.book.shared.domain.product.ProductTitle;
+import com.metao.book.shared.domain.product.Quantity;
+import io.micrometer.core.annotation.Timed;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import io.micrometer.core.annotation.Timed;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,7 +40,7 @@ public class OrderManagementController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public OrderId createOrder(@RequestBody CreateOrderRequestDTO request) { // TODO update this DTO to have all order info
-        return orderService.createOrder(new CustomerId(request.userId()));
+        return orderService.createOrder(UserId.of(request.userId()));
     }
 
     @PutMapping("/{orderId}/items")
@@ -52,6 +53,7 @@ public class OrderManagementController {
             orderService.addItemToOrder(
                 OrderId.of(orderId),
                 new ProductSku(item.sku()),
+                new ProductTitle(item.productTitle()),
                 new Quantity(item.quantity()),
                 new Money(item.currency(), item.price()));
         });
@@ -66,9 +68,9 @@ public class OrderManagementController {
         orderService.updateOrderStatus(OrderId.of(orderId), request.status());
     }
 
-    @GetMapping("/customer/{customerId}")
-    public List<OrderResponseDto> getCustomerOrders(@PathVariable String customerId) {
-        return orderService.getCustomerOrders(new CustomerId(customerId)).stream()
+    @GetMapping("/customer/{userId}")
+    public List<OrderResponseDto> getCustomerOrders(@PathVariable String userId) {
+        return orderService.getCustomerOrders(UserId.of(userId)).stream()
             .map(OrderResponseDto::fromDomain)
             .toList();
     }

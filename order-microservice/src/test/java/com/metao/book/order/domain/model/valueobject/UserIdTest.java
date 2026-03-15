@@ -5,30 +5,30 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-@DisplayName("CustomerId Value Object Tests")
-class CustomerIdTest {
+@DisplayName("userId Value Object Tests")
+class UserIdTest {
 
     @Test
     @DisplayName("should create customer ID with value")
-    void createCustomerId_withValue_shouldSucceed() {
+    void createuserId_withValue_shouldSucceed() {
         // GIVEN
         String value = "customer-123";
 
         // WHEN
-        CustomerId customerId = new CustomerId(value);
+        UserId userId = UserId.of(value);
 
         // THEN
-        assertThat(customerId.getValue()).isEqualTo(value);
+        assertThat(userId.value()).isEqualTo(value);
     }
 
     @Test
     @DisplayName("should create customer ID with default constructor for Hibernate")
-    void createCustomerId_withDefaultConstructor_shouldSucceed() {
+    void createuserId_withDefaultConstructor_shouldSucceed() {
         // WHEN
-        CustomerId customerId = new CustomerId();
+        UserId userId = UserId.of();
 
         // THEN
-        assertThat(customerId.getValue()).isNull();
+        assertThat(userId.value()).isNull();
     }
 
     @Test
@@ -36,8 +36,8 @@ class CustomerIdTest {
     void equals_withSameValue_shouldReturnTrue() {
         // GIVEN
         String value = "customer-123";
-        CustomerId id1 = new CustomerId(value);
-        CustomerId id2 = new CustomerId(value);
+        UserId id1 = UserId.of(value);
+        UserId id2 = UserId.of(value);
 
         // WHEN & THEN
         assertThat(id1).isEqualTo(id2);
@@ -48,8 +48,8 @@ class CustomerIdTest {
     @DisplayName("should not be equal when values are different")
     void equals_withDifferentValue_shouldReturnFalse() {
         // GIVEN
-        CustomerId id1 = new CustomerId("customer-123");
-        CustomerId id2 = new CustomerId("customer-456");
+        UserId id1 = UserId.of("customer-123");
+        UserId id2 = UserId.of("customer-456");
 
         // WHEN & THEN
         assertThat(id1).isNotEqualTo(id2);
@@ -60,10 +60,10 @@ class CustomerIdTest {
     void toString_shouldReturnValue() {
         // GIVEN
         String value = "customer-123";
-        CustomerId customerId = new CustomerId(value);
+        UserId userId = UserId.of(value);
 
         // WHEN
-        String result = customerId.toString();
+        String result = userId.toString();
 
         // THEN
         assertThat(result).isEqualTo(value);
@@ -71,21 +71,21 @@ class CustomerIdTest {
 
     @Test
     @DisplayName("should handle null value gracefully")
-    void createCustomerId_withNullValue_shouldAllowForOrm() {
+    void createuserId_withNullValue_shouldAllowForOrm() {
         // WHEN
-        CustomerId customerId = new CustomerId(null);
+        UserId userId = UserId.of(null);
 
         // THEN
-        assertThat(customerId.getValue()).isNull();
+        assertThat(userId.value()).isNull();
     }
 
     @Test
     @DisplayName("should handle empty string value")
-    void createCustomerId_withEmptyString_shouldSucceed() {
+    void createuserId_withEmptyString_shouldSucceed() {
         // WHEN
-        CustomerId customerId = new CustomerId("");
+        UserId userId = UserId.of("");
 
         // THEN
-        assertThat(customerId.getValue()).isEmpty();
+        assertThat(userId.value()).isEmpty();
     }
 }

@@ -23,7 +23,7 @@ import com.metao.book.product.domain.model.aggregate.ProductAggregate;
 import com.metao.book.product.domain.model.entity.ProductCategory;
 import com.metao.book.product.domain.model.valueobject.CategoryId;
 import com.metao.book.product.domain.model.valueobject.ProductDescription;
-import com.metao.book.product.domain.model.valueobject.ProductTitle;
+import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.book.product.domain.repository.CategoryRepository;
 import com.metao.book.product.domain.repository.ProductRepository;
 import com.metao.book.product.infrastructure.persistence.repository.ProductCreateIdempotencyRepository;

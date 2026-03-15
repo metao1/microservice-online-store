@@ -310,8 +310,8 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
     console.log('Adding to cart:', product.title, selectedVariants);
   }, []);
 
-  const handleToggleWishlist = useCallback((productId: string) => {
-    console.log('Toggling wishlist for product:', productId);
+  const handleToggleWishlist = useCallback((sku: string) => {
+    console.log('Toggling wishlist for product:', sku);
   }, []);
 
   const handleQuickView = useCallback((product: Product) => {

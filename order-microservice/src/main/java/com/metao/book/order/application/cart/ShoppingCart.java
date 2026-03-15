@@ -32,6 +32,9 @@ public class ShoppingCart {
     @Column(name = "sku")
     private String sku;
 
+    @Column(name = "product_title")
+    private String productTitle;
+
     @Column(name = "quantity")
     private BigDecimal quantity;
 
@@ -53,6 +56,7 @@ public class ShoppingCart {
     public ShoppingCart(
         String userId,
         String sku,
+        String productTitle,
         BigDecimal buyPrice,
         BigDecimal sellPrice,
         BigDecimal quantity,
@@ -60,6 +64,7 @@ public class ShoppingCart {
     ) {
         this.createdOn = Instant.now().toEpochMilli();
         this.sku = sku;
+        this.productTitle = productTitle;
         this.userId = userId;
         this.quantity = quantity;
         this.sellPrice = sellPrice;

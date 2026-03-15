@@ -6,14 +6,15 @@ import com.metao.book.order.application.service.DomainEventToKafkaEventHandler;
 import com.metao.book.order.domain.exception.OrderNotFoundException;
 import com.metao.book.order.domain.exception.ShoppingCartIsEmptyException;
 import com.metao.book.order.domain.model.aggregate.OrderAggregate;
-import com.metao.book.order.domain.model.valueobject.CustomerId;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
-import com.metao.book.shared.domain.product.Quantity;
+import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.domain.repository.OrderRepository;
 import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.product.ProductSku;
+import com.metao.book.shared.domain.product.ProductTitle;
+import com.metao.book.shared.domain.product.Quantity;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,9 +29,9 @@ public class OrderManagementService {
     private final ShoppingCartService shoppingCartService;
 
     @Transactional
-    public OrderId createOrder(CustomerId customerId) {
+    public OrderId createOrder(UserId userId) {
         // Get items from shopping cart
-        var cart = shoppingCartService.getCartForUser(customerId.getValue());
+        var cart = shoppingCartService.getCartForUser(userId.value());
         if (cart.shoppingCartItems().isEmpty()) {
             throw new ShoppingCartIsEmptyException();
         }
@@ -40,7 +41,7 @@ public class OrderManagementService {
             .map(item -> {
                 // Convert ShoppingCartItem back to ShoppingCart for processing
                 // This is a bit awkward, but we need the full cart data
-                return new ShoppingCart(customerId.getValue(), item.sku(),
+                return new ShoppingCart(userId.value(), item.sku(), item.productTitle(),
                     item.price(), item.price(), item.quantity(), item.currency());
             })
             .toList();
@@ -50,23 +51,23 @@ public class OrderManagementService {
         }
 
         // Create order
-        var order = new OrderAggregate(OrderId.generate(), customerId);
+        var order = new OrderAggregate(OrderId.generate(), userId);
 
         // Add items from cart to order
         for (ShoppingCart cartItem : cartItems) {
             // Adds priced and quantified items to order
             order.addItem(
                 new ProductSku(cartItem.getSku()),
+                new ProductTitle(cartItem.getProductTitle()),
                 new Quantity(cartItem.getQuantity()),
-                new Money(cartItem.getCurrency(), cartItem.getSellPrice())
-            );
+                new Money(cartItem.getCurrency(), cartItem.getSellPrice()));
         }
 
         // Save order
         orderRepository.save(order);
 
         // Clear shopping cart
-        shoppingCartService.clearCart(customerId.getValue());
+        shoppingCartService.clearCart(userId.value());
         // Publish events
         // This will send OrderCreatedEvent
         publishEvents(order);
@@ -76,12 +77,13 @@ public class OrderManagementService {
     @Transactional
     public void addItemToOrder(
         OrderId orderId,
-        ProductSku productId,
+        ProductSku sku,
+        ProductTitle productTitle,
         Quantity quantity,
         Money unitPrice
     ) {
         OrderAggregate order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
-        order.addItem(productId, quantity, unitPrice);
+        order.addItem(sku, productTitle, quantity, unitPrice);
         orderRepository.save(order);
         publishEvents(order);
     }
@@ -95,9 +97,9 @@ public class OrderManagementService {
     }
 
     @Transactional
-    public void removeItem(OrderId orderId, ProductSku productId) {
+    public void removeItem(OrderId orderId, ProductSku sku) {
         OrderAggregate order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
-        order.removeItem(productId);
+        order.removeItem(sku);
         OrderAggregate savedOrder = orderRepository.save(order);
         publishEvents(savedOrder);
     }
@@ -111,14 +113,8 @@ public class OrderManagementService {
     }
 
     @Transactional(readOnly = true)
-    public List<OrderAggregate> getCustomerOrders(CustomerId customerId) {
-        return orderRepository.findByCustomerId(customerId);
-    }
-
-    @Transactional(readOnly = true)
-    public OrderAggregate getOrderById(OrderId orderId) {
-        return orderRepository.findById(orderId)
-            .orElseThrow(() -> new OrderNotFoundException(orderId));
+    public List<OrderAggregate> getCustomerOrders(UserId userId) {
+        return orderRepository.findByuserId(userId);
     }
 
     @Transactional(readOnly = true)

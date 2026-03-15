@@ -8,13 +8,14 @@ import static org.hamcrest.Matchers.matchesPattern;
 import com.metao.book.order.application.cart.ShoppingCartItem;
 import com.metao.book.order.application.cart.ShoppingCartService;
 import com.metao.book.order.domain.model.aggregate.OrderAggregate;
-import com.metao.book.order.domain.model.valueobject.CustomerId;
+import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.repository.OrderRepository;
 import com.metao.book.order.presentation.dto.AddItemRequestDto;
 import com.metao.book.order.presentation.dto.CreateOrderRequestDTO;
 import com.metao.book.order.presentation.dto.UpdateStatusRequestDto;
 import com.metao.book.shared.OrderUpdatedEvent;
+import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.kafka.KafkaEventHandler;
 import com.metao.shared.test.KafkaContainer;
 import io.restassured.RestAssured;
@@ -50,6 +51,7 @@ class OrderManagementControllerIT extends KafkaContainer {
     private static final BigDecimal ONE = BigDecimal.ONE;
     private final String userId = "customer123";
     private final String sku = "SKU_E2E_001"; // Assume this product exists in inventory-microservice
+    private final String productTitle = "product123";
     private final BigDecimal unitPrice = BigDecimal.valueOf(12.99);
     private final Currency currency = Currency.getInstance("EUR");
 
@@ -88,7 +90,7 @@ class OrderManagementControllerIT extends KafkaContainer {
 
             shoppingCartService.addItemToCart(
                 "customer123",
-                Set.of(new ShoppingCartItem(sku, ONE, unitPrice, currency))
+                Set.of(new ShoppingCartItem(sku, productTitle, ONE, unitPrice, currency))
             );
 
             // When & Then
@@ -108,9 +110,11 @@ class OrderManagementControllerIT extends KafkaContainer {
             var orderId = new OrderId("order123");
             // Assume this product exists in inventory-microservice
             AddItemRequestDto requestDto = new AddItemRequestDto(userId,
-                Set.of(new ShoppingCartItem(sku, ONE, BigDecimal.valueOf(12.99), Currency.getInstance("EUR")))
+                Set.of(new ShoppingCartItem(sku, productTitle, ONE, BigDecimal.valueOf(12.99),
+                    Currency.getInstance("EUR")))
             );
-            OrderAggregate orderAggregate = new OrderAggregate(orderId, new CustomerId(userId));
+            OrderAggregate orderAggregate = new OrderAggregate(orderId, ProductTitle.of(productTitle),
+                UserId.of(userId));
 
             orderRepository.save(orderAggregate);
 
@@ -128,7 +132,7 @@ class OrderManagementControllerIT extends KafkaContainer {
         void shouldUpdateStatusOfAnOrderSuccessfully() {
             // GIVEN
             var orderId = new OrderId("order123");
-            var orderAggregate = new OrderAggregate(orderId, new CustomerId(userId));
+            var orderAggregate = new OrderAggregate(orderId, ProductTitle.of(productTitle), UserId.of(userId));
             orderRepository.save(orderAggregate);
 
             var paidStatusUpdate = new UpdateStatusRequestDto("PAID");
@@ -162,10 +166,11 @@ class OrderManagementControllerIT extends KafkaContainer {
         void shouldAddItemToOrderSuccessfully() {
             // Given
             var orderId = new OrderId("order123");
-            OrderAggregate orderAggregate = new OrderAggregate(orderId, new CustomerId(userId));
+            OrderAggregate orderAggregate = new OrderAggregate(orderId, ProductTitle.of(productTitle),
+                UserId.of(userId));
             orderRepository.save(orderAggregate);
             AddItemRequestDto addItemRequestDto = new AddItemRequestDto(userId,
-                Set.of(new ShoppingCartItem(sku, ONE, unitPrice, currency))
+                Set.of(new ShoppingCartItem(sku, productTitle, ONE, unitPrice, currency))
             );
 
             // When & Then
@@ -209,7 +214,7 @@ class OrderManagementControllerIT extends KafkaContainer {
                         }
                         assertThat(matchedRecord).isNotNull();
                         var orderUpdatedEvent = matchedRecord.value();
-                        assertThat(orderUpdatedEvent.getProductId()).isEqualTo(sku);
+                        assertThat(orderUpdatedEvent.getsku()).isEqualTo(sku);
                         assertThat(orderUpdatedEvent.getQuantity()).isEqualTo(1.0);
                         assertThat(orderUpdatedEvent.getPrice()).isEqualTo(12.99);
                         assertThat(orderUpdatedEvent.getCurrency()).isEqualTo("EUR");
@@ -229,17 +234,18 @@ class OrderManagementControllerIT extends KafkaContainer {
             // Given
             // Given
             var orderId = new OrderId("order123");
-            OrderAggregate orderAggregate = new OrderAggregate(orderId, new CustomerId("customer123"));
+            OrderAggregate orderAggregate = new OrderAggregate(orderId, ProductTitle.of(productTitle),
+                UserId.of("customer123"));
             orderRepository.save(orderAggregate);
             AddItemRequestDto addItemRequestDto = new AddItemRequestDto(userId,
-                Set.of(new ShoppingCartItem(sku, ONE, unitPrice, currency))
+                Set.of(new ShoppingCartItem(sku, productTitle, ONE, unitPrice, currency))
             );
 
             // When & Then
             given()
                 .contentType(ContentType.JSON)
                 .body(addItemRequestDto)
-                .get("/api/order/customer/{customerId}", orderId.value())
+                .get("/api/order/customer/{userId}", orderId.value())
                 .then()
                 .statusCode(HttpStatus.OK.value());
         }
@@ -257,7 +263,7 @@ class OrderManagementControllerIT extends KafkaContainer {
         void shouldHandleServiceExceptionsGracefully() {
             // Given
             AddItemRequestDto addItemRequestDto = new AddItemRequestDto(userId,
-                Set.of(new ShoppingCartItem(sku, ONE, unitPrice, currency))
+                Set.of(new ShoppingCartItem(sku, productTitle, ONE, unitPrice, currency))
             );
 
             // When & Then

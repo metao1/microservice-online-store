@@ -15,7 +15,7 @@ public class ProductDescriptionConverter implements AttributeConverter<ProductDe
      */
     @Override
     public String convertToDatabaseColumn(ProductDescription attribute) {
-        return attribute == null ? null : attribute.getValue();
+        return attribute == null ? null : attribute.value();
     }
 
     /**

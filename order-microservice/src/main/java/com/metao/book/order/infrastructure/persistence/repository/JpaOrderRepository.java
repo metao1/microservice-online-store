@@ -1,6 +1,6 @@
 package com.metao.book.order.infrastructure.persistence.repository;
 
-import com.metao.book.order.domain.model.valueobject.CustomerId;
+import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.infrastructure.persistence.entity.OrderEntity;
 import jakarta.persistence.LockModeType;
 import java.util.List;
@@ -19,7 +19,7 @@ public interface JpaOrderRepository extends JpaRepository<OrderEntity, String> {
     Optional<OrderEntity> findById(String orderId);
 
     @EntityGraph(attributePaths = "items")
-    List<OrderEntity> findByCustomerId(CustomerId customerId);
+    List<OrderEntity> findByuserId(UserId userId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @EntityGraph(attributePaths = "items")

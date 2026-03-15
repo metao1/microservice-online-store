@@ -5,7 +5,7 @@ import com.metao.book.product.domain.model.event.DomainProductCreatedEvent;
 import com.metao.book.product.domain.model.event.DomainProductUpdatedEvent;
 import com.metao.book.product.domain.model.valueobject.ImageUrl;
 import com.metao.book.product.domain.model.valueobject.ProductDescription;
-import com.metao.book.product.domain.model.valueobject.ProductTitle;
+import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.book.shared.domain.base.AggregateRoot;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.product.ProductSku;
@@ -102,8 +102,6 @@ public class ProductAggregate extends AggregateRoot<ProductSku> {
     }
 
     public void addCategory(@NotNull ProductCategory category) {
-        Objects.requireNonNull(category, "Category cannot be null");
-
         if (this.categories.add(category)) {
             this.updatedTime = Instant.now();
             addDomainEvent(new DomainProductUpdatedEvent(
@@ -116,14 +114,14 @@ public class ProductAggregate extends AggregateRoot<ProductSku> {
     }
 
     public boolean isInStock() {
-        return this.volume.getValue().compareTo(java.math.BigDecimal.ZERO) > 0;
+        return this.volume.value().compareTo(java.math.BigDecimal.ZERO) > 0;
     }
 
     public void reduceVolume(@NotNull Quantity reduction) {
-        if (reduction.getValue().compareTo(this.volume.getValue()) > 0) {
+        if (reduction.value().compareTo(this.volume.value()) > 0) {
             throw new IllegalArgumentException("Cannot reduce volume by more than available");
         }
-        this.volume = new Quantity(this.volume.getValue().subtract(reduction.getValue()));
+        this.volume = new Quantity(this.volume.value().subtract(reduction.value()));
         this.updatedTime = Instant.now();
         addDomainEvent(new DomainProductUpdatedEvent(
             this.getId(),
@@ -134,7 +132,7 @@ public class ProductAggregate extends AggregateRoot<ProductSku> {
     }
 
     public void increaseVolume(@NotNull Quantity increase) {
-        this.volume = new Quantity(this.volume.getValue().add(increase.getValue()));
+        this.volume = new Quantity(this.volume.value().add(increase.value()));
         this.updatedTime = Instant.now();
         addDomainEvent(new DomainProductUpdatedEvent(
             this.getId(),

@@ -7,12 +7,13 @@ import com.metao.book.order.domain.exception.OrderStateTransitionNotAllowed;
 import com.metao.book.order.domain.model.event.DomainOrderCreatedEvent;
 import com.metao.book.order.domain.model.event.DomainOrderItemAddedEvent;
 import com.metao.book.order.domain.model.event.DomainOrderStatusChangedEvent;
-import com.metao.book.order.domain.model.valueobject.CustomerId;
+import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.product.ProductSku;
+import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.book.shared.domain.product.Quantity;
 import java.math.BigDecimal;
 import java.util.Currency;
@@ -32,8 +33,12 @@ class OrderTest {
 
         static Stream<Arguments> orderConstructorNullTestData() {
             return Stream.of(
-                Arguments.of(null, new CustomerId("customer123"), "Order ID cannot be null", "Null OrderId"),
-                Arguments.of(OrderId.generate(), null, "Customer ID cannot be null", "Null CustomerId")
+                Arguments.of(null, ProductTitle.of("product-123"), UserId.of("customer123"),
+                    "Order ID cannot be null", "Null OrderId"),
+                Arguments.of(OrderId.generate(), ProductTitle.of("product-123"), null, "Customer ID cannot be null",
+                    "Null userId"),
+                Arguments.of(OrderId.generate(), null, UserId.of("customer123"), "Product Title cannot be null",
+                    "Null userId")
             );
         }
 
@@ -41,14 +46,15 @@ class OrderTest {
         void shouldCreateOrderWithInitialState() {
             // Given
             OrderId orderId = OrderId.generate();
-            CustomerId customerId = new CustomerId("customer123");
+            ProductTitle productTitle = ProductTitle.of("product-123");
+            UserId userId = UserId.of("customer123");
 
             // When
-            OrderAggregate order = new OrderAggregate(orderId, customerId);
+            OrderAggregate order = new OrderAggregate(orderId, productTitle, userId);
 
             // Then
             assertThat(order.getId()).isEqualTo(orderId);
-            assertThat(order.getCustomerId()).isEqualTo(customerId);
+            assertThat(order.getUserId()).isEqualTo(userId);
             assertThat(order.getItems()).isEmpty();
             assertThat(order.getStatus()).isEqualTo(OrderStatus.CREATED);
             assertThat(order.getCreatedAt()).isNotNull();
@@ -61,13 +67,18 @@ class OrderTest {
 
             DomainOrderCreatedEvent createdEvent = (DomainOrderCreatedEvent) events.getFirst();
             assertThat(createdEvent.getOrderId()).isEqualTo(orderId);
-            assertThat(createdEvent.getCustomerId()).isEqualTo(customerId);
+            assertThat(createdEvent.getUserId()).isEqualTo(userId);
         }
 
         @ParameterizedTest
         @MethodSource("orderConstructorNullTestData")
-        void shouldThrowExceptionForNullParameters(OrderId orderId, CustomerId customerId, String expectedMessage) {
-            assertThatThrownBy(() -> new OrderAggregate(orderId, customerId))
+        void shouldThrowExceptionForNullParameters(
+            OrderId orderId,
+            ProductTitle productTitle,
+            UserId userId,
+            String expectedMessage
+        ) {
+            assertThatThrownBy(() -> new OrderAggregate(orderId, productTitle, userId))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage(expectedMessage);
         }
@@ -79,7 +90,8 @@ class OrderTest {
         @Test
         void shouldAddItemToOrder() {
             // Given
-            OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
+            OrderAggregate order = new OrderAggregate(OrderId.generate(), ProductTitle.of("product-123"),
+                UserId.of("customer123"));
             order.clearDomainEvents(); // Clear initial creation event
 
             ProductSku productSku = new ProductSku("product123");
@@ -87,7 +99,7 @@ class OrderTest {
             Money unitPrice = new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10.0));
 
             // When
-            order.addItem(productSku, quantity, unitPrice);
+            order.addItem(productSku, , quantity, unitPrice);
 
             // Then
             assertThat(order.getItems()).hasSize(1);
@@ -108,9 +120,10 @@ class OrderTest {
 
         @Test
         void shouldThrowExceptionForNullproductSku() {
-            OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
-            assertThatThrownBy(() -> order.addItem(null, new Quantity(BigDecimal.ONE),
-                new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10.0))))
+            OrderAggregate order = new OrderAggregate(OrderId.generate(), ProductTitle.of("product-123"),
+                UserId.of("customer123"));
+            assertThatThrownBy(() -> order.addItem(null, ,
+                new Quantity(BigDecimal.ONE), new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10.0))))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("Product ID cannot be null");
         }
@@ -140,7 +153,8 @@ class OrderTest {
         @Test
         void shouldUpdateOrderStatus() {
             // Given
-            OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
+            OrderAggregate order = new OrderAggregate(OrderId.generate(), ProductTitle.of("product-123"),
+                UserId.of("customer123"));
             order.clearDomainEvents(); // Clear initial creation event
 
             OrderStatus newStatus = OrderStatus.PAID;
@@ -163,7 +177,8 @@ class OrderTest {
 
         @Test
         void shouldThrowExceptionForNullStatus() {
-            OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
+            OrderAggregate order = new OrderAggregate(OrderId.generate(), ProductTitle.of("product-123"),
+                UserId.of("customer123"));
             assertThatThrownBy(() -> order.updateStatus(null))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("New status cannot be null");
@@ -172,7 +187,8 @@ class OrderTest {
         @ParameterizedTest
         @EnumSource(value = OrderStatus.class, names = {"PAID", "CANCELLED"})
         void shouldAllowValidStatusTransitionsFromCreated(OrderStatus targetStatus) {
-            OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
+            OrderAggregate order = new OrderAggregate(OrderId.generate(), ProductTitle.of("product-123"),
+                UserId.of("customer123"));
 
             order.updateStatus(targetStatus);
             assertThat(order.getStatus()).isEqualTo(targetStatus);
@@ -185,7 +201,8 @@ class OrderTest {
             OrderStatus newStatus,
             String expectedMessage
         ) {
-            OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
+            OrderAggregate order = new OrderAggregate(OrderId.generate(), ProductTitle.of("product-123"),
+                UserId.of("customer123"));
 
             // Set initial status if not CREATED
             if (oldStatus != OrderStatus.CREATED) {
@@ -236,15 +253,15 @@ class OrderTest {
             String testDescription
         ) {
             // Given
-            OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
+            OrderAggregate order = new OrderAggregate(OrderId.generate(), ProductTitle.of("product-123"),
+                UserId.of("customer123"));
 
             // When
             for (OrderItemData item : items) {
                 order.addItem(
-                    new ProductSku(item.productSku()),
+                    new ProductSku(item.productSku()), ,
                     new Quantity(item.quantity()),
-                    new Money(Currency.getInstance("USD"), item.unitPrice())
-                );
+                    new Money(Currency.getInstance("USD"), item.unitPrice()));
             }
 
             // Then
@@ -254,7 +271,8 @@ class OrderTest {
 
         @Test
         void shouldReturnNullTotalForEmptyOrder() {
-            OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
+            OrderAggregate order = new OrderAggregate(OrderId.generate(), ProductTitle.of("product-123"),
+                UserId.of("customer123"));
             assertThat(order.getTotal()).isNull();
         }
 
@@ -267,9 +285,10 @@ class OrderTest {
         @Test
         void shouldClearDomainEvents() {
             // Given
-            OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
-            order.addItem(new ProductSku("product1"), new Quantity(BigDecimal.ONE),
-                new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10.0)));
+            OrderAggregate order = new OrderAggregate(OrderId.generate(), ProductTitle.of("product-123"),
+                UserId.of("customer123"));
+            order.addItem(new ProductSku("product1"), ,
+                new Quantity(BigDecimal.ONE), new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10.0)));
             order.updateStatus(OrderStatus.PAID);
 
             // When
@@ -281,18 +300,20 @@ class OrderTest {
 
         @Test
         void shouldReturnImmutableEventList() {
-            OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
+            OrderAggregate order = new OrderAggregate(OrderId.generate(), ProductTitle.of("product-123"),
+                UserId.of("customer123"));
             List<DomainEvent> events = order.getDomainEvents();
             assertThatThrownBy(
-                () -> events.add(new DomainOrderCreatedEvent(OrderId.generate(), new CustomerId("customer123"))))
+                () -> events.add(new DomainOrderCreatedEvent(OrderId.generate(), UserId.of("customer123"))))
                 .isInstanceOf(UnsupportedOperationException.class);
         }
 
         @Test
         void shouldAccumulateEventsForMultipleOperations() {
-            OrderAggregate order = new OrderAggregate(OrderId.generate(), new CustomerId("customer123"));
-            order.addItem(new ProductSku("product1"), new Quantity(BigDecimal.ONE),
-                new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10.0)));
+            OrderAggregate order = new OrderAggregate(OrderId.generate(), ProductTitle.of("product-123"),
+                UserId.of("customer123"));
+            order.addItem(new ProductSku("product1"), ,
+                new Quantity(BigDecimal.ONE), new Money(Currency.getInstance("USD"), BigDecimal.valueOf(10.0)));
             order.updateStatus(OrderStatus.PAID);
 
             List<DomainEvent> events = order.getDomainEvents();

@@ -1,6 +1,6 @@
-import { useState, useCallback, useEffect } from 'react';
-import { Cart, CartItem } from '@types';
-import { apiClient } from '@services/api';
+import {useCallback, useEffect, useState} from 'react';
+import {Cart} from '@types';
+import {apiClient} from '@services/api';
 
 export const useCart = (userId: string) => {
   const [cart, setCart] = useState<Cart>({ items: [], total: 0 });
@@ -27,10 +27,10 @@ export const useCart = (userId: string) => {
   }, [userId]);
 
   const addToCart = useCallback(
-    async (productId: string, quantity: number, price: number, currency: string) => {
+      async (sku: string, productTitle: string, quantity: number, price: number, currency: string) => {
       try {
-        console.log('useCart: Adding item to cart:', { productId, quantity, price, currency });
-        const updatedCart = await apiClient.addToCart(userId, productId, quantity, price, currency);
+        console.log('useCart: Adding item to cart:', {sku, productTitle, quantity, price, currency});
+        const updatedCart = await apiClient.addToCart(userId, sku, productTitle, quantity, price, currency);
         console.log('useCart: Received updated cart:', updatedCart);
         // Ensure cart has proper structure
         const newCartState = {
@@ -50,9 +50,9 @@ export const useCart = (userId: string) => {
   );
 
   const removeFromCart = useCallback(
-    async (productId: string) => {
+      async (sku: string) => {
       try {
-        const updatedCart = await apiClient.removeFromCart(userId, productId);
+        const updatedCart = await apiClient.removeFromCart(userId, sku);
         // Ensure cart has proper structure
         setCart({
           items: updatedCart.items || [],
@@ -68,9 +68,9 @@ export const useCart = (userId: string) => {
   );
 
   const updateCartItem = useCallback(
-    async (productId: string, quantity: number, price: number, currency: string) => {
+      async (sku: string, quantity: number, price: number, currency: string) => {
       try {
-        const updatedCart = await apiClient.updateCartItem(userId, productId, quantity, price, currency);
+        const updatedCart = await apiClient.updateCartItem(userId, sku, quantity, price, currency);
         // Ensure cart has proper structure
         setCart({
           items: updatedCart.items || [],

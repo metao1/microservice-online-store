@@ -45,6 +45,8 @@ class ShoppingCartControllerIT extends KafkaContainer {
 
     private final String sku2 = "SKU002";
 
+    private final String productTitle = "product123";
+
     private Currency currency;
 
     @BeforeEach
@@ -57,7 +59,8 @@ class ShoppingCartControllerIT extends KafkaContainer {
 
         // Initial item for user1
         // Constructor: public ShoppingCart(String userId, String sku, BigDecimal buyPrice, BigDecimal sellPrice, BigDecimal quantity, Currency currency)
-        ShoppingCart cartItem1User1 = new ShoppingCart(userId1, sku1, BigDecimal.TEN, BigDecimal.TEN, BigDecimal.ONE,
+        ShoppingCart cartItem1User1 = new ShoppingCart(userId1, sku1, productTitle, BigDecimal.TEN, BigDecimal.TEN,
+                BigDecimal.ONE,
             currency);
         // Need to set createdOn and updatedOn as the entity might expect them (e.g. non-null db constraints if any, or for DTO mapping)
         // The constructor ShoppingCart(...) sets createdOn. Let's assume updatedOn is also set or can be null initially.
@@ -104,7 +107,7 @@ class ShoppingCartControllerIT extends KafkaContainer {
     void addItemToCart_newItem_returnsCreatedItem() {
         var newItemDto = new AddItemRequestDto(
             userId1,
-            Set.of(new ShoppingCartItem(sku2, BigDecimal.TWO, BigDecimal.valueOf(20.0), currency))
+            Set.of(new ShoppingCartItem(sku2, productTitle, BigDecimal.TWO, BigDecimal.valueOf(20.0), currency))
         );
 
         given()
@@ -127,7 +130,7 @@ class ShoppingCartControllerIT extends KafkaContainer {
 
         var existingItemDto = new AddItemRequestDto(
             userId1,
-            Set.of(new ShoppingCartItem(sku1, BigDecimal.TWO, BigDecimal.TEN, currency))
+            Set.of(new ShoppingCartItem(sku1, productTitle, BigDecimal.TWO, BigDecimal.TEN, currency))
         );
 
         given()
@@ -178,7 +181,8 @@ class ShoppingCartControllerIT extends KafkaContainer {
     @Test
     void clearCart_removesAllItemsForUserAndReturnsNoContent() {
         // Add another item to the cart for user1 to ensure clearCart works for multiple items
-        ShoppingCart cartItem2User1 = new ShoppingCart(userId1, sku2, BigDecimal.valueOf(5), BigDecimal.valueOf(5),
+        ShoppingCart cartItem2User1 = new ShoppingCart(userId1, sku2,
+                productTitle, BigDecimal.valueOf(5), BigDecimal.valueOf(5),
             BigDecimal.ONE, currency);
         shoppingCartRepository.save(cartItem2User1);
 

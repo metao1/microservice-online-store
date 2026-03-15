@@ -1,7 +1,6 @@
 package com.metao.book.order.application.cart;
 
 import com.metao.book.order.domain.exception.ShoppingCartNotFoundException;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -24,6 +23,7 @@ public class ShoppingCartService {
         var cartItems = items.stream()
             .map(item -> new ShoppingCartItem(
                 item.getSku(),
+                item.getProductTitle(),
                 item.getQuantity(),
                 item.getSellPrice(), // Assuming sellPrice is the price to display
                 item.getCurrency()
@@ -37,7 +37,7 @@ public class ShoppingCartService {
     @Transactional
     public int addItemToCart(
         String userId,
-        @Valid @NotNull Set<ShoppingCartItem> shoppingCartItems
+        @NotNull Set<ShoppingCartItem> shoppingCartItems
     ) {
         if (shoppingCartItems.isEmpty()) {
             return 0;
@@ -59,9 +59,10 @@ public class ShoppingCartService {
                     return existingItem;
                 }
 
-                ShoppingCart newItem = new ShoppingCart(
+                var newItem = new ShoppingCart(
                     userId,
                     item.sku(),
+                    item.productTitle(),
                     item.price(),
                     item.price(),
                     item.quantity(),

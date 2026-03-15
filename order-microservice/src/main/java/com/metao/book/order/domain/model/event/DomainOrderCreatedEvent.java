@@ -1,6 +1,6 @@
 package com.metao.book.order.domain.model.event;
 
-import com.metao.book.order.domain.model.valueobject.CustomerId;
+import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.shared.domain.base.DomainEvent;
 import java.time.Instant;
@@ -10,12 +10,12 @@ import lombok.Getter;
 public class DomainOrderCreatedEvent extends DomainEvent {
 
     private final OrderId orderId;
-    private final CustomerId customerId;
+    private final UserId userId;
 
-    public DomainOrderCreatedEvent(OrderId orderId, CustomerId customerId) {
+    public DomainOrderCreatedEvent(OrderId orderId, UserId userId) {
         super(Instant.now());
         this.orderId = orderId;
-        this.customerId = customerId;
+        this.userId = userId;
     }
 
     /**

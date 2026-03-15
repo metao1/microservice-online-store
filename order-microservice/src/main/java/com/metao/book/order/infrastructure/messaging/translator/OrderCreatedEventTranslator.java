@@ -17,7 +17,7 @@ public class OrderCreatedEventTranslator implements ProtobufDomainTranslator {
         DomainOrderCreatedEvent domainEvent = (DomainOrderCreatedEvent) event;
         return OrderCreatedEvent.newBuilder()
             .setId(domainEvent.getOrderId().value())
-            .setCustomerId(domainEvent.getCustomerId().getValue())
+            .setUserId(domainEvent.getUserId().value())
             .setStatus(OrderCreatedEvent.Status.NEW)
             .setCreateTime(Timestamp.newBuilder()
                     .setSeconds(domainEvent.getOccurredOn().atZone(ZoneOffset.UTC).toEpochSecond())

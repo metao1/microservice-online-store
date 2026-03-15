@@ -1,6 +1,6 @@
 package com.metao.book.order.infrastructure.persistence.entity;
 
-import com.metao.book.order.domain.model.valueobject.CustomerId;
+import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
@@ -35,9 +35,9 @@ public class OrderEntity {
 
     @Embedded
     @AttributeOverrides({
-        @AttributeOverride(name = "value", column = @Column(name = "customer_id"))
+        @AttributeOverride(name = "value", column = @Column(name = "user_id"))
     })
-    private CustomerId customerId;
+    private UserId userId;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<OrderItemEntity> items = new ArrayList<>();

@@ -115,7 +115,7 @@ sequenceDiagram
 
     %% Order Creation Phase
     User->>WebApp: Create Order
-    WebApp->>OrderAPI: POST /api/order<br/>{customerId, items}
+    WebApp->>OrderAPI: POST /api/order<br/>{userId, items}
     activate OrderAPI
     OrderAPI->>OrderService: createOrder(command)
     activate OrderService
@@ -549,7 +549,7 @@ sequenceDiagram
 | POST | `/api/order` | Create new order |
 | PUT | `/api/order/{orderId}/items` | Add items to order |
 | PATCH | `/api/order/{orderId}/status` | Update order status |
-| GET | `/api/order/customer/{customerId}` | Get customer orders |
+| GET | `/api/order/customer/{userId}` | Get customer orders |
 
 **Shopping Cart:**
 | Method | Endpoint | Description |
@@ -606,7 +606,7 @@ message ProductUpdatedEvent {
 ```protobuf
 message OrderCreatedEvent {
   string order_id = 1;
-  string customer_id = 2;
+  string user_id = 2;
   repeated OrderItem items = 3;
   double total_amount = 4;
   string status = 5;
@@ -642,7 +642,7 @@ message OrderPaymentEvent {
 **Product Aggregate** (Inventory Microservice)
 ```
 Product (Aggregate Root)
-├── ProductId (Identity)
+├── sku (Identity)
 ├── ProductSku (Value Object) - Unique identifier
 ├── ProductTitle (Value Object)
 ├── ProductDescription (Value Object)
@@ -662,10 +662,10 @@ Business Rules:
 ```
 Order (Aggregate Root)
 ├── OrderId (Identity)
-├── CustomerId (Value Object)
+├── userId (Value Object)
 ├── OrderStatus (Value Object) - CREATED, PAID, SHIPPED, DELIVERED, PAYMENT_FAILED
 ├── OrderItem (Entity) - Collection
-│   ├── ProductId (Value Object)
+│   ├── sku (Value Object)
 │   ├── Quantity (Value Object)
 │   └── Price (Money Value Object)
 └── Total Amount (Money Value Object)

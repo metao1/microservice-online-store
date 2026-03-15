@@ -362,7 +362,7 @@ class OrderItemTest {
 
         @Test
         @DisplayName("should maintain product ID through quantity updates")
-        void updateQuantity_shouldMaintainProductId() {
+        void updateQuantity_shouldMaintainsku() {
             // GIVEN
             ProductSku productSku = ProductSku.of("PRODUCTSTB");
             OrderItem orderItem = new OrderItem(

@@ -28,10 +28,10 @@ public class ProductCreatedEventTranslator implements ProtobufDomainTranslator {
         return ProductCreatedEvent.newBuilder()
             .setSku(domainEvent.getProductSku().value())
             .setCreateTime(occurredOn)
-            .setTitle(domainEvent.getTitle().getValue())
-            .setDescription(domainEvent.getDescription().getValue())
+            .setTitle(domainEvent.getTitle().value())
+            .setDescription(domainEvent.getDescription().value())
             .setPrice(domainEvent.getPrice().doubleAmount().doubleValue())
-            .setVolume(domainEvent.getQuantity().getValue().doubleValue())
+            .setVolume(domainEvent.getQuantity().value().doubleValue())
             .setCurrency(domainEvent.getPrice().currency().getCurrencyCode())
             .setImageUrl(domainEvent.getImageUrl().getValue())
             .build();

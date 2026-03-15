@@ -17,7 +17,7 @@ import com.metao.book.product.domain.model.valueobject.CategoryId;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.product.domain.model.valueobject.ImageUrl;
 import com.metao.book.product.domain.model.valueobject.ProductDescription;
-import com.metao.book.product.domain.model.valueobject.ProductTitle;
+import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.book.product.domain.repository.CategoryRepository;
 import com.metao.book.product.domain.repository.ProductRepository;
 import com.metao.book.shared.domain.base.DomainEventPublisher;

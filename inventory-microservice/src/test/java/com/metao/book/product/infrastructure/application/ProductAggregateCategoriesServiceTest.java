@@ -11,7 +11,7 @@ import com.metao.book.product.domain.model.entity.ProductCategory;
 import com.metao.book.product.domain.model.valueobject.CategoryId;
 import com.metao.book.product.domain.model.valueobject.ImageUrl;
 import com.metao.book.product.domain.model.valueobject.ProductDescription;
-import com.metao.book.product.domain.model.valueobject.ProductTitle;
+import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.book.product.domain.repository.ProductRepository;
 import com.metao.book.product.domain.service.ProductCategoriesService;
 import com.metao.book.shared.domain.financial.Money;

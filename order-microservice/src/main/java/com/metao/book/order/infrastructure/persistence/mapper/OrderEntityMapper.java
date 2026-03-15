@@ -21,7 +21,7 @@ public class OrderEntityMapper {
     public static OrderEntity toEntity(OrderAggregate order) {
         OrderEntity entity = new OrderEntity();
         entity.setId(order.getId().value());
-        entity.setCustomerId(order.getCustomerId());
+        entity.setUserId(order.getUserId());
         entity.setStatus(order.getStatus());
         entity.setCreatedAt(order.getCreatedAt());
         entity.setUpdatedAt(order.getUpdatedAt());
@@ -31,6 +31,7 @@ public class OrderEntityMapper {
                 OrderItemEntity itemEntity = new OrderItemEntity();
                 itemEntity.setProductSku(item.getProductSku());
                 itemEntity.setQuantity(item.getQuantity());
+                itemEntity.setProductTitle(item.getTitle());
                 itemEntity.setUnitPrice(item.getUnitPrice());
                 itemEntity.setOrder(entity);
                 return itemEntity;
@@ -45,7 +46,7 @@ public class OrderEntityMapper {
      * Convert OrderEntity to domain Order
      */
     public static OrderAggregate toDomain(OrderEntity entity) {
-        OrderAggregate order = new OrderAggregate(OrderId.of(entity.getId()), entity.getCustomerId());
+        OrderAggregate order = new OrderAggregate(OrderId.of(entity.getId()), entity.getUserId());
         // Only update status if it's different from the default CREATED status
         if (entity.getStatus() != OrderStatus.CREATED) {
             order.updateStatus(entity.getStatus());
@@ -54,8 +55,8 @@ public class OrderEntityMapper {
         entity.getItems().forEach(itemEntity -> {
             order.addItem(
                 itemEntity.getProductSku(),
-                itemEntity.getQuantity(),
-                itemEntity.getUnitPrice());
+                itemEntity.getProductTitle(),
+                itemEntity.getQuantity(), itemEntity.getUnitPrice());
         });
 
         return order;

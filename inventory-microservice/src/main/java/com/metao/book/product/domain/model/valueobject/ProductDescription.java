@@ -2,22 +2,13 @@ package com.metao.book.product.domain.model.valueobject;
 
 import com.metao.book.shared.domain.base.ValueObject;
 import jakarta.persistence.Embeddable;
-import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import jakarta.validation.constraints.NotNull;
 
 /**
  * Product description value object
  */
 @Embeddable
-@Getter
-@EqualsAndHashCode
-@NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
-public class ProductDescription implements ValueObject {
-
-    private String value;
+public record ProductDescription(String value) implements ValueObject {
 
     public ProductDescription(String value) {
         if (value == null || value.isBlank()) {

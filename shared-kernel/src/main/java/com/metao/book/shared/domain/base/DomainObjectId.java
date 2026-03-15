@@ -2,6 +2,7 @@ package com.metao.book.shared.domain.base;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import jakarta.validation.constraints.NotNull;
 import java.util.Objects;
 import java.util.UUID;
 import org.springframework.lang.NonNull;
@@ -22,9 +23,8 @@ public abstract class DomainObjectId implements ValueObject {
     /**
      * Creates a new, random instance of the given {@code idClass}.
      */
-    @NonNull
-    public static <T extends DomainObjectId> T randomId(@NonNull Class<T> idClass) {
-        Objects.requireNonNull(idClass, "idClass must not be null");
+    @NotNull
+    public static <T extends DomainObjectId> T randomId(@NotNull Class<T> idClass) {
         try {
             return idClass.getConstructor(String.class).newInstance(UUID.randomUUID().toString());
         } catch (Exception ex) {
