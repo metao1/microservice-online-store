@@ -143,10 +143,10 @@ services:
       dockerfile: order-microservice/src/main/docker/Dockerfile
     ports:
       - "8086:8080"
-#    depends_on:
-#      - postgres-order
-#      - kafka1
-#      - kafka-schema-registry
+    depends_on:
+      - postgres-order
+      - kafka1
+      - kafka-schema-registry
 
   inventory-microservice:
     image: 287910172838.dkr.ecr.eu-central-1.amazonaws.com/onlinestore/invetory
@@ -168,10 +168,10 @@ services:
     #platform: linux/amd64
     ports:
       - "8083:8083"
-#    depends_on:
-#      - postgres-inventory
-#      - kafka1
-#      - kafka-schema-registry
+    depends_on:
+      - postgres-inventory
+      - kafka1
+      - kafka-schema-registry
 
   payment-microservice:
     container_name: payment-microservice
@@ -190,10 +190,10 @@ services:
       dockerfile: payment-microservice/src/main/docker/Dockerfile
     ports:
       - "8084:8084"
-#    depends_on:
-#      - kafka1
-#      - kafka-schema-registry
-#      - postgres-payment
+    depends_on:
+      - kafka1
+      - kafka-schema-registry
+      - postgres-payment
 
   frontend:
     container_name: frontend
