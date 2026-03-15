@@ -34,6 +34,7 @@ export interface Product {
   inStock: boolean;
   quantity?: number;
   variants?: ProductVariant[];
+  categories?: string[];
   category?: string;
   tags?: string[];
   isNew?: boolean;

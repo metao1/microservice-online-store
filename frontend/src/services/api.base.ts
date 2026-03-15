@@ -22,6 +22,51 @@ export abstract class BaseApiClient {
     return originalUrl;
   }
 
+  private resolveVariantFlags(product: Product): { hasColor: boolean; hasSize: boolean } {
+    const tokens: string[] = [];
+    if (product.category) {
+      tokens.push(product.category);
+    }
+    if (Array.isArray(product.categories)) {
+      tokens.push(...product.categories);
+    }
+    if (Array.isArray(product.tags)) {
+      tokens.push(...product.tags);
+    }
+    const normalized = tokens.map((value) => value.toLowerCase());
+    const colorKeywords = [
+      'clothing',
+      'apparel',
+      'fashion',
+      'shoe',
+      'shoes',
+      'footwear',
+      'sneaker',
+      'boot',
+      'boots',
+      'accessories',
+      'jewelry',
+      'bag',
+      'bags',
+      'handbag',
+      'wallet',
+    ];
+    const sizeKeywords = [
+      'clothing',
+      'apparel',
+      'fashion',
+      'shoe',
+      'shoes',
+      'footwear',
+      'sneaker',
+      'boot',
+      'boots',
+    ];
+    const hasColor = normalized.some((category) => colorKeywords.some((keyword) => category.includes(keyword)));
+    const hasSize = normalized.some((category) => sizeKeywords.some((keyword) => category.includes(keyword)));
+    return { hasColor, hasSize };
+  }
+
   protected generateMockVariants(product: Product, index: number): {
     variants: any[];
     brand: string;
@@ -30,6 +75,7 @@ export abstract class BaseApiClient {
     isFeatured?: boolean;
     isSale?: boolean;
   } {
+    const variantsProvided = Array.isArray((product as { variants?: unknown }).variants);
     const colorOptions = [
       { name: 'Black', value: '#000000', hexColor: '#000000' },
       { name: 'Navy', value: '#1e3a8a', hexColor: '#1e3a8a' },
@@ -40,28 +86,29 @@ export abstract class BaseApiClient {
       { name: 'Blue', value: '#2563eb', hexColor: '#2563eb' },
       { name: 'Green', value: '#16a34a', hexColor: '#16a34a' },
     ];
-    const sizeOptions = ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'];
-    const numColors = Math.floor(Math.random() * 3) + 2;
-    const selectedColors = colorOptions.slice(0, numColors);
-    const colorVariants = selectedColors.map((color, i) => ({
-      id: `color-${product.sku}-${i}`,
-      type: 'color' as const,
-      name: color.name,
-      value: color.value,
-      hexColor: color.hexColor,
-      inStock: Math.random() > 0.2,
-      priceModifier: 0,
-    }));
-    const numSizes = Math.floor(Math.random() * 3) + 3;
-    const selectedSizes = sizeOptions.slice(0, numSizes);
-    const sizeVariants = selectedSizes.map((size, i) => ({
-      id: `size-${product.sku}-${i}`,
-      type: 'size' as const,
-      name: size,
-      value: size,
-      inStock: Math.random() > 0.3,
-      priceModifier: size === 'XXL' ? 5 : 0,
-    }));
+    const sizeOptions = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+    const { hasColor, hasSize } = this.resolveVariantFlags(product);
+    const colorVariants = hasColor
+      ? colorOptions.slice(0, Math.floor(Math.random() * 3) + 2).map((color, i) => ({
+          id: `color-${product.sku}-${i}`,
+          type: 'color' as const,
+          name: color.name,
+          value: color.value,
+          hexColor: color.hexColor,
+          inStock: Math.random() > 0.2,
+          priceModifier: 0,
+        }))
+      : [];
+    const sizeVariants = hasSize
+      ? sizeOptions.slice(0, Math.floor(Math.random() * 3) + 3).map((size, i) => ({
+          id: `size-${product.sku}-${i}`,
+          type: 'size' as const,
+          name: size,
+          value: size,
+          inStock: Math.random() > 0.3,
+          priceModifier: size === 'XXL' ? 5 : 0,
+        }))
+      : [];
     const brands = ['Nike', 'Adidas', 'Puma', 'Reebok', 'Converse', 'New Balance'];
     const brand = brands[index % brands.length];
     const hasDiscount = Math.random() > 0.7;
@@ -71,7 +118,7 @@ export abstract class BaseApiClient {
     const isFeatured = Math.random() > 0.9;
     const isSale = hasDiscount;
     return {
-      variants: [...colorVariants, ...sizeVariants],
+      variants: variantsProvided ? product.variants ?? [] : [...colorVariants, ...sizeVariants],
       brand,
       originalPrice,
       isNew,
