@@ -72,10 +72,6 @@ public class PaymentAggregate extends AggregateRoot<PaymentId> {
         return payment;
     }
 
-    public void updateProduct() {
-
-    }
-
     /**
      * Process the payment - core business logic
      */

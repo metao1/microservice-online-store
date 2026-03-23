@@ -7,18 +7,17 @@ import com.metao.book.shared.OrderCreatedEvent;
 import com.metao.book.shared.OrderPaymentEvent;
 import com.metao.kafka.KafkaEventHandler;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+@Log4j2
 @Component
 @RequiredArgsConstructor
 public class OrderCreatedEventListener {
 
-    private static final Logger log = LoggerFactory.getLogger(OrderCreatedEventListener.class);
     private final PaymentProcessingService paymentProcessingService;
     private final ProcessedOrderCreatedEventRepository processedOrderCreatedEventRepository;
     private final KafkaEventHandler kafkaEventHandler;
