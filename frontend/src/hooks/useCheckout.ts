@@ -76,6 +76,7 @@ export const useCheckout = (): UseCheckoutResult => {
       const paymentSuccessful = payment?.isSuccessful || payment?.status === 'COMPLETED' || payment?.status === 'SUCCESSFUL';
 
       if (paymentSuccessful) {
+        clearCart();
         toast.success('Payment processed and order placed successfully!');
       } else {
         toast.warn('Order created. Payment is pending or failed, please retry.');
