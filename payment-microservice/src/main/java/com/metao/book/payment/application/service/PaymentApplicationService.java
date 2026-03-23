@@ -65,10 +65,6 @@ public class PaymentApplicationService {
             }
             throw e;
         }
-
-        // Publish domain events to Kafka
-        publishDomainEvents(savedPayment);
-
         log.info("Payment created successfully with ID: {}", savedPayment.getId());
         return paymentMapper.toDTO(savedPayment);
     }

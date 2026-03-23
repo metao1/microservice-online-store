@@ -4,7 +4,7 @@ spring:
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
     hikari:
       auto-commit: false
-      schema: "public"
+      schema: "bookstore"
   kafka:
     properties:
       security.protocol: PLAINTEXT
@@ -13,7 +13,7 @@ spring:
   jpa:
     generate-ddl: false
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
     properties:
       hibernate:
         show_sql: true
@@ -22,7 +22,15 @@ spring:
           use_second_level_cache: false
     show-sql: true
   flyway:
-    enabled: false
+    enabled: true
+    baseline-version: 0
+    outOfOrder: false
+    locations: classpath:migration
+    clean-disabled: false
+    create-schemas: true
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    default-schema: bookstore
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%t]){yellow} %clr([%c{1.}]){green} %clr(:){red} %clr(%m){faint}%n"
   level:

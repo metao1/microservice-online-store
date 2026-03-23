@@ -14,6 +14,7 @@ dependencies {
   implementation "io.confluent:kafka-protobuf-serializer:8.1.1"
 
   implementation "org.flywaydb:flyway-database-postgresql:10.11.0"
+  implementation "org.springframework.boot:spring-boot-flyway"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
 
   implementation "org.flywaydb:flyway-core"
@@ -75,4 +76,3 @@ tasks.named('build') {
 bootJar {
   layered { enabled = true }
 }
-
