@@ -41,7 +41,7 @@ public class PaymentController {
     }
 
     /**
-     * Process a payment
+     * Process a pending payment
      */
     @PostMapping("/{paymentId}/process")
     public PaymentDTO processPayment(@PathVariable String paymentId) {

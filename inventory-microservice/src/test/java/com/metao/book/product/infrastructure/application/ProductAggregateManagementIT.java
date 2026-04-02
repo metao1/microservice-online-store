@@ -7,6 +7,7 @@ import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 
 import com.metao.shared.test.KafkaContainer;
@@ -19,8 +20,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import java.util.UUID;
 
 @Slf4j
 @ActiveProfiles("test")
@@ -31,6 +37,12 @@ public class ProductAggregateManagementIT extends KafkaContainer {
 
     @LocalServerPort
     private Integer port;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
 
     @BeforeEach
     void setUp() {
@@ -299,6 +311,49 @@ public class ProductAggregateManagementIT extends KafkaContainer {
     }
 
     @Test
+    @DisplayName("should exclude out of stock products from category results")
+    void shouldExcludeOutOfStockProductsFromCategoryResults() {
+        String inStockSku = uniqueSku("BOOK");
+        var inStockProduct = """
+            {
+                "sku": "%s",
+                "title": "Domain-Driven Design",
+                "description": "Strategic design reference",
+                "image_url": "https://example.com/ddd.jpg",
+                "price": 59.99,
+                "currency": "EUR",
+                "volume": 12,
+                "categories": ["Books"]
+            }
+            """.formatted(inStockSku);
+        createProduct(inStockProduct);
+
+        String outOfStockSku = uniqueSku("BOOK");
+        var outOfStockProduct = """
+            {
+                "sku": "%s",
+                "title": "Domain-Driven Design Workbook",
+                "description": "Companion exercises",
+                "image_url": "https://example.com/ddd-workbook.jpg",
+                "price": 39.99,
+                "currency": "EUR",
+                "volume": 1,
+                "categories": ["Books"]
+            }
+            """.formatted(outOfStockSku);
+        createProduct(outOfStockProduct);
+        setProductVolume(outOfStockSku, 0);
+
+        given()
+            .when()
+            .get("/products/category/{category}", "Books")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .body("sku", hasItem(inStockSku))
+            .body("sku", not(hasItem(outOfStockSku)));
+    }
+
+    @Test
     @DisplayName("should search products by keyword with query parameters")
     void shouldSearchProductsByKeyword() {
         // Given
@@ -334,6 +389,52 @@ public class ProductAggregateManagementIT extends KafkaContainer {
             .body("currency", hasItem("EUR"))
             .body("volume", hasItem(30))
             .body("categories.flatten()", hasItem("Programming"));
+    }
+
+    @Test
+    @DisplayName("should exclude out of stock products from keyword search")
+    void shouldExcludeOutOfStockProductsFromKeywordSearch() {
+        String inStockSku = uniqueSku("SRCH");
+        var inStockProduct = """
+            {
+                "sku": "%s",
+                "title": "Spring Boot Recipes",
+                "description": "Practical Spring recipes",
+                "image_url": "https://example.com/spring-recipes.jpg",
+                "price": 49.99,
+                "currency": "EUR",
+                "volume": 18,
+                "categories": ["Programming"]
+            }
+            """.formatted(inStockSku);
+        createProduct(inStockProduct);
+
+        String outOfStockSku = uniqueSku("SRCH");
+        var outOfStockProduct = """
+            {
+                "sku": "%s",
+                "title": "Spring Boot Archive",
+                "description": "Older Spring recipes",
+                "image_url": "https://example.com/spring-archive.jpg",
+                "price": 29.99,
+                "currency": "EUR",
+                "volume": 1,
+                "categories": ["Programming"]
+            }
+            """.formatted(outOfStockSku);
+        createProduct(outOfStockProduct);
+        setProductVolume(outOfStockSku, 0);
+
+        given()
+            .queryParam("keyword", "Spring")
+            .queryParam("offset", 0)
+            .queryParam("limit", 10)
+            .when()
+            .get("/products/search")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .body("sku", hasItem(inStockSku))
+            .body("sku", not(hasItem(outOfStockSku)));
     }
 
     @Test
@@ -532,5 +633,19 @@ public class ProductAggregateManagementIT extends KafkaContainer {
             .post("/products")
             .then()
             .statusCode(HttpStatus.CREATED.value());
+    }
+
+    private void setProductVolume(String sku, int quantity) {
+        new TransactionTemplate(transactionManager).executeWithoutResult(status ->
+            jdbcTemplate.update(
+                "UPDATE bookstore.product_table SET volume = ? WHERE sku = ?",
+                quantity,
+                sku
+            )
+        );
+    }
+
+    private String uniqueSku(String prefix) {
+        return prefix + UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase();
     }
 }

@@ -1,39 +1,31 @@
-package com.metao.book.order.application.listener;
+package com.metao.book.order.infrastructure.listener;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
-import com.metao.book.order.domain.model.aggregate.OrderAggregate;
-import com.metao.book.order.domain.model.valueobject.OrderId;
-import com.metao.book.order.domain.model.valueobject.OrderStatus;
-import com.metao.book.order.domain.service.OrderManagementService;
-import com.metao.book.order.infrastructure.persistence.repository.ProcessedPaymentEventRepository;
-import com.metao.book.shared.OrderPaymentEvent;
+import com.metao.book.order.application.usecase.HandleOrderPaymentEventUseCase;
+import com.metao.book.shared.OrderPaymentUpdatedEvent;
+import com.metao.book.shared.Status;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
+import org.springframework.kafka.support.Acknowledgment;
 
 class PaymentEventListenerMetricsTest {
 
     @Test
     void listenerExecutesWithMocks() {
-        var orderService = mock(OrderManagementService.class);
-        var processedRepo = mock(ProcessedPaymentEventRepository.class);
-        var listener = new PaymentEventListener(orderService, processedRepo);
+        var handleOrderPaymentEventUseCase = mock(HandleOrderPaymentEventUseCase.class);
+        var listener = new PaymentEventListener(handleOrderPaymentEventUseCase);
+        var acknowledgment = mock(Acknowledgment.class);
         var registry = new SimpleMeterRegistry();
 
-        var event = OrderPaymentEvent.newBuilder()
+        var event = OrderPaymentUpdatedEvent.newBuilder()
             .setOrderId("order-1")
             .setPaymentId("payment-1")
-            .setStatus(OrderPaymentEvent.Status.SUCCESSFUL)
+            .setStatus(Status.SUCCESSFUL)
             .build();
 
-        when(processedRepo.markProcessed("payment-1")).thenReturn(true);
-        OrderAggregate stubOrder = mock(OrderAggregate.class);
-        when(stubOrder.getStatus()).thenReturn(OrderStatus.CREATED);
-        when(orderService.getOrderByIdForUpdate(OrderId.of("order-1"))).thenReturn(stubOrder);
-
-        listener.handlePaymentEvent(event);
+        listener.handlePaymentEvent(event, acknowledgment);
 
         // With direct invocation no AOP metrics are recorded; just assert successful execution.
         assertThat(event.getOrderId()).isEqualTo("order-1");

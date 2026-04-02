@@ -19,6 +19,7 @@ import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
 import lombok.SneakyThrows;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.PartitionInfo;
+import org.apache.kafka.common.TopicPartition;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -73,11 +74,8 @@ class KafkaIntegrationIT extends KafkaContainer {
             .untilAsserted(() -> {
                 List<PartitionInfo> partitions = kafkaTemplate.partitionsFor(kafkaTopic);
                 int partition = Math.abs(createdEventTest.getId().hashCode()) % partitions.size();
-                ConsumerFactory<String, CreatedEventTest> bean = beanFactory.getBean(ConsumerFactory.class);
-                Map<String, Object> props = new HashMap<>();
-                props.put(KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_VALUE_TYPE, CreatedEventTest.class);
-                bean.updateConfigs(props);
-                kafkaTemplate.setConsumerFactory(bean);
+                ConsumerFactory<String, CreatedEventTest> consumerFactory = createdEventConsumerFactory();
+                kafkaTemplate.setConsumerFactory(consumerFactory);
                 var event = kafkaTemplate.receive(kafkaTopic, partition, 0);
                 assertThat(event)
                     .isNotNull()
@@ -103,12 +101,11 @@ class KafkaIntegrationIT extends KafkaContainer {
         int messageCount = 100;
 
         // Configure KafkaTemplate for receive operations using the same pattern as the existing test
-        @SuppressWarnings("unchecked")
-        ConsumerFactory<String, CreatedEventTest> consumerFactory = beanFactory.getBean(ConsumerFactory.class);
-        kafkaTemplate.setConsumerFactory(consumerFactory);
+        ConsumerFactory<String, CreatedEventTest> consumerFactory = createdEventConsumerFactory();
 
         List<PartitionInfo> partitions = kafkaTemplate.partitionsFor(kafkaTopic);
         int partition = Math.abs(orderIdPrefix.hashCode()) % partitions.size();
+        long startingOffset = getEndOffset(consumerFactory, kafkaTopic, partition);
 
         Set<String> expectedIds = IntStream.range(0, messageCount)
             .mapToObj(i -> orderIdPrefix + i)
@@ -118,18 +115,16 @@ class KafkaIntegrationIT extends KafkaContainer {
         ExecutorService executor = Executors.newFixedThreadPool(2);
 
         Runnable consumerTask = () -> {
-            long endTime = System.currentTimeMillis() + Duration.ofSeconds(20).toMillis();
-            long offset = 0L;
-            while (System.currentTimeMillis() < endTime && !receivedIds.containsAll(expectedIds)) {
-                var record = kafkaTemplate.receive(kafkaTopic, partition, offset);
-                if (record != null && record.value() != null) {
-                    String id = record.value().getId();
-                    if (id.startsWith(orderIdPrefix)) {
-                        receivedIds.add(id);
-                    }
-                }
-                offset++;
-            }
+            consumeExpectedRecords(
+                consumerFactory,
+                kafkaTopic,
+                partition,
+                startingOffset,
+                orderIdPrefix,
+                expectedIds,
+                receivedIds,
+                Duration.ofSeconds(20)
+            );
         };
 
         Runnable producerTask = () -> {
@@ -152,7 +147,7 @@ class KafkaIntegrationIT extends KafkaContainer {
             executor.submit(consumerTask);
             executor.submit(producerTask);
 
-            await().atMost(Duration.ofSeconds(20))
+            await().atMost(Duration.ofSeconds(30))
                 .untilAsserted(() -> assertThat(receivedIds).containsAll(expectedIds));
         } finally {
             executor.shutdownNow();
@@ -173,13 +168,11 @@ class KafkaIntegrationIT extends KafkaContainer {
         int totalMessages = producerThreads * messagesPerProducer;
 
         // Configure KafkaTemplate for receive operations using the same pattern as the existing test
-        @SuppressWarnings("unchecked")
-        ConsumerFactory<String, CreatedEventTest> consumerFactory = beanFactory.getBean(ConsumerFactory.class);
-
-        kafkaTemplate.setConsumerFactory(consumerFactory);
+        ConsumerFactory<String, CreatedEventTest> consumerFactory = createdEventConsumerFactory();
 
         List<PartitionInfo> partitions = kafkaTemplate.partitionsFor(kafkaTopic);
         int partition = Math.abs(orderIdPrefix.hashCode()) % partitions.size();
+        long startingOffset = getEndOffset(consumerFactory, kafkaTopic, partition);
 
         Set<String> expectedIds = new HashSet<>();
         for (int p = 0; p < producerThreads; p++) {
@@ -193,18 +186,16 @@ class KafkaIntegrationIT extends KafkaContainer {
         ExecutorService executor = Executors.newFixedThreadPool(producerThreads + 1);
 
         Runnable consumerTask = () -> {
-            long endTime = System.currentTimeMillis() + Duration.ofSeconds(30).toMillis();
-            long offset = 0L;
-            while (System.currentTimeMillis() < endTime && !receivedIds.containsAll(expectedIds)) {
-                var record = kafkaTemplate.receive(kafkaTopic, partition, offset);
-                if (record != null && record.value() != null) {
-                    String id = record.value().getId();
-                    if (id.startsWith(orderIdPrefix)) {
-                        receivedIds.add(id);
-                    }
-                }
-                offset++;
-            }
+            consumeExpectedRecords(
+                consumerFactory,
+                kafkaTopic,
+                partition,
+                startingOffset,
+                orderIdPrefix,
+                expectedIds,
+                receivedIds,
+                Duration.ofSeconds(30)
+            );
         };
 
         executor.submit(consumerTask);
@@ -237,6 +228,54 @@ class KafkaIntegrationIT extends KafkaContainer {
         }
 
         assertThat(receivedIds).hasSize(totalMessages);
+    }
+
+    @SuppressWarnings("unchecked")
+    private ConsumerFactory<String, CreatedEventTest> createdEventConsumerFactory() {
+        ConsumerFactory<String, CreatedEventTest> consumerFactory = beanFactory.getBean(ConsumerFactory.class);
+        Map<String, Object> props = new HashMap<>();
+        props.put(KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_VALUE_TYPE, CreatedEventTest.class.getName());
+        consumerFactory.updateConfigs(props);
+        return consumerFactory;
+    }
+
+    private long getEndOffset(ConsumerFactory<String, CreatedEventTest> consumerFactory, String topic, int partition) {
+        TopicPartition topicPartition = new TopicPartition(topic, partition);
+        try (var consumer = consumerFactory.createConsumer()) {
+            consumer.assign(List.of(topicPartition));
+            consumer.seekToEnd(List.of(topicPartition));
+            return consumer.position(topicPartition);
+        }
+    }
+
+    private void consumeExpectedRecords(
+        ConsumerFactory<String, CreatedEventTest> consumerFactory,
+        String topic,
+        int partition,
+        long startingOffset,
+        String idPrefix,
+        Set<String> expectedIds,
+        Set<String> receivedIds,
+        Duration timeout
+    ) {
+        TopicPartition topicPartition = new TopicPartition(topic, partition);
+        try (var consumer = consumerFactory.createConsumer()) {
+            consumer.assign(List.of(topicPartition));
+            consumer.seek(topicPartition, startingOffset);
+            long endTime = System.currentTimeMillis() + timeout.toMillis();
+            while (System.currentTimeMillis() < endTime && !receivedIds.containsAll(expectedIds)) {
+                var records = consumer.poll(Duration.ofMillis(250));
+                for (var record : records.records(topicPartition)) {
+                    if (record.value() == null) {
+                        continue;
+                    }
+                    String id = record.value().getId();
+                    if (id.startsWith(idPrefix)) {
+                        receivedIds.add(id);
+                    }
+                }
+            }
+        }
     }
 
 }

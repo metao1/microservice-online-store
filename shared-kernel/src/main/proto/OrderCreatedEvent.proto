@@ -8,26 +8,34 @@ option java_package = "com.metao.book.shared";
 
 message OrderCreatedEvent {
   string id = 1;
-  // Created updated date.
+  Status status = 3;
+  // Created date.
   google.protobuf.Timestamp create_time = 7;
   // Last updated date.
   optional google.protobuf.Timestamp update_time = 8;
   string userId = 10;
-  string sku = 2;
-  Status status = 3;
-  double quantity = 4;
-  double price = 5;
-  string currency = 6;
+  repeated OrderItem items = 11;
+
+  message OrderItem {
+    string sku = 1;
+    string product_title = 2;
+    double quantity = 3;
+    double price = 4;
+    string currency = 5;
+  }
+
   enum Status {
-    NEW = 0;
-    SUBMITTED = 1;
-    REJECTED = 2;
-    CONFIRMED = 3;
-    ROLLED_BACK = 4;
+    CREATED = 0;
+    PENDING_PAYMENT = 1;
+    PAID = 2;
+    PAYMENT_FAILED = 3;
+    PROCESSING = 4;
+    SHIPPED = 5;
+    DELIVERED = 6;
+    CANCELLED = 7;
   };
 
   message UUID {
     // typedef string
   }
 }
-

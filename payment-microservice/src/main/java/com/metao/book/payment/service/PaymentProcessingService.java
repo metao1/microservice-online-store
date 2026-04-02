@@ -1,12 +1,10 @@
 package com.metao.book.payment.service;
 
-import com.google.protobuf.Timestamp;
 import com.metao.book.payment.application.dto.PaymentDTO;
 import com.metao.book.payment.application.service.PaymentApplicationService;
 import com.metao.book.shared.OrderCreatedEvent;
-import com.metao.book.shared.OrderPaymentEvent;
-import com.metao.book.shared.OrderPaymentEvent.Status;
-import java.time.Instant;
+import java.math.BigDecimal;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
  * using the new domain model
  */
 @Service
+@Deprecated
 @RequiredArgsConstructor
 public class PaymentProcessingService {
 
@@ -26,20 +25,17 @@ public class PaymentProcessingService {
     private final PaymentApplicationService paymentApplicationService;
 
     @Transactional
-    public OrderPaymentEvent processPayment(OrderCreatedEvent orderEvent) {
+    public PaymentDTO processPayment(OrderCreatedEvent orderEvent) {
+        var paymentAmount = resolveAmount(orderEvent);
         log.info("Processing payment for order: {}, amount: {} {}",
-            orderEvent.getId(), orderEvent.getPrice(), orderEvent.getCurrency());
-
+            orderEvent.getId(), paymentAmount.amount(), paymentAmount.currency());
         try {
             // Use the new DDD application service to process payment
             PaymentDTO payment = paymentApplicationService.processOrderCreatedEvent(
                 orderEvent.getId(),
-                java.math.BigDecimal.valueOf(orderEvent.getPrice()),
-                orderEvent.getCurrency()
+                paymentAmount.amount(),
+                paymentAmount.currency()
             );
-
-            // Convert to legacy OrderPaymentEvent format
-            Status status = payment.isSuccessful() ? Status.SUCCESSFUL : Status.FAILED;
             String message = payment.isSuccessful()
                 ? "Payment processed successfully"
                 : payment.failureReason() != null
@@ -47,26 +43,30 @@ public class PaymentProcessingService {
                     : "Payment failed";
 
             log.info("Payment for order {}: {}", orderEvent.getId(), message);
-
-            return OrderPaymentEvent.newBuilder()
-                .setOrderId(orderEvent.getId())
-                .setPaymentId(payment.paymentId())
-                .setStatus(status)
-                .setErrorMessage(payment.isSuccessful() ? "" : message)
-                .setCreateTime(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
-                .build();
-
+            return payment;
         } catch (Exception e) {
             log.error("Error processing payment for order: {}", orderEvent.getId(), e);
-
-            // Return failed payment event
-            return OrderPaymentEvent.newBuilder()
-                .setOrderId(orderEvent.getId())
-                .setPaymentId(orderEvent.getId())
-                .setStatus(Status.FAILED)
-                .setErrorMessage("Payment processing failed: " + e.getMessage())
-                .setCreateTime(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
-                .build();
+            return null;
         }
+    }
+
+    private PaymentAmount resolveAmount(OrderCreatedEvent orderEvent) {
+        if (orderEvent.getItemsCount() == 0) {
+            throw new IllegalArgumentException("OrderCreatedEvent must contain at least one item");
+        }
+
+        String currency = orderEvent.getItems(0).getCurrency();
+        BigDecimal total = BigDecimal.ZERO;
+        for (OrderCreatedEvent.OrderItem item : orderEvent.getItemsList()) {
+            if (!Objects.equals(currency, item.getCurrency())) {
+                throw new IllegalArgumentException(
+                    "OrderCreatedEvent contains mixed currencies: " + currency + " and " + item.getCurrency());
+            }
+            total = total.add(BigDecimal.valueOf(item.getPrice()).multiply(BigDecimal.valueOf(item.getQuantity())));
+        }
+        return new PaymentAmount(total, currency);
+    }
+
+    private record PaymentAmount(BigDecimal amount, String currency) {
     }
 }

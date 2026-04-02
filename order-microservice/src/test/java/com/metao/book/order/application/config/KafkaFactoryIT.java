@@ -61,9 +61,14 @@ class KafkaFactoryIT extends KafkaContainer {
     private static OrderCreatedEvent buildOrderCreatedEvent() {
         return OrderCreatedEvent.newBuilder()
             .setUserId(CUSTOMER_ID)
-            .setSku(PRODUCT_ID)
-            .setCurrency(EUR.toString())
-            .setStatus(OrderCreatedEvent.Status.NEW).setPrice(PRICE.doubleValue())
-            .setQuantity(QUANTITY.doubleValue()).build();
+            .setStatus(OrderCreatedEvent.Status.CREATED)
+            .addItems(OrderCreatedEvent.OrderItem.newBuilder()
+                .setSku(PRODUCT_ID)
+                .setProductTitle("Kafka Factory Product")
+                .setQuantity(QUANTITY.doubleValue())
+                .setPrice(PRICE.doubleValue())
+                .setCurrency(EUR.toString())
+                .build())
+            .build();
     }
 }

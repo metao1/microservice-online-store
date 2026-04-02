@@ -1,127 +1,71 @@
-package com.metao.book.order.application.listener;
+package com.metao.book.order.infrastructure.listener;
 
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-import com.metao.book.order.domain.model.aggregate.OrderAggregate;
-import com.metao.book.order.domain.model.valueobject.OrderId;
-import com.metao.book.order.domain.model.valueobject.OrderStatus;
-import com.metao.book.order.domain.service.OrderManagementService;
-import com.metao.book.order.infrastructure.persistence.repository.ProcessedPaymentEventRepository;
-import com.metao.book.shared.OrderPaymentEvent;
-import org.junit.jupiter.api.BeforeEach;
+import com.google.protobuf.Timestamp;
+import com.metao.book.order.application.usecase.HandleOrderPaymentEventCommand;
+import com.metao.book.order.application.usecase.HandleOrderPaymentEventUseCase;
+import com.metao.book.shared.OrderPaymentUpdatedEvent;
+import com.metao.book.shared.Status;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.kafka.support.Acknowledgment;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PaymentEventListener")
 class PaymentEventListenerTest {
 
     @Mock
-    private OrderManagementService orderManagementService;
+    private HandleOrderPaymentEventUseCase handleOrderPaymentEventUseCase;
 
     @Mock
-    private OrderAggregate order;
+    private Acknowledgment acknowledgment;
 
-    @Mock
-    private ProcessedPaymentEventRepository processedPaymentEventRepository;
-
+    @InjectMocks
     private PaymentEventListener paymentEventListener;
 
-    @BeforeEach
-    void setUp() {
-        paymentEventListener = new PaymentEventListener(orderManagementService, processedPaymentEventRepository);
-    }
-
     @Nested
-    @DisplayName("Successful Payment Events")
-    class SuccessfulPaymentEvents {
+    @DisplayName("Event mapping")
+    class EventMapping {
 
         @Test
-        @DisplayName("Should reduce inventory and update order status to PAID")
-        void shouldReduceInventoryAndUpdateStatusToPaid() {
-            String orderIdValue = "order123";
-            OrderId orderId = OrderId.of(orderIdValue);
-            OrderPaymentEvent paymentEvent = OrderPaymentEvent.newBuilder()
-                .setOrderId(orderIdValue)
+        @DisplayName("Should delegate to use case using payment id as event id")
+        void shouldDelegateUsingPaymentIdAsEventId() {
+            OrderPaymentUpdatedEvent paymentEvent = OrderPaymentUpdatedEvent.newBuilder()
+                .setOrderId("order123")
                 .setPaymentId("payment-1")
-                .setStatus(OrderPaymentEvent.Status.SUCCESSFUL)
+                .setStatus(Status.SUCCESSFUL)
                 .build();
 
-            when(processedPaymentEventRepository.markProcessed("payment-1")).thenReturn(true);
-            when(orderManagementService.getOrderByIdForUpdate(orderId)).thenReturn(order);
-            when(order.getStatus()).thenReturn(OrderStatus.CREATED);
+            paymentEventListener.handlePaymentEvent(paymentEvent, acknowledgment);
 
-            paymentEventListener.handlePaymentEvent(paymentEvent);
-
-            verify(orderManagementService).updateItemQuantity(orderId);
-            verify(orderManagementService).updateOrderStatus(orderId, OrderStatus.PAID.name());
+            verify(handleOrderPaymentEventUseCase).handle(
+                new HandleOrderPaymentEventCommand("payment-1", "order123", "SUCCESSFUL")
+            );
+            verify(acknowledgment).acknowledge();
         }
 
         @Test
-        @DisplayName("Should skip duplicate successful payment event when order already PAID")
-        void shouldSkipDuplicateSuccessfulPaymentEvent() {
-            String orderIdValue = "order123";
-            OrderId orderId = OrderId.of(orderIdValue);
-            OrderPaymentEvent paymentEvent = OrderPaymentEvent.newBuilder()
-                .setOrderId(orderIdValue)
-                .setPaymentId("payment-2")
-                .setStatus(OrderPaymentEvent.Status.SUCCESSFUL)
+        @DisplayName("Should fall back to derived event id when payment id is blank")
+        void shouldFallbackToDerivedEventIdWhenPaymentIdIsBlank() {
+            OrderPaymentUpdatedEvent paymentEvent = OrderPaymentUpdatedEvent.newBuilder()
+                .setOrderId("order123")
+                .setPaymentId("")
+                .setStatus(Status.FAILED)
+                .setUpdatedTime(Timestamp.newBuilder().setSeconds(123L).setNanos(456).build())
                 .build();
 
-            when(processedPaymentEventRepository.markProcessed("payment-2")).thenReturn(true);
-            when(orderManagementService.getOrderByIdForUpdate(orderId)).thenReturn(order);
-            when(order.getStatus()).thenReturn(OrderStatus.PAID);
+            paymentEventListener.handlePaymentEvent(paymentEvent, acknowledgment);
 
-            paymentEventListener.handlePaymentEvent(paymentEvent);
-
-            verify(orderManagementService, never()).updateOrderStatus(orderId, OrderStatus.PAID.name());
-        }
-    }
-
-    @Nested
-    @DisplayName("Failed Payment Events")
-    class FailedPaymentEvents {
-
-        @Test
-        @DisplayName("Should update order status to PAYMENT_FAILED for failed payment")
-        void shouldUpdateOrderStatusToPaymentFailedForFailedPayment() {
-            String orderIdValue = "order456";
-            OrderId orderId = OrderId.of(orderIdValue);
-            OrderPaymentEvent paymentEvent = OrderPaymentEvent.newBuilder()
-                .setOrderId(orderIdValue)
-                .setPaymentId("payment-3")
-                .setStatus(OrderPaymentEvent.Status.FAILED)
-                .build();
-
-            when(processedPaymentEventRepository.markProcessed("payment-3")).thenReturn(true);
-            paymentEventListener.handlePaymentEvent(paymentEvent);
-
-            verify(orderManagementService).updateOrderStatus(eq(orderId), eq(OrderStatus.PAYMENT_FAILED.name()));
-        }
-
-        @Test
-        @DisplayName("Should skip duplicate payment event by idempotency key")
-        void shouldSkipDuplicatePaymentEventByIdempotencyKey() {
-            String orderIdValue = "order456";
-            OrderId orderId = OrderId.of(orderIdValue);
-            OrderPaymentEvent paymentEvent = OrderPaymentEvent.newBuilder()
-                .setOrderId(orderIdValue)
-                .setPaymentId("payment-duplicate")
-                .setStatus(OrderPaymentEvent.Status.FAILED)
-                .build();
-
-            when(processedPaymentEventRepository.markProcessed("payment-duplicate")).thenReturn(false);
-
-            paymentEventListener.handlePaymentEvent(paymentEvent);
-
-            verify(orderManagementService, never()).updateOrderStatus(eq(orderId), eq(OrderStatus.PAYMENT_FAILED.name()));
+            verify(handleOrderPaymentEventUseCase).handle(
+                new HandleOrderPaymentEventCommand("order123:FAILED:123:456", "order123", "FAILED")
+            );
+            verify(acknowledgment).acknowledge();
         }
     }
 }

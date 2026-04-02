@@ -2,9 +2,7 @@ package com.metao.book.payment.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -48,9 +46,6 @@ class PaymentAggregateApplicationServiceTest {
     private PaymentDomainService paymentDomainService;
 
     @Mock
-    private PaymentApplicationMapper paymentMapper;
-
-    @Mock
     private DomainEventToKafkaEventHandler eventPublisher;
 
     private PaymentApplicationService paymentApplicationService;
@@ -58,7 +53,7 @@ class PaymentAggregateApplicationServiceTest {
     @BeforeEach
     void setUp() {
         paymentApplicationService = new PaymentApplicationService(
-            paymentRepository, paymentDomainService, paymentMapper, eventPublisher
+            paymentRepository, paymentDomainService, eventPublisher
         );
     }
 
@@ -73,13 +68,12 @@ class PaymentAggregateApplicationServiceTest {
             "****-1234"
         );
 
-        PaymentAggregate payment = createMockPayment();
-        PaymentDTO expectedDTO = createMockPaymentDTO();
+        PaymentAggregate payment = createPaymentAggregate(PaymentStatus.PENDING, null);
+        PaymentDTO expectedDTO = PaymentApplicationMapper.toDTO(payment);
 
         when(paymentDomainService.isPaymentMethodValidForAmount(any(), any())).thenReturn(true);
         when(paymentDomainService.createPayment(any(), any(), any())).thenReturn(payment);
         when(paymentRepository.save(payment)).thenReturn(payment);
-        when(paymentMapper.toDTO(payment)).thenReturn(expectedDTO);
 
         // When
         PaymentDTO result = paymentApplicationService.createPayment(command);
@@ -114,11 +108,10 @@ class PaymentAggregateApplicationServiceTest {
     void processPayment_withValidPaymentId_shouldProcessAndReturnPayment() {
         // Given
         String paymentId = "payment-123";
-        PaymentAggregate payment = createMockPayment();
-        PaymentDTO expectedDTO = createMockPaymentDTO();
+        PaymentAggregate payment = createPaymentAggregate(PaymentStatus.SUCCESSFUL, null);
+        PaymentDTO expectedDTO = PaymentApplicationMapper.toDTO(payment);
 
         when(paymentRepository.findById(any(PaymentId.class))).thenReturn(Optional.of(payment));
-        when(paymentMapper.toDTO(payment)).thenReturn(expectedDTO);
 
         // When
         PaymentDTO result = paymentApplicationService.processPayment(paymentId);
@@ -126,20 +119,18 @@ class PaymentAggregateApplicationServiceTest {
         // Then
         assertThat(result).isEqualTo(expectedDTO);
         verify(paymentDomainService).processPayment(any(PaymentId.class));
-        // Note: kafkaEventHandler.handle is only called if payment has domain events
         verify(paymentRepository).findById(any(PaymentId.class));
-        assertTrue(paymentMapper.toDTO(payment).isSuccessful());
+        assertThat(result.isSuccessful()).isTrue();
     }
 
     @Test
     void getPaymentById_withExistingPayment_shouldReturnPayment() {
         // Given
         String paymentId = "payment-123";
-        PaymentAggregate payment = createMockPayment();
-        PaymentDTO expectedDTO = createMockPaymentDTO();
+        PaymentAggregate payment = createPaymentAggregate(PaymentStatus.SUCCESSFUL, null);
+        PaymentDTO expectedDTO = PaymentApplicationMapper.toDTO(payment);
 
         when(paymentRepository.findById(any(PaymentId.class))).thenReturn(Optional.of(payment));
-        when(paymentMapper.toDTO(payment)).thenReturn(expectedDTO);
 
         // When
         Optional<PaymentDTO> result = paymentApplicationService.getPaymentById(paymentId);
@@ -168,29 +159,29 @@ class PaymentAggregateApplicationServiceTest {
     void getPaymentsByStatus_shouldReturnFilteredPayments() {
         // Given
         String status = "SUCCESSFUL";
-        List<PaymentAggregate> payments = List.of(createMockPayment(), createMockPayment());
-        PaymentDTO expectedDTO = createMockPaymentDTO();
+        List<PaymentAggregate> payments = List.of(
+            createPaymentAggregate(PaymentStatus.SUCCESSFUL, null),
+            createPaymentAggregate(PaymentStatus.SUCCESSFUL, null)
+        );
 
         when(paymentRepository.findByStatus(PaymentStatus.SUCCESSFUL, 0, 10)).thenReturn(payments);
-        when(paymentMapper.toDTO(any(PaymentAggregate.class))).thenReturn(expectedDTO);
 
         // When
         List<PaymentDTO> result = paymentApplicationService.getPaymentsByStatus(status, 0, 10);
 
         // Then
         assertThat(result).hasSize(2);
-        verify(paymentMapper, times(2)).toDTO(any(PaymentAggregate.class));
+        assertThat(result).allSatisfy(paymentDTO -> assertThat(paymentDTO.status()).isEqualTo("SUCCESSFUL"));
     }
 
     @Test
     void retryPayment_withValidPaymentId_shouldRetryAndReturnPayment() {
         // Given
         String paymentId = "payment-123";
-        PaymentAggregate payment = createMockPayment();
-        PaymentDTO expectedDTO = createMockPaymentDTO();
+        PaymentAggregate payment = createPaymentAggregate(PaymentStatus.SUCCESSFUL, null);
+        PaymentDTO expectedDTO = PaymentApplicationMapper.toDTO(payment);
 
         when(paymentRepository.findById(any(PaymentId.class))).thenReturn(Optional.of(payment));
-        when(paymentMapper.toDTO(payment)).thenReturn(expectedDTO);
 
         // When
         PaymentDTO result = paymentApplicationService.retryPayment(paymentId);
@@ -220,14 +211,14 @@ class PaymentAggregateApplicationServiceTest {
         BigDecimal amount = BigDecimal.valueOf(100.00);
         String currency = "USD";
 
-        PaymentAggregate payment = createMockPayment();
-        PaymentDTO paymentDTO = createMockPaymentDTO();
+        PaymentAggregate createdPayment = createPaymentAggregate(PaymentStatus.PENDING, null);
+        PaymentAggregate processedPayment = createPaymentAggregate(PaymentStatus.SUCCESSFUL, null);
+        PaymentDTO paymentDTO = PaymentApplicationMapper.toDTO(processedPayment);
 
         when(paymentDomainService.isPaymentMethodValidForAmount(any(), any())).thenReturn(true);
-        when(paymentDomainService.createPayment(any(), any(), any())).thenReturn(payment);
-        when(paymentRepository.save(payment)).thenReturn(payment);
-        when(paymentRepository.findById(any())).thenReturn(Optional.of(payment));
-        when(paymentMapper.toDTO(payment)).thenReturn(paymentDTO);
+        when(paymentDomainService.createPayment(any(), any(), any())).thenReturn(createdPayment);
+        when(paymentRepository.save(createdPayment)).thenReturn(createdPayment);
+        when(paymentRepository.findById(any())).thenReturn(Optional.of(processedPayment));
 
         // When
         PaymentDTO result = paymentApplicationService.processOrderCreatedEvent(orderId, amount, currency);
@@ -238,24 +229,18 @@ class PaymentAggregateApplicationServiceTest {
         verify(paymentDomainService).processPayment(any());
     }
 
-    private PaymentAggregate createMockPayment() {
-        PaymentAggregate payment = mock(PaymentAggregate.class);
-        when(payment.getId()).thenReturn(PaymentId.of("payment-123"));
-        when(payment.getDomainEvents()).thenReturn(List.of());
-        when(payment.hasDomainEvents()).thenReturn(false);
+    private PaymentAggregate createPaymentAggregate(PaymentStatus status, String failureReason) {
+        PaymentAggregate payment = PaymentAggregate.reconstruct(
+            PaymentId.of("payment-123"),
+            OrderId.of("order-123"),
+            Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(100.00)),
+            PaymentMethod.creditCard("****-1234"),
+            status,
+            failureReason,
+            status == PaymentStatus.PENDING ? null : Instant.now(),
+            Instant.now().minusSeconds(60)
+        );
+        payment.clearDomainEvents();
         return payment;
-    }
-
-    private PaymentDTO createMockPaymentDTO() {
-        return PaymentDTO.builder()
-            .paymentId("payment-123")
-            .orderId("order-123")
-            .amount(BigDecimal.valueOf(100.00))
-            .currency(Currency.getInstance("USD"))
-            .status("SUCCESSFUL")
-            .isSuccessful(true)
-            .isCompleted(true)
-            .createdAt(Instant.now())
-            .build();
     }
 }

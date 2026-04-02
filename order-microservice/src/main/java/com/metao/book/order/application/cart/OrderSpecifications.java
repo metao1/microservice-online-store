@@ -1,7 +1,7 @@
 package com.metao.book.order.application.cart;
 
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
-import com.metao.book.order.infrastructure.persistence.entity.OrderEntity;
+import com.metao.book.order.infrastructure.persistence.entity.OrderJpaEntity;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
@@ -13,20 +13,18 @@ import org.springframework.util.CollectionUtils;
 @UtilityClass
 public class OrderSpecifications {
 
-    public static Specification<OrderEntity> findByOrdersByCriteria(
+    public static Specification<OrderJpaEntity> findByOrdersByCriteria(
         Set<String> skus, Set<OrderStatus> statuses
     ) {
         return (root, query, criteriaBuilder) -> {
             Predicate predicate = criteriaBuilder.conjunction();
 
-            // For skus, we need to join with OrderItemEntity
             if (!CollectionUtils.isEmpty(skus)) {
                 var itemsJoin = root.join("items");
-                var skuPath = itemsJoin.get("sku").get("value");
+                var skuPath = itemsJoin.get("productSku").get("value");
                 predicate = criteriaBuilder.and(predicate, skuPath.in(skus));
             }
 
-            // For status, we can use the direct field
             predicate = addPredicateForField(criteriaBuilder, predicate, root.get("status"), statuses);
             return predicate;
         };

@@ -168,14 +168,7 @@ public class PaymentAggregate extends AggregateRoot<PaymentId> {
      * Simulate payment processing (replace with real payment gateway integration)
      */
     private boolean simulatePaymentProcessing() {
-        // Simulate processing delay and random success/failure
-        try {
-            Thread.sleep(100); // Simulate processing time
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return false;
-        }
-
+        // Current domain behavior remains deterministic until a real gateway adapter is integrated.
         return true;
     }
 

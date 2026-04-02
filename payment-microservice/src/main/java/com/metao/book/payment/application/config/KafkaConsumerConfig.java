@@ -1,10 +1,11 @@
 package com.metao.book.payment.application.config;
 
 import com.metao.book.shared.OrderCreatedEvent;
-import com.metao.book.shared.OrderPaymentEvent;
+import com.metao.book.shared.OrderPaymentUpdatedEvent;
 import com.metao.book.shared.OrderUpdatedEvent;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
+import java.util.HashMap;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -18,10 +19,10 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.util.backoff.FixedBackOff;
-import java.util.HashMap;
 
 @EnableKafka
 @Configuration
@@ -50,21 +51,21 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public ConsumerFactory<String, OrderPaymentEvent> orderPaymentEventConsumerFactory() {
-        return createConsumerFactory(OrderPaymentEvent.class);
-    }
-
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, OrderPaymentEvent> orderPaymentEventKafkaListenerContainerFactory(
-        DefaultErrorHandler orderErrorHandler,
-        ConsumerFactory<String, OrderPaymentEvent> orderPaymentEventConsumerFactory
-    ) {
-        return createListenerContainerFactory(orderPaymentEventConsumerFactory, orderErrorHandler);
-    }
-
-    @Bean
     public ConsumerFactory<String, OrderCreatedEvent> orderCreatedEventConsumerFactory() {
         return createConsumerFactory(OrderCreatedEvent.class);
+    }
+
+    @Bean
+    public ConsumerFactory<String, OrderPaymentUpdatedEvent> orderPaymentEventConsumerFactory() {
+        return createConsumerFactory(OrderPaymentUpdatedEvent.class);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, OrderPaymentUpdatedEvent> orderPaymentEventKafkaListenerContainerFactory(
+        DefaultErrorHandler orderErrorHandler,
+        ConsumerFactory<String, OrderPaymentUpdatedEvent> orderPaymentEventConsumerFactory
+    ) {
+        return createListenerContainerFactory(orderPaymentEventConsumerFactory, orderErrorHandler);
     }
 
     @Bean
@@ -77,7 +78,9 @@ public class KafkaConsumerConfig {
         DefaultErrorHandler orderErrorHandler,
         ConsumerFactory<String, OrderCreatedEvent> orderCreatedEventConsumerFactory
     ) {
-        return createListenerContainerFactory(orderCreatedEventConsumerFactory, orderErrorHandler);
+        var factory = createListenerContainerFactory(orderCreatedEventConsumerFactory, orderErrorHandler);
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
+        return factory;
     }
 
     @Bean
@@ -111,4 +114,3 @@ public class KafkaConsumerConfig {
     }
 
 }
-

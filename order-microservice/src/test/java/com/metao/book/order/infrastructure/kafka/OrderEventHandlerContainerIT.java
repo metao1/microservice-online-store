@@ -70,13 +70,16 @@ class OrderEventHandlerContainerIT extends KafkaContainer {
     @DisplayName("When sending event then Kafka messages sent successfully")
     void handleSendEventThenKafkaMessagesSentSuccessfully() {
         var event = OrderCreatedEvent.newBuilder()
-            .setStatus(OrderCreatedEvent.Status.NEW)
+            .setStatus(OrderCreatedEvent.Status.CREATED)
             .setId(OrderCreatedEvent.UUID.getDefaultInstance().toString())
-            .setSku("PRODUCT_ID")
             .setUserId("CUSTOMER_ID")
-            .setQuantity(100d)
-            .setPrice(100d)
-            .setCurrency("USD")
+            .addItems(OrderCreatedEvent.OrderItem.newBuilder()
+                .setSku("PRODUCT_ID")
+                .setProductTitle("Product Title")
+                .setQuantity(100d)
+                .setPrice(100d)
+                .setCurrency("USD")
+                .build())
             .build();
 
         var topic = eventHandler.getKafkaTopic(event.getClass());
@@ -90,13 +93,16 @@ class OrderEventHandlerContainerIT extends KafkaContainer {
     @DisplayName("When receiving event then Kafka messages processed successfully")
     void handleSendDifferentEventsThenKafkaMessagesSentSuccessfully() {
         var event1 = OrderCreatedEvent.newBuilder()
-            .setStatus(OrderCreatedEvent.Status.NEW)
+            .setStatus(OrderCreatedEvent.Status.CREATED)
             .setId(OrderCreatedEvent.UUID.getDefaultInstance().toString())
-            .setSku("PRODUCT_ID")
             .setUserId("CUSTOMER_ID")
-            .setQuantity(100d)
-            .setPrice(100d)
-            .setCurrency("USD")
+            .addItems(OrderCreatedEvent.OrderItem.newBuilder()
+                .setSku("PRODUCT_ID")
+                .setProductTitle("Product Title")
+                .setQuantity(100d)
+                .setPrice(100d)
+                .setCurrency("USD")
+                .build())
             .build();
 
         var event2 = OrderUpdatedEvent.newBuilder()
@@ -120,14 +126,22 @@ class OrderEventHandlerContainerIT extends KafkaContainer {
     }
 
     @RetryableTopic
-    @KafkaListener(id = "order-updated-test-id", topics = "order-updated")
+    @KafkaListener(
+        id = "order-updated-test-id",
+        topics = "order-updated",
+        containerFactory = "orderUpdatedEventKafkaListenerContainerFactory"
+    )
     public void onOrderUpdatedEvent(ConsumerRecord<String, OrderUpdatedEvent> consumerRecord) {
         log.info("Consumed message -> {}", consumerRecord.value());
         latch2.countDown();
     }
 
     @RetryableTopic
-    @KafkaListener(id = "order-created-test-id", topics = "order-created")
+    @KafkaListener(
+        id = "order-created-test-id",
+        topics = "order-created",
+        containerFactory = "orderCreatedEventKafkaListenerContainerFactory"
+    )
     public void onOrderCreatedEvent(ConsumerRecord<String, OrderCreatedEvent> consumerRecord) {
         log.info("Consumed message -> {}", consumerRecord.value());
         latch1.countDown();

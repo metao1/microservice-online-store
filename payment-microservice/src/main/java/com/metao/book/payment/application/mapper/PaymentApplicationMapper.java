@@ -13,7 +13,7 @@ public class PaymentApplicationMapper {
     /**
      * Convert domain Payment to PaymentDTO
      */
-    public PaymentDTO toDTO(PaymentAggregate payment) {
+    public static PaymentDTO toDTO(PaymentAggregate payment) {
         return PaymentDTO.builder()
             .paymentId(payment.getId().value())
             .orderId(payment.getOrderId().value())

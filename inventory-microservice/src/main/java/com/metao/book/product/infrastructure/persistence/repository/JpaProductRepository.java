@@ -17,15 +17,44 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface JpaProductRepository extends JpaRepository<ProductEntity, ProductSku> {
 
-    @Query("SELECT p FROM product p JOIN p.categories c WHERE LOWER(c.category) = LOWER(:categoryName)")
+    @Query(
+        value = """
+            SELECT DISTINCT p.*
+            FROM bookstore.product_table p
+            JOIN bookstore.product_category_map pcm ON pcm.product_sku = p.sku
+            JOIN bookstore.product_category c ON c.id = pcm.product_category_id
+            WHERE p.volume > 0
+              AND LOWER(c.category) = LOWER(:categoryName)
+            """,
+        nativeQuery = true
+    )
     List<ProductEntity> findByCategory(@Param("categoryName") String categoryName, Pageable pageable);
 
-    @Query("SELECT p FROM product p JOIN p.categories c WHERE LOWER(c.category) IN :categoryNames")
+    @Query(
+        value = """
+            SELECT DISTINCT p.*
+            FROM bookstore.product_table p
+            JOIN bookstore.product_category_map pcm ON pcm.product_sku = p.sku
+            JOIN bookstore.product_category c ON c.id = pcm.product_category_id
+            WHERE p.volume > 0
+              AND LOWER(c.category) IN (:categoryNames)
+            """,
+        nativeQuery = true
+    )
     List<ProductEntity> findByCategories(@Param("categoryNames") List<String> categoryNames, Pageable pageable);
 
-    @Query("SELECT p FROM product p WHERE " +
-        "LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-        "LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    @Query(
+        value = """
+            SELECT p.*
+            FROM bookstore.product_table p
+            WHERE p.volume > 0
+              AND (
+                LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                OR LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%'))
+              )
+            """,
+        nativeQuery = true
+    )
     List<ProductEntity> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
     @Modifying

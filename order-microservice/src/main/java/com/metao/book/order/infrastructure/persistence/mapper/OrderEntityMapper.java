@@ -1,30 +1,19 @@
 package com.metao.book.order.infrastructure.persistence.mapper;
 
 import com.metao.book.order.domain.model.aggregate.OrderAggregate;
+import com.metao.book.order.domain.model.entity.OrderItem;
 import com.metao.book.order.domain.model.valueobject.OrderId;
-import com.metao.book.order.domain.model.valueobject.OrderStatus;
-import com.metao.book.order.infrastructure.persistence.entity.OrderEntity;
 import com.metao.book.order.infrastructure.persistence.entity.OrderItemEntity;
+import com.metao.book.order.infrastructure.persistence.entity.OrderJpaEntity;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.experimental.UtilityClass;
 
-/**
- * Mapper between Order domain object and OrderEntity
- */
 @UtilityClass
 public class OrderEntityMapper {
 
-    /**
-     * Convert domain Order to OrderEntity
-     */
-    public static OrderEntity toEntity(OrderAggregate order) {
-        OrderEntity entity = new OrderEntity();
-        entity.setId(order.getId().value());
-        entity.setUserId(order.getUserId());
-        entity.setStatus(order.getStatus());
-        entity.setCreatedAt(order.getCreatedAt());
-        entity.setUpdatedAt(order.getUpdatedAt());
+    public static OrderJpaEntity toEntity(OrderAggregate order) {
+        OrderJpaEntity entity = OrderJpaEntity.from(order);
 
         List<OrderItemEntity> itemEntities = order.getItems().stream()
             .map(item -> {
@@ -42,23 +31,23 @@ public class OrderEntityMapper {
         return entity;
     }
 
-    /**
-     * Convert OrderEntity to domain Order
-     */
-    public static OrderAggregate toDomain(OrderEntity entity) {
-        OrderAggregate order = new OrderAggregate(OrderId.of(entity.getId()), entity.getUserId());
-        // Only update status if it's different from the default CREATED status
-        if (entity.getStatus() != OrderStatus.CREATED) {
-            order.updateStatus(entity.getStatus());
-        }
-
-        entity.getItems().forEach(itemEntity -> {
-            order.addItem(
+    public static OrderAggregate toDomain(OrderJpaEntity entity) {
+        List<OrderItem> items = entity.getItems().stream()
+            .map(itemEntity -> new OrderItem(
                 itemEntity.getProductSku(),
                 itemEntity.getProductTitle(),
-                itemEntity.getQuantity(), itemEntity.getUnitPrice());
-        });
+                itemEntity.getQuantity(),
+                itemEntity.getUnitPrice()
+            ))
+            .toList();
 
-        return order;
+        return OrderAggregate.reconstitute(
+            OrderId.of(entity.getId()),
+            entity.getUserId(),
+            items,
+            entity.getStatus(),
+            entity.getCreatedAt(),
+            entity.getUpdatedAt()
+        );
     }
 }

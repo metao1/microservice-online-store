@@ -2,25 +2,26 @@ package com.metao.book.product.infrastructure.factory.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import com.metao.book.product.ProductCreatedEvent;
-import com.metao.book.product.application.service.ProductDomainService;
-import com.metao.book.product.infrastructure.persistence.repository.ProcessedInventoryEventRepository;
+import com.metao.book.product.application.usecase.HandleProductCreatedEventUseCase;
+import com.metao.book.product.application.usecase.HandleProductUpdatedEventUseCase;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Instant;
 import java.util.Collections;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.kafka.support.Acknowledgment;
 
 class ProductKafkaListenerMetricsTest {
 
     @Test
     void timerIsRecordedWhenProductCreatedListenerRuns() {
-        var productDomainService = Mockito.mock(ProductDomainService.class);
-        var processedInventoryEventRepository = Mockito.mock(ProcessedInventoryEventRepository.class);
-        var listener = new ProductKafkaListenerComponent(productDomainService, processedInventoryEventRepository);
+        var handleProductCreatedEventUseCase = Mockito.mock(HandleProductCreatedEventUseCase.class);
+        var handleProductUpdatedEventUseCase = Mockito.mock(HandleProductUpdatedEventUseCase.class);
+        var listener = new ProductKafkaListenerComponent(handleProductCreatedEventUseCase, handleProductUpdatedEventUseCase);
+        var acknowledgment = mock(Acknowledgment.class);
         var meterRegistry = new SimpleMeterRegistry();
 
         ProductCreatedEvent event = ProductCreatedEvent.newBuilder()
@@ -40,7 +41,7 @@ class ProductKafkaListenerMetricsTest {
         ConsumerRecord<String, ProductCreatedEvent> record =
             new ConsumerRecord<>("product-created", 0, 0L, "key", event);
 
-        listener.onProductCreatedEvent(record);
+        listener.onProductCreatedEvent(record, acknowledgment);
 
         // With direct invocation (no Spring AOP), @Timed won't register; just assert execution success.
         assertThat(record.value().getSku()).isEqualTo("SKU1");

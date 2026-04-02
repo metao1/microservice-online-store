@@ -4,7 +4,6 @@ import com.metao.book.order.domain.exception.OrderStateTransitionNotAllowed;
 import com.metao.book.order.domain.model.entity.OrderItem;
 import com.metao.book.order.domain.model.event.DomainInventoryReductionRequestedEvent;
 import com.metao.book.order.domain.model.event.DomainOrderCreatedEvent;
-import com.metao.book.order.domain.model.event.DomainOrderItemAddedEvent;
 import com.metao.book.order.domain.model.event.DomainOrderStatusChangedEvent;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
@@ -14,7 +13,6 @@ import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.book.shared.domain.product.Quantity;
-import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,128 +32,164 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
     private OrderStatus status;
     private Instant updatedAt;
 
-    public OrderAggregate(@NotNull OrderId id, @NotNull UserId userId) {
-        super(id);
-        Objects.requireNonNull(userId, "userId can't be null");
-        this.id = id;
-        this.userId = userId;
-        this.items = new ArrayList<>();
-        this.createdAt = Instant.now();
-        this.updatedAt = Instant.now();
-        this.total = calculateTotal();
-        this.status = OrderStatus.CREATED;
+    public OrderAggregate(OrderId id, UserId userId) {
+        this(id, userId, new ArrayList<>(), OrderStatus.CREATED, Instant.now(), Instant.now());
+    }
 
-        // Raise OrderCreatedEvent
-        addDomainEvent(new DomainOrderCreatedEvent(id, userId));
+    private OrderAggregate(
+        OrderId id,
+        UserId userId,
+        List<OrderItem> items,
+        OrderStatus status,
+        Instant createdAt,
+        Instant updatedAt
+    ) {
+        super(Objects.requireNonNull(id, "id can't be null"));
+        this.id = id;
+        this.userId = Objects.requireNonNull(userId, "userId can't be null");
+        this.items = Objects.requireNonNull(items, "items can't be null");
+        this.status = Objects.requireNonNull(status, "status can't be null");
+        this.createdAt = Objects.requireNonNull(createdAt, "createdAt can't be null");
+        this.updatedAt = Objects.requireNonNull(updatedAt, "updatedAt can't be null");
+        this.total = calculateTotal();
+    }
+
+    public static OrderAggregate from(com.metao.book.order.domain.event.OrderCreatedEvent event) {
+        OrderAggregate order = new OrderAggregate(
+            event.orderId(),
+            event.userId(),
+            new ArrayList<>(),
+            event.status(),
+            event.createdAt(),
+            event.updatedAt()
+        );
+        event.items().forEach(item ->
+            order.items.add(new OrderItem(item.productSku(), item.productTitle(), item.quantity(), item.unitPrice()))
+        );
+        order.total = order.calculateTotal();
+        return order;
+    }
+
+    public static OrderAggregate reconstitute(
+        OrderId id,
+        UserId userId,
+        List<OrderItem> items,
+        OrderStatus status,
+        Instant createdAt,
+        Instant updatedAt
+    ) {
+        return new OrderAggregate(id, userId, new ArrayList<>(items), status, createdAt, updatedAt);
     }
 
     public void addItem(
-        @NotNull ProductSku productSku,
-        @NotNull ProductTitle productTitle,
-        @NotNull Quantity quantity,
-        @NotNull Money unitPrice
+        ProductSku productSku,
+        ProductTitle productTitle,
+        Quantity quantity,
+        Money unitPrice
     ) {
         Objects.requireNonNull(productSku, "productSku can't be null");
-        Objects.requireNonNull(productSku, "productTitle can't be null");
-        Objects.requireNonNull(productSku, "quantity can't be null");
-        Objects.requireNonNull(productSku, "unitPrice can't be null");
+        Objects.requireNonNull(productTitle, "productTitle can't be null");
+        Objects.requireNonNull(quantity, "quantity can't be null");
+        Objects.requireNonNull(unitPrice, "unitPrice can't be null");
+        validateMutableOrder();
 
-        // Validate order state
-        if (status == OrderStatus.CANCELLED || status == OrderStatus.DELIVERED) {
-            throw new IllegalStateException("Cannot add items to a " + status + " order");
-        }
-
-        // Merge quantities when product already exists instead of failing
-        var existing = items.stream()
+        OrderItem existing = items.stream()
             .filter(item -> item.getProductSku().equals(productSku))
             .findFirst()
             .orElse(null);
+
         if (existing != null) {
             existing.updateQuantity(existing.getQuantity().add(quantity));
         } else {
-
-            OrderItem item = new OrderItem(productSku, productTitle, quantity, unitPrice);
-            this.items.add(item);
+            items.add(new OrderItem(productSku, productTitle, quantity, unitPrice));
         }
-        this.updatedAt = Instant.now();
-        this.total = calculateTotal();
 
-        // Raise OrderItemAddedEvent
-        addDomainEvent(new DomainOrderItemAddedEvent(id, productSku, quantity, unitPrice));
+        updatedAt = Instant.now();
+        total = calculateTotal();
+    }
+
+    public boolean hasItem(ProductSku productSku) {
+        return items.stream().anyMatch(item -> item.getProductSku().equals(productSku));
+    }
+
+    public void raiseOrderCreatedEvents() {
+        addDomainEvent(new DomainOrderCreatedEvent(
+            id,
+            userId,
+            List.copyOf(items),
+            total,
+            createdAt
+        ));
     }
 
     public synchronized void updateStatus(OrderStatus newStatus) {
         Objects.requireNonNull(newStatus, "newStatus can't be null");
-        // Validate status transition
         validateStatusTransition(newStatus);
 
         OrderStatus oldStatus = this.status;
         this.status = newStatus;
         this.updatedAt = Instant.now();
-
-        // Raise OrderStatusChangedEvent
         addDomainEvent(new DomainOrderStatusChangedEvent(id, oldStatus, newStatus));
     }
 
-    public synchronized void removeItem(@NotNull ProductSku sku) {
-        // Validate order state
-        if (status == OrderStatus.CANCELLED || status == OrderStatus.DELIVERED) {
-            throw new IllegalStateException("Cannot remove items from a " + status + " order");
-        }
+    public synchronized void updateItemQuantity() {
+        validateMutableOrder();
+        Instant occurredOn = Instant.now();
+        items.forEach(item -> {
+            addDomainEvent(new DomainInventoryReductionRequestedEvent(occurredOn, item.getProductSku(), item.getQuantity()));
+        });
+        updatedAt = occurredOn;
+        total = calculateTotal();
+    }
+
+    public synchronized void removeItem(ProductSku sku) {
+        Objects.requireNonNull(sku, "sku can't be null");
+        validateMutableOrder();
 
         boolean removed = items.removeIf(item -> item.getProductSku().equals(sku));
         if (removed) {
-            this.updatedAt = Instant.now();
-            this.total = calculateTotal();
+            updatedAt = Instant.now();
+            total = calculateTotal();
         }
+    }
+
+    public List<OrderItem> getItems() {
+        return Collections.unmodifiableList(items);
     }
 
     private Money calculateTotal() {
         return items.stream()
             .map(OrderItem::getTotalPrice)
-            .reduce((m1, m2) -> {
-                if (!m1.currency().equals(m2.currency())) {
+            .reduce((left, right) -> {
+                if (!left.currency().equals(right.currency())) {
                     throw new IllegalStateException("Cannot calculate total with different currencies");
-                } else {
-                    return m1.add(m2);
                 }
-            }).orElse(null);
-    }
-
-    public synchronized void updateItemQuantity() {
-        // Validate order state
-        if (status == OrderStatus.CANCELLED || status == OrderStatus.DELIVERED) {
-            throw new IllegalStateException("Cannot update items in a " + status + " order");
-        }
-        items.forEach(item -> {
-            item.updateQuantity(item.getQuantity().add(Quantity.of(java.math.BigDecimal.ONE)));
-            this.updatedAt = Instant.now();
-            addDomainEvent(
-                new DomainInventoryReductionRequestedEvent(updatedAt, item.getProductSku(), item.getQuantity())
-            );
-        });
-        this.total = calculateTotal();
+                return left.add(right);
+            })
+            .orElse(null);
     }
 
     private synchronized void validateStatusTransition(OrderStatus newStatus) {
         if (status == OrderStatus.CREATED && newStatus != OrderStatus.PAID && newStatus != OrderStatus.CANCELLED) {
             throw new OrderStateTransitionNotAllowed("Cannot transition from CREATED to " + newStatus);
-        } else if (status == OrderStatus.PAID && newStatus != OrderStatus.CANCELLED) {
+        }
+        if (status == OrderStatus.PAID && newStatus != OrderStatus.CANCELLED) {
             throw new OrderStateTransitionNotAllowed("Cannot transition from PAID to " + newStatus);
-        } else if (status != OrderStatus.SHIPPED && newStatus == OrderStatus.DELIVERED) {
+        }
+        if (status != OrderStatus.SHIPPED && newStatus == OrderStatus.DELIVERED) {
             throw new OrderStateTransitionNotAllowed("Cannot transition from " + status + " to DELIVERED");
-        } else if (status == OrderStatus.DELIVERED) {
+        }
+        if (status == OrderStatus.DELIVERED) {
             throw new OrderStateTransitionNotAllowed("Cannot change status of a DELIVERED order");
-        } else if (status == OrderStatus.CANCELLED) {
+        }
+        if (status == OrderStatus.CANCELLED) {
             throw new OrderStateTransitionNotAllowed("Cannot change status of a CANCELLED order");
         }
     }
 
-    public synchronized Money getTotal() {
-        return total;
-    }
-
-    public List<OrderItem> getItems() {
-        return Collections.unmodifiableList(items);
+    private void validateMutableOrder() {
+        if (status == OrderStatus.CANCELLED || status == OrderStatus.DELIVERED) {
+            throw new IllegalStateException("Cannot modify a " + status + " order");
+        }
     }
 }

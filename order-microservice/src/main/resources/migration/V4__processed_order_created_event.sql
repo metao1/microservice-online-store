@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS processed_order_created_event
+(
+  event_id     VARCHAR(255) PRIMARY KEY,
+  processed_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
