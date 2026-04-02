@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ProductUpdatedEventTranslator implements ProtobufDomainTranslator {
-
     /**
      * Translate a domain event to a protobuf message
      *

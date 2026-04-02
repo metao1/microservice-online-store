@@ -109,11 +109,6 @@ subprojects {
     }
   }
 
-  // Parallelize test forks to overlap I/O-heavy Testcontainers work
-  tasks.withType(Test).configureEach {
-    maxParallelForks = Math.max(1, Runtime.runtime.availableProcessors().intdiv(2))
-  }
-
   jacocoTestReport {
     dependsOn test
     reports {

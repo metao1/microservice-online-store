@@ -22,6 +22,7 @@ public class Money implements ValueObject {
     @JsonProperty("amount")
     private BigDecimal amount;
 
+    public static final Money ZERO = new Money();
     // Default constructor for Hibernate
     public Money() {
         // ignore

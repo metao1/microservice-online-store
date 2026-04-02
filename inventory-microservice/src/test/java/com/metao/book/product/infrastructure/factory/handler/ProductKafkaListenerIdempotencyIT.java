@@ -6,8 +6,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.metao.book.product.application.port.ProcessedInventoryEventPort;
 import com.metao.book.product.application.service.ProductDomainService;
-import com.metao.book.product.infrastructure.persistence.repository.ProcessedInventoryEventRepository;
+import com.metao.book.product.application.usecase.HandleProductUpdatedEventCommand;
+import com.metao.book.product.application.usecase.HandleProductUpdatedEventUseCase;
 import com.metao.book.shared.ProductUpdatedEvent;
 import java.math.BigDecimal;
 import java.time.Duration;
@@ -22,30 +24,30 @@ import org.mockito.Mockito;
 @DisplayName("ProductKafkaListenerComponent idempotency")
 class ProductKafkaListenerIdempotencyIT {
 
-    private ConsumerRecord<String, ProductUpdatedEvent> inventoryReductionRecord(String key, double volume) {
-        ProductUpdatedEvent event = ProductUpdatedEvent.newBuilder()
-            .setSku("SKU-1")
-            .setDescription("INVENTORY_REDUCTION")
-            .setVolume(volume)
-            .build();
-        return new ConsumerRecord<>("product-updated", 0, 0L, key, event);
+    private HandleProductUpdatedEventCommand inventoryReductionCommand(String key, double volume) {
+        return new HandleProductUpdatedEventCommand(
+            key,
+            "SKU-1",
+            "INVENTORY_REDUCTION",
+            BigDecimal.valueOf(volume)
+        );
     }
 
     @Test
     @DisplayName("duplicate messages with same key are processed once")
     void duplicateMessagesAreSkipped() {
         var productService = mock(ProductDomainService.class);
-        var processedRepo = mock(ProcessedInventoryEventRepository.class);
-        var listener = new ProductKafkaListenerComponent(productService, processedRepo);
+        var processedRepo = mock(ProcessedInventoryEventPort.class);
+        var useCase = new HandleProductUpdatedEventUseCase(productService, processedRepo);
 
         var firstCall = new AtomicBoolean(true);
         Mockito.when(processedRepo.markProcessed("order-1:SKU-1"))
             .thenAnswer(inv -> firstCall.getAndSet(false));
 
-        var record = inventoryReductionRecord("order-1:SKU-1", 2.0);
+        var command = inventoryReductionCommand("order-1:SKU-1", 2.0);
 
-        listener.onProductUpdateEvent(record);
-        listener.onProductUpdateEvent(record);
+        useCase.handle(command);
+        useCase.handle(command);
 
         verify(productService, times(1)).reduceProductVolumeAtomically(eq("SKU-1"), eq(BigDecimal.valueOf(2.0)));
     }
@@ -54,22 +56,22 @@ class ProductKafkaListenerIdempotencyIT {
     @DisplayName("simultaneous duplicate messages still processed once")
     void concurrentDuplicatesStillIdempotent() throws InterruptedException {
         var productService = mock(com.metao.book.product.application.service.ProductDomainService.class);
-        var processedRepo = mock(ProcessedInventoryEventRepository.class);
-        var listener = new ProductKafkaListenerComponent(productService, processedRepo);
+        var processedRepo = mock(ProcessedInventoryEventPort.class);
+        var useCase = new HandleProductUpdatedEventUseCase(productService, processedRepo);
 
         var firstCall = new AtomicBoolean(true);
         org.mockito.Mockito.when(processedRepo.markProcessed("order-2:SKU-1"))
             .thenAnswer(inv -> firstCall.getAndSet(false));
 
-        var record = inventoryReductionRecord("order-2:SKU-1", 3.0);
+        var command = inventoryReductionCommand("order-2:SKU-1", 3.0);
         try (var pool = Executors.newFixedThreadPool(2)) {
             var latch = new CountDownLatch(2);
             pool.submit(() -> {
-                listener.onProductUpdateEvent(record);
+                useCase.handle(command);
                 latch.countDown();
             });
             pool.submit(() -> {
-                listener.onProductUpdateEvent(record);
+                useCase.handle(command);
                 latch.countDown();
             });
             await().atMost(Duration.ofSeconds(5)).untilAsserted(() ->

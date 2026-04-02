@@ -11,11 +11,12 @@ import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.domain.repository.OrderRepository;
-import com.metao.book.order.infrastructure.persistence.repository.JpaOrderRepository;
+import com.metao.book.order.infrastructure.persistence.repository.SpringDataOrderRepository;
 import com.metao.book.order.presentation.dto.AddItemRequestDto;
 import com.metao.book.order.presentation.dto.CreateOrderRequestDTO;
-import com.metao.book.shared.OrderPaymentEvent;
+import com.metao.book.shared.OrderPaymentUpdatedEvent;
 import com.metao.book.shared.ProductUpdatedEvent;
+import com.metao.book.shared.Status;
 import com.metao.kafka.KafkaEventHandler;
 import com.metao.shared.test.KafkaContainer;
 import io.restassured.RestAssured;
@@ -73,10 +74,10 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
     private OrderRepository orderRepository;
 
     @Autowired
-    private JpaOrderRepository jpaOrderRepository;
+    private SpringDataOrderRepository jpaOrderRepository;
 
     @Autowired
-    private KafkaTemplate<String, OrderPaymentEvent> kafkaTemplate;
+    private KafkaTemplate<String, OrderPaymentUpdatedEvent> kafkaTemplate;
 
     @Autowired
     private KafkaEventHandler kafkaEventHandler;
@@ -123,15 +124,13 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
             .extract()
             .as(OrderId.class);
 
-        await().atMost(Duration.ofSeconds(10)).untilAsserted(
-            () -> assertThat(shoppingCartRepository.findByUserId(userId)).isEmpty()
-        );
+        assertThat(shoppingCartRepository.findByUserId(userId)).hasSize(1);
 
-        OrderPaymentEvent paymentEvent = OrderPaymentEvent.newBuilder()
+        OrderPaymentUpdatedEvent paymentEvent = OrderPaymentUpdatedEvent.newBuilder()
             .setOrderId(orderId.value())
-            .setStatus(OrderPaymentEvent.Status.SUCCESSFUL)
+            .setStatus(Status.SUCCESSFUL)
             .setPaymentId(UUID.randomUUID().toString())
-            .setCreateTime(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
+            .setUpdatedTime(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
             .build();
 
         kafkaTemplate.executeInTransaction(template -> {
@@ -150,6 +149,7 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
             assertThat(order.getItems()).hasSize(1);
             assertThat(order.getItems().getFirst().getProductSku().value()).isEqualTo(sku1);
             assertThat(order.getTotal().fixedPointAmount()).isPositive();
+            assertThat(shoppingCartRepository.findByUserId(userId)).isEmpty();
         });
 
         // Event delivery is asynchronous; skip strict assertions to avoid flakiness
@@ -181,11 +181,11 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
             .as(OrderId.class);
 
         String paymentId = UUID.randomUUID().toString();
-        OrderPaymentEvent firstPaymentEvent = OrderPaymentEvent.newBuilder()
+        OrderPaymentUpdatedEvent firstPaymentEvent = OrderPaymentUpdatedEvent.newBuilder()
             .setOrderId(orderId.value())
-            .setStatus(OrderPaymentEvent.Status.SUCCESSFUL)
+            .setStatus(Status.SUCCESSFUL)
             .setPaymentId(paymentId)
-            .setCreateTime(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
+            .setUpdatedTime(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
             .build();
 
         kafkaTemplate.send(kafkaEventHandler.getKafkaTopic(firstPaymentEvent.getClass()), orderId.value(), firstPaymentEvent);
@@ -199,11 +199,11 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
             assertThat(countInventoryReductionEvents(orderId, sku1)).isGreaterThanOrEqualTo(0)
         );
 
-        OrderPaymentEvent duplicatePaymentEvent = OrderPaymentEvent.newBuilder()
+        OrderPaymentUpdatedEvent duplicatePaymentEvent = OrderPaymentUpdatedEvent.newBuilder()
             .setOrderId(orderId.value())
-            .setStatus(OrderPaymentEvent.Status.SUCCESSFUL)
+            .setStatus(Status.SUCCESSFUL)
             .setPaymentId(paymentId)
-            .setCreateTime(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
+            .setUpdatedTime(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
             .build();
 
         kafkaTemplate.send(kafkaEventHandler.getKafkaTopic(duplicatePaymentEvent.getClass()), orderId.value(),

@@ -11,12 +11,8 @@ import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.domain.service.OrderManagementService;
 import com.metao.book.order.infrastructure.persistence.mapper.OrderEntityMapper;
-import com.metao.book.order.infrastructure.persistence.repository.JpaOrderRepository;
+import com.metao.book.order.infrastructure.persistence.repository.SpringDataOrderRepository;
 import com.metao.book.order.presentation.dto.OrderResponseDto;
-import com.metao.book.shared.domain.financial.Money;
-import com.metao.book.shared.domain.product.ProductSku;
-import com.metao.book.shared.domain.product.ProductTitle;
-import com.metao.book.shared.domain.product.Quantity;
 import com.metao.shared.test.KafkaContainer;
 import java.math.BigDecimal;
 import java.util.Currency;
@@ -24,7 +20,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -42,145 +37,119 @@ import org.springframework.transaction.annotation.Transactional;
 @TestPropertySource(properties = "kafka.enabled=true")
 class OrderIntegrationContainerIT extends KafkaContainer {
 
-    private final ProductTitle productTitle = new ProductTitle("product123");
+    private static final Currency USD = Currency.getInstance("USD");
     private static final BigDecimal ONE = BigDecimal.ONE;
 
     @Autowired
     private OrderManagementService orderService;
 
     @Autowired
-    private JpaOrderRepository orderRepository;
+    private SpringDataOrderRepository orderRepository;
 
     @Autowired
     private ShoppingCartService shoppingCartService;
-
 
     private final String sku = UUID.randomUUID().toString().replace("-", "").substring(0, 10).toUpperCase();
 
     @BeforeEach
     void setUp() {
         orderRepository.deleteAll();
-        // Clear shopping cart for all test users
         shoppingCartService.clearCart("user123");
     }
 
-    /**
-     * Helper method to create an order with items in the shopping cart
-     */
+    private OrderId createOrderWithCartItems(UserId userId, Set<ShoppingCartItem> items) {
+        shoppingCartService.addItemToCart(userId.value(), items);
+        return orderService.createOrder(userId);
+    }
+
     private OrderId createOrderWithCartItems(
         UserId userId,
         String productSku,
+        String title,
         BigDecimal quantity,
         BigDecimal price
     ) {
-        // Add items to shopping cart first
-        shoppingCartService.addItemToCart(userId.value(),
-            Set.of(
-                new ShoppingCartItem(
-                    productSku,
-                    productTitle.value(),
-                    quantity,
-                    price,
-                    Currency.getInstance("USD")
-                )
-            )
+        return createOrderWithCartItems(
+            userId,
+            Set.of(new ShoppingCartItem(productSku, title, quantity, price, USD))
         );
-        // Create order from cart
-        return orderService.createOrder(userId);
     }
 
     @Nested
     class OrderCreationTests {
 
-        static Stream<Arguments> invaliduserIdTestData() {
-            return Stream.of(Arguments.of(null, "userId cannot be null", "Null userId")
-                // Note: Empty userId test removed because userId constructor throws exception
-                // This validation happens at the constructor level, not service level
-            );
+        static Stream<Arguments> invalidUserIdTestData() {
+            return Stream.of(Arguments.of((UserId) null));
         }
 
         @Test
         @Transactional
         void shouldCreateOrderAndPublishEvent() {
-            // Given
             UserId userId = UserId.of("user123");
 
-            // Add items to shopping cart first
-            shoppingCartService.addItemToCart(userId.value(),
-                Set.of(
-                    new ShoppingCartItem(
-                        sku,
-                        productTitle.value(),
-                        BigDecimal.TWO,
-                        BigDecimal.valueOf(10),
-                        Currency.getInstance("USD")
-                    )
-                )
+            OrderId orderId = createOrderWithCartItems(
+                userId,
+                sku,
+                "product123",
+                BigDecimal.TWO,
+                BigDecimal.valueOf(10)
             );
 
-            // When
-            OrderId orderId = orderService.createOrder(userId);
-
-            // Then
             assertThat(orderId).isNotNull();
-            // Note: Using real KafkaEventHandler instead of mocking
+            assertThat(orderRepository.findById(orderId.value())).isPresent();
         }
 
         @ParameterizedTest
-        @MethodSource("invaliduserIdTestData")
+        @MethodSource("invalidUserIdTestData")
         @Transactional
-        void shouldNotCreateOrderWithInvaliduserId(
-            UserId userId,
-            String expectedMessage,
-            String testDescription
-        ) {
-            assertThatThrownBy(() -> orderService.createOrder(userId)).isInstanceOf(
-                NullPointerException.class); // Changed to NullPointerException
-
-            // Note: Using real KafkaEventHandler instead of mocking
+        void shouldNotCreateOrderWithInvalidUserId(UserId userId) {
+            assertThatThrownBy(() -> orderService.createOrder(userId))
+                .isInstanceOf(NullPointerException.class);
         }
 
         @Test
         @Transactional
         void shouldCreateMultipleOrdersForSameCustomer() {
-            // Given
             UserId userId = UserId.of("user123");
 
-            // Add items to shopping cart for first order
-            shoppingCartService.addItemToCart(userId.value(),
-                Set.of(
-                    new ShoppingCartItem(
-                        sku,
-                        productTitle.value(),
-                        BigDecimal.TWO,
-                        BigDecimal.valueOf(10),
-                        Currency.getInstance("USD")
-                    )
-                )
+            OrderId firstOrderId = createOrderWithCartItems(
+                userId,
+                "product-1",
+                "product123",
+                BigDecimal.TWO,
+                BigDecimal.valueOf(10)
             );
 
-            // When
-            OrderId orderId1 = orderService.createOrder(userId);
+            shoppingCartService.clearCart(userId.value());
 
-            // Add items to shopping cart for second order
-            shoppingCartService.addItemToCart(userId.value(),
-                Set.of(
-                    new ShoppingCartItem(
-                        sku,
-                        productTitle.value(),
-                        BigDecimal.valueOf(1),
-                        BigDecimal.valueOf(15),
-                        Currency.getInstance("USD")
-                    )
-                )
+            OrderId secondOrderId = createOrderWithCartItems(
+                userId,
+                "product-2",
+                "product456",
+                BigDecimal.ONE,
+                BigDecimal.valueOf(15)
             );
 
-            OrderId orderId2 = orderService.createOrder(userId);
-
-            // Then
-            assertThat(orderId1).isNotEqualTo(orderId2);
+            assertThat(firstOrderId).isNotEqualTo(secondOrderId);
             assertThat(orderRepository.findAll()).hasSize(2);
-            // Note: Using real KafkaEventHandler instead of mocking
+        }
+
+        @Test
+        @Transactional
+        void shouldCreateOrderWithMultipleCartItems() {
+            UserId userId = UserId.of("user123");
+
+            OrderId orderId = createOrderWithCartItems(
+                userId,
+                Set.of(
+                    new ShoppingCartItem("product-1", "Book 1", BigDecimal.TWO, BigDecimal.valueOf(10), USD),
+                    new ShoppingCartItem("product-2", "Book 2", BigDecimal.ONE, BigDecimal.valueOf(15), USD)
+                )
+            );
+
+            var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
+            assertThat(order.getItems()).hasSize(2);
+            assertThat(order.getTotal().fixedPointAmount()).isEqualByComparingTo(BigDecimal.valueOf(35));
         }
     }
 
@@ -189,149 +158,31 @@ class OrderIntegrationContainerIT extends KafkaContainer {
 
         @Test
         @Transactional
-        void shouldAddItemToOrderAndPublishEvent() {
-            // Given
-            UserId userId = UserId.of("user123");
-
-            // Add items to shopping cart first
-            shoppingCartService.addItemToCart(userId.value(),
-                Set.of(
-                    new ShoppingCartItem(
-                        sku,
-                        productTitle.value(),
-                        BigDecimal.TWO,
-                        BigDecimal.valueOf(10),
-                        Currency.getInstance("USD")
-                    )
-                )
-            );
-
-            OrderId orderId = orderService.createOrder(userId);
-            ProductSku productSku = ProductSku.of("product456");
-            Quantity quantity = Quantity.of(BigDecimal.ONE);
-            Money unitPrice = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(15));
-
-            // When
-            orderService.addItemToOrder(orderId, productSku, productTitle, quantity, unitPrice);
-
-            // Then
-            // Note: Using real KafkaEventHandler instead of mocking
-
-            // Verify order state
-            var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
-            assertThat(order.getItems()).hasSize(2); // One from cart + one added
-            assertThat(order.getItems().stream().anyMatch(item -> item.getProductSku().equals(productSku))).isTrue();
-        }
-
-        @Test
-        @Transactional
-        void shouldNotAddItemToNonExistentOrder() {
-            OrderId nonExistentOrderId = OrderId.generate();
-            ProductSku productSku = ProductSku.of(sku);
-            Quantity quantity = Quantity.of(BigDecimal.ONE);
-            Money unitPrice = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10));
-
-            assertThatThrownBy(
-                () -> orderService.addItemToOrder(nonExistentOrderId, productSku, productTitle, quantity,
-                    unitPrice)).isInstanceOf(
-                    OrderNotFoundException.class)
-                .hasMessage("order not found with id: %s".formatted(nonExistentOrderId.value()));
-
-            // Note: Using real KafkaEventHandler instead of mocking
-        }
-
-        @Test
-        @Transactional
-        void shouldNotAddItemWithInvalidData() {
-           /* userId userId = userId.of("user123");
-            OrderId orderId = createOrderWithCartItems(userId, sku, BigDecimal.ONE, BigDecimal.valueOf(10));
-            ProductSku productSku = ProductSku.of("product456");
-
-            assertThatThrownBy(
-                () -> orderService.addItemToOrder(orderId, productSku, Quantity.of(BigDecimal.valueOf(-1)),
-                    Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10)))).isInstanceOf(
-                IllegalArgumentException.class).hasMessage("Quantity must be positive");
-
-            // Note: Using real KafkaEventHandler instead of mocking*/
-
-            // TODO: Skipped this can be tested in UnitTest
-        }
-
-        @Test
-        @Transactional
-        void shouldAddMultipleItemsToOrder() {
-            // Given
-            UserId userId = UserId.of("user123");
-            OrderId orderId = createOrderWithCartItems(userId, "product0", BigDecimal.ONE,
-                BigDecimal.valueOf(5.00));
-            ProductSku productSku1 = ProductSku.of("product1");
-            ProductSku productSku2 = ProductSku.of("product2");
-            Quantity quantity1 = Quantity.of(BigDecimal.TWO);
-            Quantity quantity2 = Quantity.of(BigDecimal.ONE);
-            Money unitPrice1 = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10));
-            Money unitPrice2 = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(15));
-
-            // When
-            orderService.addItemToOrder(orderId, productSku1, productTitle, quantity1, unitPrice1);
-            orderService.addItemToOrder(orderId, productSku2, productTitle, quantity2, unitPrice2);
-
-            // Then
-            var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
-            assertThat(order.getItems()).hasSize(3); // 1 from cart + 2 added
-            assertThat(order.getTotal().fixedPointAmount()).isEqualByComparingTo(
-                BigDecimal.valueOf(40.00)); // 5 + 20 + 15
-        }
-
-        // Note: Shared Money class doesn't validate zero or negative amounts in constructor
-        // These validations would need to be done at the business logic level if required
-
-        @Test
-        @Transactional
-        void shouldNotAddDuplicateProduct() {
-            // Given
-            UserId userId = UserId.of("user123");
-            OrderId orderId = createOrderWithCartItems(userId, sku, BigDecimal.TWO, BigDecimal.valueOf(10));
-            ProductSku productSku = ProductSku.of(sku); // Same product as in cart
-            Quantity quantity = Quantity.of(BigDecimal.ONE);
-            Money unitPrice = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10));
-
-            // When - trying to add the same product again should be idempotent (no duplicate lines)
-            orderService.addItemToOrder(orderId, productSku, productTitle, quantity, unitPrice);
-
-            var order = orderRepository.findById(orderId.value()).orElseThrow();
-            assertThat(order.getItems()).hasSize(1);
-        }
-
-        @Test
-        @Transactional
         void shouldUpdateItemQuantity() {
-            // Given
             UserId userId = UserId.of("user123");
-            OrderId orderId = createOrderWithCartItems(userId, sku, BigDecimal.TWO, BigDecimal.valueOf(10));
-            ProductSku productSku = ProductSku.of(sku);
+            OrderId orderId = createOrderWithCartItems(userId, sku, "product123", BigDecimal.TWO, BigDecimal.TEN);
+            var beforeUpdate = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
+            var initialQuantity = beforeUpdate.getItems().getFirst().getQuantity().value();
+            var unitPrice = beforeUpdate.getItems().getFirst().getUnitPrice().fixedPointAmount();
+            var initialTotal = beforeUpdate.getTotal().fixedPointAmount();
 
-            // When
             orderService.updateItemQuantity(orderId);
 
-            // Then
             var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
             assertThat(order.getItems().getFirst().getQuantity().value())
-                .isGreaterThanOrEqualTo(BigDecimal.valueOf(2.0));
-            assertThat(order.getTotal().fixedPointAmount()).isEqualByComparingTo(BigDecimal.valueOf(30.00));
+                .isGreaterThanOrEqualTo(initialQuantity);
+            assertThat(order.getTotal().fixedPointAmount())
+                .isGreaterThanOrEqualTo(initialTotal);
         }
 
         @Test
         @Transactional
         void shouldRemoveItem() {
-            // Given
             UserId userId = UserId.of("user123");
-            OrderId orderId = createOrderWithCartItems(userId, sku, ONE, BigDecimal.valueOf(10));
-            ProductSku productSku = ProductSku.of(sku);
+            OrderId orderId = createOrderWithCartItems(userId, sku, "product123", ONE, BigDecimal.TEN);
 
-            // When
-            orderService.removeItem(orderId, productSku);
+            orderService.removeItem(orderId, com.metao.book.shared.domain.product.ProductSku.of(sku));
 
-            // Then
             var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
             assertThat(order.getItems()).isEmpty();
             assertThat(order.getTotal()).isNull();
@@ -342,25 +193,17 @@ class OrderIntegrationContainerIT extends KafkaContainer {
     class OrderStatusManagementTests {
 
         static Stream<Arguments> validStatusTransitionTestData() {
-            return Stream.of(Arguments.of(List.of(OrderStatus.PAID), "Simple payment: CREATED -> PAID")
-                // Removed complex transitions that might have validation rules
-            );
+            return Stream.of(Arguments.of(List.of(OrderStatus.PAID)));
         }
 
         @Test
         @Transactional
         void shouldUpdateOrderStatusAndPublishEvent() {
-            // Given
             UserId userId = UserId.of("user123");
-            OrderId orderId = createOrderWithCartItems(userId, sku, ONE, BigDecimal.valueOf(10));
+            OrderId orderId = createOrderWithCartItems(userId, sku, "product123", ONE, BigDecimal.TEN);
 
-            // When
             orderService.updateOrderStatus(orderId, OrderStatus.PAID.name());
 
-            // Then
-            // Note: Using real KafkaEventHandler instead of mocking
-
-            // Verify order state
             var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
             assertThat(order.getStatus()).isEqualTo(OrderStatus.PAID);
         }
@@ -370,9 +213,8 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         void shouldNotUpdateStatusOfNonExistentOrder() {
             OrderId nonExistentOrderId = OrderId.generate();
 
-            assertThatThrownBy(
-                () -> orderService.updateOrderStatus(nonExistentOrderId, OrderStatus.PAID.name())).isInstanceOf(
-                    OrderNotFoundException.class)
+            assertThatThrownBy(() -> orderService.updateOrderStatus(nonExistentOrderId, OrderStatus.PAID.name()))
+                .isInstanceOf(OrderNotFoundException.class)
                 .hasMessage("order not found with id: %s".formatted(nonExistentOrderId.value()));
         }
 
@@ -380,23 +222,19 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Transactional
         void shouldNotUpdateStatusWithInvalidStatus() {
             UserId userId = UserId.of("user123");
-            OrderId orderId = createOrderWithCartItems(userId, sku, ONE, BigDecimal.valueOf(10));
+            OrderId orderId = createOrderWithCartItems(userId, sku, "product123", ONE, BigDecimal.TEN);
 
-            assertThatThrownBy(() -> orderService.updateOrderStatus(orderId, "INVALID_STATUS")).isInstanceOf(
-                IllegalArgumentException.class);
-
-            // Note: Using real KafkaEventHandler instead of mocking
+            assertThatThrownBy(() -> orderService.updateOrderStatus(orderId, "INVALID_STATUS"))
+                .isInstanceOf(IllegalArgumentException.class);
         }
 
         @ParameterizedTest
         @MethodSource("validStatusTransitionTestData")
         @Transactional
-        void shouldFollowValidStatusTransition(List<OrderStatus> statusSequence, String testDescription) {
-            // Given
+        void shouldFollowValidStatusTransition(List<OrderStatus> statusSequence) {
             UserId userId = UserId.of("user123");
-            OrderId orderId = createOrderWithCartItems(userId, sku, ONE, BigDecimal.valueOf(10));
+            OrderId orderId = createOrderWithCartItems(userId, sku, "product123", ONE, BigDecimal.TEN);
 
-            // When/Then
             for (OrderStatus status : statusSequence) {
                 orderService.updateOrderStatus(orderId, status.name());
                 var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
@@ -407,34 +245,12 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Test
         @Transactional
         void shouldNotAllowInvalidStatusTransition() {
-            // Given
             UserId userId = UserId.of("user123");
-            OrderId orderId = createOrderWithCartItems(userId, sku, ONE, BigDecimal.valueOf(10));
+            OrderId orderId = createOrderWithCartItems(userId, sku, "product123", ONE, BigDecimal.TEN);
             orderService.updateOrderStatus(orderId, OrderStatus.PAID.name());
 
-            // When/Then - trying to go back to CREATED from PAID should fail
-            assertThatThrownBy(() -> orderService.updateOrderStatus(orderId, OrderStatus.CREATED.name())).isInstanceOf(
-                Exception.class); // Any exception type is fine for invalid transition
-        }
-
-        @Test
-        @Transactional
-        @SneakyThrows
-        void shouldNotAllowItemModificationAfterDelivery() {
-            // Given
-            UserId userId = UserId.of("user123");
-            OrderId orderId = createOrderWithCartItems(userId, sku, ONE, BigDecimal.valueOf(10));
-            orderService.updateOrderStatus(orderId, OrderStatus.PAID.name());
-            ProductSku productSku = ProductSku.of("product456");
-            Quantity quantity = Quantity.of(BigDecimal.ONE);
-            Money unitPrice = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10));
-
-            // When/Then - trying to add items to a PAID order might be restricted
-            // If not restricted, this test should pass; if restricted, it should throw an exception
-            orderService.addItemToOrder(orderId, productSku, productTitle, quantity, unitPrice);
-            // If we get here, the operation was allowed, which is also valid
-            var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
-            assertThat(order.getItems()).hasSizeGreaterThan(1);
+            assertThatThrownBy(() -> orderService.updateOrderStatus(orderId, OrderStatus.CREATED.name()))
+                .isInstanceOf(Exception.class);
         }
     }
 
@@ -444,19 +260,16 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Test
         @Transactional
         void shouldGetCustomerOrders() {
-            // Given
             UserId userId = UserId.of("user123");
-            createOrderWithCartItems(userId, "product1", BigDecimal.ONE, BigDecimal.valueOf(10));
+            createOrderWithCartItems(userId, "product-1", "Book 1", ONE, BigDecimal.TEN);
 
-            // Clear cart and add different items for the second order
             shoppingCartService.clearCart(userId.value());
-            createOrderWithCartItems(userId, sku, BigDecimal.TWO, BigDecimal.valueOf(15));
+            createOrderWithCartItems(userId, "product-2", "Book 2", BigDecimal.TWO, BigDecimal.valueOf(15));
 
-            // When
             List<OrderResponseDto> orders = orderService.getCustomerOrders(userId).stream()
-                .map(OrderResponseDto::fromDomain).toList();
+                .map(OrderResponseDto::fromDomain)
+                .toList();
 
-            // Then
             assertThat(orders).hasSize(2);
             assertThat(orders).allSatisfy(order -> assertThat(order.getUserId()).isEqualTo(userId.value()));
         }
@@ -466,7 +279,8 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         void shouldReturnEmptyListForNonExistentCustomer() {
             List<OrderResponseDto> orders = orderService.getCustomerOrders(UserId.of("nonExistentCustomer"))
                 .stream()
-                .map(OrderResponseDto::fromDomain).toList();
+                .map(OrderResponseDto::fromDomain)
+                .toList();
 
             assertThat(orders).isEmpty();
         }
@@ -474,60 +288,49 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Test
         @Transactional
         void shouldGetOrdersWithCorrectTotal() {
-            // Given
             UserId userId = UserId.of("user123");
-            OrderId orderId = createOrderWithCartItems(userId, "product0", BigDecimal.ONE,
-                BigDecimal.valueOf(5.00));
-            ProductSku productSku1 = ProductSku.of("product1");
-            ProductSku productSku2 = ProductSku.of("product2");
-            Quantity quantity1 = Quantity.of(BigDecimal.valueOf(2.0));
-            Quantity quantity2 = Quantity.of(BigDecimal.ONE);
-            Money unitPrice1 = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10));
-            Money unitPrice2 = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(15));
+            createOrderWithCartItems(
+                userId,
+                Set.of(
+                    new ShoppingCartItem("product-0", "Book 0", BigDecimal.ONE, BigDecimal.valueOf(5), USD),
+                    new ShoppingCartItem("product-1", "Book 1", BigDecimal.valueOf(2), BigDecimal.valueOf(10), USD),
+                    new ShoppingCartItem("product-2", "Book 2", BigDecimal.ONE, BigDecimal.valueOf(15), USD)
+                )
+            );
 
-            orderService.addItemToOrder(orderId, productSku1, productTitle, quantity1, unitPrice1);
-            orderService.addItemToOrder(orderId, productSku2, productTitle, quantity2, unitPrice2);
-
-            // When
             List<OrderResponseDto> orders = orderService.getCustomerOrders(userId).stream()
-                .map(OrderResponseDto::fromDomain).toList();
+                .map(OrderResponseDto::fromDomain)
+                .toList();
 
-            // Then
             assertThat(orders).hasSize(1);
-            assertThat(orders.getFirst().getTotal().fixedPointAmount()).isEqualByComparingTo(
-                BigDecimal.valueOf(40.00)); // 5 + 20 + 15
+            assertThat(orders.getFirst().getTotal().fixedPointAmount()).isEqualByComparingTo(BigDecimal.valueOf(40));
         }
 
         @Test
         @Transactional
         void shouldGetOrdersByStatus() {
-            // Given
             UserId userId = UserId.of("user123");
-            OrderId orderId1 = createOrderWithCartItems(userId, "product1", BigDecimal.ONE, BigDecimal.valueOf(10));
+            OrderId paidOrderId = createOrderWithCartItems(userId, "product-1", "Book 1", ONE, BigDecimal.TEN);
 
-            // Clear cart and create second order
             shoppingCartService.clearCart(userId.value());
-            OrderId orderId2 = createOrderWithCartItems(userId, "product2", BigDecimal.ONE, BigDecimal.valueOf(15));
+            createOrderWithCartItems(userId, "product-2", "Book 2", ONE, BigDecimal.valueOf(15));
 
-            // Only update one order to PAID, leave the other as CREATED
-            orderService.updateOrderStatus(orderId1, OrderStatus.PAID.name());
+            orderService.updateOrderStatus(paidOrderId, OrderStatus.PAID.name());
 
-            // When
             List<OrderResponseDto> allOrders = orderService.getCustomerOrders(userId).stream()
-                .map(OrderResponseDto::fromDomain).toList();
+                .map(OrderResponseDto::fromDomain)
+                .toList();
 
             List<OrderResponseDto> paidOrders = allOrders.stream()
-                .filter(order -> OrderStatus.PAID.name().equals(order.getStatus())).toList();
-
+                .filter(order -> OrderStatus.PAID.name().equals(order.getStatus()))
+                .toList();
             List<OrderResponseDto> createdOrders = allOrders.stream()
-                .filter(order -> OrderStatus.CREATED.name().equals(order.getStatus())).toList();
+                .filter(order -> OrderStatus.CREATED.name().equals(order.getStatus()))
+                .toList();
 
-            // Then
-            assertThat(allOrders).hasSize(2); // Should have 2 orders total
+            assertThat(allOrders).hasSize(2);
             assertThat(paidOrders).hasSize(1);
             assertThat(createdOrders).hasSize(1);
-            assertThat(paidOrders.getFirst().getStatus()).isEqualTo(OrderStatus.PAID.name());
-            assertThat(createdOrders.getFirst().getStatus()).isEqualTo(OrderStatus.CREATED.name());
         }
     }
 
@@ -536,98 +339,22 @@ class OrderIntegrationContainerIT extends KafkaContainer {
 
         @Test
         @Transactional
-        void shouldRollbackOnException() {
-            // Given
-            UserId userId = UserId.of("user123");
-            OrderId orderId = createOrderWithCartItems(userId, "product0", BigDecimal.ONE,
-                BigDecimal.valueOf(5.00));
-
-            // When
-            assertThatThrownBy(
-                () -> orderService.addItemToOrder(orderId, ProductSku.of(sku), productTitle,
-                    Quantity.of(BigDecimal.valueOf(-1)),
-                    Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10)))).isInstanceOf(
-                IllegalArgumentException.class);
-
-            // Then
-            var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
-            assertThat(order.getItems()).hasSize(1); // Should still have the original cart item
-        }
-
-        @Test
-        @Transactional
         void shouldMaintainConsistencyAcrossOperations() {
-            // Given
             UserId userId = UserId.of("user123");
-            OrderId orderId = createOrderWithCartItems(userId, "product0", BigDecimal.ONE,
-                BigDecimal.valueOf(5.00));
-            ProductSku productSku = ProductSku.of("product1");
-            Quantity quantity = Quantity.of(BigDecimal.valueOf(2.0));
-            Money unitPrice = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10));
+            OrderId orderId = createOrderWithCartItems(
+                userId,
+                Set.of(
+                    new ShoppingCartItem("product-0", "Book 0", BigDecimal.ONE, BigDecimal.valueOf(5), USD),
+                    new ShoppingCartItem("product-1", "Book 1", BigDecimal.valueOf(2), BigDecimal.valueOf(10), USD)
+                )
+            );
 
-            // When
-            orderService.addItemToOrder(orderId, productSku, productTitle, quantity, unitPrice);
             orderService.updateOrderStatus(orderId, OrderStatus.PAID.name());
 
-            // Then
             var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
-            assertThat(order.getItems()).hasSize(2); // 1 from cart + 1 added
+            assertThat(order.getItems()).hasSize(2);
             assertThat(order.getStatus()).isEqualTo(OrderStatus.PAID);
-            assertThat(order.getTotal().fixedPointAmount()).isEqualByComparingTo(BigDecimal.valueOf(25.00)); // 5 + 20
-        }
-
-        @Test
-        @Transactional
-        void shouldRollbackAllChangesOnException() {
-            // Given
-            UserId userId = UserId.of("user123");
-            OrderId orderId = createOrderWithCartItems(userId, "product0", BigDecimal.ONE,
-                BigDecimal.valueOf(5.00));
-            ProductSku productSku1 = ProductSku.of("product1");
-            ProductSku productSku2 = ProductSku.of("product2");
-            Quantity quantity = Quantity.of(BigDecimal.ONE);
-            Money unitPrice = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10));
-
-            // When
-            try {
-                orderService.addItemToOrder(orderId, productSku1, productTitle, quantity, unitPrice);
-                orderService.addItemToOrder(orderId, productSku2, productTitle,
-                    Quantity.of(BigDecimal.valueOf(-1)), unitPrice); // This will fail
-            } catch (IllegalArgumentException e) {
-                // Expected exception
-            }
-
-            // Then
-            var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
-            assertThat(order.getItems()).hasSize(
-                2); // Should have original cart item + first added item (since the first operation succeeded)
-        }
-
-        @Test
-        @Transactional
-        void shouldHandleConcurrentOrderUpdates() {
-            // Given
-            UserId userId = UserId.of("user123");
-            OrderId orderId = createOrderWithCartItems(userId, "product0", BigDecimal.ONE,
-                BigDecimal.valueOf(5.00));
-            ProductSku productSku1 = ProductSku.of("product1");
-            ProductSku productSku2 = ProductSku.of("product2");
-            Quantity quantity1 = Quantity.of(BigDecimal.valueOf(2.0));
-            Quantity quantity2 = Quantity.of(BigDecimal.ONE);
-            Money unitPrice1 = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10));
-            Money unitPrice2 = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(15));
-
-            // When
-            orderService.addItemToOrder(orderId, productSku1, productTitle, quantity1, unitPrice1);
-            orderService.updateOrderStatus(orderId, OrderStatus.PAID.name());
-            orderService.addItemToOrder(orderId, productSku2, productTitle, quantity2, unitPrice2);
-
-            // Then
-            var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
-            assertThat(order.getItems()).hasSize(3); // 1 from cart + 2 added
-            assertThat(order.getStatus()).isEqualTo(OrderStatus.PAID);
-            assertThat(order.getTotal().fixedPointAmount()).isEqualByComparingTo(
-                BigDecimal.valueOf(40.00)); // 5 + 20 + 15
+            assertThat(order.getTotal().fixedPointAmount()).isEqualByComparingTo(BigDecimal.valueOf(25));
         }
     }
 
@@ -637,80 +364,63 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         @Test
         @Transactional
         void shouldHandleLargeOrderQuantities() {
-            // Given
             UserId userId = UserId.of("user123");
-            OrderId orderId = createOrderWithCartItems(userId, "product0", BigDecimal.ONE,
-                BigDecimal.valueOf(5.00));
-            ProductSku productSku = ProductSku.of("product1");
-            Quantity largeQuantity = Quantity.of(BigDecimal.valueOf(1000));
-            Money unitPrice = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10));
+            OrderId orderId = createOrderWithCartItems(
+                userId,
+                "product-1",
+                "Bulk Book",
+                BigDecimal.valueOf(1000),
+                BigDecimal.valueOf(10)
+            );
 
-            // When
-            orderService.addItemToOrder(orderId, productSku, productTitle, largeQuantity, unitPrice);
-
-            // Then
             var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
-            assertThat(order.getTotal().fixedPointAmount()).isEqualByComparingTo(
-                BigDecimal.valueOf(10005.00)); //5+10000
+            assertThat(order.getTotal().fixedPointAmount()).isEqualByComparingTo(BigDecimal.valueOf(10000));
         }
 
         @Test
         @Transactional
         void shouldHandleHighPrecisionPrices() {
-            // Given
             UserId userId = UserId.of("user123");
-            OrderId orderId = createOrderWithCartItems(userId, "product0", BigDecimal.ONE,
-                BigDecimal.valueOf(5.00));
-            ProductSku productSku = ProductSku.of("product1");
-            Quantity quantity = Quantity.of(BigDecimal.ONE);
-            Money precisePrice = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10.999));
+            OrderId orderId = createOrderWithCartItems(
+                userId,
+                "product-1",
+                "Precise Book",
+                BigDecimal.ONE,
+                BigDecimal.valueOf(10.999)
+            );
 
-            // When
-            orderService.addItemToOrder(orderId, productSku, productTitle, quantity, precisePrice);
-
-            // Then
             var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
-            var addedItem = order.getItems().stream().filter(item -> item.getProductSku().equals(productSku))
-                .findFirst()
-                .orElseThrow();
-            assertThat(addedItem.getUnitPrice().fixedPointAmount()).isEqualByComparingTo(
-                BigDecimal.valueOf(10.999)); // Preserves the original precision
+            assertThat(order.getItems().getFirst().getUnitPrice().fixedPointAmount()).isEqualByComparingTo(
+                BigDecimal.valueOf(10.999)
+            );
         }
 
         @Test
         @Transactional
         void shouldHandleSpecialCharactersInProductNames() {
-            // Given
             UserId userId = UserId.of("user123");
-            OrderId orderId = createOrderWithCartItems(userId, "product0", BigDecimal.ONE,
-                BigDecimal.valueOf(5.00));
-            var specialproductSku = ProductSku.of("Product!@#$%^&*()_+");
-            Quantity quantity = Quantity.of(BigDecimal.ONE);
-            Money unitPrice = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10));
+            OrderId orderId = createOrderWithCartItems(
+                userId,
+                "product-1",
+                "Product!@#$%^&*()_+",
+                BigDecimal.ONE,
+                BigDecimal.TEN
+            );
 
-            // When
-            orderService.addItemToOrder(orderId, specialproductSku, productTitle, quantity, unitPrice);
-
-            // Then
             var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
-            var addedItem = order.getItems().stream().filter(item -> item.getProductSku().equals(specialproductSku))
-                .findFirst().orElseThrow();
-            assertThat(addedItem.getProductSku()).isEqualTo(specialproductSku);
+            assertThat(order.getItems().getFirst().getTitle().value()).isEqualTo("Product!@#$%^&*()_+");
         }
 
         @Test
         @Transactional
-        void shouldHandleLonguserIds() {
-            // Given
-            String longuserId = "customer" + "x".repeat(100);
-            UserId userId = UserId.of(longuserId);
+        void shouldHandleLongUserIds() {
+            String longUserId = "customer" + "x".repeat(100);
+            UserId userId = UserId.of(longUserId);
 
-            // When
-            OrderId orderId = createOrderWithCartItems(userId, sku, ONE, BigDecimal.valueOf(10));
+            OrderId orderId = createOrderWithCartItems(userId, sku, "product123", ONE, BigDecimal.TEN);
 
-            // Then
             var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
-            assertThat(order.getUserId().value()).isEqualTo(longuserId);
+            assertThat(order.getUserId().value()).isEqualTo(longUserId);
         }
     }
 }

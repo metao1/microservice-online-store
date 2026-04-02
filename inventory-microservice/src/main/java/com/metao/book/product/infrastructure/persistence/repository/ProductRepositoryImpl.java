@@ -12,6 +12,7 @@ import com.metao.book.shared.domain.product.ProductSku;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -84,7 +85,10 @@ public class ProductRepositoryImpl implements ProductRepository {
     @Override
     public List<ProductAggregate> findByCategories(List<CategoryName> categoryNames, int offset, int limit) {
         Pageable pageable = new OffsetBasedPageRequest(offset, limit);
-        var names = categoryNames.stream().map(CategoryName::value).toList();
+        var names = categoryNames.stream()
+            .map(CategoryName::value)
+            .map(name -> name.toLowerCase(Locale.ROOT))
+            .toList();
         return jpaProductRepository.findByCategories(names, pageable)
             .stream()
             .map(productEntityMapper::toDomain)

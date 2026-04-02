@@ -30,91 +30,64 @@ public class OrderManagementService {
 
     @Transactional
     public OrderId createOrder(UserId userId) {
-        // Get items from shopping cart
         var cart = shoppingCartService.getCartForUser(userId.value());
         if (cart.shoppingCartItems().isEmpty()) {
             throw new ShoppingCartIsEmptyException();
         }
 
-        var cartItems = cart.shoppingCartItems()
-            .stream()
-            .map(item -> {
-                // Convert ShoppingCartItem back to ShoppingCart for processing
-                // This is a bit awkward, but we need the full cart data
-                return new ShoppingCart(userId.value(), item.sku(), item.productTitle(),
-                    item.price(), item.price(), item.quantity(), item.currency());
-            })
-            .toList();
-
-        if (cartItems.isEmpty()) {
-            throw new ShoppingCartIsEmptyException();
-        }
-
-        // Create order
         var order = new OrderAggregate(OrderId.generate(), userId);
+        cart.shoppingCartItems().forEach(item -> {
+            var cartItem = new ShoppingCart(
+                userId.value(),
+                item.sku(),
+                item.productTitle(),
+                item.price(),
+                item.price(),
+                item.quantity(),
+                item.currency()
+            );
 
-        // Add items from cart to order
-        for (ShoppingCart cartItem : cartItems) {
-            // Adds priced and quantified items to order
             order.addItem(
                 ProductSku.of(cartItem.getSku()),
-                new ProductTitle(cartItem.getProductTitle()),
+                ProductTitle.of(cartItem.getProductTitle()),
                 Quantity.of(cartItem.getQuantity()),
-                Money.of(cartItem.getCurrency(), cartItem.getSellPrice()));
-        }
+                Money.of(cartItem.getCurrency(), cartItem.getSellPrice())
+            );
+        });
 
-        // Save order
+        order.raiseOrderCreatedEvents();
         orderRepository.save(order);
-
-        // Clear shopping cart
-        shoppingCartService.clearCart(userId.value());
-        // Publish events
-        // This will send OrderCreatedEvent
         publishEvents(order);
         return order.getId();
-    }
-
-    @Transactional
-    public void addItemToOrder(
-        OrderId orderId,
-        ProductSku sku,
-        ProductTitle productTitle,
-        Quantity quantity,
-        Money unitPrice
-    ) {
-        OrderAggregate order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
-        order.addItem(sku, productTitle, quantity, unitPrice);
-        orderRepository.save(order);
-        publishEvents(order);
     }
 
     @Transactional
     public void updateItemQuantity(OrderId orderId) {
         OrderAggregate order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
         order.updateItemQuantity();
-        OrderAggregate savedOrder = orderRepository.save(order);
-        publishEvents(savedOrder);
+        orderRepository.save(order);
+        publishEvents(order);
     }
 
     @Transactional
     public void removeItem(OrderId orderId, ProductSku sku) {
         OrderAggregate order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
         order.removeItem(sku);
-        OrderAggregate savedOrder = orderRepository.save(order);
-        publishEvents(savedOrder);
+        orderRepository.save(order);
+        publishEvents(order);
     }
 
     @Transactional
     public void updateOrderStatus(OrderId orderId, String status) {
         OrderAggregate order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
         order.updateStatus(OrderStatus.valueOf(status));
-        OrderAggregate savedOrder = orderRepository.save(order);
-        publishEvents(savedOrder);
+        orderRepository.save(order);
+        publishEvents(order);
     }
 
     @Transactional(readOnly = true)
     public List<OrderAggregate> getCustomerOrders(UserId userId) {
-        return orderRepository.findByuserId(userId);
+        return orderRepository.findByUserId(userId);
     }
 
     @Transactional(readOnly = true)

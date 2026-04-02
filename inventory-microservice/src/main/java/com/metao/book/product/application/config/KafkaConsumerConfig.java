@@ -19,6 +19,7 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.util.backoff.FixedBackOff;
@@ -63,7 +64,9 @@ public class KafkaConsumerConfig {
         ConsumerFactory<String, ProductCreatedEvent> productCreatedEventConsumerFactory,
         DefaultErrorHandler productErrorHandler
     ) {
-        return createListenerContainerFactory(productCreatedEventConsumerFactory, productErrorHandler);
+        var factory = createListenerContainerFactory(productCreatedEventConsumerFactory, productErrorHandler);
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
+        return factory;
     }
 
     @Bean
@@ -71,7 +74,9 @@ public class KafkaConsumerConfig {
         ConsumerFactory<String, ProductUpdatedEvent> productUpdatedEventConsumerFactory,
         DefaultErrorHandler productErrorHandler
     ) {
-        return createListenerContainerFactory(productUpdatedEventConsumerFactory, productErrorHandler);
+        var factory = createListenerContainerFactory(productUpdatedEventConsumerFactory, productErrorHandler);
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
+        return factory;
     }
 
     private <T> ConcurrentKafkaListenerContainerFactory<String, T> createListenerContainerFactory(

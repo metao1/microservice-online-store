@@ -15,15 +15,23 @@ public class OrderCreatedEventTranslator implements ProtobufDomainTranslator {
     @Override
     public Message translate(DomainEvent event) {
         DomainOrderCreatedEvent domainEvent = (DomainOrderCreatedEvent) event;
-        return OrderCreatedEvent.newBuilder()
+        OrderCreatedEvent.Builder builder = OrderCreatedEvent.newBuilder()
             .setId(domainEvent.getOrderId().value())
             .setUserId(domainEvent.getUserId().value())
-            .setStatus(OrderCreatedEvent.Status.NEW)
+            .setStatus(OrderCreatedEvent.Status.CREATED)
             .setCreateTime(Timestamp.newBuilder()
-                    .setSeconds(domainEvent.getOccurredOn().atZone(ZoneOffset.UTC).toEpochSecond())
+                .setSeconds(domainEvent.getOccurredOn().atZone(ZoneOffset.UTC).toEpochSecond())
                 .setNanos(domainEvent.getOccurredOn().getNano())
-                .build())
-            .build();
+                .build());
+        domainEvent.getItems().forEach(item -> builder.addItems(OrderCreatedEvent.OrderItem.newBuilder()
+            .setSku(item.getProductSku().value())
+            .setProductTitle(item.getTitle().value())
+            .setQuantity(item.getQuantity().value().doubleValue())
+            .setPrice(item.getUnitPrice().doubleAmount().doubleValue())
+            .setCurrency(item.getUnitPrice().currency().getCurrencyCode())
+            .build()));
+
+        return builder.build();
     }
 
     @Override

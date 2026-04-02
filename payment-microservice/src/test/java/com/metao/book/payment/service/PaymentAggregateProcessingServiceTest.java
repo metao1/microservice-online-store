@@ -1,14 +1,16 @@
 package com.metao.book.payment.service;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 
 import com.metao.book.payment.application.dto.PaymentDTO;
 import com.metao.book.payment.application.service.PaymentApplicationService;
 import com.metao.book.shared.OrderCreatedEvent;
-import com.metao.book.shared.OrderPaymentEvent;
+import com.metao.book.shared.Status;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Currency;
@@ -20,6 +22,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+@Deprecated
 @ExtendWith(MockitoExtension.class)
 class PaymentAggregateProcessingServiceTest {
 
@@ -35,13 +38,23 @@ class PaymentAggregateProcessingServiceTest {
 
     private OrderCreatedEvent createSampleOrderCreatedEvent() {
         return OrderCreatedEvent.newBuilder()
-            .setId("orderItem123")
-            .setSku("prod789")
+            .setId("order-123")
             .setUserId("cust456")
-            .setPrice(100.00)
-            .setQuantity(1.0)
-            .setCurrency("USD")
-            .setStatus(OrderCreatedEvent.Status.NEW)
+            .addItems(OrderCreatedEvent.OrderItem.newBuilder()
+                .setSku("prod789")
+                .setProductTitle("Sample Product")
+                .setPrice(10.0)
+                .setQuantity(2.0)
+                .setCurrency("USD")
+                .build())
+            .addItems(OrderCreatedEvent.OrderItem.newBuilder()
+                .setSku("prod790")
+                .setProductTitle("Sample Product 2")
+                .setPrice(5.0)
+                .setQuantity(1.0)
+                .setCurrency("USD")
+                .build())
+            .setStatus(OrderCreatedEvent.Status.CREATED)
             .build();
     }
 
@@ -52,17 +65,18 @@ class PaymentAggregateProcessingServiceTest {
     })
     void processPayment_respectsServiceOutcome(
         boolean success,
-        OrderPaymentEvent.Status expectedStatus,
+        Status expectedStatus,
         String failureReason,
         String paymentId
     ) {
         OrderCreatedEvent orderEvent = createSampleOrderCreatedEvent();
+        BigDecimal expectedTotal = BigDecimal.valueOf(25.0);
 
         PaymentDTO paymentDto = PaymentDTO.builder()
             .paymentId(paymentId)
             .orderId(orderEvent.getId())
-            .amount(BigDecimal.valueOf(orderEvent.getPrice()))
-            .currency(Currency.getInstance(orderEvent.getCurrency()))
+            .amount(expectedTotal)
+            .currency(Currency.getInstance("USD"))
             .status(expectedStatus.name())
             .failureReason(failureReason)
             .isSuccessful(success)
@@ -71,28 +85,28 @@ class PaymentAggregateProcessingServiceTest {
             .build();
 
         when(paymentApplicationService.processOrderCreatedEvent(
-            orderEvent.getId(),
-            BigDecimal.valueOf(orderEvent.getPrice()),
-            orderEvent.getCurrency()
+            eq(orderEvent.getId()),
+            argThat(amount -> amount != null && amount.compareTo(expectedTotal) == 0),
+            eq("USD")
         )).thenReturn(paymentDto);
 
-        OrderPaymentEvent paymentEvent = paymentProcessingService.processPayment(orderEvent);
+        PaymentDTO paymentEvent = paymentProcessingService.processPayment(orderEvent);
 
         assertThat(paymentEvent).isNotNull();
-        assertThat(paymentEvent.getOrderId()).isEqualTo(orderEvent.getId());
-        assertThat(paymentEvent.getPaymentId()).isEqualTo(paymentId);
-        assertThat(paymentEvent.getStatus()).isEqualTo(expectedStatus);
-        assertThat(paymentEvent.getCreateTime()).isNotNull();
+        assertThat(paymentEvent.orderId()).isEqualTo(orderEvent.getId());
+        assertThat(paymentEvent.paymentId()).isEqualTo(paymentId);
+        assertThat(paymentEvent.status()).isEqualTo(expectedStatus.name());
+        assertThat(paymentEvent.createdAt()).isNotNull();
         if (success) {
-            assertThat(paymentEvent.getErrorMessage()).isEmpty();
+            assertThat(paymentEvent.failureReason()).isNull();
         } else {
-            assertThat(paymentEvent.getErrorMessage()).contains("Insufficient funds");
+            assertThat(paymentEvent.failureReason()).contains("Insufficient funds");
         }
 
         verify(paymentApplicationService).processOrderCreatedEvent(
-            orderEvent.getId(),
-            BigDecimal.valueOf(orderEvent.getPrice()),
-            orderEvent.getCurrency()
+            eq(orderEvent.getId()),
+            argThat(amount -> amount != null && amount.compareTo(expectedTotal) == 0),
+            eq("USD")
         );
     }
 
@@ -106,13 +120,9 @@ class PaymentAggregateProcessingServiceTest {
         )).thenThrow(new RuntimeException("Payment service error"));
 
         // When
-        OrderPaymentEvent paymentEvent = paymentProcessingService.processPayment(orderEvent);
+        PaymentDTO paymentDTO = paymentProcessingService.processPayment(orderEvent);
 
         // Then
-        assertThat(paymentEvent).isNotNull();
-        assertThat(paymentEvent.getOrderId()).isEqualTo(orderEvent.getId());
-        assertThat(paymentEvent.getPaymentId()).startsWith("orderItem123");
-        assertThat(paymentEvent.getStatus()).isEqualTo(OrderPaymentEvent.Status.FAILED);
-        assertThat(paymentEvent.getErrorMessage()).contains("Payment processing failed");
+        assertThat(paymentDTO).isNull();
     }
 }

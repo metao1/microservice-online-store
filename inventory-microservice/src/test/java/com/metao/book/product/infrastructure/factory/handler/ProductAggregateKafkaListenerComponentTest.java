@@ -1,13 +1,12 @@
 package com.metao.book.product.infrastructure.factory.handler;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-import com.metao.book.product.application.service.ProductDomainService;
-import com.metao.book.product.infrastructure.persistence.repository.ProcessedInventoryEventRepository;
+import com.metao.book.product.ProductCreatedEvent;
+import com.metao.book.product.application.usecase.HandleProductCreatedEventCommand;
+import com.metao.book.product.application.usecase.HandleProductCreatedEventUseCase;
+import com.metao.book.product.application.usecase.HandleProductUpdatedEventCommand;
+import com.metao.book.product.application.usecase.HandleProductUpdatedEventUseCase;
 import com.metao.book.shared.ProductUpdatedEvent;
 import java.math.BigDecimal;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -18,27 +17,51 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.kafka.support.Acknowledgment;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ProductKafkaListenerComponent")
 class ProductAggregateKafkaListenerComponentTest {
 
     @Mock
-    private ProductDomainService productService;
+    private HandleProductCreatedEventUseCase handleProductCreatedEventUseCase;
 
     @Mock
-    private ProcessedInventoryEventRepository processedInventoryEventRepository;
+    private HandleProductUpdatedEventUseCase handleProductUpdatedEventUseCase;
+
+    @Mock
+    private Acknowledgment acknowledgment;
 
     @InjectMocks
     private ProductKafkaListenerComponent listener;
+
+    @Nested
+    @DisplayName("onProductCreatedEvent")
+    class OnProductCreatedEvent {
+
+        @Test
+        @DisplayName("should map created record to use case command")
+        void shouldMapCreatedRecordToUseCaseCommand() {
+            ProductCreatedEvent event = ProductCreatedEvent.newBuilder()
+                .setSku("SKU-1")
+                .build();
+            ConsumerRecord<String, ProductCreatedEvent> record = new ConsumerRecord<>(
+                "product-created", 0, 0L, "event-1", event);
+
+            listener.onProductCreatedEvent(record, acknowledgment);
+
+            verify(handleProductCreatedEventUseCase).handle(new HandleProductCreatedEventCommand("event-1", "SKU-1"));
+            verify(acknowledgment).acknowledge();
+        }
+    }
 
     @Nested
     @DisplayName("onProductUpdateEvent")
     class OnProductAggregateUpdateEvent {
 
         @Test
-        @DisplayName("should reduce inventory for inventory-reduction marker event")
-        void shouldReduceInventoryForInventoryReductionMarkerEvent() {
+        @DisplayName("should map updated record to use case command")
+        void shouldMapUpdatedRecordToUseCaseCommand() {
             ProductUpdatedEvent event = ProductUpdatedEvent.newBuilder()
                 .setSku("SKU-1")
                 .setDescription("INVENTORY_REDUCTION")
@@ -47,46 +70,15 @@ class ProductAggregateKafkaListenerComponentTest {
             ConsumerRecord<String, ProductUpdatedEvent> record = new ConsumerRecord<>(
                 "product-updated", 0, 0L, "order-1:SKU-1", event);
 
-            when(processedInventoryEventRepository.markProcessed("order-1:SKU-1")).thenReturn(true);
+            listener.onProductUpdateEvent(record, acknowledgment);
 
-            listener.onProductUpdateEvent(record);
-
-            verify(productService).reduceProductVolumeAtomically(eq("SKU-1"), eq(BigDecimal.valueOf(3.0)));
-        }
-
-        @Test
-        @DisplayName("should skip duplicate inventory-reduction event")
-        void shouldSkipDuplicateInventoryReductionEvent() {
-            ProductUpdatedEvent event = ProductUpdatedEvent.newBuilder()
-                .setSku("SKU-1")
-                .setDescription("INVENTORY_REDUCTION")
-                .setVolume(3.0)
-                .build();
-            ConsumerRecord<String, ProductUpdatedEvent> record = new ConsumerRecord<>(
-                "product-updated", 0, 0L, "order-1:SKU-1", event);
-
-            when(processedInventoryEventRepository.markProcessed("order-1:SKU-1")).thenReturn(false);
-
-            listener.onProductUpdateEvent(record);
-
-            verify(productService, never()).reduceProductVolumeAtomically(any(), any());
-        }
-
-        @Test
-        @DisplayName("should ignore non-inventory product-updated events")
-        void shouldIgnoreNonInventoryProductUpdatedEvents() {
-            ProductUpdatedEvent event = ProductUpdatedEvent.newBuilder()
-                .setSku("SKU-1")
-                .setDescription("NORMAL_PRODUCT_UPDATE")
-                .setVolume(3.0)
-                .build();
-            ConsumerRecord<String, ProductUpdatedEvent> record = new ConsumerRecord<>(
-                "product-updated", 0, 0L, "any-key", event);
-
-            listener.onProductUpdateEvent(record);
-
-            verify(processedInventoryEventRepository, never()).markProcessed(any());
-            verify(productService, never()).reduceProductVolumeAtomically(any(), any());
+            verify(handleProductUpdatedEventUseCase).handle(new HandleProductUpdatedEventCommand(
+                "order-1:SKU-1",
+                "SKU-1",
+                "INVENTORY_REDUCTION",
+                BigDecimal.valueOf(3.0)
+            ));
+            verify(acknowledgment).acknowledge();
         }
     }
 }

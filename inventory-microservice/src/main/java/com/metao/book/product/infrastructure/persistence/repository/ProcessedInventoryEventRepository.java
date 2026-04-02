@@ -1,12 +1,13 @@
 package com.metao.book.product.infrastructure.persistence.repository;
 
+import com.metao.book.product.application.port.ProcessedInventoryEventPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
-public class ProcessedInventoryEventRepository {
+public class ProcessedInventoryEventRepository implements ProcessedInventoryEventPort {
 
     private static final String INSERT_IF_ABSENT_SQL = """
         INSERT INTO processed_inventory_event(event_id, processed_at)
@@ -16,6 +17,7 @@ public class ProcessedInventoryEventRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
+    @Override
     public boolean markProcessed(String eventId) {
         return jdbcTemplate.update(INSERT_IF_ABSENT_SQL, eventId) > 0;
     }

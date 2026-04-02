@@ -11,6 +11,7 @@ import org.mockito.Mockito;
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -50,5 +51,6 @@ class KafkaErrorHandlerConfigTest {
         );
         var handler = ReflectionTestUtils.getField(factory, "commonErrorHandler");
         assertThat(handler).isInstanceOf(DefaultErrorHandler.class);
+        assertThat(factory.getContainerProperties().getAckMode()).isEqualTo(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
     }
 }

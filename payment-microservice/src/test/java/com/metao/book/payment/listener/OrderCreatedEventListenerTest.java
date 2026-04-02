@@ -1,79 +1,64 @@
 package com.metao.book.payment.listener;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-import com.google.protobuf.Message;
-import com.metao.book.payment.infrastructure.persistence.repository.ProcessedOrderCreatedEventRepository;
-import com.metao.book.payment.service.PaymentProcessingService;
+import com.metao.book.payment.application.usecase.HandleOrderCreatedEventCommand;
+import com.metao.book.payment.application.usecase.HandleOrderCreatedEventUseCase;
 import com.metao.book.shared.OrderCreatedEvent;
-import com.metao.book.shared.OrderPaymentEvent;
-import com.metao.kafka.KafkaEventHandler;
-import org.junit.jupiter.api.BeforeEach;
+import java.math.BigDecimal;
+import org.mockito.ArgumentCaptor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.Acknowledgment;
 
 @ExtendWith(MockitoExtension.class)
 class OrderCreatedEventListenerTest {
 
     @Mock
-    private PaymentProcessingService paymentProcessingService;
+    private HandleOrderCreatedEventUseCase handleOrderCreatedEventUseCase;
 
     @Mock
-    private KafkaEventHandler eventHandler;
-
-    @Mock
-    private KafkaTemplate<String, Message> kafkaTemplate;
-
-    @Mock
-    private ProcessedOrderCreatedEventRepository processedOrderCreatedEventRepository;
+    private Acknowledgment acknowledgment;
 
     @InjectMocks
     private OrderCreatedEventListener eventListener;
 
-    @BeforeEach
-    void setUp() {
-        eventListener = new OrderCreatedEventListener(paymentProcessingService, processedOrderCreatedEventRepository,
-            eventHandler, kafkaTemplate);
-    }
-
     @Test
-    void handleOrderCreatedEvent_processesPaymentAndSendsEvent() {
-        // Given
-        String topic = "order-payment-topic";
-        OrderCreatedEvent orderEvent = OrderCreatedEvent.newBuilder().setId("orderItem123").build();
-        OrderPaymentEvent paymentEvent = OrderPaymentEvent.newBuilder()
-            .setOrderId("orderItem123")
-            .setStatus(OrderPaymentEvent.Status.SUCCESSFUL).build();
+    void handleOrderCreatedEventDelegatesToUseCase() {
+        OrderCreatedEvent orderEvent = OrderCreatedEvent.newBuilder()
+            .setId("order-123")
+            .addItems(OrderCreatedEvent.OrderItem.newBuilder()
+                .setSku("SKU-1")
+                .setProductTitle("Book 1")
+                .setQuantity(2d)
+                .setPrice(10d)
+                .setCurrency("EUR")
+                .build())
+            .addItems(OrderCreatedEvent.OrderItem.newBuilder()
+                .setSku("SKU-2")
+                .setProductTitle("Book 2")
+                .setQuantity(1d)
+                .setPrice(5d)
+                .setCurrency("EUR")
+                .build())
+            .build();
 
-        // When
-        when(paymentProcessingService.processPayment(any(OrderCreatedEvent.class))).thenReturn(paymentEvent);
+        eventListener.handleOrderCreatedEvent(orderEvent, acknowledgment);
 
-        when(processedOrderCreatedEventRepository.markProcessed("orderItem123")).thenReturn(true);
-        when(eventHandler.getKafkaTopic(any(Class.class))).thenReturn(topic);
+        ArgumentCaptor<HandleOrderCreatedEventCommand> commandCaptor = ArgumentCaptor.forClass(
+            HandleOrderCreatedEventCommand.class);
+        verify(handleOrderCreatedEventUseCase).handle(commandCaptor.capture());
+        HandleOrderCreatedEventCommand command = commandCaptor.getValue();
 
-        eventListener.handleOrderCreatedEvent(orderEvent);
-
-        // Then
-        verify(paymentProcessingService).processPayment(orderEvent);
-        // Verify that eventHandler.handle is called with the correct key and payload
-        verify(kafkaTemplate).send(eq(topic), eq(paymentEvent.getOrderId()), eq(paymentEvent));
-    }
-
-    @Test
-    void handleOrderCreatedEvent_skipsDuplicateEvent() {
-        OrderCreatedEvent orderEvent = OrderCreatedEvent.newBuilder().setId("orderItem123").build();
-        when(processedOrderCreatedEventRepository.markProcessed("orderItem123")).thenReturn(false);
-
-        eventListener.handleOrderCreatedEvent(orderEvent);
-
-        verify(paymentProcessingService, org.mockito.Mockito.never()).processPayment(any(OrderCreatedEvent.class));
-        verify(kafkaTemplate, org.mockito.Mockito.never()).send(any(), any(), any());
+        org.junit.jupiter.api.Assertions.assertAll(
+            () -> org.junit.jupiter.api.Assertions.assertEquals("order-123", command.eventId()),
+            () -> org.junit.jupiter.api.Assertions.assertEquals("order-123", command.orderId()),
+            () -> org.junit.jupiter.api.Assertions.assertEquals("EUR", command.currency()),
+            () -> org.junit.jupiter.api.Assertions.assertEquals(0, command.amount().compareTo(BigDecimal.valueOf(25.0d)))
+        );
+        verify(acknowledgment).acknowledge();
     }
 }
