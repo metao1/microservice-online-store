@@ -31,6 +31,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.dao.DataIntegrityViolationException;
 
 /**
  * Unit tests for PaymentApplicationService
@@ -55,6 +56,7 @@ class PaymentAggregateApplicationServiceTest {
         paymentApplicationService = new PaymentApplicationService(
             paymentRepository, paymentDomainService, eventPublisher
         );
+        when(paymentRepository.findByOrderId(any(OrderId.class))).thenReturn(Optional.empty());
     }
 
     @Test
@@ -86,6 +88,58 @@ class PaymentAggregateApplicationServiceTest {
     }
 
     @Test
+    void createPayment_whenPaymentAlreadyExists_shouldReturnExistingPayment() {
+        // Given
+        CreatePaymentCommand command = new CreatePaymentCommand(
+            "order-123",
+            BigDecimal.valueOf(100.00),
+            "USD",
+            PaymentMethod.Type.CREDIT_CARD,
+            "****-1234"
+        );
+
+        PaymentAggregate existingPayment = createPaymentAggregate(PaymentStatus.PENDING, null);
+        when(paymentRepository.findByOrderId(any(OrderId.class))).thenReturn(Optional.of(existingPayment));
+
+        // When
+        PaymentDTO result = paymentApplicationService.createPayment(command);
+
+        // Then
+        assertThat(result).isEqualTo(PaymentApplicationMapper.toDTO(existingPayment));
+        verify(paymentDomainService, times(0)).createPayment(any(), any(), any());
+        verify(paymentRepository, times(0)).save(any());
+    }
+
+    @Test
+    void createPayment_whenConcurrentDuplicateInsertOccurs_shouldReturnExistingPayment() {
+        // Given
+        CreatePaymentCommand command = new CreatePaymentCommand(
+            "order-123",
+            BigDecimal.valueOf(100.00),
+            "USD",
+            PaymentMethod.Type.CREDIT_CARD,
+            "****-1234"
+        );
+
+        PaymentAggregate paymentToCreate = createPaymentAggregate(PaymentStatus.PENDING, null);
+        PaymentAggregate existingPayment = createPaymentAggregate(PaymentStatus.PENDING, null);
+
+        when(paymentDomainService.isPaymentMethodValidForAmount(any(), any())).thenReturn(true);
+        when(paymentDomainService.createPayment(any(), any(), any())).thenReturn(paymentToCreate);
+        when(paymentRepository.save(paymentToCreate))
+            .thenThrow(new DataIntegrityViolationException("duplicate key value violates unique constraint uk_payment_order_id"));
+        when(paymentRepository.findByOrderId(any(OrderId.class)))
+            .thenReturn(Optional.empty())
+            .thenReturn(Optional.of(existingPayment));
+
+        // When
+        PaymentDTO result = paymentApplicationService.createPayment(command);
+
+        // Then
+        assertThat(result).isEqualTo(PaymentApplicationMapper.toDTO(existingPayment));
+    }
+
+    @Test
     void createPayment_withInvalidPaymentMethod_shouldThrowException() {
         // Given
         CreatePaymentCommand command = new CreatePaymentCommand(
@@ -108,10 +162,11 @@ class PaymentAggregateApplicationServiceTest {
     void processPayment_withValidPaymentId_shouldProcessAndReturnPayment() {
         // Given
         String paymentId = "payment-123";
-        PaymentAggregate payment = createPaymentAggregate(PaymentStatus.SUCCESSFUL, null);
+        PaymentAggregate payment = createPaymentAggregate(PaymentStatus.PENDING, null);
+        payment.processPayment();
         PaymentDTO expectedDTO = PaymentApplicationMapper.toDTO(payment);
 
-        when(paymentRepository.findById(any(PaymentId.class))).thenReturn(Optional.of(payment));
+        when(paymentDomainService.processPayment(any(PaymentId.class))).thenReturn(payment);
 
         // When
         PaymentDTO result = paymentApplicationService.processPayment(paymentId);
@@ -119,8 +174,46 @@ class PaymentAggregateApplicationServiceTest {
         // Then
         assertThat(result).isEqualTo(expectedDTO);
         verify(paymentDomainService).processPayment(any(PaymentId.class));
-        verify(paymentRepository).findById(any(PaymentId.class));
+        verify(eventPublisher, times(1)).publish(any());
         assertThat(result.isSuccessful()).isTrue();
+    }
+
+    @Test
+    void processPayment_whenAlreadySuccessful_shouldReturnExistingPaymentWithoutProcessing() {
+        // Given
+        String paymentId = "payment-123";
+        PaymentAggregate existingPayment = createPaymentAggregate(PaymentStatus.SUCCESSFUL, null);
+        PaymentDTO expectedDTO = PaymentApplicationMapper.toDTO(existingPayment);
+
+        when(paymentRepository.findById(any(PaymentId.class))).thenReturn(Optional.of(existingPayment));
+
+        // When
+        PaymentDTO result = paymentApplicationService.processPayment(paymentId);
+
+        // Then
+        assertThat(result).isEqualTo(expectedDTO);
+        verify(paymentDomainService, times(0)).processPayment(any(PaymentId.class));
+    }
+
+    @Test
+    void processPayment_whenConcurrentlyProcessed_shouldReturnLatestSuccessfulState() {
+        // Given
+        String paymentId = "payment-123";
+        PaymentAggregate pendingPayment = createPaymentAggregate(PaymentStatus.PENDING, null);
+        PaymentAggregate successfulPayment = createPaymentAggregate(PaymentStatus.SUCCESSFUL, null);
+        PaymentDTO expectedDTO = PaymentApplicationMapper.toDTO(successfulPayment);
+
+        when(paymentRepository.findById(any(PaymentId.class)))
+            .thenReturn(Optional.of(pendingPayment))
+            .thenReturn(Optional.of(successfulPayment));
+        when(paymentDomainService.processPayment(any(PaymentId.class)))
+            .thenThrow(new IllegalStateException("Payment must be in PENDING status to be processed"));
+
+        // When
+        PaymentDTO result = paymentApplicationService.processPayment(paymentId);
+
+        // Then
+        assertThat(result).isEqualTo(expectedDTO);
     }
 
     @Test
@@ -218,7 +311,7 @@ class PaymentAggregateApplicationServiceTest {
         when(paymentDomainService.isPaymentMethodValidForAmount(any(), any())).thenReturn(true);
         when(paymentDomainService.createPayment(any(), any(), any())).thenReturn(createdPayment);
         when(paymentRepository.save(createdPayment)).thenReturn(createdPayment);
-        when(paymentRepository.findById(any())).thenReturn(Optional.of(processedPayment));
+        when(paymentDomainService.processPayment(any(PaymentId.class))).thenReturn(processedPayment);
 
         // When
         PaymentDTO result = paymentApplicationService.processOrderCreatedEvent(orderId, amount, currency);
@@ -227,6 +320,24 @@ class PaymentAggregateApplicationServiceTest {
         assertThat(result).isEqualTo(paymentDTO);
         verify(paymentDomainService).createPayment(any(), any(), any());
         verify(paymentDomainService).processPayment(any());
+    }
+
+    @Test
+    void processOrderCreatedEvent_whenPaymentAlreadySuccessful_shouldSkipProcessing() {
+        // Given
+        String orderId = "order-123";
+        BigDecimal amount = BigDecimal.valueOf(100.00);
+        String currency = "USD";
+
+        PaymentAggregate successfulPayment = createPaymentAggregate(PaymentStatus.SUCCESSFUL, null);
+        when(paymentRepository.findByOrderId(any(OrderId.class))).thenReturn(Optional.of(successfulPayment));
+
+        // When
+        PaymentDTO result = paymentApplicationService.processOrderCreatedEvent(orderId, amount, currency);
+
+        // Then
+        assertThat(result).isEqualTo(PaymentApplicationMapper.toDTO(successfulPayment));
+        verify(paymentDomainService, times(0)).processPayment(any());
     }
 
     private PaymentAggregate createPaymentAggregate(PaymentStatus status, String failureReason) {

@@ -61,7 +61,7 @@ public class PaymentDomainService {
     /**
      * Process payment with business rules
      */
-    public void processPayment(@NonNull PaymentId paymentId) {
+    public PaymentAggregate processPayment(@NonNull PaymentId paymentId) {
         PaymentAggregate payment = paymentRepository.findByIdForUpdate(paymentId)
             .orElseThrow(() -> new PaymentNotFoundException(paymentId));
 
@@ -72,6 +72,7 @@ public class PaymentDomainService {
 
         payment.processPayment();
         paymentRepository.save(payment);
+        return payment;
     }
 
     /**

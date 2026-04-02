@@ -45,7 +45,7 @@ public class ProductController {
 
     @GetMapping(value = "/{sku}")
     public ProductDTO getProduct(@PathVariable @Valid @NotBlank String sku) {
-        log.info("Getting product with SKU: {}", sku);
+        log.debug("Getting product with SKU: {}", sku);
         ProductAggregate product = productDomainService.getProductBySku(sku);
         return productMapper.toDTO(product);
     }
@@ -115,7 +115,7 @@ public class ProductController {
         @RequestParam(value = "offset", defaultValue = "0") int offset,
         @RequestParam(value = "limit", defaultValue = "10") int limit
     ) {
-        log.info("Getting products by category: {}", categoryName);
+        log.debug("Getting products by category: {}", categoryName);
         var productsByCategory = productDomainService.getProductsByCategory(categoryName, offset, limit);
         return productsByCategory.stream()
             .map(productMapper::toDTO)

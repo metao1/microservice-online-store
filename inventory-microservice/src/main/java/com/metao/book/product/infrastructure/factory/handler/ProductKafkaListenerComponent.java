@@ -16,6 +16,8 @@ import org.springframework.kafka.annotation.DltHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
 import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -48,22 +50,41 @@ public class ProductKafkaListenerComponent {
         containerFactory = "productUpdatedEventKafkaListenerContainerFactory")
     @Timed(value = "inventory.listener.product-updated", extraTags = {"listener", "product-updated"})
     public void onProductUpdateEvent(ConsumerRecord<String, ProductUpdatedEvent> event, Acknowledgment acknowledgment) {
-        handleProductUpdatedEventUseCase.handle(new HandleProductUpdatedEventCommand(
+        try {
+            handleProductUpdatedEventUseCase.handle(new HandleProductUpdatedEventCommand(
+                event.key(),
+                event.value().getSku(),
+                event.value().getDescription(),
+                BigDecimal.valueOf(event.value().getVolume())
+            ));
+            acknowledgment.acknowledge();
+        } catch (Exception ex) {
+            log.error(
+                "Failed processing product-updated event: topic={}, key={}, sku={}, volume={}, description={}",
+                event.topic(),
+                event.key(),
+                event.value().getSku(),
+                event.value().getVolume(),
+                event.value().getDescription(),
+                ex
+            );
+            throw ex;
+        }
+    }
+
+    @DltHandler
+    public void onProductEventDlt(
+        ConsumerRecord<String, ?> event,
+        @Header(name = KafkaHeaders.DLT_EXCEPTION_FQCN, required = false) String exceptionClass,
+        @Header(name = KafkaHeaders.DLT_EXCEPTION_MESSAGE, required = false) String exceptionMessage
+    ) {
+        log.error(
+            "Product event sent to DLT: topic={}, key={}, value={}, causeClass={}, causeMessage={}",
+            event.topic(),
             event.key(),
-            event.value().getSku(),
-            event.value().getDescription(),
-            BigDecimal.valueOf(event.value().getVolume())
-        ));
-        acknowledgment.acknowledge();
-    }
-
-    @DltHandler
-    public void onProductCreatedDlt(ConsumerRecord<String, ProductCreatedEvent> event) {
-        log.error("Product created event sent to DLT: key={}, value={}", event.key(), event.value());
-    }
-
-    @DltHandler
-    public void onProductUpdatedDlt(ConsumerRecord<String, ProductUpdatedEvent> event) {
-        log.error("Product updated event sent to DLT: key={}, value={}", event.key(), event.value());
+            event.value(),
+            exceptionClass,
+            exceptionMessage
+        );
     }
 }

@@ -145,9 +145,10 @@ class PaymentAggregateDomainServiceTest {
         when(paymentRepository.save(payment)).thenReturn(payment);
 
         // When
-        paymentDomainService.processPayment(paymentId);
+        PaymentAggregate result = paymentDomainService.processPayment(paymentId);
 
         // Then
+        assertThat(result).isSameAs(payment);
         verify(payment).processPayment();
         verify(paymentRepository).save(payment);
     }

@@ -15,7 +15,7 @@ public class DelegatingDomainEventTranslator {
         for (ProtobufDomainTranslator translator : translators) {
             if (translator.supports(event)) {
                 Message message = translator.translate(event);
-                return new TranslationResult(event.getEventType(), message);
+                return new TranslationResult(event.getEventId(), message);
             }
         }
         throw new IllegalArgumentException("No translator found for event: " + event.getClass().getName());

@@ -30,6 +30,17 @@ const coerceMoneyCurrency = (value: unknown, fallback: string): string => {
   return String(fallback || 'USD').toUpperCase();
 };
 
+const resolveOrderId = (value: unknown): string | undefined => {
+  if (value && typeof value === 'object') {
+    const payload = value as { id?: unknown; orderId?: unknown; value?: unknown; order_id?: unknown };
+    const candidate = payload.id ?? payload.orderId ?? payload.value ?? payload.order_id;
+    if (typeof candidate === 'string' && candidate.trim().length > 0) {
+      return candidate;
+    }
+  }
+  return undefined;
+};
+
 class RemoteApiClient extends BaseApiClient implements ApiClientContract {
   private productsClient: AxiosInstance;
   private cartClient: AxiosInstance;
@@ -261,6 +272,10 @@ class RemoteApiClient extends BaseApiClient implements ApiClientContract {
   async createOrder(userId: string): Promise<Order> {
     const response = await this.cartClient.post<any>(`/api/order`, { user_id: userId });
     const backendOrder = response.data;
+    const orderId = resolveOrderId(backendOrder);
+    if (!orderId) {
+      throw new Error('Order API returned no order id');
+    }
     let enrichedItems = [];
     if (backendOrder.items && Array.isArray(backendOrder.items)) {
       enrichedItems = await Promise.all(
@@ -308,7 +323,7 @@ class RemoteApiClient extends BaseApiClient implements ApiClientContract {
         : coerceMoneyAmount(backendOrder.total);
     const computedTotal = enrichedItems.reduce((sum, item) => sum + item.price * item.cartQuantity, 0);
     return {
-      id: backendOrder.id || backendOrder.orderId || `ORDER-${Date.now()}`,
+      id: orderId,
       userId: backendOrder.userId || backendOrder.userId || userId,
       items: enrichedItems,
       total: backendTotal ?? computedTotal,
@@ -365,8 +380,12 @@ class RemoteApiClient extends BaseApiClient implements ApiClientContract {
             ? undefined
             : coerceMoneyAmount(backendOrder.total);
         const computedTotal = enrichedItems.reduce((sum, item) => sum + item.price * item.cartQuantity, 0);
+        const orderId = resolveOrderId(backendOrder);
+        if (!orderId) {
+          throw new Error('Order payload is missing id');
+        }
         return {
-          id: backendOrder.id || backendOrder.orderId,
+          id: orderId,
           userId: backendOrder.userId || backendOrder.userId,
           items: enrichedItems,
           total: backendTotal ?? computedTotal,

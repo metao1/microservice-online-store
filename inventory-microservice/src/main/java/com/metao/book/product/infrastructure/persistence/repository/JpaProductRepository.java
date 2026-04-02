@@ -91,7 +91,7 @@ public interface JpaProductRepository extends JpaRepository<ProductEntity, Produ
             """,
         nativeQuery = true
     )
-    int decrementVolumeIfEnough(@Param("sku") ProductSku sku, @Param("quantity") BigDecimal quantity);
+    int decrementVolumeIfEnough(@Param("sku") String sku, @Param("quantity") BigDecimal quantity);
 
     boolean existsBySku(ProductSku sku);
 }

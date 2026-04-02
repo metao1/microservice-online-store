@@ -17,6 +17,7 @@ import com.metao.book.shared.domain.financial.Money;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
@@ -49,6 +50,18 @@ public class PaymentApplicationService {
         log.info("Creating payment for order: {}", command.orderId());
 
         OrderId orderId = OrderId.of(command.orderId());
+        Optional<PaymentAggregate> existingPayment = paymentRepository.findByOrderId(orderId);
+        if (existingPayment.isPresent()) {
+            PaymentAggregate existing = existingPayment.get();
+            log.info(
+                "Payment already exists for order {}. Returning existing payment {} with status {}",
+                orderId,
+                existing.getId(),
+                existing.getStatus()
+            );
+            return PaymentApplicationMapper.toDTO(existing);
+        }
+
         Money amount = Money.of(Currency.getInstance(command.currency()), command.amount());
         PaymentMethod paymentMethod = createPaymentMethod(command);
 
@@ -62,7 +75,17 @@ public class PaymentApplicationService {
             paymentRepository.save(payment);
         } catch (DataIntegrityViolationException e) {
             if (isDuplicateOrderPaymentViolation(e)) {
-                throw new DuplicatePaymentException("Payment already exists for order: " + orderId);
+                return paymentRepository.findByOrderId(orderId)
+                    .map(existing -> {
+                        log.info(
+                            "Detected duplicate insert race for order {}. Returning existing payment {} with status {}",
+                            orderId,
+                            existing.getId(),
+                            existing.getStatus()
+                        );
+                        return PaymentApplicationMapper.toDTO(existing);
+                    })
+                    .orElseThrow(() -> new DuplicatePaymentException("Payment already exists for order: " + orderId));
             }
             throw e;
         }
@@ -161,8 +184,18 @@ public class PaymentApplicationService {
 
         PaymentDTO payment = createPayment(command);
 
-        // Auto-process the payment
-        return processPayment(payment.paymentId());
+        // Auto-process only pending payments; duplicates may return an already processed payment.
+        if (PaymentStatus.PENDING.name().equalsIgnoreCase(payment.status())) {
+            return processPayment(payment.paymentId());
+        }
+
+        log.info(
+            "Skipping auto-processing for order {} because payment {} is already in status {}",
+            orderId,
+            payment.paymentId(),
+            payment.status()
+        );
+        return payment;
     }
 
     /**
@@ -173,10 +206,23 @@ public class PaymentApplicationService {
         long startedAtNanos = System.nanoTime();
 
         PaymentId paymentId = PaymentId.of(id);
-        paymentDomainService.processPayment(paymentId);
+        Optional<PaymentAggregate> currentState = paymentRepository.findById(paymentId);
+        if (currentState.isPresent() && currentState.get().getStatus() == PaymentStatus.SUCCESSFUL) {
+            log.info("Payment {} is already SUCCESSFUL; returning existing state without re-processing", id);
+            return PaymentApplicationMapper.toDTO(currentState.get());
+        }
 
-        PaymentAggregate payment = paymentRepository.findById(paymentId)
-            .orElseThrow(() -> new PaymentNotFoundException(paymentId));
+        PaymentAggregate payment;
+        try {
+            payment = paymentDomainService.processPayment(paymentId);
+        } catch (IllegalStateException ex) {
+            Optional<PaymentAggregate> latestState = paymentRepository.findById(paymentId);
+            if (latestState.isPresent() && latestState.get().getStatus() == PaymentStatus.SUCCESSFUL) {
+                log.info("Payment {} transitioned to SUCCESSFUL concurrently; returning existing state", id);
+                return PaymentApplicationMapper.toDTO(latestState.get());
+            }
+            throw ex;
+        }
 
         // Publish domain events to Kafka
         publishDomainEvents(payment);
@@ -203,16 +249,17 @@ public class PaymentApplicationService {
      * Publish domain events from payment aggregate to Kafka
      */
     private void publishDomainEvents(@NotNull PaymentAggregate payment) {
-        if (!payment.hasDomainEvents()) {
-            log.debug("has not domain events to publish: {}", payment);
+        var domainEvents = new ArrayList<>(payment.getDomainEvents());
+        if (domainEvents.isEmpty()) {
+            log.info("No domain events to publish for payment {}", payment.getId());
             return;
         }
 
-        payment.getDomainEvents().forEach(event -> {
+        domainEvents.forEach(event -> {
             try {
                 // Use KafkaEventHandler to publish domain events
                 eventPublisher.publish(event);
-                log.debug("Published domain event: {} for payment: {}", event.getEventType(), event);
+                log.info("Published domain event: {} for payment: {}", event.getEventType(), event);
             } catch (Exception e) {
                 log.error("Failed to publish domain event: {} for payment: {}", event.getEventType(), event, e);
                 // Don't rethrow - we don't want to break the main business flow
