@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ProductUpdatedEventTranslator implements ProtobufDomainTranslator {
+    private static final String INVENTORY_REDUCTION_MARKER = "INVENTORY_REDUCTION";
+
     /**
      * Translate a domain event to a protobuf message
      *
@@ -26,6 +28,7 @@ public class ProductUpdatedEventTranslator implements ProtobufDomainTranslator {
                 .build())
             .setSku(domainEvent.getSku().value())
             .setVolume(domainEvent.getVolume().value().doubleValue())
+            .setDescription(INVENTORY_REDUCTION_MARKER)
             .build();
     }
 

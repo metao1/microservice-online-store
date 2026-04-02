@@ -121,7 +121,7 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public boolean reduceVolumeAtomically(ProductSku sku, BigDecimal quantity) {
-        return jpaProductRepository.decrementVolumeIfEnough(sku, quantity) > 0;
+        return jpaProductRepository.decrementVolumeIfEnough(sku.value(), quantity) > 0;
     }
 
     private CategoryEntity resolveCategoryEntity(ProductCategory category) {

@@ -23,7 +23,7 @@ public class DomainEventToKafkaEventHandler implements DomainEventPublisher {
     public void publish(DomainEvent event) {
         try {
             var translationResult = domainEventTranslator.translate(event);
-            var kafkaTopic = kafkaEventHandler.getKafkaTopic(event.getClass());
+            var kafkaTopic = kafkaEventHandler.getKafkaTopic(translationResult.message().getClass());
             kafkaTemplate.send(kafkaTopic, translationResult.key(), translationResult.message());
             log.debug("Published OrderCreatedEvent for order: {}", event.getEventType());
         } catch (Exception e) {

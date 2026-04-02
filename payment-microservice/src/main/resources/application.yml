@@ -34,6 +34,9 @@ spring:
       ack-mode: manual_immediate
     properties:
       schema.registry.url: ${SCHEMA_REGISTRY_URL}
+      # Topic subject order-payment-value already exists as AVRO in registry.
+      # Use message-based subject to allow PROTOBUF without cross-type conflict.
+      value.subject.name.strategy: io.confluent.kafka.serializers.subject.RecordNameStrategy
       basic.auth.credentials.source: USER_INFO
       basic.auth.user.info: ${SCHEMA_REGISTRY_AUTH}
       security.protocol: ${SECURITY_PROTOCOL}

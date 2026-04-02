@@ -308,7 +308,7 @@ public class ProductDomainService {
     private void publishEvents(ProductAggregate product) {
         List<DomainEvent> events = product.getDomainEvents();
         events.forEach(eventPublisher::publish);
-        product.clearDomainEvents();
+        //product.clearDomainEvents();
     }
 
     private String normalizeIdempotencyKey(String idempotencyKey) {

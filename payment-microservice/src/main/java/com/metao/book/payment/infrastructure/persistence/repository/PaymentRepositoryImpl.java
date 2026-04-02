@@ -27,8 +27,9 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     @Override
     public PaymentAggregate save(PaymentAggregate payment) {
         PaymentEntity entity = paymentEntityMapper.toEntity(payment);
-        PaymentEntity savedEntity = jpaPaymentRepository.save(entity);
-        return paymentEntityMapper.toDomain(savedEntity);
+        jpaPaymentRepository.save(entity);
+        // Domain events are in-memory concerns on the aggregate instance; do not reconstruct here.
+        return payment;
     }
 
     @Override
