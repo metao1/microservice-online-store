@@ -16,6 +16,7 @@ import java.util.stream.IntStream;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
+import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.MessageListenerContainer;
+import org.springframework.kafka.test.utils.ContainerTestUtils;
 
 @Slf4j
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)
@@ -33,6 +37,16 @@ class KafkaFactoryIT extends KafkaContainer {
 
     @Autowired
     KafkaTemplate<String, OrderCreatedEvent> kafkaEventHandler;
+
+    @Autowired
+    KafkaListenerEndpointRegistry registry;
+
+    @BeforeEach
+    void waitForKafkaAssignment() {
+        for (MessageListenerContainer container : registry.getListenerContainers()) {
+            ContainerTestUtils.waitForAssignment(container, 1);
+        }
+    }
 
     @Test
     @SneakyThrows
