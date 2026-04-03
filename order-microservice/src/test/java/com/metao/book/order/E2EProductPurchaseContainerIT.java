@@ -40,6 +40,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -91,8 +92,7 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
         shoppingCartRepository.deleteAll();
         productUpdatedEvents.clear();
         RestAssured.port = orderMicroservicePort;
-        var container = kafkaListenerEndpointRegistry.getListenerContainer("order-payment-id");
-        if (container != null) {
+        for (MessageListenerContainer container : kafkaListenerEndpointRegistry.getListenerContainers()) {
             ContainerTestUtils.waitForAssignment(container, 1);
         }
     }
@@ -152,7 +152,9 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
             assertThat(shoppingCartRepository.findByUserId(userId)).isEmpty();
         });
 
-        // Event delivery is asynchronous; skip strict assertions to avoid flakiness
+        await().atMost(Duration.ofSeconds(20)).pollInterval(Duration.ofMillis(300)).untilAsserted(() ->
+            assertThat(countInventoryReductionEvents(sku1)).isEqualTo(1)
+        );
     }
 
     @Test
@@ -196,7 +198,7 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
         });
 
         await().atMost(Duration.ofSeconds(20)).pollInterval(Duration.ofMillis(300)).untilAsserted(() ->
-            assertThat(countInventoryReductionEvents(orderId, sku1)).isGreaterThanOrEqualTo(0)
+            assertThat(countInventoryReductionEvents(sku1)).isEqualTo(1)
         );
 
         OrderPaymentUpdatedEvent duplicatePaymentEvent = OrderPaymentUpdatedEvent.newBuilder()
@@ -213,7 +215,7 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
             .during(Duration.ofSeconds(3))
             .atMost(Duration.ofSeconds(8))
             .pollInterval(Duration.ofMillis(300))
-            .untilAsserted(() -> assertThat(countInventoryReductionEvents(orderId, sku1)).isGreaterThanOrEqualTo(0));
+            .untilAsserted(() -> assertThat(countInventoryReductionEvents(sku1)).isEqualTo(1));
     }
 
     @KafkaListener(
@@ -228,10 +230,9 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
         productUpdatedEvents.add(event);
     }
 
-    private long countInventoryReductionEvents(OrderId orderId, String sku) {
-        String expectedEventKey = orderId.value() + ":" + sku;
+    private long countInventoryReductionEvents(String sku) {
         return productUpdatedEvents.stream()
-            .filter(record -> expectedEventKey.equals(record.key()))
+            .filter(record -> sku.equals(record.value().getSku()))
             .filter(record -> INVENTORY_REDUCTION_MARKER.equals(record.value().getDescription()))
             .count();
     }

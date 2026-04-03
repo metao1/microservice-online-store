@@ -46,6 +46,13 @@ public class ProductAggregateManagementIT extends KafkaContainer {
 
     @BeforeEach
     void setUp() {
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            jdbcTemplate.update("DELETE FROM bookstore.product_category_map");
+            jdbcTemplate.update("DELETE FROM bookstore.product_table");
+            jdbcTemplate.update("DELETE FROM bookstore.product_category");
+            jdbcTemplate.update("DELETE FROM bookstore.product_create_request");
+            jdbcTemplate.update("DELETE FROM bookstore.processed_inventory_event");
+        });
         RestAssured.port = port;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     }
