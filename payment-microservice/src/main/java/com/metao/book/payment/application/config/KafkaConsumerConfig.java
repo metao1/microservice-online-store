@@ -109,6 +109,7 @@ public class KafkaConsumerConfig {
         factory.setConsumerFactory(consumerFactory);
         factory.setConcurrency(consumerConcurrency);
         factory.getContainerProperties().setPollTimeout(3000);
+        factory.getContainerProperties().setObservationEnabled(true);
         factory.setCommonErrorHandler(orderErrorHandler);
         return factory;
     }

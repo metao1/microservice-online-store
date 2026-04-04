@@ -7,6 +7,7 @@ import com.metao.book.order.presentation.dto.CreateOrderRequestDTO;
 import com.metao.book.order.presentation.dto.OrderResponseDto;
 import com.metao.book.order.presentation.dto.UpdateStatusRequestDto;
 import io.micrometer.core.annotation.Timed;
+import io.micrometer.observation.annotation.Observed;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/order")
 @Timed(value = "order.api", extraTags = {"controller", "order"})
+@Observed(name = "order.api.controller", contextualName = "order-management-controller")
 public class OrderManagementController {
 
     private final OrderManagementService orderService;

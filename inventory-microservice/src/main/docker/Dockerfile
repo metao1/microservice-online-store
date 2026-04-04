@@ -28,6 +28,4 @@ WORKDIR /app
 # Copy layers separately to leverage Docker cache
 COPY --from=build /workspace/layers/dependencies/ /workspace/layers/snapshot-dependencies/ /workspace/layers/spring-boot-loader/ /workspace/layers/application/ ./
 
-EXPOSE 8083
-
 ENTRYPOINT ["java","org.springframework.boot.loader.launch.JarLauncher"]

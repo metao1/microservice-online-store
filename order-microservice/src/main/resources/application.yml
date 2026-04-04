@@ -1,11 +1,28 @@
-server:
-  port: ${PORT:8086}
-
 management:
+  otlp:
+    metrics:
+      export:
+        enabled: false
   endpoints:
     web:
       exposure:
         include: health,info,metrics,prometheus
+  tracing:
+    export:
+      enabled: true
+      otlp:
+        enabled: true
+    sampling:
+      probability: ${TRACING_SAMPLING_PROBABILITY:1.0}
+  observations:
+    annotations:
+      enabled: true
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: ${OTLP_TRACING_ENDPOINT}
+          transport: http
   endpoint:
     health:
       probes:
@@ -32,6 +49,9 @@ spring:
     bootstrap-servers: ${BOOTSTRAP_SERVERS}
     listener:
       ack-mode: manual_immediate
+      observation-enabled: true
+    template:
+      observation-enabled: true
     properties:
       schema.registry.url: ${SCHEMA_REGISTRY_URL}
       basic.auth.credentials.source: USER_INFO
@@ -125,7 +145,7 @@ kafka:
       class-path: "com.metao.book.shared.ProductUpdatedEvent"
 
 logging:
-  pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%t]){yellow} %clr(:){red} %clr(%m){faint}%n"
+  pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%t]){yellow} %clr([trace=%X{traceId:-},span=%X{spanId:-}]){magenta} %clr(:){red} %clr(%m){faint}%n"
   level:
     org.apache.kafka.clients.consumer.ConsumerConfig: WARN
     io.confluent.kafka.serializers.KafkaProtobufDeserializerConfig: WARN

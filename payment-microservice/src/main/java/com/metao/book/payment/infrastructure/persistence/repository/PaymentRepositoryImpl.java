@@ -8,6 +8,7 @@ import com.metao.book.payment.domain.repository.PaymentRepository;
 import com.metao.book.payment.infrastructure.persistence.entity.PaymentEntity;
 import com.metao.book.payment.infrastructure.persistence.mapper.PaymentEntityMapper;
 import com.metao.book.shared.application.persistence.OffsetBasedPageRequest;
+import io.micrometer.observation.annotation.Observed;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 @RequiredArgsConstructor
+@Observed(name = "payment.persistence.repository", contextualName = "payment-repository")
 public class PaymentRepositoryImpl implements PaymentRepository {
 
     private final JpaPaymentRepository jpaPaymentRepository;

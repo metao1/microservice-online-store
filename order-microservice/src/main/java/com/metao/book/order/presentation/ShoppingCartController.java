@@ -6,6 +6,7 @@ import com.metao.book.order.application.cart.ShoppingCartService;
 import com.metao.book.order.application.cart.UpdateCartItemQtyDTO;
 import com.metao.book.order.presentation.dto.AddItemRequestDto;
 import io.micrometer.core.annotation.Timed;
+import io.micrometer.observation.annotation.Observed;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @Validated
 @Timed(value = "order.cart.api", extraTags = {"controller", "shopping-cart"})
+@Observed(name = "order.cart.api.controller", contextualName = "shopping-cart-controller")
 public class ShoppingCartController {
 
     private final ShoppingCartService shoppingCartService;

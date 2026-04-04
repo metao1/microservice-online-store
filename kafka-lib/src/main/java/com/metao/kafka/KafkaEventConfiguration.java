@@ -53,6 +53,7 @@ public class KafkaEventConfiguration {
     ) {
         var template = new KafkaTemplate<>(producerFactory);
         template.setAllowNonTransactional(true);
+        template.setObservationEnabled(true);
         return template;
     }
 
@@ -104,6 +105,7 @@ public class KafkaEventConfiguration {
 
         factory.setConsumerFactory(consumerFactory);
         factory.setConcurrency(1);
+        factory.getContainerProperties().setObservationEnabled(true);
 
         return factory;
     }

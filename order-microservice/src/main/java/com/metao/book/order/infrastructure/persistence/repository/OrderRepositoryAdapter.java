@@ -7,6 +7,7 @@ import com.metao.book.order.domain.repository.OrderRepository;
 import com.metao.book.order.infrastructure.persistence.entity.OrderItemEntity;
 import com.metao.book.order.infrastructure.persistence.entity.OrderJpaEntity;
 import com.metao.book.order.infrastructure.persistence.mapper.OrderEntityMapper;
+import io.micrometer.observation.annotation.Observed;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
+@Observed(name = "order.persistence.repository", contextualName = "order-repository")
 public class OrderRepositoryAdapter implements OrderRepository {
 
     private final SpringDataOrderRepository springDataOrderRepository;

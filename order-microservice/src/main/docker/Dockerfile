@@ -13,8 +13,8 @@ COPY order-microservice/build.gradle /workspace/order-microservice/build.gradle
 COPY order-microservice/src/main /workspace/order-microservice/src/main
 
 # Build layered fat jar (skip tests; they should run in CI)
-RUN --mount=type=cache,id=gradle-user-home,target=/home/gradle/.gradle \
-    --mount=type=cache,id=gradle-project-cache,target=/workspace/.gradle \
+RUN --mount=type=cache,id=order-gradle-user-home,target=/home/gradle/.gradle \
+    --mount=type=cache,id=order-gradle-project-cache,target=/workspace/.gradle \
     gradle :order-microservice:bootJar -x test --no-daemon --configuration-cache --build-cache --parallel
 # Extract layers for slimmer runtime image
 RUN java -Djarmode=layertools -jar order-microservice/build/libs/order-microservice.jar extract --destination /workspace/layers
