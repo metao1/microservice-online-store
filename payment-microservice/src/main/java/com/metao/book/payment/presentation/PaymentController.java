@@ -4,6 +4,7 @@ import com.metao.book.payment.application.dto.CreatePaymentCommand;
 import com.metao.book.payment.application.dto.PaymentDTO;
 import com.metao.book.payment.application.service.PaymentApplicationService;
 import com.metao.book.payment.domain.service.PaymentDomainService;
+import io.micrometer.observation.annotation.Observed;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/payments")
+@Observed(name = "payment.api.controller", contextualName = "payment-controller")
 public class PaymentController {
 
     private final PaymentApplicationService paymentApplicationService;

@@ -4,6 +4,7 @@ import com.metao.book.product.domain.model.entity.ProductCategory;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.product.domain.repository.CategoryRepository;
 import com.metao.book.product.infrastructure.persistence.mapper.CategoryEntityMapper;
+import io.micrometer.observation.annotation.Observed;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 @RequiredArgsConstructor
+@Observed(name = "product.persistence.category-repository", contextualName = "category-repository")
 public class CategoryRepositoryImpl implements CategoryRepository {
 
     private final JpaCategoryRepository jpaCategoryRepository;

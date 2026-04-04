@@ -1,11 +1,13 @@
 package com.metao.book.payment.infrastructure.persistence.repository;
 
 import com.metao.book.payment.application.port.ProcessedOrderCreatedEventPort;
+import io.micrometer.observation.annotation.Observed;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@Observed(name = "payment.persistence.processed-event", contextualName = "payment-processed-event")
 @RequiredArgsConstructor
 public class ProcessedOrderCreatedEventRepository implements ProcessedOrderCreatedEventPort {
 

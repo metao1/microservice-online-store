@@ -9,6 +9,7 @@ import com.metao.book.product.infrastructure.persistence.entity.ProductEntity;
 import com.metao.book.product.infrastructure.persistence.mapper.ProductEntityMapper;
 import com.metao.book.shared.application.persistence.OffsetBasedPageRequest;
 import com.metao.book.shared.domain.product.ProductSku;
+import io.micrometer.observation.annotation.Observed;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 @Transactional
 @RequiredArgsConstructor
+@Observed(name = "product.persistence.repository", contextualName = "product-repository")
 public class ProductRepositoryImpl implements ProductRepository {
 
     private final JpaProductRepository jpaProductRepository;

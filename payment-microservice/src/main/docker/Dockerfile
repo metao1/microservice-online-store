@@ -14,8 +14,8 @@ COPY payment-microservice/build.gradle /workspace/payment-microservice/build.gra
 COPY payment-microservice/src/main /workspace/payment-microservice/src/main
 
 # Build layered fat jar (skip tests; they should run in CI)
-RUN --mount=type=cache,id=gradle-user-home,target=/home/gradle/.gradle \
-    --mount=type=cache,id=gradle-project-cache,target=/workspace/.gradle \
+RUN --mount=type=cache,id=payment-gradle-user-home,target=/home/gradle/.gradle \
+    --mount=type=cache,id=payment-gradle-project-cache,target=/workspace/.gradle \
     gradle :payment-microservice:bootJar -x test --no-daemon --configuration-cache --build-cache --parallel
 # Extract layers for slimmer runtime image
 RUN java -Djarmode=layertools -jar payment-microservice/build/libs/payment-microservice.jar extract --destination /workspace/layers
@@ -25,8 +25,6 @@ FROM gcr.io/distroless/java21-debian12 AS payment-microservice
 
 # Set working directory
 WORKDIR /app
-
-EXPOSE 8084
 
 # Copy layers separately to leverage Docker cache
 COPY --from=build /workspace/layers/dependencies/ /workspace/layers/snapshot-dependencies/ /workspace/layers/spring-boot-loader/ /workspace/layers/application/ ./

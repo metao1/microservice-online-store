@@ -12,6 +12,7 @@ import com.metao.book.product.domain.model.aggregate.ProductAggregate;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.domain.product.Quantity;
+import io.micrometer.observation.annotation.Observed;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.math.BigDecimal;
@@ -38,6 +39,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(path = "/products")
+@Observed(name = "product.api.controller", contextualName = "product-controller")
 public class ProductController {
 
     private final ProductDomainService productDomainService;

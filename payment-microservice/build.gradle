@@ -16,6 +16,7 @@ dependencies {
   implementation "org.flywaydb:flyway-database-postgresql:10.11.0"
   implementation "org.springframework.boot:spring-boot-flyway"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-opentelemetry"
 
   implementation "org.flywaydb:flyway-core"
 
