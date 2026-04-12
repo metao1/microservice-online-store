@@ -75,6 +75,7 @@ public class ProductKafkaListenerComponent {
     @DltHandler
     public void onProductEventDlt(
         ConsumerRecord<String, ?> event,
+        Acknowledgment acknowledgment,
         @Header(name = KafkaHeaders.DLT_EXCEPTION_FQCN, required = false) String exceptionClass,
         @Header(name = KafkaHeaders.DLT_EXCEPTION_MESSAGE, required = false) String exceptionMessage
     ) {
@@ -86,5 +87,6 @@ public class ProductKafkaListenerComponent {
             exceptionClass,
             exceptionMessage
         );
+        acknowledgment.acknowledge();
     }
 }

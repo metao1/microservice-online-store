@@ -198,9 +198,7 @@ public class ProductDomainService {
         }
         log.debug("Getting products by category: {}", categoryName);
 
-        List<ProductAggregate> products = productRepository.findByCategory(categoryName, offset, limit);
-        return products.stream()
-            .toList();
+        return productRepository.findByCategory(categoryName, offset, limit);
     }
 
     /**

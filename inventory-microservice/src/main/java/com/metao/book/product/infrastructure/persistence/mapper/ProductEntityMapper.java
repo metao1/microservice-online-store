@@ -2,9 +2,10 @@ package com.metao.book.product.infrastructure.persistence.mapper;
 
 import com.metao.book.product.domain.model.aggregate.ProductAggregate;
 import com.metao.book.product.domain.model.entity.ProductCategory;
+import com.metao.book.product.domain.model.valueobject.CategoryId;
+import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.product.infrastructure.persistence.entity.ProductEntity;
 import com.metao.book.shared.domain.financial.Money;
-import com.metao.book.shared.domain.product.Quantity;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -51,6 +52,10 @@ public class ProductEntityMapper {
             .map(categoryEntityMapper::toDomain)
             .collect(Collectors.toSet());
 
+        return toDomain(entity, categories);
+    }
+
+    public ProductAggregate toDomain(ProductEntity entity, Set<ProductCategory> categories) {
         return new ProductAggregate(
             entity.getSku(),
             entity.getTitle(),
@@ -62,5 +67,9 @@ public class ProductEntityMapper {
             entity.getImageUrl(),
             categories
         );
+    }
+
+    public ProductCategory toDomain(String categoryId, String categoryName) {
+        return ProductCategory.of(CategoryId.of(categoryId), CategoryName.of(categoryName));
     }
 }

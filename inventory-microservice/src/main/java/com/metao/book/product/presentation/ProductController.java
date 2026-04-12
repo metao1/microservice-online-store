@@ -12,6 +12,8 @@ import com.metao.book.product.domain.model.aggregate.ProductAggregate;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.domain.product.Quantity;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.observation.annotation.Observed;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -42,8 +44,11 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @Observed(name = "product.api.controller", contextualName = "product-controller")
 public class ProductController {
 
+    private static final long SLOW_API_THRESHOLD_MS = 500L;
+
     private final ProductDomainService productDomainService;
     private final ProductApplicationMapper productMapper;
+    private final ObservationRegistry observationRegistry;
 
     @GetMapping(value = "/{sku}")
     public ProductDTO getProduct(@PathVariable @Valid @NotBlank String sku) {
@@ -118,10 +123,47 @@ public class ProductController {
         @RequestParam(value = "limit", defaultValue = "10") int limit
     ) {
         log.debug("Getting products by category: {}", categoryName);
-        var productsByCategory = productDomainService.getProductsByCategory(categoryName, offset, limit);
-        return productsByCategory.stream()
-            .map(productMapper::toDTO)
-            .toList();
+        long startedAt = System.nanoTime();
+        TimedResult<List<ProductAggregate>> productsByCategoryResult = observeTimed(
+            "product.api.get-by-category.load-products",
+            "load-products-by-category",
+            () -> productDomainService.getProductsByCategory(categoryName, offset, limit)
+        );
+
+        TimedResult<List<ProductDTO>> responseResult = observeTimed(
+            "product.api.get-by-category.map-dto",
+            "map-products-to-dto",
+            () -> productsByCategoryResult.value().stream()
+                .map(productMapper::toDTO)
+                .toList()
+        );
+
+        long elapsedMs = (System.nanoTime() - startedAt) / 1_000_000;
+        if (elapsedMs >= SLOW_API_THRESHOLD_MS) {
+            log.warn(
+                "Slow product category API call: category={}, offset={}, limit={}, resultCount={}, elapsedMs={}, loadProductsMs={}, mapDtoMs={}",
+                categoryName.value(),
+                offset,
+                limit,
+                responseResult.value().size(),
+                elapsedMs,
+                productsByCategoryResult.elapsedMs(),
+                responseResult.elapsedMs()
+            );
+        }
+        return responseResult.value();
+    }
+
+    private <T> TimedResult<T> observeTimed(String name, String contextualName, java.util.function.Supplier<T> supplier) {
+        long startedAt = System.nanoTime();
+        T value = Observation.createNotStarted(name, observationRegistry)
+            .contextualName(contextualName)
+            .observe(supplier);
+        long elapsedMs = (System.nanoTime() - startedAt) / 1_000_000;
+        return new TimedResult<>(value, elapsedMs);
+    }
+
+    private record TimedResult<T>(T value, long elapsedMs) {
     }
 
     @GetMapping("/search")

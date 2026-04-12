@@ -136,6 +136,12 @@ spring:
           use_jdbc_metadata_defaults: false
 
 product-sample-data-path: data/products.txt
+product:
+  prewarm:
+    enabled: true
+    categories: books
+    offset: 0
+    limit: 16
 
 kafka:
   enabled: ${KAFKA_ENABLED:true}

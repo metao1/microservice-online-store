@@ -17,45 +17,56 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface JpaProductRepository extends JpaRepository<ProductEntity, ProductSku> {
 
-    @Query(
-        value = """
-            SELECT DISTINCT p.*
-            FROM bookstore.product_table p
-            JOIN bookstore.product_category_map pcm ON pcm.product_sku = p.sku
-            JOIN bookstore.product_category c ON c.id = pcm.product_category_id
-            WHERE p.volume > 0
-              AND LOWER(c.category) = LOWER(:categoryName)
-            """,
-        nativeQuery = true
-    )
-    List<ProductEntity> findByCategory(@Param("categoryName") String categoryName, Pageable pageable);
+    interface ProductCategoryRow {
+        ProductSku getSku();
+        String getCategoryId();
+        String getCategoryName();
+    }
 
-    @Query(
-        value = """
-            SELECT DISTINCT p.*
-            FROM bookstore.product_table p
-            JOIN bookstore.product_category_map pcm ON pcm.product_sku = p.sku
-            JOIN bookstore.product_category c ON c.id = pcm.product_category_id
-            WHERE p.volume > 0
-              AND LOWER(c.category) IN (:categoryNames)
-            """,
-        nativeQuery = true
-    )
-    List<ProductEntity> findByCategories(@Param("categoryNames") List<String> categoryNames, Pageable pageable);
+    @Query("""
+        select p.sku
+        from product p
+        join p.categories c
+        where p.volume.value > 0
+          and c.id = :categoryId
+        """)
+    List<ProductSku> findSkusByCategoryId(@Param("categoryId") String categoryId, Pageable pageable);
 
-    @Query(
-        value = """
-            SELECT p.*
-            FROM bookstore.product_table p
-            WHERE p.volume > 0
-              AND (
-                LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
-                OR LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%'))
-              )
-            """,
-        nativeQuery = true
-    )
-    List<ProductEntity> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
+    @Query("""
+        select distinct p.sku
+        from product p
+        join p.categories c
+        where p.volume.value > 0
+          and c.id in :categoryIds
+        """)
+    List<ProductSku> findSkusByCategoryIds(@Param("categoryIds") List<String> categoryIds, Pageable pageable);
+
+    @Query("""
+        select p.sku
+        from product p
+        where p.volume.value > 0
+          and (
+            lower(p.title.value) like lower(concat('%', :keyword, '%'))
+            or lower(p.description.value) like lower(concat('%', :keyword, '%'))
+          )
+        """)
+    List<ProductSku> searchSkusByKeyword(@Param("keyword") String keyword, Pageable pageable);
+
+    @Query("""
+        select distinct p
+        from product p
+        left join fetch p.categories
+        where p.sku in :skus
+        """)
+    List<ProductEntity> findAllWithCategoriesBySkuIn(@Param("skus") List<ProductSku> skus);
+
+    @Query("""
+        select p.sku as sku, c.id as categoryId, c.category as categoryName
+        from product p
+        join p.categories c
+        where p.sku in :skus
+        """)
+    List<ProductCategoryRow> findCategoryRowsBySkuIn(@Param("skus") List<ProductSku> skus);
 
     @Modifying
     @Query(
@@ -82,14 +93,13 @@ public interface JpaProductRepository extends JpaRepository<ProductEntity, Produ
     @Modifying
     @Query(
         value = """
-            UPDATE product_table
-               SET volume = volume - :quantity,
-                   version = version + 1,
-                   updated_time = now()
-             WHERE sku = :sku
-               AND volume >= :quantity
-            """,
-        nativeQuery = true
+            update product p
+               set p.volume.value = p.volume.value - :quantity,
+                   p.version = p.version + 1,
+                   p.updateTime = current_timestamp
+             where p.sku.value = :sku
+               and p.volume.value >= :quantity
+            """
     )
     int decrementVolumeIfEnough(@Param("sku") String sku, @Param("quantity") BigDecimal quantity);
 
