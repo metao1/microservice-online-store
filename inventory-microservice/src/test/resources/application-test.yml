@@ -14,3 +14,7 @@ logging:
     org.springframework: ERROR
     org.apache.kafka: ERROR
     org.hibernate: ERROR
+
+product:
+  prewarm:
+    enabled: false

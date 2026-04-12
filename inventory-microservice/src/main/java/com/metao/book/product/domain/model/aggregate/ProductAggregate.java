@@ -5,24 +5,22 @@ import com.metao.book.product.domain.model.event.DomainProductCreatedEvent;
 import com.metao.book.product.domain.model.event.DomainProductUpdatedEvent;
 import com.metao.book.product.domain.model.valueobject.ImageUrl;
 import com.metao.book.product.domain.model.valueobject.ProductDescription;
-import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.book.shared.domain.base.AggregateRoot;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.product.ProductSku;
+import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.book.shared.domain.product.Quantity;
 import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 /**
  * Product aggregate root - contains all business logic for product management
  */
 @Getter
-@EqualsAndHashCode(of = {"id"}, callSuper = true)
 public class ProductAggregate extends AggregateRoot<ProductSku> {
 
     @NotNull
@@ -40,7 +38,6 @@ public class ProductAggregate extends AggregateRoot<ProductSku> {
     @NotNull
     private final Instant createdTime;
     private Instant updatedTime;
-
 
     // Constructor for new products
     public ProductAggregate(
@@ -141,22 +138,5 @@ public class ProductAggregate extends AggregateRoot<ProductSku> {
             this.money,
             this.money,
             this.updatedTime));
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        ProductAggregate product = (ProductAggregate) o;
-        return Objects.equals(getId(), product.getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getId());
     }
 }
