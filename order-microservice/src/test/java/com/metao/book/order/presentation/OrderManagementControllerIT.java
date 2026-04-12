@@ -1,6 +1,7 @@
 package com.metao.book.order.presentation;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.matchesPattern;
 
@@ -122,6 +123,27 @@ class OrderManagementControllerIT extends KafkaContainer {
                 .then()
                 .statusCode(HttpStatus.OK.value())
                 .body("$", hasSize(1));
+        }
+
+        @Test
+        @DisplayName("Should get paged customer orders successfully")
+        void shouldGetPagedCustomerOrdersSuccessfully() {
+            orderRepository.save(new OrderAggregate(new OrderId("order123"), UserId.of(USER_ID)));
+            orderRepository.save(new OrderAggregate(new OrderId("order124"), UserId.of(USER_ID)));
+
+            given()
+                .contentType(ContentType.JSON)
+                .queryParam("offset", 0)
+                .queryParam("limit", 1)
+                .get("/api/order/customer/{userId}/paged", USER_ID)
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("items", hasSize(1))
+                .body("offset", equalTo(0))
+                .body("limit", equalTo(1))
+                .body("total", equalTo(2))
+                .body("hasNext", equalTo(true))
+                .body("hasPrevious", equalTo(false));
         }
     }
 }

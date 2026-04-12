@@ -7,10 +7,14 @@ import com.metao.book.order.domain.repository.OrderRepository;
 import com.metao.book.order.infrastructure.persistence.entity.OrderItemEntity;
 import com.metao.book.order.infrastructure.persistence.entity.OrderJpaEntity;
 import com.metao.book.order.infrastructure.persistence.mapper.OrderEntityMapper;
+import com.metao.book.shared.application.persistence.OffsetBasedPageRequest;
 import io.micrometer.observation.annotation.Observed;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -60,6 +64,31 @@ public class OrderRepositoryAdapter implements OrderRepository {
         return springDataOrderRepository.findByUserId(userId).stream()
             .map(OrderEntityMapper::toDomain)
             .toList();
+    }
+
+    @Override
+    public Page<OrderAggregate> findByUserId(UserId userId, int offset, int limit) {
+        Page<String> orderIdPage = springDataOrderRepository.findIdsByUserIdOrderByCreatedAtDesc(
+            userId,
+            new OffsetBasedPageRequest(offset, limit)
+        );
+
+        List<String> orderIds = orderIdPage.getContent();
+        if (orderIds.isEmpty()) {
+            return new PageImpl<>(List.of(), orderIdPage.getPageable(), orderIdPage.getTotalElements());
+        }
+
+        var orderIndexById = new HashMap<String, Integer>();
+        for (int index = 0; index < orderIds.size(); index += 1) {
+            orderIndexById.put(orderIds.get(index), index);
+        }
+
+        List<OrderAggregate> orders = springDataOrderRepository.findAllByIdInWithItems(orderIds).stream()
+            .sorted(Comparator.comparingInt(order -> orderIndexById.getOrDefault(order.getId(), Integer.MAX_VALUE)))
+            .map(OrderEntityMapper::toDomain)
+            .toList();
+
+        return new PageImpl<>(orders, orderIdPage.getPageable(), orderIdPage.getTotalElements());
     }
 
     @Override

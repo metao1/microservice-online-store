@@ -12,9 +12,21 @@ import {useCartContext} from '@context/CartContext';
 import {Order} from '@types';
 import './OrdersPage.css';
 
+const PAGE_SIZE = 10;
+
 const OrdersPage: FC = () => {
   const { user } = useAuthContext();
-  const { orders: apiOrders, loading, error, refetch } = useOrders(user?.id || null);
+  const {
+    orders: apiOrders,
+    total: apiTotal,
+    hasNext,
+    hasPrevious,
+    currentPage,
+    loading,
+    error,
+    refetch,
+    setCurrentPage,
+  } = useOrders(user?.id || null, PAGE_SIZE);
   const { processCheckout, isProcessing } = useCheckout();
   const { cart, getCartItemCount } = useCartContext();
 
@@ -36,69 +48,11 @@ const OrdersPage: FC = () => {
     });
   };
 
-  // Mock orders data as fallback
-  const mockOrders: Order[] = [
-    {
-      id: 'ORD-2024-001',
-      userId: user?.id || 'demo-user-1',
-      status: 'DELIVERED',
-      total: 129.99,
-      createdAt: '2024-01-15T10:30:00Z',
-      items: [
-        {
-          sku: 'classic-white-tshirt',
-          title: 'Classic White T-Shirt',
-          price: 29.99,
-          currency: 'USD',
-          imageUrl: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=200&h=200&fit=crop',
-          description: 'Comfortable cotton t-shirt',
-          rating: 4.5,
-          reviews: 120,
-          inStock: true,
-          quantity: 10,
-          cartQuantity: 2
-        },
-        {
-          sku: 'denim-jeans',
-          title: 'Denim Jeans',
-          price: 69.99,
-          currency: 'USD',
-          imageUrl: 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=200&h=200&fit=crop',
-          description: 'Classic blue denim jeans',
-          rating: 4.3,
-          reviews: 85,
-          inStock: true,
-          quantity: 5,
-          cartQuantity: 1
-        }
-      ]
-    },
-    {
-      id: 'ORD-2024-002',
-      userId: user?.id || 'demo-user-1',
-      status: 'SHIPPED',
-      total: 89.99,
-      createdAt: '2024-01-20T14:15:00Z',
-      items: [
-        {
-          sku: 'sneakers',
-          title: 'Sneakers',
-          price: 89.99,
-          currency: 'USD',
-          imageUrl: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=200&h=200&fit=crop',
-          description: 'Comfortable running sneakers',
-          rating: 4.7,
-          reviews: 200,
-          inStock: true,
-          quantity: 8,
-          cartQuantity: 1
-        }
-      ]
-    }
-  ];
-
-  // Use API orders if available, otherwise fall back to mock data
-  const orders = apiOrders.length > 0 ? apiOrders : mockOrders;
+  const orders = apiOrders;
+  const totalOrders = apiTotal;
+  const totalPages = Math.max(1, Math.ceil(totalOrders / PAGE_SIZE));
+  const canGoPrevious = currentPage > 1 && hasPrevious;
+  const canGoNext = hasNext;
 
   const getStatusColor = (status: Order['status']) => {
     switch (status.toLowerCase()) {
@@ -208,7 +162,7 @@ const OrdersPage: FC = () => {
             borderRadius: '4px',
             color: '#c33'
           }}>
-            {error} {apiOrders.length === 0 && 'Showing sample orders instead.'}
+            {error}
           </div>
         )}
 
@@ -269,6 +223,34 @@ const OrdersPage: FC = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {orders.length > 0 && (
+          <div className="orders-pagination">
+            <div className="orders-pagination-summary">
+              Showing {Math.min((currentPage - 1) * PAGE_SIZE + 1, totalOrders)}-
+              {Math.min(currentPage * PAGE_SIZE, totalOrders)} of {totalOrders} orders
+            </div>
+            <div className="orders-pagination-controls">
+              <button
+                className="order-action-btn"
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={!canGoPrevious}
+              >
+                Previous
+              </button>
+              <span className="orders-pagination-status">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                className="order-action-btn"
+                onClick={() => setCurrentPage(currentPage + 1)}
+                disabled={!canGoNext}
+              >
+                Next
+              </button>
+            </div>
           </div>
         )}
       </div>

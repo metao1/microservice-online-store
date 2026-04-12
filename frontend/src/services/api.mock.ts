@@ -1,4 +1,4 @@
-import {Cart, Category, Order, Payment, PaymentStatistics, Product} from '@types';
+import {Cart, Category, Order, PaginatedResult, Payment, PaymentStatistics, Product} from '@types';
 import {ApiClientContract, PaymentCommand} from './api.types';
 import {BaseApiClient} from './api.base';
 import mockProducts from '../../dev/api-mocks/products.json';
@@ -178,6 +178,19 @@ export class MockApiClient extends BaseApiClient implements ApiClientContract {
       status: this.mapOrderStatus(o.status),
       createdAt: o.createdAt,
     }));
+  }
+
+  async getOrdersPage(userId: string, limit = 10, offset = 0): Promise<PaginatedResult<Order>> {
+    const allOrders = await this.getOrders(userId);
+    const items = allOrders.slice(offset, offset + limit);
+    return {
+      items,
+      offset,
+      limit,
+      total: allOrders.length,
+      hasNext: offset + limit < allOrders.length,
+      hasPrevious: offset > 0,
+    };
   }
 
   async createPayment(command: PaymentCommand): Promise<Payment> {

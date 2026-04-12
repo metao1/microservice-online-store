@@ -1,5 +1,5 @@
 import axios, {AxiosInstance} from 'axios';
-import {ApiResponse, Cart, Category, Order, Payment, PaymentStatistics, Product} from '@types';
+import {ApiResponse, Cart, Category, Order, PaginatedResult, Payment, PaymentStatistics, Product} from '@types';
 import {ApiClientContract, PaymentCommand} from './api.types';
 import {BaseApiClient} from './api.base';
 import {MockApiClient} from './api.mock';
@@ -63,6 +63,66 @@ class RemoteApiClient extends BaseApiClient implements ApiClientContract {
       timeout: 10000,
       headers: { 'Content-Type': 'application/json' },
     });
+  }
+
+  private async mapBackendOrderToOrder(backendOrder: any, userId: string): Promise<Order> {
+    const enrichedItems = await Promise.all(
+      (backendOrder.items || []).map(async (item: any) => {
+        try {
+          const productDetails = await this.getProductById(item.sku);
+          const priceAmount = coerceMoneyAmount(item.price ?? item.unitPrice);
+          const priceCurrency = coerceMoneyCurrency(item.price ?? item.unitPrice, item.currency || 'USD');
+          return {
+            sku: item.sku,
+            title: productDetails.title || item.productTitle || item.name || `Product ${item.sku}`,
+            price: priceAmount,
+            currency: priceCurrency,
+            imageUrl: productDetails.imageUrl || this.getPlaceholderImage(item.sku, 0),
+            description: productDetails.description || 'Product description',
+            rating: productDetails.rating || 4.5,
+            reviews: productDetails.reviews || 100,
+            inStock: productDetails.inStock,
+            quantity: productDetails.quantity || 10,
+            cartQuantity: item.quantity,
+          };
+        } catch {
+          const priceAmount = coerceMoneyAmount(item.price ?? item.unitPrice);
+          const priceCurrency = coerceMoneyCurrency(item.price ?? item.unitPrice, item.currency || 'USD');
+          return {
+            sku: item.sku,
+            title: item.productTitle || item.name || `Product ${item.sku}`,
+            price: priceAmount,
+            currency: priceCurrency,
+            imageUrl: this.getPlaceholderImage(item.sku, 0),
+            description: 'Product description',
+            rating: 4.5,
+            reviews: 100,
+            inStock: true,
+            quantity: 10,
+            cartQuantity: item.quantity,
+          };
+        }
+      }),
+    );
+
+    const backendTotal =
+      backendOrder.total === null || backendOrder.total === undefined
+        ? undefined
+        : coerceMoneyAmount(backendOrder.total);
+    const computedTotal = enrichedItems.reduce((sum, item) => sum + item.price * item.cartQuantity, 0);
+    const orderId = resolveOrderId(backendOrder);
+    if (!orderId) {
+      throw new Error('Order payload is missing id');
+    }
+
+    return {
+      id: orderId,
+      userId: backendOrder.userId || userId,
+      items: enrichedItems,
+      total: backendTotal ?? computedTotal,
+      status: this.mapOrderStatus(backendOrder.status || 'PENDING'),
+      createdAt: backendOrder.createdAt || backendOrder.orderDate || new Date().toISOString(),
+    };
   }
 
   async getProducts(category: string = 'books', limit: number = 12, offset: number = 0): Promise<Product[]> {
@@ -335,66 +395,24 @@ class RemoteApiClient extends BaseApiClient implements ApiClientContract {
   async getOrders(userId: string): Promise<Order[]> {
     const response = await this.cartClient.get<Order[]>(`/api/order/customer/${userId}`);
     const orders = Array.isArray(response.data) ? response.data : [];
-    const transformedOrders = await Promise.all(
-      orders.map(async (backendOrder: any) => {
-        const enrichedItems = await Promise.all(
-          (backendOrder.items || []).map(async (item: any) => {
-            try {
-              const productDetails = await this.getProductById(item.sku);
-              const priceAmount = coerceMoneyAmount(item.price);
-              const priceCurrency = coerceMoneyCurrency(item.price, item.currency || 'USD');
-              return {
-                sku: item.sku,
-                title: productDetails.title || item.name || `Product ${item.sku}`,
-                price: priceAmount,
-                currency: priceCurrency,
-                imageUrl: productDetails.imageUrl || this.getPlaceholderImage(item.sku, 0),
-                description: productDetails.description || 'Product description',
-                rating: productDetails.rating || 4.5,
-                reviews: productDetails.reviews || 100,
-                inStock: productDetails.inStock,
-                quantity: productDetails.quantity || 10,
-                cartQuantity: item.quantity,
-              };
-            } catch {
-              const priceAmount = coerceMoneyAmount(item.price);
-              const priceCurrency = coerceMoneyCurrency(item.price, item.currency || 'USD');
-              return {
-                sku: item.sku,
-                title: item.name || `Product ${item.sku}`,
-                price: priceAmount,
-                currency: priceCurrency,
-                imageUrl: this.getPlaceholderImage(item.sku, 0),
-                description: 'Product description',
-                rating: 4.5,
-                reviews: 100,
-                inStock: true,
-                quantity: 10,
-                cartQuantity: item.quantity,
-              };
-            }
-          }),
-        );
-        const backendTotal =
-          backendOrder.total === null || backendOrder.total === undefined
-            ? undefined
-            : coerceMoneyAmount(backendOrder.total);
-        const computedTotal = enrichedItems.reduce((sum, item) => sum + item.price * item.cartQuantity, 0);
-        const orderId = resolveOrderId(backendOrder);
-        if (!orderId) {
-          throw new Error('Order payload is missing id');
-        }
-        return {
-          id: orderId,
-          userId: backendOrder.userId || backendOrder.userId,
-          items: enrichedItems,
-          total: backendTotal ?? computedTotal,
-          status: this.mapOrderStatus(backendOrder.status),
-          createdAt: backendOrder.createdAt || backendOrder.orderDate || new Date().toISOString(),
-        };
-      }),
-    );
-    return transformedOrders;
+    return Promise.all(orders.map((backendOrder: any) => this.mapBackendOrderToOrder(backendOrder, userId)));
+  }
+
+  async getOrdersPage(userId: string, limit = 10, offset = 0): Promise<PaginatedResult<Order>> {
+    const response = await this.cartClient.get(`/api/order/customer/${userId}/paged`, {
+      params: { limit, offset },
+    });
+    const payload = response.data || {};
+    const items = Array.isArray(payload.items) ? payload.items : [];
+
+    return {
+      items: await Promise.all(items.map((backendOrder: any) => this.mapBackendOrderToOrder(backendOrder, userId))),
+      offset: Number(payload.offset ?? offset),
+      limit: Number(payload.limit ?? limit),
+      total: Number(payload.total ?? items.length),
+      hasNext: Boolean(payload.hasNext),
+      hasPrevious: Boolean(payload.hasPrevious),
+    };
   }
 
   async createPayment(command: PaymentCommand): Promise<Payment> {
