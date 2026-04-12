@@ -57,13 +57,14 @@ spring:
       basic.auth.credentials.source: USER_INFO
       basic.auth.user.info: ${SCHEMA_REGISTRY_AUTH}
       security.protocol: ${SECURITY_PROTOCOL}
-      #sasl.mechanism: ${SASL_MECHANISM}
       ssl.truststore.type: ${SASL_TRUSTSTORE_TYPE}
       ssl.endpoint.identification.algorithm: "https"
       ssl.truststore.location: ${SASL_TRUSTSTORE_LOCATION}
-      #ssl.truststore.password: ${TRUSTSTORE_PASSWORD}
       ssl.keystore.type: ${SASL_KEYSTORE_TYPE}
       ssl.keystore.location: ${SASL_KEYSTORE_LOCATION}
+      # Enale when using SASL
+      #sasl.mechanism: ${SASL_MECHANISM}
+      #ssl.truststore.password: ${TRUSTSTORE_PASSWORD}
       #ssl.keystore.password: ${KEYSTORE_PASSWORD}
       #sasl.jaas.config: >
       #  org.apache.kafka.common.security.scram.ScramLoginModule required username="${SASL_USERNAME}" password="${SASL_PASSWORD}";

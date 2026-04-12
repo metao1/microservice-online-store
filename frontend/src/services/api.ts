@@ -4,11 +4,9 @@ import {ApiClientContract, PaymentCommand} from './api.types';
 import {BaseApiClient} from './api.base';
 import {MockApiClient} from './api.mock';
 
-const PRODUCTS_API_BASE_URL =
-  import.meta.env.VITE_PRODUCTS_API_URL || 'https://microservice-online-store.onrender.com';
-const CART_API_BASE_URL =
-  import.meta.env.VITE_CART_API_URL || 'https://microservice-online-store-ow52.onrender.com';
-const PAYMENT_API_BASE_URL = import.meta.env.VITE_PAYMENT_API_URL || 'http://localhost:8083';
+const PRODUCTS_API_BASE_URL = import.meta.env.VITE_PRODUCTS_API_URL || 'http://localhost:8083';
+const CART_API_BASE_URL = import.meta.env.VITE_CART_API_URL || 'http://localhost:8086';
+const PAYMENT_API_BASE_URL = import.meta.env.VITE_PAYMENT_API_URL || 'http://localhost:8084';
 const PROFILE = (import.meta.env.VITE_PROFILE || 'prod').toLowerCase();
 
 const coerceMoneyAmount = (value: unknown): number => {
