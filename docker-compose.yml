@@ -127,6 +127,7 @@ services:
       POSTGRES_PASSWORD: bookstore
 
   order-microservice:
+    image: order-microservice
     container_name: order-microservice
     hostname: order-microservice
     #restart: on-failure
@@ -149,7 +150,7 @@ services:
       - kafka-schema-registry
 
   inventory-microservice:
-    image: 287910172838.dkr.ecr.eu-central-1.amazonaws.com/onlinestore/invetory
+    image: invetory-microservice
     container_name: inventory-microservice
     hostname: inventory-microservice
     #restart: on-failure
@@ -157,7 +158,6 @@ services:
       DATABASE_URL: "jdbc:postgresql://postgres-inventory:5432/bookstore-inventory"
       SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
       BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:9092
-      SPRING_PROFILES_ACTIVE: "container"
       DATABASE_USER: bookstore
       DATABASE_PASSWORD: bookstore
       SECURITY_PROTOCOL: PLAINTEXT
@@ -174,13 +174,13 @@ services:
       - kafka-schema-registry
 
   payment-microservice:
+    image: inventory-microservice
     container_name: payment-microservice
     hostname: payment-microservice
     environment:
       DATABASE_URL: "jdbc:postgresql://postgres-payment:5432/bookstore-payment"
       SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
       BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:9092
-      SPRING_PROFILES_ACTIVE: "container"
       DATABASE_USER: bookstore
       DATABASE_PASSWORD: bookstore
       SECURITY_PROTOCOL: PLAINTEXT
@@ -196,9 +196,14 @@ services:
       - postgres-payment
 
   frontend:
+    image: frontend
     container_name: frontend
     hostname: frontend
     #restart: on-failure
+    environment:
+      VITE_PRODUCTS_API_BASE_URL: "http://inventory-microservice:8080"
+      VITE_PAYMENT_API_BASE_URL: "http://payment-microservice:8080"
+      VITE_CART_API_BASE_URL: "http://order-microservice:8080"
     build:
       context: frontend
       dockerfile: Dockerfile
