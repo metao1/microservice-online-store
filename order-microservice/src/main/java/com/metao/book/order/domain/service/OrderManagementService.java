@@ -17,6 +17,7 @@ import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.book.shared.domain.product.Quantity;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -88,6 +89,11 @@ public class OrderManagementService {
     @Transactional(readOnly = true)
     public List<OrderAggregate> getCustomerOrders(UserId userId) {
         return orderRepository.findByUserId(userId);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<OrderAggregate> getCustomerOrders(UserId userId, int offset, int limit) {
+        return orderRepository.findByUserId(userId, offset, limit);
     }
 
     @Transactional(readOnly = true)

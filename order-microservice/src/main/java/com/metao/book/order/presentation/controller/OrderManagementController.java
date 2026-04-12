@@ -4,6 +4,7 @@ import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.domain.service.OrderManagementService;
 import com.metao.book.order.presentation.dto.CreateOrderRequestDTO;
+import com.metao.book.order.presentation.dto.OrderPageResponseDto;
 import com.metao.book.order.presentation.dto.OrderResponseDto;
 import com.metao.book.order.presentation.dto.UpdateStatusRequestDto;
 import io.micrometer.core.annotation.Timed;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -51,5 +53,16 @@ public class OrderManagementController {
         return orderService.getCustomerOrders(UserId.of(userId)).stream()
             .map(OrderResponseDto::fromDomain)
             .toList();
+    }
+
+    @GetMapping("/customer/{userId}/paged")
+    public OrderPageResponseDto getCustomerOrdersPaged(
+        @PathVariable String userId,
+        @RequestParam(defaultValue = "0") int offset,
+        @RequestParam(defaultValue = "10") int limit
+    ) {
+        var ordersPage = orderService.getCustomerOrders(UserId.of(userId), offset, limit)
+            .map(OrderResponseDto::fromDomain);
+        return OrderPageResponseDto.from(ordersPage, offset, limit);
     }
 }

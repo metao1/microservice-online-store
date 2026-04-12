@@ -8,6 +8,7 @@ import com.metao.book.payment.domain.model.valueobject.PaymentMethod;
 import com.metao.book.payment.domain.model.valueobject.PaymentStatus;
 import com.metao.book.shared.domain.base.AggregateRoot;
 import com.metao.book.shared.domain.financial.Money;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Objects;
 import lombok.Getter;
@@ -161,7 +162,7 @@ public class PaymentAggregate extends AggregateRoot<PaymentId> {
      */
     private boolean isAmountValid() {
         return amount != null &&
-            amount.fixedPointAmount().compareTo(java.math.BigDecimal.ZERO) > 0;
+            amount.fixedPointAmount().compareTo(BigDecimal.ZERO) > 0;
     }
 
     /**

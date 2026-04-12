@@ -11,6 +11,7 @@ import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.book.shared.domain.product.Quantity;
 import jakarta.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Objects;
@@ -112,7 +113,7 @@ public class ProductAggregate extends AggregateRoot<ProductSku> {
     }
 
     public boolean isInStock() {
-        return this.volume.value().compareTo(java.math.BigDecimal.ZERO) > 0;
+        return this.volume.value().compareTo(BigDecimal.ZERO) > 0;
     }
 
     public void reduceVolume(@NotNull Quantity reduction) {

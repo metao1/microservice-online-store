@@ -66,6 +66,15 @@ export interface ApiResponse<T> {
   status: number;
 }
 
+export interface PaginatedResult<T> {
+  items: T[];
+  offset: number;
+  limit: number;
+  total: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
 /**
  * User Types
  */

@@ -1,4 +1,4 @@
-import { Cart, Category, Order, Payment, PaymentMethodType, PaymentStatistics, Product } from '@types';
+import { Cart, Category, Order, PaginatedResult, Payment, PaymentMethodType, PaymentStatistics, Product } from '@types';
 
 export interface PaymentCommand {
   orderId: string;
@@ -21,6 +21,7 @@ export interface ApiClientContract {
   updateCartItem(userId: string, sku: string, quantity: number, price: number, currency: string): Promise<Cart>;
   createOrder(userId: string): Promise<Order>;
   getOrders(userId: string): Promise<Order[]>;
+  getOrdersPage(userId: string, limit?: number, offset?: number): Promise<PaginatedResult<Order>>;
   createPayment(command: PaymentCommand): Promise<Payment>;
   processPayment(paymentId: string): Promise<Payment>;
   retryPayment(paymentId: string): Promise<Payment>;
