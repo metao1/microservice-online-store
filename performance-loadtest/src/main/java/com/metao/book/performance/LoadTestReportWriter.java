@@ -19,7 +19,12 @@ final class LoadTestReportWriter {
     private LoadTestReportWriter() {
     }
 
-    static ReportArtifacts write(LoadTestConfig config, LoadTestResult result, List<ThresholdFailure> thresholdFailures)
+    static ReportArtifacts write(
+        LoadTestConfig config,
+        LoadTestResult result,
+        List<ThresholdFailure> thresholdFailures,
+        BaselineComparisonResult baselineComparison
+    )
         throws IOException {
         Files.createDirectories(config.reportDir());
         String timestamp = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss").format(LocalDateTime.now());
@@ -31,9 +36,10 @@ final class LoadTestReportWriter {
         payload.put("scenario", scenarioPayload(config));
         payload.put("result", resultPayload(result));
         payload.put("thresholds", thresholdsPayload(config.thresholds(), thresholdFailures));
+        payload.put("baselineComparison", baselinePayload(config, baselineComparison));
 
         OBJECT_MAPPER.writeValue(jsonReport.toFile(), payload);
-        Files.writeString(textReport, renderSummary(config, result, thresholdFailures, jsonReport));
+        Files.writeString(textReport, renderSummary(config, result, thresholdFailures, baselineComparison, jsonReport));
         return new ReportArtifacts(jsonReport, textReport);
     }
 
@@ -72,13 +78,14 @@ final class LoadTestReportWriter {
                 return payload;
             })
             .toList());
-        scenario.put("load", Map.of(
-            "virtualUsers", config.virtualUsers(),
-            "durationSec", config.durationSec(),
-            "warmupSec", config.warmupSec(),
-            "requestTimeoutSec", config.requestTimeoutSec(),
-            "thinkTimeMs", config.thinkTimeMs()
-        ));
+        Map<String, Object> load = new LinkedHashMap<>();
+        load.put("virtualUsers", config.virtualUsers());
+        load.put("targetRps", config.targetRps());
+        load.put("durationSec", config.durationSec());
+        load.put("warmupSec", config.warmupSec());
+        load.put("requestTimeoutSec", config.requestTimeoutSec());
+        load.put("thinkTimeMs", config.thinkTimeMs());
+        scenario.put("load", load);
         return scenario;
     }
 
@@ -93,6 +100,8 @@ final class LoadTestReportWriter {
         payload.put("success", result.success());
         payload.put("failures", result.failures());
         payload.put("errorRatePct", result.errorRatePct());
+        payload.put("workflowThroughputRps", result.throughputRps());
+        // Backward-compatible alias.
         payload.put("throughputRps", result.throughputRps());
         payload.put("latencyMs", Map.of(
             "min", result.minMs(),
@@ -101,8 +110,31 @@ final class LoadTestReportWriter {
             "p99", result.p99Ms(),
             "max", result.maxMs()
         ));
+        payload.put("stepLatencyMs", result.stepLatencyMs());
         payload.put("responseBytes", result.responseBytes());
         payload.put("errors", result.errors());
+        return payload;
+    }
+
+    private static Map<String, Object> baselinePayload(
+        LoadTestConfig config,
+        BaselineComparisonResult baselineComparison
+    ) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("configured", baselineComparison.enabled());
+        if (!baselineComparison.enabled()) {
+            return payload;
+        }
+        payload.put("baselineReport", baselineComparison.baselineReportPath().toString());
+        payload.put("passed", baselineComparison.passed());
+        payload.put("metrics", baselineComparison.baselineMetrics());
+        payload.put("limits", Map.of(
+            "maxThroughputDropPct", config.baselineComparison().maxThroughputDropPct(),
+            "maxP95RegressionPct", config.baselineComparison().maxP95RegressionPct(),
+            "maxP99RegressionPct", config.baselineComparison().maxP99RegressionPct(),
+            "maxErrorRateIncreasePct", config.baselineComparison().maxErrorRateIncreasePct()
+        ));
+        payload.put("failures", baselineComparison.failures());
         return payload;
     }
 
@@ -127,6 +159,7 @@ final class LoadTestReportWriter {
         LoadTestConfig config,
         LoadTestResult result,
         List<ThresholdFailure> thresholdFailures,
+        BaselineComparisonResult baselineComparison,
         Path jsonReport
     ) {
         StringBuilder summary = new StringBuilder();
@@ -146,6 +179,15 @@ final class LoadTestReportWriter {
             .append(" p99=").append(String.format("%.3f", result.p99Ms()))
             .append(" max=").append(String.format("%.3f", result.maxMs()))
             .append(System.lineSeparator());
+        if (!result.stepLatencyMs().isEmpty()) {
+            summary.append("stepLatencyMs").append(System.lineSeparator());
+            result.stepLatencyMs().forEach((stepName, step) -> summary.append(" - ")
+                .append(stepName)
+                .append(": samples=").append(step.samples())
+                .append(" p95=").append(String.format("%.3f", step.p95Ms()))
+                .append(" p99=").append(String.format("%.3f", step.p99Ms()))
+                .append(System.lineSeparator()));
+        }
 
         if (thresholdFailures.isEmpty()) {
             summary.append("thresholds=passed").append(System.lineSeparator());
@@ -159,6 +201,23 @@ final class LoadTestReportWriter {
                     .append(", actual ")
                     .append(failure.actual())
                     .append(System.lineSeparator());
+            }
+        }
+
+        if (baselineComparison.enabled()) {
+            if (baselineComparison.passed()) {
+                summary.append("baselineComparison=passed").append(System.lineSeparator());
+            } else {
+                summary.append("baselineComparison=failed").append(System.lineSeparator());
+                for (ThresholdFailure failure : baselineComparison.failures()) {
+                    summary.append(" - ")
+                        .append(failure.metric())
+                        .append(": expected ")
+                        .append(failure.expected())
+                        .append(", actual ")
+                        .append(failure.actual())
+                        .append(System.lineSeparator());
+                }
             }
         }
 

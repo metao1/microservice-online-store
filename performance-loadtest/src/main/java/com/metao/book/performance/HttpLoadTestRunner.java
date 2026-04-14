@@ -19,6 +19,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.concurrent.locks.LockSupport;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -51,6 +52,12 @@ public final class HttpLoadTestRunner {
         System.out.println("steps=" + config.steps().size() + ", method=" + config.request().method());
         System.out.println("durationSec=" + config.durationSec() + ", warmupSec=" + config.warmupSec()
             + ", users=" + config.virtualUsers() + ", thinkMs=" + config.thinkTimeMs());
+        if (config.targetRps() != null) {
+            System.out.println("targetRps=" + String.format("%.2f", config.targetRps()));
+        }
+        if (config.baselineComparison().enabled()) {
+            System.out.println("baselineReport=" + config.baselineComparison().baselineReportPath());
+        }
 
         HttpClient client = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(5))
@@ -63,9 +70,15 @@ public final class HttpLoadTestRunner {
 
         LoadTestResult result = runLoad(client, config);
         List<ThresholdFailure> thresholdFailures = config.thresholds().evaluate(result);
-        LoadTestReportWriter.ReportArtifacts artifacts = LoadTestReportWriter.write(config, result, thresholdFailures);
-        printSummary(result, thresholdFailures, artifacts);
-        return thresholdFailures.isEmpty() ? 0 : 2;
+        BaselineComparisonResult baselineComparison = BaselineComparator.evaluate(config, result);
+        LoadTestReportWriter.ReportArtifacts artifacts = LoadTestReportWriter.write(
+            config,
+            result,
+            thresholdFailures,
+            baselineComparison
+        );
+        printSummary(result, thresholdFailures, baselineComparison, artifacts);
+        return thresholdFailures.isEmpty() && baselineComparison.passed() ? 0 : 2;
     }
 
     private static void runWarmup(HttpClient client, LoadTestConfig config) {
@@ -79,6 +92,7 @@ public final class HttpLoadTestRunner {
 
     private static LoadTestResult runLoad(HttpClient client, LoadTestConfig config) throws Exception {
         LatencyHistogram latenciesMicros = new LatencyHistogram();
+        StepLatencyCollector stepLatencies = new StepLatencyCollector(config.steps());
         ConcurrentHashMap<String, LongAdder> errors = new ConcurrentHashMap<>();
         LongAdder success = new LongAdder();
         LongAdder failures = new LongAdder();
@@ -86,6 +100,7 @@ public final class HttpLoadTestRunner {
 
         Instant start = Instant.now();
         Instant stopAt = start.plusSeconds(config.durationSec());
+        long startNanos = System.nanoTime();
         AtomicLong workflowCounter = new AtomicLong();
 
         try (ExecutorService executor = java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor()) {
@@ -94,8 +109,13 @@ public final class HttpLoadTestRunner {
                 final int virtualUser = index + 1;
                 futures.add(executor.submit(() -> {
                     while (Instant.now().isBefore(stopAt)) {
+                        long workflowId = workflowCounter.incrementAndGet();
+                        paceWorkflowStart(config.targetRps(), startNanos, workflowId);
+                        if (Instant.now().isAfter(stopAt)) {
+                            break;
+                        }
                         long workflowStart = System.nanoTime();
-                        WorkflowOutcome outcome = executeWorkflow(client, config, virtualUser, workflowCounter.incrementAndGet());
+                        WorkflowOutcome outcome = executeWorkflow(client, config, virtualUser, workflowId, stepLatencies);
                         long elapsedMicros = TimeUnit.NANOSECONDS.toMicros(System.nanoTime() - workflowStart);
 
                         latenciesMicros.record(elapsedMicros);
@@ -119,15 +139,39 @@ public final class HttpLoadTestRunner {
             executor.awaitTermination(10, TimeUnit.SECONDS);
         }
 
-        return LoadTestResult.from(start, Instant.now(), latenciesMicros.snapshot(), success.sum(), failures.sum(), bytes.sum(), errors);
+        return LoadTestResult.from(
+            start,
+            Instant.now(),
+            latenciesMicros.snapshot(),
+            success.sum(),
+            failures.sum(),
+            bytes.sum(),
+            stepLatencies.snapshot(),
+            errors
+        );
     }
 
     static WorkflowOutcome executeWorkflow(HttpClient client, LoadTestConfig config, int virtualUser, long iteration) {
+        return executeWorkflow(client, config, virtualUser, iteration, null);
+    }
+
+    private static WorkflowOutcome executeWorkflow(
+        HttpClient client,
+        LoadTestConfig config,
+        int virtualUser,
+        long iteration,
+        StepLatencyCollector stepLatencies
+    ) {
         Map<String, String> context = initializeContext(config, virtualUser, iteration);
         long responseBytes = 0L;
 
         for (ScenarioStep step : config.steps()) {
+            long stepStart = System.nanoTime();
             StepOutcome outcome = executeStep(client, config, step, context);
+            long stepElapsedMicros = TimeUnit.NANOSECONDS.toMicros(System.nanoTime() - stepStart);
+            if (stepLatencies != null) {
+                stepLatencies.record(step.name(), stepElapsedMicros);
+            }
             responseBytes += outcome.responseBytes();
             if (!outcome.success()) {
                 return new WorkflowOutcome(false, responseBytes, step.name() + ":" + outcome.errorKey());
@@ -287,18 +331,6 @@ public final class HttpLoadTestRunner {
         }
         return current;
     }
-        if (!path.startsWith("$.") || path.length() <= 2) {
-            throw new IllegalArgumentException("Only simple JSON field paths are supported: " + path);
-        }
-        JsonNode current = root;
-        for (String segment : path.substring(2).split("\\.")) {
-            current = current == null ? null : current.get(segment);
-        }
-        if (current == null || current.isMissingNode()) {
-            throw new IllegalArgumentException("JSON path not found: " + path);
-        }
-        return current;
-    }
 
     private static Map<String, String> initializeContext(LoadTestConfig config, int virtualUser, long iteration) {
         Map<String, String> context = new LinkedHashMap<>();
@@ -386,9 +418,22 @@ public final class HttpLoadTestRunner {
         errors.computeIfAbsent(key, ignored -> new LongAdder()).increment();
     }
 
+    private static void paceWorkflowStart(Double targetRps, long startNanos, long workflowNumber) {
+        if (targetRps == null || targetRps <= 0.0 || workflowNumber < 1) {
+            return;
+        }
+        long nanosPerWorkflow = Math.max(1L, (long) (1_000_000_000d / targetRps));
+        long targetStartNanos = startNanos + ((workflowNumber - 1) * nanosPerWorkflow);
+        long delayNanos = targetStartNanos - System.nanoTime();
+        if (delayNanos > 0L) {
+            LockSupport.parkNanos(delayNanos);
+        }
+    }
+
     private static void printSummary(
         LoadTestResult result,
         List<ThresholdFailure> thresholdFailures,
+        BaselineComparisonResult baselineComparison,
         LoadTestReportWriter.ReportArtifacts artifacts
     ) {
         System.out.println("Load test finished");
@@ -400,6 +445,14 @@ public final class HttpLoadTestRunner {
             + " p95=" + String.format("%.3f", result.p95Ms())
             + " p99=" + String.format("%.3f", result.p99Ms())
             + " max=" + String.format("%.3f", result.maxMs()));
+        if (!result.stepLatencyMs().isEmpty()) {
+            System.out.println("stepLatency(ms)");
+            result.stepLatencyMs().forEach((stepName, step) -> System.out.println(
+                " - " + stepName + ": samples=" + step.samples()
+                    + " p95=" + String.format("%.3f", step.p95Ms())
+                    + " p99=" + String.format("%.3f", step.p99Ms())
+            ));
+        }
 
         if (thresholdFailures.isEmpty()) {
             System.out.println("thresholds=passed");
@@ -408,6 +461,15 @@ public final class HttpLoadTestRunner {
             thresholdFailures.forEach(failure -> System.out.println(
                 " - " + failure.metric() + ": expected " + failure.expected() + ", actual " + failure.actual()
             ));
+        }
+
+        if (baselineComparison.enabled()) {
+            System.out.println("baselineComparison=" + (baselineComparison.passed() ? "passed" : "failed"));
+            if (!baselineComparison.passed()) {
+                baselineComparison.failures().forEach(failure -> System.out.println(
+                    " - " + failure.metric() + ": expected " + failure.expected() + ", actual " + failure.actual()
+                ));
+            }
         }
 
         System.out.println("jsonReport=" + artifacts.jsonReport().toAbsolutePath());

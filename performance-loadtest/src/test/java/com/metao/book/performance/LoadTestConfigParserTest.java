@@ -26,20 +26,32 @@ class LoadTestConfigParserTest {
             "--warmup-sec", "5",
             "--timeout-sec", "9",
             "--think-ms", "15",
+            "--target-rps", "75.5",
             "--max-error-rate-pct", "1.5",
             "--min-throughput-rps", "10",
             "--max-p95-ms", "150",
-            "--max-p99-ms", "250"
+            "--max-p99-ms", "250",
+            "--compare-to", tempDir.resolve("baseline.json").toString(),
+            "--max-throughput-drop-pct", "12",
+            "--max-p95-regression-pct", "18",
+            "--max-p99-regression-pct", "25",
+            "--max-error-rate-increase-pct", "2"
         });
 
         assertFalse(parsed.helpRequested());
         assertEquals("GET", parsed.config().request().method());
         assertEquals(2, parsed.config().request().headers().size());
         assertEquals(25, parsed.config().virtualUsers());
+        assertEquals(75.5, parsed.config().targetRps());
         assertEquals(1.5, parsed.config().thresholds().maxErrorRatePct());
         assertEquals(10.0, parsed.config().thresholds().minThroughputRps());
         assertEquals(150.0, parsed.config().thresholds().maxP95Ms());
         assertEquals(250.0, parsed.config().thresholds().maxP99Ms());
+        assertTrue(parsed.config().baselineComparison().enabled());
+        assertEquals(12.0, parsed.config().baselineComparison().maxThroughputDropPct());
+        assertEquals(18.0, parsed.config().baselineComparison().maxP95RegressionPct());
+        assertEquals(25.0, parsed.config().baselineComparison().maxP99RegressionPct());
+        assertEquals(2.0, parsed.config().baselineComparison().maxErrorRateIncreasePct());
     }
 
     @Test
@@ -96,6 +108,13 @@ class LoadTestConfigParserTest {
                     "sku": "0594511488",
                     "userId": "loadtest-${vu}-${iteration}-${uuid}"
                   },
+                  "comparison": {
+                    "compareTo": "baseline.json",
+                    "maxThroughputDropPct": 11.0
+                  },
+                  "load": {
+                    "targetRps": 40.0
+                  },
                   "steps": [
                     {
                       "name": "add-cart-item",
@@ -128,6 +147,9 @@ class LoadTestConfigParserTest {
 
         assertEquals("checkout-flow", parsed.config().label());
         assertEquals(2, parsed.config().steps().size());
+        assertEquals(40.0, parsed.config().targetRps());
+        assertTrue(parsed.config().baselineComparison().enabled());
+        assertEquals(11.0, parsed.config().baselineComparison().maxThroughputDropPct());
         assertEquals("loadtest-${vu}-${iteration}-${uuid}", parsed.config().variables().get("userId"));
         assertEquals("add-cart-item", parsed.config().steps().getFirst().name());
         assertEquals("$.value", parsed.config().steps().get(1).extract().get("orderId"));

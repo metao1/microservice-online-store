@@ -26,6 +26,7 @@ class LoadTestThresholdsTest {
             600.0,
             800.0,
             5.0,
+            Map.of(),
             Map.of("HTTP_500", 5L)
         );
 
@@ -33,7 +34,7 @@ class LoadTestThresholdsTest {
 
         assertEquals(4, failures.size());
         assertTrue(failures.stream().anyMatch(failure -> failure.metric().equals("errorRatePct")));
-        assertTrue(failures.stream().anyMatch(failure -> failure.metric().equals("throughputRps")));
+        assertTrue(failures.stream().anyMatch(failure -> failure.metric().equals("workflowThroughputRps")));
         assertTrue(failures.stream().anyMatch(failure -> failure.metric().equals("p95Ms")));
         assertTrue(failures.stream().anyMatch(failure -> failure.metric().equals("p99Ms")));
     }

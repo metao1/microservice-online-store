@@ -22,6 +22,7 @@ record LoadTestResult(
     double p99Ms,
     double maxMs,
     double errorRatePct,
+    Map<String, StepLatencyStats> stepLatencyMs,
     Map<String, Long> errors
 ) {
 
@@ -32,6 +33,7 @@ record LoadTestResult(
         long success,
         long failures,
         long responseBytes,
+        Map<String, StepLatencyStats> stepLatencyMs,
         ConcurrentHashMap<String, LongAdder> errors
     ) {
         long durationMs = Math.max(1, Duration.between(start, end).toMillis());
@@ -57,6 +59,7 @@ record LoadTestResult(
             latenciesMicros.percentileMs(99),
             latenciesMicros.percentileMs(100),
             errorRatePct,
+            Map.copyOf(stepLatencyMs),
             Map.copyOf(errorSnapshot)
         );
     }

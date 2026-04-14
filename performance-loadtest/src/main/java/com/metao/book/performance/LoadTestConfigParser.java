@@ -44,6 +44,7 @@ final class LoadTestConfigParser {
             "  --scenario <name>                Optional. Scenario name inside scenario file",
             "  --label <name>                   Optional. Override report/scenario label",
             "  --users <int>                    Optional. Default 50",
+            "  --target-rps <double>            Optional. Global workflow start pacing target",
             "  --duration-sec <int>             Optional. Default 60",
             "  --warmup-sec <int>               Optional. Default 10",
             "  --timeout-sec <int>              Optional. Default 5",
@@ -53,6 +54,11 @@ final class LoadTestConfigParser {
             "  --min-throughput-rps <double>    Optional. Example 50.0",
             "  --max-p95-ms <double>            Optional. Example 200.0",
             "  --max-p99-ms <double>            Optional. Example 500.0",
+            "  --compare-to <path>              Optional. Baseline JSON report for regression checks",
+            "  --max-throughput-drop-pct <double> Optional. Default 10.0",
+            "  --max-p95-regression-pct <double>  Optional. Default 15.0",
+            "  --max-p99-regression-pct <double>  Optional. Default 20.0",
+            "  --max-error-rate-increase-pct <double> Optional. Default 1.0",
             "  --help"
         );
     }
@@ -72,12 +78,14 @@ final class LoadTestConfigParser {
             request,
             List.of(step),
             options.intValue("--users", 50),
+            options.doubleValue("--target-rps", null),
             options.intValue("--duration-sec", 60),
             options.intValue("--warmup-sec", 10),
             options.intValue("--timeout-sec", 5),
             options.longValue("--think-ms", 0L),
             Path.of(options.singleOrDefault("--report-dir", "performance-loadtest/reports")),
             parseThresholds(options),
+            parseBaselineComparison(options, null),
             "cli",
             Map.of()
         );
@@ -110,12 +118,14 @@ final class LoadTestConfigParser {
             steps.getFirst().request(),
             steps,
             options.intValue("--users", selectedScenario.load.users),
+            options.doubleValue("--target-rps", selectedScenario.load.targetRps),
             options.intValue("--duration-sec", selectedScenario.load.durationSec),
             options.intValue("--warmup-sec", selectedScenario.load.warmupSec),
             options.intValue("--timeout-sec", selectedScenario.load.timeoutSec),
             options.longValue("--think-ms", selectedScenario.load.thinkMs),
             Path.of(options.singleOrDefault("--report-dir", defaultReportDir(selectedScenario.reportDir))),
             overrideThresholds(scenarioThresholds, options),
+            parseBaselineComparison(options, selectedScenario.comparison, scenarioBaseDir),
             scenarioFile + "#" + selectedScenario.name,
             selectedScenario.variables == null ? Map.of() : selectedScenario.variables
         );
@@ -265,6 +275,67 @@ final class LoadTestConfigParser {
         );
     }
 
+    private static BaselineComparisonConfig parseBaselineComparison(
+        ParsedOptions options,
+        ComparisonDefinition scenarioComparison,
+        Path scenarioBaseDir
+    ) {
+        String compareToOption = options.single("--compare-to");
+        Path baselinePath = null;
+        if (compareToOption != null && !compareToOption.isBlank()) {
+            baselinePath = Path.of(compareToOption);
+        } else if (scenarioComparison != null && scenarioComparison.compareTo != null && !scenarioComparison.compareTo.isBlank()) {
+            baselinePath = Path.of(scenarioComparison.compareTo);
+            if (scenarioBaseDir != null && !baselinePath.isAbsolute()) {
+                baselinePath = scenarioBaseDir.resolve(baselinePath).normalize();
+            }
+        }
+
+        if (baselinePath == null) {
+            return BaselineComparisonConfig.none();
+        }
+
+        double maxThroughputDropPct = options.doubleValue(
+            "--max-throughput-drop-pct",
+            scenarioComparison != null && scenarioComparison.maxThroughputDropPct != null
+                ? scenarioComparison.maxThroughputDropPct
+                : BaselineComparisonConfig.DEFAULT_MAX_THROUGHPUT_DROP_PCT
+        );
+        double maxP95RegressionPct = options.doubleValue(
+            "--max-p95-regression-pct",
+            scenarioComparison != null && scenarioComparison.maxP95RegressionPct != null
+                ? scenarioComparison.maxP95RegressionPct
+                : BaselineComparisonConfig.DEFAULT_MAX_P95_REGRESSION_PCT
+        );
+        double maxP99RegressionPct = options.doubleValue(
+            "--max-p99-regression-pct",
+            scenarioComparison != null && scenarioComparison.maxP99RegressionPct != null
+                ? scenarioComparison.maxP99RegressionPct
+                : BaselineComparisonConfig.DEFAULT_MAX_P99_REGRESSION_PCT
+        );
+        double maxErrorRateIncreasePct = options.doubleValue(
+            "--max-error-rate-increase-pct",
+            scenarioComparison != null && scenarioComparison.maxErrorRateIncreasePct != null
+                ? scenarioComparison.maxErrorRateIncreasePct
+                : BaselineComparisonConfig.DEFAULT_MAX_ERROR_RATE_INCREASE_PCT
+        );
+
+        return new BaselineComparisonConfig(
+            baselinePath,
+            maxThroughputDropPct,
+            maxP95RegressionPct,
+            maxP99RegressionPct,
+            maxErrorRateIncreasePct
+        );
+    }
+
+    private static BaselineComparisonConfig parseBaselineComparison(
+        ParsedOptions options,
+        Path scenarioBaseDir
+    ) {
+        return parseBaselineComparison(options, null, scenarioBaseDir);
+    }
+
     private static Map<String, String> parseHeaders(List<String> rawHeaders) {
         Map<String, String> headers = new LinkedHashMap<>();
         for (String rawHeader : rawHeaders) {
@@ -368,6 +439,7 @@ final class LoadTestConfigParser {
         public List<StepDefinition> steps = List.of();
         public LoadDefinition load;
         public ThresholdDefinition thresholds;
+        public ComparisonDefinition comparison;
         public String reportDir;
         public Map<String, String> variables = Map.of();
     }
@@ -409,6 +481,7 @@ final class LoadTestConfigParser {
     @JsonIgnoreProperties(ignoreUnknown = true)
     static final class LoadDefinition {
         public int users = 50;
+        public Double targetRps;
         public int durationSec = 60;
         public int warmupSec = 10;
         public int timeoutSec = 5;
@@ -421,5 +494,14 @@ final class LoadTestConfigParser {
         public Double minThroughputRps;
         public Double maxP95Ms;
         public Double maxP99Ms;
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static final class ComparisonDefinition {
+        public String compareTo;
+        public Double maxThroughputDropPct;
+        public Double maxP95RegressionPct;
+        public Double maxP99RegressionPct;
+        public Double maxErrorRateIncreasePct;
     }
 }

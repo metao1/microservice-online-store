@@ -29,7 +29,7 @@ record LoadTestThresholds(
         }
         if (minThroughputRps != null && result.throughputRps() < minThroughputRps) {
             failures.add(new ThresholdFailure(
-                "throughputRps",
+                "workflowThroughputRps",
                 ">= %.3f".formatted(minThroughputRps),
                 "%.3f".formatted(result.throughputRps())
             ));

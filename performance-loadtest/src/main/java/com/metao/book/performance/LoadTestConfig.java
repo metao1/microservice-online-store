@@ -10,12 +10,14 @@ record LoadTestConfig(
     HttpRequestSpec request,
     List<ScenarioStep> steps,
     int virtualUsers,
+    Double targetRps,
     int durationSec,
     int warmupSec,
     int requestTimeoutSec,
     long thinkTimeMs,
     Path reportDir,
     LoadTestThresholds thresholds,
+    BaselineComparisonConfig baselineComparison,
     String sourceDescription,
     Map<String, String> variables
 ) {
@@ -30,9 +32,13 @@ record LoadTestConfig(
         if (virtualUsers < 1 || durationSec < 1 || warmupSec < 0 || requestTimeoutSec < 1 || thinkTimeMs < 0) {
             throw new IllegalArgumentException("Invalid load test numeric configuration");
         }
+        if (targetRps != null && targetRps <= 0.0) {
+            throw new IllegalArgumentException("targetRps must be greater than 0 when provided");
+        }
         label = label == null || label.isBlank() ? "ad-hoc" : label.trim();
         reportDir = reportDir == null ? Path.of("performance-loadtest/reports") : reportDir;
         thresholds = thresholds == null ? LoadTestThresholds.none() : thresholds;
+        baselineComparison = baselineComparison == null ? BaselineComparisonConfig.none() : baselineComparison;
         sourceDescription = sourceDescription == null || sourceDescription.isBlank() ? "cli" : sourceDescription;
         variables = Map.copyOf(new LinkedHashMap<>(variables == null ? Map.of() : variables));
     }

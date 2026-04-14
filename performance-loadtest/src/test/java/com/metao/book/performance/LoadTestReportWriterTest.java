@@ -30,12 +30,14 @@ class LoadTestReportWriterTest {
                 0L
             )),
             20,
+            null,
             30,
             5,
             5,
             0,
             tempDir,
             new LoadTestThresholds(1.0, null, 200.0, 500.0),
+            BaselineComparisonConfig.none(),
             "test",
             Map.of()
         );
@@ -54,10 +56,11 @@ class LoadTestReportWriterTest {
             120.0,
             200.0,
             0.0,
+            Map.of(),
             Map.of()
         );
 
-        var artifacts = LoadTestReportWriter.write(config, result, List.of());
+        var artifacts = LoadTestReportWriter.write(config, result, List.of(), BaselineComparisonResult.disabled());
 
         assertTrue(Files.exists(artifacts.jsonReport()));
         assertTrue(Files.exists(artifacts.textReport()));

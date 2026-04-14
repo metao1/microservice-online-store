@@ -155,12 +155,14 @@ class HttpLoadTestRunnerFlowTest {
                 )
             ),
             1,
+            null,
             1,
             0,
             5,
             0L,
             tempDir,
             LoadTestThresholds.none(),
+            BaselineComparisonConfig.none(),
             "test",
             Map.of(
                 "sku", "0594511488",

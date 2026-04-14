@@ -13,7 +13,7 @@ Example: payment service
 ## 2) Run Java load test (separate process)
 
 ```bash
-./gradlew :performance-loadtest:run --args='--url http://localhost:8084/payments/status/PENDING?offset=0&limit=10 --users 100 --warmup-sec 15 --duration-sec 120 --think-ms 5'
+  ./gradlew :performance-loadtest:run --args='--url http://localhost:8084/payments/status/PENDING?offset=0&limit=10 --users 100 --target-rps 120 --warmup-sec 15 --duration-sec 120 --think-ms 5'
 ```
 
 The runner writes JSON reports under `performance-loadtest/reports/`.
@@ -46,6 +46,7 @@ Scenario files are JSON and contain a `scenarios` array. Each scenario can defin
 - `steps[].maxAttempts`
 - `steps[].retryDelayMs`
 - `load.users`
+- `load.targetRps`
 - `load.durationSec`
 - `load.warmupSec`
 - `load.timeoutSec`
@@ -54,6 +55,11 @@ Scenario files are JSON and contain a `scenarios` array. Each scenario can defin
 - `thresholds.minThroughputRps`
 - `thresholds.maxP95Ms`
 - `thresholds.maxP99Ms`
+- `comparison.compareTo`
+- `comparison.maxThroughputDropPct`
+- `comparison.maxP95RegressionPct`
+- `comparison.maxP99RegressionPct`
+- `comparison.maxErrorRateIncreasePct`
 
 If a threshold is violated, the runner exits with a non-zero status so it can be used as a CI gate.
 
@@ -86,6 +92,9 @@ Each run now writes:
 
 - `*.json` machine-readable report
 - `*.txt` human-readable summary
+- per-step latency stats (`stepLatencyMs`) for multi-step scenarios
+
+`throughputRps` and `totalWorkflows` represent completed workflow iterations per second/count (not raw HTTP request count).
 
 Both are stored under `performance-loadtest/reports/` by default, or a custom directory via `--report-dir`.
 
@@ -146,3 +155,17 @@ jcmd | grep payment-microservice
 ```
 
 If the scenario breaches any configured threshold, the process exits non-zero and the report records the failed checks.
+
+## 8) Baseline regression gate
+
+Compare the current run to a previous report and fail on drift:
+
+```bash
+./gradlew :performance-loadtest:run --args='--scenario-file performance-loadtest/scenarios/bookstore-scenarios.json --scenario inventory-category-page --compare-to performance-loadtest/reports/inventory-category-page-20260414-101530.json --max-throughput-drop-pct 10 --max-p95-regression-pct 15 --max-p99-regression-pct 20 --max-error-rate-increase-pct 1'
+```
+
+This checks:
+
+- throughput drop percentage versus baseline
+- p95 and p99 latency regression percentages
+- error-rate increase percentage points
