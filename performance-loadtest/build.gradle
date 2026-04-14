@@ -1,9 +1,14 @@
 plugins {
+  id 'java'
   id 'application'
 }
 
 dependencies {
+  implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.2'
   implementation project(':shared-kernel')
+
+  testImplementation platform('org.junit:junit-bom:5.10.2')
+  testImplementation 'org.junit.jupiter:junit-jupiter'
 }
 
 application {
@@ -12,4 +17,8 @@ application {
 
 tasks.named('run') {
   standardInput = System.in
+}
+
+tasks.named('test') {
+  useJUnitPlatform()
 }
