@@ -7,6 +7,11 @@ on:
         description: Additional review context extracted from a manual trigger.
         required: false
         type: string
+    secrets:
+      GEMINI_API_KEY:
+        required: true
+      APP_PRIVATE_KEY:
+        required: false
 
 concurrency:
   group: ${{ github.workflow }}-review-${{ github.event.pull_request.number || github.event.issue.number }}
