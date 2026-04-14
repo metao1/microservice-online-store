@@ -7,9 +7,6 @@ on:
         description: Additional review context extracted from a manual trigger.
         required: false
         type: string
-    secrets:
-      GEMINI_API_KEY:
-        required: true
 
 concurrency:
   group: ${{ github.workflow }}-review-${{ github.event.pull_request.number || github.event.issue.number }}
@@ -48,6 +45,7 @@ jobs:
         id: gemini_pr_review
         uses: google-github-actions/run-gemini-cli@v0
         env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GITHUB_TOKEN: ${{ steps.mint_identity_token.outputs.token || github.token }}
           ISSUE_TITLE: ${{ github.event.pull_request.title || github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.pull_request.body || github.event.issue.body }}
