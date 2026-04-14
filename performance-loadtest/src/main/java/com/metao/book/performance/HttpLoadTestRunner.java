@@ -271,6 +271,28 @@ public final class HttpLoadTestRunner {
         }
         JsonNode current = root;
         for (String segment : path.substring(2).split("\\.")) {
+            if (current == null) break;
+            if (current.isArray()) {
+                try {
+                    int index = Integer.parseInt(segment);
+                    current = current.get(index);
+                } catch (NumberFormatException e) {
+                    current = current.get(segment);
+                }
+            } else {
+                current = current.get(segment);
+            }
+        }
+        if (current == null || current.isMissingNode()) {
+            throw new IllegalArgumentException("JSON path not found: " + path);
+        }
+        return current;
+    }
+        if (!path.startsWith("$.") || path.length() <= 2) {
+            throw new IllegalArgumentException("Only simple JSON field paths are supported: " + path);
+        }
+        JsonNode current = root;
+        for (String segment : path.substring(2).split("\\.")) {
             current = current == null ? null : current.get(segment);
         }
         if (current == null || current.isMissingNode()) {
