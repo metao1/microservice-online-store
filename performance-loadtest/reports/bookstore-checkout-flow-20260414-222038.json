@@ -1,0 +1,189 @@
+{
+  "scenario" : {
+    "label" : "bookstore-checkout-flow",
+    "source" : "performance-loadtest/scenarios/bookstore-scenarios.json#bookstore-checkout-flow",
+    "variables" : {
+      "userId" : "loadtest-user-${vu}-${iteration}-${uuid}",
+      "sku" : "0594511488",
+      "productTitle" : "Load Test Book",
+      "price" : "24.99",
+      "currency" : "EUR"
+    },
+    "request" : {
+      "bodySource" : "request-bodies/add-cart-item.json",
+      "method" : "POST",
+      "bodyPresent" : true,
+      "url" : "http://localhost:8086/cart",
+      "headers" : {
+        "Accept" : "application/json"
+      }
+    },
+    "steps" : [ {
+      "name" : "add-cart-item",
+      "url" : "http://localhost:8086/cart",
+      "method" : "POST",
+      "headers" : {
+        "Accept" : "application/json"
+      },
+      "bodyPresent" : true,
+      "bodySource" : "request-bodies/add-cart-item.json",
+      "expectedStatus" : 201,
+      "maxAttempts" : 1,
+      "retryDelayMs" : 0,
+      "extract" : { },
+      "assertions" : [ ]
+    }, {
+      "name" : "create-order",
+      "url" : "http://localhost:8086/api/order",
+      "method" : "POST",
+      "headers" : {
+        "Accept" : "application/json"
+      },
+      "bodyPresent" : true,
+      "bodySource" : "inline",
+      "expectedStatus" : 201,
+      "maxAttempts" : 1,
+      "retryDelayMs" : 0,
+      "extract" : {
+        "orderId" : "$.value"
+      },
+      "assertions" : [ ]
+    }, {
+      "name" : "lookup-payment",
+      "url" : "http://localhost:8084/payments/order/${orderId}",
+      "method" : "GET",
+      "headers" : {
+        "Accept" : "application/json"
+      },
+      "bodyPresent" : false,
+      "bodySource" : "none",
+      "expectedStatus" : 200,
+      "maxAttempts" : 20,
+      "retryDelayMs" : 250,
+      "extract" : {
+        "paymentId" : "$.paymentId"
+      },
+      "assertions" : [ ]
+    }, {
+      "name" : "process-payment",
+      "url" : "http://localhost:8084/payments/${paymentId}/process",
+      "method" : "POST",
+      "headers" : {
+        "Accept" : "application/json"
+      },
+      "bodyPresent" : false,
+      "bodySource" : "none",
+      "expectedStatus" : 200,
+      "maxAttempts" : 1,
+      "retryDelayMs" : 0,
+      "extract" : { },
+      "assertions" : [ ]
+    }, {
+      "name" : "verify-product",
+      "url" : "http://localhost:8083/products/${sku}",
+      "method" : "GET",
+      "headers" : {
+        "Accept" : "application/json"
+      },
+      "bodyPresent" : false,
+      "bodySource" : "none",
+      "expectedStatus" : 200,
+      "maxAttempts" : 10,
+      "retryDelayMs" : 200,
+      "extract" : { },
+      "assertions" : [ ]
+    } ],
+    "load" : {
+      "virtualUsers" : 8,
+      "targetRps" : null,
+      "durationSec" : 60,
+      "warmupSec" : 5,
+      "requestTimeoutSec" : 5,
+      "thinkTimeMs" : 100
+    }
+  },
+  "result" : {
+    "start" : "2026-04-14T20:19:38.802559Z",
+    "end" : "2026-04-14T20:20:38.863747Z",
+    "durationMs" : 60061,
+    "totalWorkflows" : 4424,
+    "totalRequests" : 4424,
+    "success" : 0,
+    "failures" : 4424,
+    "errorRatePct" : 100.0,
+    "workflowThroughputRps" : 73.65844724530061,
+    "throughputRps" : 73.65844724530061,
+    "latencyMs" : {
+      "p50" : 3.218,
+      "min" : 0.482,
+      "p99" : 9.406,
+      "max" : 17.3,
+      "p95" : 6.21
+    },
+    "stepLatencyMs" : {
+      "verify-product" : {
+        "samples" : 0,
+        "minMs" : 0.0,
+        "p50Ms" : 0.0,
+        "p95Ms" : 0.0,
+        "p99Ms" : 0.0,
+        "maxMs" : 0.0
+      },
+      "create-order" : {
+        "samples" : 0,
+        "minMs" : 0.0,
+        "p50Ms" : 0.0,
+        "p95Ms" : 0.0,
+        "p99Ms" : 0.0,
+        "maxMs" : 0.0
+      },
+      "add-cart-item" : {
+        "samples" : 4424,
+        "minMs" : 0.441,
+        "p50Ms" : 2.952,
+        "p95Ms" : 5.71,
+        "p99Ms" : 9.022,
+        "maxMs" : 17.191
+      },
+      "lookup-payment" : {
+        "samples" : 0,
+        "minMs" : 0.0,
+        "p50Ms" : 0.0,
+        "p95Ms" : 0.0,
+        "p99Ms" : 0.0,
+        "maxMs" : 0.0
+      },
+      "process-payment" : {
+        "samples" : 0,
+        "minMs" : 0.0,
+        "p50Ms" : 0.0,
+        "p95Ms" : 0.0,
+        "p99Ms" : 0.0,
+        "maxMs" : 0.0
+      }
+    },
+    "responseBytes" : 0,
+    "errors" : {
+      "add-cart-item:ConnectException" : 2664,
+      "add-cart-item:IOException" : 1760
+    }
+  },
+  "thresholds" : {
+    "configured" : true,
+    "passed" : false,
+    "limits" : {
+      "maxErrorRatePct" : 1.0,
+      "minThroughputRps" : null,
+      "maxP95Ms" : 1500.0,
+      "maxP99Ms" : 3000.0
+    },
+    "failures" : [ {
+      "metric" : "errorRatePct",
+      "expected" : "<= 1.000",
+      "actual" : "100.000"
+    } ]
+  },
+  "baselineComparison" : {
+    "configured" : false
+  }
+}

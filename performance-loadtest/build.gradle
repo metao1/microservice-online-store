@@ -18,6 +18,7 @@ application {
 
 tasks.named('run') {
   standardInput = System.in
+  workingDir = rootProject.projectDir
 }
 
 tasks.named('test') {

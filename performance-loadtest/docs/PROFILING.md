@@ -86,6 +86,19 @@ Run it with:
 ./gradlew :performance-loadtest:run --args='--scenario-file performance-loadtest/scenarios/bookstore-scenarios.json --scenario bookstore-checkout-flow'
 ```
 
+For strict validation across order/payment/inventory (including inventory reduction assertion), use:
+
+```bash
+./gradlew :performance-loadtest:run --args='--scenario-file performance-loadtest/scenarios/bookstore-scenarios.json --scenario bookstore-e2e-order-payment-inventory'
+```
+
+This scenario:
+
+- captures product volume before checkout
+- creates order and processes payment
+- asserts `$.status == SUCCESSFUL` on payment processing response
+- retries inventory read and asserts `$.volume < ${beforeVolume}`
+
 ### Artifacts
 
 Each run now writes:
