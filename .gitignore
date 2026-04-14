@@ -43,3 +43,4 @@ bin
 *.crt
 /openspec/
 /.claude/
+/performance-loadtest/reports/
