@@ -87,7 +87,9 @@ final class LoadTestReportWriter {
         payload.put("start", result.start().toString());
         payload.put("end", result.end().toString());
         payload.put("durationMs", result.durationMs());
-        payload.put("totalRequests", result.totalRequests());
+        payload.put("totalWorkflows", result.totalWorkflows());
+        // Backward-compatible alias; this value counts completed workflows, not raw HTTP requests.
+        payload.put("totalRequests", result.totalWorkflows());
         payload.put("success", result.success());
         payload.put("failures", result.failures());
         payload.put("errorRatePct", result.errorRatePct());
@@ -133,10 +135,10 @@ final class LoadTestReportWriter {
         summary.append("source=").append(config.sourceDescription()).append(System.lineSeparator());
         summary.append("url=").append(config.request().url()).append(System.lineSeparator());
         summary.append("method=").append(config.request().method()).append(System.lineSeparator());
-        summary.append("requests=").append(result.totalRequests())
+        summary.append("workflows=").append(result.totalWorkflows())
             .append(", success=").append(result.success())
             .append(", failures=").append(result.failures()).append(System.lineSeparator());
-        summary.append("throughputRps=").append(String.format("%.2f", result.throughputRps())).append(System.lineSeparator());
+        summary.append("workflowThroughputRps=").append(String.format("%.2f", result.throughputRps())).append(System.lineSeparator());
         summary.append("errorRatePct=").append(String.format("%.3f", result.errorRatePct())).append(System.lineSeparator());
         summary.append("latencyMs min=").append(String.format("%.3f", result.minMs()))
             .append(" p50=").append(String.format("%.3f", result.p50Ms()))

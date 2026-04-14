@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -79,7 +78,7 @@ public final class HttpLoadTestRunner {
     }
 
     private static LoadTestResult runLoad(HttpClient client, LoadTestConfig config) throws Exception {
-        ConcurrentLinkedQueue<Long> latenciesMicros = new ConcurrentLinkedQueue<>();
+        LatencyHistogram latenciesMicros = new LatencyHistogram();
         ConcurrentHashMap<String, LongAdder> errors = new ConcurrentHashMap<>();
         LongAdder success = new LongAdder();
         LongAdder failures = new LongAdder();
@@ -99,7 +98,7 @@ public final class HttpLoadTestRunner {
                         WorkflowOutcome outcome = executeWorkflow(client, config, virtualUser, workflowCounter.incrementAndGet());
                         long elapsedMicros = TimeUnit.NANOSECONDS.toMicros(System.nanoTime() - workflowStart);
 
-                        latenciesMicros.add(elapsedMicros);
+                        latenciesMicros.record(elapsedMicros);
                         bytes.add(outcome.responseBytes());
                         if (outcome.success()) {
                             success.increment();
@@ -120,7 +119,7 @@ public final class HttpLoadTestRunner {
             executor.awaitTermination(10, TimeUnit.SECONDS);
         }
 
-        return LoadTestResult.from(start, Instant.now(), latenciesMicros, success.sum(), failures.sum(), bytes.sum(), errors);
+        return LoadTestResult.from(start, Instant.now(), latenciesMicros.snapshot(), success.sum(), failures.sum(), bytes.sum(), errors);
     }
 
     static WorkflowOutcome executeWorkflow(HttpClient client, LoadTestConfig config, int virtualUser, long iteration) {
@@ -371,8 +370,8 @@ public final class HttpLoadTestRunner {
         LoadTestReportWriter.ReportArtifacts artifacts
     ) {
         System.out.println("Load test finished");
-        System.out.println("workflows=" + result.totalRequests() + ", success=" + result.success() + ", failures=" + result.failures());
-        System.out.println("throughput(rps)=" + String.format("%.2f", result.throughputRps()));
+        System.out.println("workflows=" + result.totalWorkflows() + ", success=" + result.success() + ", failures=" + result.failures());
+        System.out.println("workflowThroughput(rps)=" + String.format("%.2f", result.throughputRps()));
         System.out.println("errorRatePct=" + String.format("%.3f", result.errorRatePct()));
         System.out.println("latency(ms): min=" + String.format("%.3f", result.minMs())
             + " p50=" + String.format("%.3f", result.p50Ms())

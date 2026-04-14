@@ -5,6 +5,7 @@ plugins {
 
 dependencies {
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.2'
+  implementation 'org.hdrhistogram:HdrHistogram:2.2.2'
   implementation project(':shared-kernel')
 
   testImplementation platform('org.junit:junit-bom:5.10.2')
