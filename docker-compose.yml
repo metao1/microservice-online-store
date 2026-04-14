@@ -131,9 +131,12 @@ services:
     container_name: order-microservice
     hostname: order-microservice
     #restart: on-failure
+    mem_limit: 1g
+    mem_reservation: 512m
     environment:
       DATABASE_URL: "jdbc:postgresql://postgres-order:5432/bookstore-order"
       SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
+      OTLP_TRACING_ENDPOINT: http://otel-collector:4318
       BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:9092
       DATABASE_USER: bookstore
       DATABASE_PASSWORD: bookstore
@@ -150,13 +153,16 @@ services:
       - kafka-schema-registry
 
   inventory-microservice:
-    image: invetory-microservice
+    image: inventory-microservice
     container_name: inventory-microservice
     hostname: inventory-microservice
     #restart: on-failure
+    mem_limit: 1g
+    mem_reservation: 512m
     environment:
       DATABASE_URL: "jdbc:postgresql://postgres-inventory:5432/bookstore-inventory"
       SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
+      OTLP_TRACING_ENDPOINT: http://otel-collector:4318
       BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:9092
       DATABASE_USER: bookstore
       DATABASE_PASSWORD: bookstore
@@ -167,19 +173,22 @@ services:
       dockerfile: inventory-microservice/src/main/docker/Dockerfile
     #platform: linux/amd64
     ports:
-      - "8083:8083"
+      - "8083:8080"
     depends_on:
       - postgres-inventory
       - kafka1
       - kafka-schema-registry
 
   payment-microservice:
-    image: inventory-microservice
+    image: payment-microservice
     container_name: payment-microservice
     hostname: payment-microservice
+    mem_limit: 1g
+    mem_reservation: 512m
     environment:
       DATABASE_URL: "jdbc:postgresql://postgres-payment:5432/bookstore-payment"
       SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
+      OTLP_TRACING_ENDPOINT: http://otel-collector:4318
       BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:9092
       DATABASE_USER: bookstore
       DATABASE_PASSWORD: bookstore
@@ -189,7 +198,7 @@ services:
       context: .
       dockerfile: payment-microservice/src/main/docker/Dockerfile
     ports:
-      - "8084:8084"
+      - "8084:8080"
     depends_on:
       - kafka1
       - kafka-schema-registry
@@ -200,15 +209,38 @@ services:
     container_name: frontend
     hostname: frontend
     #restart: on-failure
-    environment:
-      VITE_PRODUCTS_API_BASE_URL: "http://inventory-microservice:8080"
-      VITE_PAYMENT_API_BASE_URL: "http://payment-microservice:8080"
-      VITE_CART_API_BASE_URL: "http://order-microservice:8080"
     build:
       context: frontend
       dockerfile: Dockerfile
+      args:
+        VITE_PRODUCTS_API_URL: "http://localhost:8083"
+        VITE_PAYMENT_API_URL: "http://localhost:8084"
+        VITE_CART_API_URL: "http://localhost:8086"
+        VITE_PROFILE: "prod"
     ports:
       - "3000:3000"
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.62.0
+    hostname: jaeger
+    container_name: jaeger
+    ports:
+      - "16686:16686"
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.112.0
+    hostname: otel-collector
+    container_name: otel-collector
+    command: [ "--config=/etc/otelcol-contrib/config.yaml" ]
+    volumes:
+      - ./observability/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml:ro
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    depends_on:
+      - jaeger
 
   kafkacat:
     image: confluentinc/cp-kafkacat
