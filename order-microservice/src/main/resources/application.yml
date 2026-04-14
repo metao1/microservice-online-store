@@ -123,6 +123,8 @@ spring:
 
 kafka:
   enabled: ${KAFKA_ENABLED:true}
+  admin:
+    compression-type: zstd
   topic:
     order-created:
       id: "order-created-id"

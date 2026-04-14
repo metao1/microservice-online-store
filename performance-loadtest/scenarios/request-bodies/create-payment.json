@@ -1,0 +1,7 @@
+{
+  "orderId": "ORDER-PERF-001",
+  "amount": 49.99,
+  "currency": "EUR",
+  "paymentMethodType": "CREDIT_CARD",
+  "paymentMethodDetails": "**** **** **** 4242"
+}

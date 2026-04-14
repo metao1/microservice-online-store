@@ -29,6 +29,6 @@ WORKDIR /app
 # Copy layers separately to leverage Docker cache
 COPY --from=build /workspace/layers/dependencies/ /workspace/layers/snapshot-dependencies/ /workspace/layers/spring-boot-loader/ /workspace/layers/application/ ./
 
-ENV JAVA_TOOL_OPTIONS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75 -XX:InitialRAMPercentage=30"
+ENV JAVA_TOOL_OPTIONS="-XX:+UseContainerSupport -Xms128m -Xmx512m -XX:MaxMetaspaceSize=192m -XX:MaxDirectMemorySize=128m -XX:+ExitOnOutOfMemoryError"
 
 ENTRYPOINT ["java","org.springframework.boot.loader.launch.JarLauncher"]

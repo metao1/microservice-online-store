@@ -1,0 +1,12 @@
+{
+  "user_id": "${userId}",
+  "items": [
+    {
+      "sku": "${sku}",
+      "productTitle": "${productTitle}",
+      "quantity": 1,
+      "price": ${price},
+      "currency": "${currency}"
+    }
+  ]
+}

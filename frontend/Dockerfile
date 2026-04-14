@@ -2,6 +2,16 @@ FROM node:20 AS build
 
 WORKDIR /app
 
+ARG VITE_PRODUCTS_API_URL
+ARG VITE_PAYMENT_API_URL
+ARG VITE_CART_API_URL
+ARG VITE_PROFILE=prod
+
+ENV VITE_PRODUCTS_API_URL=$VITE_PRODUCTS_API_URL
+ENV VITE_PAYMENT_API_URL=$VITE_PAYMENT_API_URL
+ENV VITE_CART_API_URL=$VITE_CART_API_URL
+ENV VITE_PROFILE=$VITE_PROFILE
+
 COPY package*.json ./
 
 RUN npm install
@@ -10,8 +20,12 @@ COPY . .
 
 RUN npm run build
 
-FROM nginx:alpine
+FROM node:20-alpine
 
-COPY --from=build /app/dist /usr/share/nginx/html
+RUN npm install -g serve
 
-CMD ["nginx", "-g", "daemon off;"]
+COPY --from=build /app/dist /app
+
+EXPOSE 3000
+
+CMD ["serve", "-s", "/app", "-l", "tcp://0.0.0.0:3000"]

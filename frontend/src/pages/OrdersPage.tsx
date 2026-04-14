@@ -3,13 +3,14 @@
  * Displays user's order history and current orders
  */
 
-import {FC} from 'react';
+import {FC, useEffect, useState} from 'react';
 import {Link} from 'react-router-dom';
 import {useAuthContext} from '@context/AuthContext';
 import {useOrders} from '@hooks/useOrders';
 import {useCheckout} from '@hooks/useCheckout';
 import {useCartContext} from '@context/CartContext';
-import {Order} from '@types';
+import {Order, Payment} from '@types';
+import {apiClient} from '@services/api';
 import './OrdersPage.css';
 
 const PAGE_SIZE = 10;
@@ -29,6 +30,47 @@ const OrdersPage: FC = () => {
   } = useOrders(user?.id || null, PAGE_SIZE);
   const { processCheckout, isProcessing } = useCheckout();
   const { cart, getCartItemCount } = useCartContext();
+  const [paymentsByOrderId, setPaymentsByOrderId] = useState<Record<string, Payment | null>>({});
+  const [retryingOrderId, setRetryingOrderId] = useState<string | null>(null);
+  const [paymentActionError, setPaymentActionError] = useState<string | null>(null);
+
+  const orders = apiOrders;
+  const totalOrders = apiTotal;
+  const totalPages = Math.max(1, Math.ceil(totalOrders / PAGE_SIZE));
+  const canGoPrevious = currentPage > 1 && hasPrevious;
+  const canGoNext = hasNext;
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const fetchPayments = async () => {
+      if (apiOrders.length === 0) {
+        setPaymentsByOrderId({});
+        return;
+      }
+
+      const entries = await Promise.all(
+        apiOrders.map(async (order) => {
+          try {
+            const payment = await apiClient.getPaymentByOrderId(order.id);
+            return [order.id, payment] as const;
+          } catch {
+            return [order.id, null] as const;
+          }
+        }),
+      );
+
+      if (!isCancelled) {
+        setPaymentsByOrderId(Object.fromEntries(entries));
+      }
+    };
+
+    fetchPayments();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [apiOrders]);
 
   const handleCheckout = async () => {
     if (!user) {
@@ -47,12 +89,6 @@ const OrdersPage: FC = () => {
       }
     });
   };
-
-  const orders = apiOrders;
-  const totalOrders = apiTotal;
-  const totalPages = Math.max(1, Math.ceil(totalOrders / PAGE_SIZE));
-  const canGoPrevious = currentPage > 1 && hasPrevious;
-  const canGoNext = hasNext;
 
   const getStatusColor = (status: Order['status']) => {
     switch (status.toLowerCase()) {
@@ -82,6 +118,41 @@ const OrdersPage: FC = () => {
       month: 'long',
       day: 'numeric'
     });
+  };
+
+  const isPaymentUnsuccessful = (payment: Payment | null | undefined) => {
+    if (!payment) {
+      return false;
+    }
+    const normalizedStatus = (payment.status || '').toUpperCase();
+    if (payment.isCompleted === true && payment.isSuccessful === false) {
+      return true;
+    }
+    return normalizedStatus === 'FAILED' || normalizedStatus === 'CANCELLED';
+  };
+
+  const handleRetryPayment = async (orderId: string) => {
+    const payment = paymentsByOrderId[orderId];
+    if (!payment?.paymentId) {
+      return;
+    }
+
+    try {
+      setPaymentActionError(null);
+      setRetryingOrderId(orderId);
+      await apiClient.retryPayment(payment.paymentId);
+      const refreshedPayment = await apiClient.getPaymentByOrderId(orderId);
+      setPaymentsByOrderId((previous) => ({
+        ...previous,
+        [orderId]: refreshedPayment,
+      }));
+      await refetch();
+    } catch (retryError) {
+      console.error('Failed to retry payment:', retryError);
+      setPaymentActionError('Retry failed. Please try again.');
+    } finally {
+      setRetryingOrderId(null);
+    }
   };
 
   if (loading) {
@@ -165,6 +236,18 @@ const OrdersPage: FC = () => {
             {error}
           </div>
         )}
+        {paymentActionError && (
+          <div className="error-message" style={{
+            padding: '16px',
+            marginBottom: '20px',
+            backgroundColor: '#fee',
+            border: '1px solid #fcc',
+            borderRadius: '4px',
+            color: '#c33'
+          }}>
+            {paymentActionError}
+          </div>
+        )}
 
         {orders.length === 0 ? (
           <div className="no-orders">
@@ -178,6 +261,24 @@ const OrdersPage: FC = () => {
           <div className="orders-list">
             {orders.map((order) => (
               <div key={order.id} className="order-card">
+                {isPaymentUnsuccessful(paymentsByOrderId[order.id]) && (
+                  <div className="payment-retry-banner" role="alert">
+                    <div className="payment-retry-message">
+                      <strong>Payment unsuccessful.</strong>
+                      <span>
+                        {(paymentsByOrderId[order.id]?.failureReason || 'Your payment failed for this order.')}
+                        {' '}You can retry now.
+                      </span>
+                    </div>
+                    <button
+                      className="payment-retry-btn"
+                      disabled={retryingOrderId === order.id}
+                      onClick={() => handleRetryPayment(order.id)}
+                    >
+                      {retryingOrderId === order.id ? 'Retrying...' : 'Retry Payment'}
+                    </button>
+                  </div>
+                )}
                 <div className="order-header">
                   <div className="order-info">
                     <h3>Order {order.id}</h3>

@@ -1,0 +1,282 @@
+{
+  "scenarios": [
+    {
+      "name": "inventory-category-page",
+      "request": {
+        "url": "http://localhost:8083/products/category/books?offset=0&limit=16",
+        "method": "GET",
+        "headers": {
+          "Accept": "application/json"
+        }
+      },
+      "load": {
+        "users": 50,
+        "durationSec": 60,
+        "warmupSec": 10,
+        "timeoutSec": 5,
+        "thinkMs": 5
+      },
+      "thresholds": {
+        "maxErrorRatePct": 1.0,
+        "maxP95Ms": 200.0,
+        "maxP99Ms": 500.0
+      }
+    },
+    {
+      "name": "payment-status-page",
+      "request": {
+        "url": "http://localhost:8084/payments/status/PENDING?offset=0&limit=10",
+        "method": "GET",
+        "headers": {
+          "Accept": "application/json"
+        }
+      },
+      "load": {
+        "users": 75,
+        "durationSec": 90,
+        "warmupSec": 15,
+        "timeoutSec": 5,
+        "thinkMs": 5
+      },
+      "thresholds": {
+        "maxErrorRatePct": 1.0,
+        "maxP95Ms": 200.0,
+        "maxP99Ms": 500.0
+      }
+    },
+    {
+      "name": "payment-create",
+      "request": {
+        "url": "http://localhost:8084/payments",
+        "method": "POST",
+        "headers": {
+          "Accept": "application/json"
+        },
+        "bodyFile": "request-bodies/create-payment.json"
+      },
+      "load": {
+        "users": 10,
+        "durationSec": 30,
+        "warmupSec": 5,
+        "timeoutSec": 5,
+        "thinkMs": 50
+      },
+      "thresholds": {
+        "maxErrorRatePct": 1.0,
+        "maxP95Ms": 500.0,
+        "maxP99Ms": 1000.0
+      }
+    },
+    {
+      "name": "bookstore-checkout-flow",
+      "variables": {
+        "sku": "0594511488",
+        "productTitle": "Load Test Book",
+        "price": "24.99",
+        "currency": "EUR",
+        "userId": "loadtest-user-${vu}-${iteration}-${uuid}"
+      },
+      "steps": [
+        {
+          "name": "add-cart-item",
+          "request": {
+            "url": "http://localhost:8086/cart",
+            "method": "POST",
+            "headers": {
+              "Accept": "application/json"
+            },
+            "bodyFile": "request-bodies/add-cart-item.json"
+          },
+          "expectedStatus": 201
+        },
+        {
+          "name": "create-order",
+          "request": {
+            "url": "http://localhost:8086/api/order",
+            "method": "POST",
+            "headers": {
+              "Accept": "application/json"
+            },
+            "body": "{\"user_id\":\"${userId}\"}"
+          },
+          "expectedStatus": 201,
+          "extract": {
+            "orderId": "$.value"
+          }
+        },
+        {
+          "name": "lookup-payment",
+          "request": {
+            "url": "http://localhost:8084/payments/order/${orderId}",
+            "method": "GET",
+            "headers": {
+              "Accept": "application/json"
+            }
+          },
+          "expectedStatus": 200,
+          "maxAttempts": 20,
+          "retryDelayMs": 250,
+          "extract": {
+            "paymentId": "$.paymentId"
+          }
+        },
+        {
+          "name": "process-payment",
+          "request": {
+            "url": "http://localhost:8084/payments/${paymentId}/process",
+            "method": "POST",
+            "headers": {
+              "Accept": "application/json"
+            }
+          },
+          "expectedStatus": 200
+        },
+        {
+          "name": "verify-product",
+          "request": {
+            "url": "http://localhost:8083/products/${sku}",
+            "method": "GET",
+            "headers": {
+              "Accept": "application/json"
+            }
+          },
+          "expectedStatus": 200,
+          "maxAttempts": 10,
+          "retryDelayMs": 200
+        }
+      ],
+      "load": {
+        "users": 8,
+        "durationSec": 60,
+        "warmupSec": 5,
+        "timeoutSec": 5,
+        "thinkMs": 100
+      },
+      "thresholds": {
+        "maxErrorRatePct": 1.0,
+        "maxP95Ms": 1500.0,
+        "maxP99Ms": 3000.0
+      }
+    },
+    {
+      "name": "bookstore-e2e-order-payment-inventory",
+      "variables": {
+        "sku": "0594511488",
+        "productTitle": "Load Test Book",
+        "price": "24.99",
+        "currency": "EUR",
+        "userId": "loadtest-user-${vu}-${iteration}-${uuid}"
+      },
+      "steps": [
+        {
+          "name": "read-product-before",
+          "request": {
+            "url": "http://localhost:8083/products/${sku}",
+            "method": "GET",
+            "headers": {
+              "Accept": "application/json"
+            }
+          },
+          "expectedStatus": 200,
+          "extract": {
+            "beforeVolume": "$.volume"
+          }
+        },
+        {
+          "name": "add-cart-item",
+          "request": {
+            "url": "http://localhost:8086/cart",
+            "method": "POST",
+            "headers": {
+              "Accept": "application/json"
+            },
+            "bodyFile": "request-bodies/add-cart-item.json"
+          },
+          "expectedStatus": 201
+        },
+        {
+          "name": "create-order",
+          "request": {
+            "url": "http://localhost:8086/api/order",
+            "method": "POST",
+            "headers": {
+              "Accept": "application/json"
+            },
+            "body": "{\"user_id\":\"${userId}\"}"
+          },
+          "expectedStatus": 201,
+          "extract": {
+            "orderId": "$.value"
+          }
+        },
+        {
+          "name": "lookup-payment",
+          "request": {
+            "url": "http://localhost:8084/payments/order/${orderId}",
+            "method": "GET",
+            "headers": {
+              "Accept": "application/json"
+            }
+          },
+          "expectedStatus": 200,
+          "maxAttempts": 20,
+          "retryDelayMs": 250,
+          "extract": {
+            "paymentId": "$.paymentId"
+          }
+        },
+        {
+          "name": "process-payment",
+          "request": {
+            "url": "http://localhost:8084/payments/${paymentId}/process",
+            "method": "POST",
+            "headers": {
+              "Accept": "application/json"
+            }
+          },
+          "expectedStatus": 200,
+          "assertions": [
+            {
+              "path": "$.status",
+              "operator": "eq",
+              "expected": "SUCCESSFUL"
+            }
+          ]
+        },
+        {
+          "name": "verify-product-after",
+          "request": {
+            "url": "http://localhost:8083/products/${sku}",
+            "method": "GET",
+            "headers": {
+              "Accept": "application/json"
+            }
+          },
+          "expectedStatus": 200,
+          "maxAttempts": 20,
+          "retryDelayMs": 250,
+          "assertions": [
+            {
+              "path": "$.volume",
+              "operator": "lt",
+              "expected": "${beforeVolume}"
+            }
+          ]
+        }
+      ],
+      "load": {
+        "users": 6,
+        "targetRps": 10.0,
+        "durationSec": 60,
+        "warmupSec": 5,
+        "timeoutSec": 5,
+        "thinkMs": 100
+      },
+      "thresholds": {
+        "maxErrorRatePct": 1.0,
+        "maxP95Ms": 1800.0,
+        "maxP99Ms": 3500.0
+      }
+    }
+  ]
+}
