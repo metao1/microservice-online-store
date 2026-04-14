@@ -9,7 +9,7 @@ on:
         type: string
     secrets:
       GEMINI_API_KEY:
-        required: true
+        required: false
       APP_PRIVATE_KEY:
         required: false
 
