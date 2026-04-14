@@ -102,6 +102,52 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.payment-retry-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid #f4b3b3;
+  border-radius: 8px;
+  background: #fdecec;
+}
+
+.payment-retry-message {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: #8f1f1f;
+  font-size: 0.9rem;
+}
+
+.payment-retry-message strong {
+  font-size: 0.95rem;
+}
+
+.payment-retry-btn {
+  border: 1px solid #b03030;
+  background: #b03030;
+  color: #ffffff;
+  border-radius: 6px;
+  padding: 0.55rem 0.95rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.payment-retry-btn:hover:not(:disabled) {
+  background: #981f1f;
+  border-color: #981f1f;
+}
+
+.payment-retry-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* ===== ORDER HEADER ===== */
 .order-header {
   display: flex;
@@ -305,6 +351,11 @@
 
   .orders-pagination-status {
     min-width: 0;
+  }
+
+  .payment-retry-banner {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 

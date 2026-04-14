@@ -198,7 +198,7 @@ services:
       context: .
       dockerfile: payment-microservice/src/main/docker/Dockerfile
     ports:
-      - "8084:8084"
+      - "8084:8080"
     depends_on:
       - kafka1
       - kafka-schema-registry
