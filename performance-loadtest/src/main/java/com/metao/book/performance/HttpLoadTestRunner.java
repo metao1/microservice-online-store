@@ -81,12 +81,33 @@ public final class HttpLoadTestRunner {
         return thresholdFailures.isEmpty() && baselineComparison.passed() ? 0 : 2;
     }
 
-    private static void runWarmup(HttpClient client, LoadTestConfig config) {
-        Instant stopAt = Instant.now().plusSeconds(config.warmupSec());
+    private static void runWarmup(HttpClient client, LoadTestConfig config) throws Exception {
+        long stopAtNanos = System.nanoTime() + TimeUnit.SECONDS.toNanos(config.warmupSec());
         AtomicLong workflowCounter = new AtomicLong();
-        while (Instant.now().isBefore(stopAt)) {
-            executeWorkflow(client, config, 0, workflowCounter.incrementAndGet());
-            sleep(config.thinkTimeMs());
+
+        // Warmup MUST mirror the concurrency shape of the real run, otherwise
+        // JIT, connection pools, DB caches, and GC generations are primed
+        // against the wrong load profile and the first few seconds of the main
+        // measured run pay the warmup cost anyway.
+        try (ExecutorService executor = java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor()) {
+            List<Future<?>> futures = new ArrayList<>();
+            for (int index = 0; index < config.virtualUsers(); index += 1) {
+                final int virtualUser = index + 1;
+                futures.add(executor.submit(() -> {
+                    while (System.nanoTime() < stopAtNanos) {
+                        long iteration = workflowCounter.incrementAndGet();
+                        try {
+                            executeWorkflow(client, config, virtualUser, iteration);
+                        } catch (RuntimeException ignored) {
+                            // Warmup failures are expected against a cold system; don't fail the run.
+                        }
+                        sleep(config.thinkTimeMs());
+                    }
+                }));
+            }
+            for (Future<?> future : futures) {
+                future.get();
+            }
         }
     }
 
@@ -98,9 +119,17 @@ public final class HttpLoadTestRunner {
         LongAdder failures = new LongAdder();
         LongAdder bytes = new LongAdder();
 
+        // Expected inter-arrival time used for HdrHistogram's coordinated-omission
+        // correction. Only meaningful when workflows are paced to a target rate;
+        // under closed-model (no targetRps) each VU self-paces so there is no
+        // "expected start time" to compare against.
+        Long expectedIntervalMicros = (config.targetRps() != null && config.targetRps() > 0.0)
+            ? (long) Math.max(1.0d, 1_000_000d / config.targetRps())
+            : null;
+
         Instant start = Instant.now();
-        Instant stopAt = start.plusSeconds(config.durationSec());
         long startNanos = System.nanoTime();
+        long stopAtNanos = startNanos + TimeUnit.SECONDS.toNanos(config.durationSec());
         AtomicLong workflowCounter = new AtomicLong();
 
         try (ExecutorService executor = java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor()) {
@@ -108,19 +137,25 @@ public final class HttpLoadTestRunner {
             for (int index = 0; index < config.virtualUsers(); index += 1) {
                 final int virtualUser = index + 1;
                 futures.add(executor.submit(() -> {
-                    while (Instant.now().isBefore(stopAt)) {
+                    while (System.nanoTime() < stopAtNanos) {
                         long workflowId = workflowCounter.incrementAndGet();
-                        paceWorkflowStart(config.targetRps(), startNanos, workflowId);
-                        if (Instant.now().isAfter(stopAt)) {
+                        paceWorkflowStart(config.targetRps(), startNanos, workflowId, stopAtNanos);
+                        if (System.nanoTime() >= stopAtNanos) {
                             break;
                         }
                         long workflowStart = System.nanoTime();
                         WorkflowOutcome outcome = executeWorkflow(client, config, virtualUser, workflowId, stepLatencies);
                         long elapsedMicros = TimeUnit.NANOSECONDS.toMicros(System.nanoTime() - workflowStart);
 
-                        latenciesMicros.record(elapsedMicros);
                         bytes.add(outcome.responseBytes());
                         if (outcome.success()) {
+                            // Success-only latency percentiles follow the standard SLO convention:
+                            // a 5s timeout failure shouldn't masquerade as a 5s "successful" tail.
+                            if (expectedIntervalMicros != null) {
+                                latenciesMicros.recordWithExpectedInterval(elapsedMicros, expectedIntervalMicros);
+                            } else {
+                                latenciesMicros.record(elapsedMicros);
+                            }
                             success.increment();
                         } else {
                             failures.increment();
@@ -134,9 +169,7 @@ public final class HttpLoadTestRunner {
             for (Future<?> future : futures) {
                 future.get();
             }
-
-            executor.shutdown();
-            executor.awaitTermination(10, TimeUnit.SECONDS);
+            // Try-with-resources handles shutdown + awaitTermination; no manual call needed.
         }
 
         return LoadTestResult.from(
@@ -418,13 +451,16 @@ public final class HttpLoadTestRunner {
         errors.computeIfAbsent(key, ignored -> new LongAdder()).increment();
     }
 
-    private static void paceWorkflowStart(Double targetRps, long startNanos, long workflowNumber) {
+    private static void paceWorkflowStart(Double targetRps, long startNanos, long workflowNumber, long stopAtNanos) {
         if (targetRps == null || targetRps <= 0.0 || workflowNumber < 1) {
             return;
         }
         long nanosPerWorkflow = Math.max(1L, (long) (1_000_000_000d / targetRps));
         long targetStartNanos = startNanos + ((workflowNumber - 1) * nanosPerWorkflow);
-        long delayNanos = targetStartNanos - System.nanoTime();
+        // Never park past the run deadline: otherwise the last VU to grab a counter
+        // slot could sit idle for seconds after the test window has already closed.
+        long deadlineNanos = Math.min(targetStartNanos, stopAtNanos);
+        long delayNanos = deadlineNanos - System.nanoTime();
         if (delayNanos > 0L) {
             LockSupport.parkNanos(delayNanos);
         }
@@ -440,7 +476,7 @@ public final class HttpLoadTestRunner {
         System.out.println("workflows=" + result.totalWorkflows() + ", success=" + result.success() + ", failures=" + result.failures());
         System.out.println("workflowThroughput(rps)=" + String.format("%.2f", result.throughputRps()));
         System.out.println("errorRatePct=" + String.format("%.3f", result.errorRatePct()));
-        System.out.println("latency(ms): min=" + String.format("%.3f", result.minMs())
+        System.out.println("latency(ms, success-only): min=" + String.format("%.3f", result.minMs())
             + " p50=" + String.format("%.3f", result.p50Ms())
             + " p95=" + String.format("%.3f", result.p95Ms())
             + " p99=" + String.format("%.3f", result.p99Ms())
