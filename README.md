@@ -42,6 +42,12 @@ Open http://localhost:3000
 cd frontend && npm install && npm run dev
 ```
 
+## Documentation
+
+- [Architecture](docs/ARCHITECTURE.md) - System overview and event flows
+- [API Reference](docs/API.md) - REST endpoints for all services
+- [Events](docs/EVENTS.md) - Kafka topics and Protobuf schemas
+
 ## License
 
 MIT
