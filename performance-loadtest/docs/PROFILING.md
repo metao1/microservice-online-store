@@ -47,7 +47,7 @@ Scenario files are JSON and contain a `scenarios` array. Each scenario can defin
 - `steps[].retryDelayMs`
 - `steps[].retryOnAssertion` (default `false`; set `true` to poll for eventually-consistent state)
 - `steps[].assertions[]` — `{ path, operator, expected }`
-  - operators: `eq`, `ne`, `contains` (string); `lt`, `lte`, `gt`, `gte` (numeric coercion when both sides parse as numbers)
+  - operators: `eq`, `ne`, `contains` (string); `lt`, `lte`, `gt`, `gte` (numeric coercion when both sides parse as numbers). Unknown operator symbols are rejected at scenario-parse time, not at first request, so typos surface before any load is generated.
   - `expected` is templated against the workflow context, so `${beforeVolume}` works
 - `load.users`
 - `load.targetRps` (switches into open-model pacing with HdrHistogram coordinated-omission correction)
