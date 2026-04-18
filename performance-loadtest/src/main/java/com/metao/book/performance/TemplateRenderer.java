@@ -32,6 +32,14 @@ final class TemplateRenderer {
         if (template == null || template.isBlank()) {
             return template == null ? "" : template;
         }
+        // Hot-path short-circuit: every header key/value, url, method, and body
+        // passes through here on every attempt of every step of every workflow.
+        // Most static scenario strings contain no placeholder at all; skipping
+        // the Matcher allocation + StringBuilder copy on those strings is
+        // measurable under 10k+ RPS load.
+        if (template.indexOf('$') < 0) {
+            return template;
+        }
         Matcher matcher = TEMPLATE_PATTERN.matcher(template);
         StringBuilder resolved = new StringBuilder();
         int cursor = 0;
