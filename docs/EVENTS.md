@@ -2,6 +2,42 @@
 
 All events use Protocol Buffers. Schema files are in `shared-kernel/src/main/proto/`.
 
+## Topic Flow Diagram
+
+```mermaid
+flowchart LR
+    subgraph Inventory Service
+        INV[Inventory]
+    end
+
+    subgraph Order Service
+        ORD[Order]
+    end
+
+    subgraph Payment Service
+        PAY[Payment]
+    end
+
+    subgraph Kafka Topics
+        T1([product-created])
+        T2([product-updated])
+        T3([order-created])
+        T4([order-payment])
+        T5([order-updated])
+    end
+
+    INV -->|publish| T1
+    INV -->|publish| T2
+    T2 -->|consume| ORD
+
+    ORD -->|publish| T3
+    ORD -->|publish| T5
+    T3 -->|consume| PAY
+
+    PAY -->|publish| T4
+    T4 -->|consume| ORD
+```
+
 ## OrderCreatedEvent
 
 Published when an order is created.

@@ -1,28 +1,79 @@
 # Architecture
 
-## Overview
+## System Overview
 
+```mermaid
+graph TB
+    subgraph Frontend
+        UI[React App<br/>:3000]
+    end
+
+    subgraph Backend Services
+        INV[Inventory Service<br/>:8083]
+        ORD[Order Service<br/>:8086]
+        PAY[Payment Service<br/>:8084]
+    end
+
+    subgraph Message Broker
+        KAFKA[Kafka<br/>:9092]
+        SR[Schema Registry<br/>:8081]
+    end
+
+    subgraph Databases
+        PG1[(PostgreSQL<br/>Inventory :5435)]
+        PG2[(PostgreSQL<br/>Order :5433)]
+        PG3[(PostgreSQL<br/>Payment :5434)]
+    end
+
+    subgraph Observability
+        OTEL[OTEL Collector<br/>:4317/:4318]
+        JAEGER[Jaeger UI<br/>:16686]
+    end
+
+    UI --> INV
+    UI --> ORD
+    UI --> PAY
+
+    INV --> KAFKA
+    ORD --> KAFKA
+    PAY --> KAFKA
+    KAFKA --> SR
+
+    INV --> PG1
+    ORD --> PG2
+    PAY --> PG3
+
+    INV --> OTEL
+    ORD --> OTEL
+    PAY --> OTEL
+    OTEL --> JAEGER
 ```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│  Frontend   │────▶│   Inventory │     │   Payment   │
-│  (React)    │     │   Service   │     │   Service   │
-│  :3000      │     │   :8083     │     │   :8084     │
-└─────────────┘     └──────┬──────┘     └──────┬──────┘
-       │                   │                   │
-       │            ┌──────┴───────────────────┘
-       │            │
-       ▼            ▼
-┌─────────────┐  ┌─────────────┐
-│    Order    │  │    Kafka    │
-│   Service   │◀─│   Cluster   │
-│   :8086     │  │   :9092     │
-└──────┬──────┘  └─────────────┘
-       │
-       ▼
-┌─────────────┐
-│   Jaeger    │
-│   :16686    │
-└─────────────┘
+
+## Component Diagram
+
+```mermaid
+C4Context
+    title System Context Diagram
+
+    Person(user, "Customer", "Browses products and places orders")
+
+    System(frontend, "Frontend", "React + Vite SPA")
+
+    System_Boundary(backend, "Backend Services") {
+        System(inventory, "Inventory Service", "Product catalog & stock management")
+        System(order, "Order Service", "Cart & order management")
+        System(payment, "Payment Service", "Payment processing")
+    }
+
+    System_Ext(kafka, "Kafka", "Event streaming platform")
+
+    Rel(user, frontend, "Uses")
+    Rel(frontend, inventory, "REST API")
+    Rel(frontend, order, "REST API")
+    Rel(frontend, payment, "REST API")
+    Rel(order, kafka, "Publishes/Subscribes")
+    Rel(payment, kafka, "Publishes/Subscribes")
+    Rel(inventory, kafka, "Publishes")
 ```
 
 ## Services
@@ -53,16 +104,47 @@
 
 ### Purchase Saga (Choreography)
 
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant F as Frontend
+    participant O as Order Service
+    participant K as Kafka
+    participant P as Payment Service
+
+    U->>F: Checkout cart
+    F->>O: POST /api/order
+    O->>O: Create order (PENDING_PAYMENT)
+    O->>K: Publish OrderCreatedEvent
+    O-->>F: Order created
+
+    K->>P: Consume OrderCreatedEvent
+    P->>P: Process payment
+    alt Payment Success
+        P->>K: Publish OrderPaymentUpdatedEvent (PAID)
+        K->>O: Consume event
+        O->>O: Update order (PAID)
+    else Payment Failed
+        P->>K: Publish OrderPaymentUpdatedEvent (FAILED)
+        K->>O: Consume event
+        O->>O: Update order (PAYMENT_FAILED)
+    end
 ```
-1. User creates order
-   └─▶ Order Service publishes: order-created
 
-2. Payment Service receives order-created
-   └─▶ Processes payment
-   └─▶ Publishes: order-payment (status: PAID/FAILED)
+### Order State Machine
 
-3. Order Service receives order-payment
-   └─▶ Updates order status
+```mermaid
+stateDiagram-v2
+    [*] --> CREATED
+    CREATED --> PENDING_PAYMENT: Order submitted
+    PENDING_PAYMENT --> PAID: Payment success
+    PENDING_PAYMENT --> PAYMENT_FAILED: Payment failed
+    PAID --> PROCESSING: Start fulfillment
+    PROCESSING --> SHIPPED: Ship order
+    SHIPPED --> DELIVERED: Confirm delivery
+    PAYMENT_FAILED --> CANCELLED: Cancel order
+    PAID --> CANCELLED: Customer cancels
 ```
 
 ## Kafka Topics

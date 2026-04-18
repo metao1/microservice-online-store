@@ -1,5 +1,31 @@
 # API Reference
 
+## Service Communication
+
+```mermaid
+flowchart TB
+    subgraph Client
+        FE[Frontend :3000]
+    end
+
+    subgraph API Gateway Layer
+        direction LR
+        INV_API["/products/*"]
+        ORD_API["/cart/* /api/order/*"]
+        PAY_API["/payments/*"]
+    end
+
+    subgraph Services
+        INV[Inventory :8083]
+        ORD[Order :8086]
+        PAY[Payment :8084]
+    end
+
+    FE --> INV_API --> INV
+    FE --> ORD_API --> ORD
+    FE --> PAY_API --> PAY
+```
+
 ## Inventory Service (Port 8083)
 
 ### Products
