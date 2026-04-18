@@ -79,235 +79,59 @@ Notes:
 
 ## Complete Order Processing Saga Flow
 
-This is the actual implemented choreography-based purchase saga spanning all three microservices — **Order**, **Payment**, and **Inventory**. The inventory leg fires only on the successful-payment branch: after `OrderPaymentEvent(SUCCESSFUL)` is consumed, the order aggregate emits one `DomainInventoryReductionRequestedEvent` per line item, which is translated into a `ProductUpdatedEvent` carrying the `"INVENTORY_REDUCTION"` marker on the `product-updated` topic and consumed by the inventory service to atomically decrement stock.
+Choreography-based purchase saga spanning three microservices — **Order**, **Payment**, and **Inventory** — coordinating only through Kafka events. Each service reacts to events autonomously; there is no central orchestrator. The diagram below deliberately hides internal components (aggregates, repositories, listeners) and shows only services, the events they publish, and the high-level actions they take.
 
 ```mermaid
 sequenceDiagram
     actor User
-    participant WebApp as React Web App
-    participant CartAPI as Shopping Cart API<br/>(OrderMS:8080)
-    participant OrderAPI as Order API<br/>(OrderMS:8080)
-    participant OrderService as OrderManagementService
-    participant OrderAggregate as Order Aggregate
-    participant OrderRepo as Order Repository<br/>(PostgreSQL:5433)
-    participant EventHandler as DomainEventToKafkaEventHandler
+    participant Order as Order Service
     participant Kafka as Apache Kafka
-    participant OrderCreatedListener as OrderCreatedEventListener<br/>(PaymentMS)
-    participant PaymentService as PaymentApplicationService
-    participant PaymentAggregate as Payment Aggregate
-    participant PaymentRepo as Payment Repository
-    participant PaymentEventPublisher as Payment Event Publisher
-    participant PaymentListener as PaymentEventListener<br/>(OrderMS)
-    participant ProductUpdatedTranslator as ProductUpdatedEventTranslator<br/>(OrderMS)
-    participant InventoryListener as ProductKafkaListenerComponent<br/>(InventoryMS:8083)
-    participant InventoryUseCase as HandleProductUpdatedEventUseCase<br/>(InventoryMS)
-    participant ProductAggregate as Product Aggregate<br/>(InventoryMS)
-    participant ProductRepo as Product Repository<br/>(PostgreSQL:5432)
+    participant Payment as Payment Service
+    participant Inventory as Inventory Service
 
-    %% Shopping Cart Phase
-    User->>WebApp: Add items to cart
-    WebApp->>CartAPI: POST /cart
-    activate CartAPI
-    CartAPI->>CartService: addItemsToCart(userId, items)
-    CartService-->>WebApp: Cart updated
-    deactivate CartAPI
+    %% Order creation
+    User->>Order: Place order
+    Note over Order: Create order (status: CREATED)
+    Order->>Kafka: OrderCreatedEvent<br/>(topic: order-created-events)
+    Order-->>User: Order confirmation
 
-    User->>WebApp: View cart & checkout
-    WebApp->>CartAPI: GET /cart/{userId}
-    activate CartAPI
-    CartAPI-->>WebApp: Return cart items
-    deactivate CartAPI
+    %% Payment
+    Kafka->>Payment: OrderCreatedEvent
+    Note over Payment: Process payment<br/>(80% success)
 
-    %% Order Creation Phase
-    User->>WebApp: Create Order
-    WebApp->>OrderAPI: POST /api/order<br/>{userId, items}
-    activate OrderAPI
-    OrderAPI->>OrderService: createOrder(command)
-    activate OrderService
+    alt Payment successful
+        Payment->>Kafka: OrderPaymentEvent(SUCCESSFUL)<br/>(topic: order-payment-events)
 
-    OrderService->>OrderAggregate: Create Order Aggregate
-    activate OrderAggregate
-    Note over OrderAggregate: Status: CREATED<br/>Raises DomainOrderCreatedEvent
-    OrderAggregate-->>OrderService: Order Created
-    deactivate OrderAggregate
+        Kafka->>Order: OrderPaymentEvent(SUCCESSFUL)
+        Note over Order: Emit one inventory<br/>reduction per item
+        Order->>Kafka: ProductUpdatedEvent<br/>(description: INVENTORY_REDUCTION,<br/>topic: product-updated)
 
-    OrderService->>OrderRepo: save(order)
-    activate OrderRepo
-    OrderRepo-->>OrderService: Order saved
-    deactivate OrderRepo
+        Kafka->>Inventory: ProductUpdatedEvent
+        Note over Inventory: Decrement stock atomically<br/>(idempotent per event id)
 
-    OrderService->>EventHandler: Publish domain events
-    activate EventHandler
-    EventHandler->>EventHandler: Translate to OrderCreatedEvent (Protobuf)
-    EventHandler->>Kafka: Publish to "order-created-events" topic
-    EventHandler-->>OrderService: Event published
-    deactivate EventHandler
+        Note over Order: Mark order PAID,<br/>clear user cart
+        Order->>Kafka: OrderStatusChangedEvent<br/>(topic: order-updated)
+        Note over User: Sees order PAID
 
-    OrderService-->>OrderAPI: OrderDTO
-    deactivate OrderService
-    OrderAPI-->>WebApp: 201 Created (Order ID)
-    deactivate OrderAPI
-    WebApp-->>User: Order confirmation page
-
-    %% Payment Processing Phase
-    Kafka->>OrderCreatedListener: OrderCreatedEvent consumed
-    activate OrderCreatedListener
-    Note over OrderCreatedListener: @KafkaListener on<br/>"order-created-events" topic
-
-    OrderCreatedListener->>PaymentService: processPayment(orderId, amount)
-    activate PaymentService
-
-    PaymentService->>PaymentAggregate: Create Payment Aggregate
-    activate PaymentAggregate
-    Note over PaymentAggregate: Status: PENDING<br/>PaymentMethod configured
-    PaymentAggregate-->>PaymentService: Payment created
-    deactivate PaymentAggregate
-
-    PaymentService->>PaymentRepo: save(payment)
-    activate PaymentRepo
-    PaymentRepo-->>PaymentService: Payment saved
-    deactivate PaymentRepo
-
-    PaymentService->>PaymentAggregate: processPayment()
-    activate PaymentAggregate
-    Note over PaymentAggregate: Simulates payment gateway<br/>80% success rate
-
-    alt Payment Successful
-        PaymentAggregate->>PaymentAggregate: markAsSuccessful()
-        Note over PaymentAggregate: Status: SUCCESSFUL<br/>Raises PaymentProcessedEvent
-        PaymentAggregate-->>PaymentService: Payment successful
-
-        PaymentService->>PaymentRepo: save(payment)
-        activate PaymentRepo
-        PaymentRepo-->>PaymentService: Updated
-        deactivate PaymentRepo
-
-        PaymentService->>PaymentEventPublisher: publishPaymentProcessedEvent()
-        activate PaymentEventPublisher
-        PaymentEventPublisher->>Kafka: Publish OrderPaymentEvent<br/>(status: SUCCESSFUL)
-        Note over Kafka: Published to<br/>"order-payment-events" topic
-        deactivate PaymentEventPublisher
-
-    else Payment Failed (20% chance)
-        PaymentAggregate->>PaymentAggregate: markAsFailed()
-        Note over PaymentAggregate: Status: FAILED<br/>Raises PaymentFailedEvent
-        PaymentAggregate-->>PaymentService: Payment failed
-
-        PaymentService->>PaymentRepo: save(payment)
-        activate PaymentRepo
-        PaymentRepo-->>PaymentService: Updated
-        deactivate PaymentRepo
-
-        PaymentService->>PaymentEventPublisher: publishPaymentFailedEvent()
-        activate PaymentEventPublisher
-        PaymentEventPublisher->>Kafka: Publish OrderPaymentEvent<br/>(status: FAILED)
-        Note over Kafka: Published to<br/>"order-payment-events" topic
-        deactivate PaymentEventPublisher
+    else Payment failed
+        Payment->>Kafka: OrderPaymentEvent(FAILED)<br/>(topic: order-payment-events)
+        Kafka->>Order: OrderPaymentEvent(FAILED)
+        Note over Order: Mark order PAYMENT_FAILED<br/>(no inventory change)
+        Order->>Kafka: OrderStatusChangedEvent<br/>(topic: order-updated)
+        Note over User: Notified of<br/>payment failure
     end
-
-    deactivate PaymentAggregate
-    PaymentService-->>OrderCreatedListener: Processing complete
-    deactivate PaymentService
-    deactivate OrderCreatedListener
-
-    %% Order Status Update Phase
-    Kafka->>PaymentListener: OrderPaymentEvent consumed
-    activate PaymentListener
-    Note over PaymentListener: @KafkaListener on<br/>"order-payment-events" topic
-
-    PaymentListener->>OrderService: updateOrderStatus(orderId, paymentStatus)
-    activate OrderService
-
-    OrderService->>OrderRepo: findById(orderId)
-    activate OrderRepo
-    OrderRepo-->>OrderService: Order entity
-    deactivate OrderRepo
-
-    alt Payment Successful
-        Note over PaymentListener,OrderService: HandleOrderPaymentEventUseCase<br/>idempotency-checks event, then<br/>reduces inventory BEFORE marking PAID
-
-        OrderService->>OrderAggregate: updateItemQuantity()
-        activate OrderAggregate
-        Note over OrderAggregate: For each OrderItem:<br/>Raises DomainInventoryReductionRequestedEvent
-        OrderAggregate-->>OrderService: Inventory reduction events raised
-        deactivate OrderAggregate
-
-        OrderService->>EventHandler: Publish inventory reduction events
-        activate EventHandler
-        EventHandler->>ProductUpdatedTranslator: Translate DomainInventoryReductionRequestedEvent
-        activate ProductUpdatedTranslator
-        Note over ProductUpdatedTranslator: Builds ProductUpdatedEvent<br/>key = "orderId:sku"<br/>description = "INVENTORY_REDUCTION"<br/>volume = reserved quantity
-        ProductUpdatedTranslator-->>EventHandler: ProductUpdatedEvent (Protobuf)
-        deactivate ProductUpdatedTranslator
-        EventHandler->>Kafka: Publish to "product-updated" topic
-        deactivate EventHandler
-
-        Kafka->>InventoryListener: ProductUpdatedEvent consumed
-        activate InventoryListener
-        Note over InventoryListener: @KafkaListener on<br/>"product-updated" topic<br/>(RetryableTopic + DLT)
-
-        InventoryListener->>InventoryUseCase: handle(HandleProductUpdatedEventCommand)
-        activate InventoryUseCase
-        Note over InventoryUseCase: Filters by description == "INVENTORY_REDUCTION"<br/>Idempotency via ProcessedInventoryEventPort<br/>(processed_inventory_event table)
-
-        alt First time processing this eventId
-            InventoryUseCase->>ProductAggregate: reduceProductVolumeAtomically(sku, volume)
-            activate ProductAggregate
-            Note over ProductAggregate: Row-level lock + validate stock<br/>Quantity -= volume<br/>Raises ProductUpdatedEvent
-            ProductAggregate->>ProductRepo: save(product)
-            activate ProductRepo
-            ProductRepo-->>ProductAggregate: Stock updated
-            deactivate ProductRepo
-            ProductAggregate-->>InventoryUseCase: Volume reduced
-            deactivate ProductAggregate
-        else Duplicate eventId
-            Note over InventoryUseCase: Skip - already processed
-        end
-
-        InventoryUseCase-->>InventoryListener: ack
-        deactivate InventoryUseCase
-        InventoryListener->>Kafka: Acknowledge offset
-        deactivate InventoryListener
-
-        OrderService->>OrderAggregate: updateStatus(PAID)
-        activate OrderAggregate
-        Note over OrderAggregate: Status: CREATED → PAID<br/>Status transition validated<br/>Raises OrderStatusChangedEvent
-        OrderAggregate-->>OrderService: Status updated
-        deactivate OrderAggregate
-
-        OrderService->>OrderRepo: save(order)
-        activate OrderRepo
-        OrderRepo-->>OrderService: Order updated
-        deactivate OrderRepo
-
-        OrderService->>EventHandler: Publish OrderStatusChangedEvent
-        activate EventHandler
-        EventHandler->>Kafka: Publish to "order-updated" topic
-        deactivate EventHandler
-
-        OrderService->>CartService: clearCart(userId)
-        Note over CartService: Shopping cart emptied<br/>after successful purchase
-
-        Note over User: User can now see<br/>Order Status: PAID<br/>(stock decremented, cart cleared)
-
-    else Payment Failed
-        OrderService->>OrderAggregate: updateStatus(PAYMENT_FAILED)
-        activate OrderAggregate
-        Note over OrderAggregate: Status: PAYMENT_FAILED<br/>Order marked as failed
-        OrderAggregate-->>OrderService: Status updated
-        deactivate OrderAggregate
-
-        OrderService->>OrderRepo: save(order)
-        activate OrderRepo
-        OrderRepo-->>OrderService: Order updated
-        deactivate OrderRepo
-
-        Note over User: User notified of<br/>payment failure
-    end
-
-    deactivate OrderService
-    deactivate PaymentListener
 ```
+
+### Event summary
+
+| Event | Published by | Consumed by | Topic |
+|-------|--------------|-------------|-------|
+| `OrderCreatedEvent` | Order | Payment | `order-created-events` |
+| `OrderPaymentEvent` (SUCCESSFUL / FAILED) | Payment | Order | `order-payment-events` |
+| `ProductUpdatedEvent` (INVENTORY_REDUCTION) | Order | Inventory | `product-updated` |
+| `OrderStatusChangedEvent` | Order | — | `order-updated` |
+
+Compensation is implicit: inventory is only decremented **after** payment succeeds, so a failed payment requires no reverse stock operation. Each consumer is idempotent, so Kafka retries and replays are safe.
 
 ## Product Management Flow
 
