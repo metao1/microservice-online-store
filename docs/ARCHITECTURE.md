@@ -171,3 +171,25 @@ stateDiagram-v2
 - **Collector**: OTEL Collector (ports 4317/4318)
 - **UI**: Jaeger at http://localhost:16686
 - **Logs**: Include `traceId` and `spanId` for correlation
+
+## Shared Kernel
+
+Common components in `shared-kernel` module following DRY principle:
+
+| Component | Purpose |
+|-----------|---------|
+| `SharedWebConfig` | CORS configuration for all services |
+| `SharedTransactionManagerConfig` | Transaction manager setup |
+| `KafkaDomainEventPublisher` | Transaction-aware Kafka event publishing |
+| `OpenApiConfigFactory` | Factory for OpenAPI/Swagger configuration |
+| `BaseExceptionHandler` | Base class for exception handling with common handlers |
+| `ApiError` | Standardized error response record |
+
+### Design Patterns Used
+
+- **Factory Pattern**: `OpenApiConfigFactory` for creating OpenAPI configs
+- **Template Method**: `BaseExceptionHandler` provides common handling, services extend for specifics
+- **Domain Event Publisher**: Decouples domain events from Kafka infrastructure
+- **Aggregate Root**: DDD pattern for consistency boundaries (Order, Product, Payment)
+- **Repository Pattern**: Domain repositories with JPA implementations
+- **Hexagonal Architecture**: Ports and adapters for clean separation

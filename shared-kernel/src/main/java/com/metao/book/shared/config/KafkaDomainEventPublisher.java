@@ -1,4 +1,4 @@
-package com.metao.book.order.application.service;
+package com.metao.book.shared.config;
 
 import com.google.protobuf.Message;
 import com.metao.book.shared.domain.base.DelegatingDomainEventTranslator;
@@ -12,10 +12,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+/**
+ * Shared Kafka domain event publisher with transaction-aware publishing.
+ * Publishes events after transaction commit when in a transaction context.
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class DomainEventToKafkaEventHandler implements DomainEventPublisher {
+public class KafkaDomainEventPublisher implements DomainEventPublisher {
 
     private final DelegatingDomainEventTranslator domainEventTranslator;
     private final KafkaEventHandler kafkaEventHandler;
@@ -28,7 +32,7 @@ public class DomainEventToKafkaEventHandler implements DomainEventPublisher {
             Runnable publishAction = () -> {
                 var kafkaTopic = kafkaEventHandler.getKafkaTopic(translationResult.message().getClass());
                 kafkaTemplate.send(kafkaTopic, translationResult.key(), translationResult.message());
-                log.debug("Published domain event {} to topic {}.", event.getEventType(), kafkaTopic);
+                log.debug("Published domain event {} to topic {}", event.getEventType(), kafkaTopic);
             };
 
             if (TransactionSynchronizationManager.isActualTransactionActive()) {
