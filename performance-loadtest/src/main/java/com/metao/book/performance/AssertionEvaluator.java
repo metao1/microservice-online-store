@@ -12,8 +12,11 @@ import java.util.Map;
  *         with numeric coercion when both sides are parseable numbers;</li>
  *     <li>{@code eq}, {@code ne}, {@code contains} otherwise (string semantics).</li>
  * </ul>
- * Assertion failures throw {@link IllegalStateException} so callers can choose
- * whether to treat them as retryable or fail-fast.
+ * Assertion mismatches throw {@link AssertionFailedException} — a dedicated
+ * type so the caller can fail-fast on logical assertion errors while still
+ * retrying on network/HTTP failures. Scenarios can opt into retrying assertions
+ * (useful for eventual-consistency checks) by setting
+ * {@code retryOnAssertion: true} on the step.
  */
 final class AssertionEvaluator {
 
@@ -32,7 +35,7 @@ final class AssertionEvaluator {
             if (!matches(actualNode, assertion, context)) {
                 String actualValue = actualNode == null || actualNode.isNull() ? "null"
                     : actualNode.isTextual() ? actualNode.textValue() : actualNode.toString();
-                throw new IllegalStateException(
+                throw new AssertionFailedException(
                     "Assertion failed for %s: expected %s %s but was %s"
                         .formatted(
                             assertion.path(),
@@ -42,6 +45,18 @@ final class AssertionEvaluator {
                         )
                 );
             }
+        }
+    }
+
+    /**
+     * Thrown when an {@code assertions} entry does not match the response. By
+     * default callers fail-fast on this exception; scenarios that assert on
+     * eventually-consistent state should set {@code retryOnAssertion: true} on
+     * the step so the driver retries up to {@code maxAttempts}.
+     */
+    static final class AssertionFailedException extends RuntimeException {
+        AssertionFailedException(String message) {
+            super(message);
         }
     }
 

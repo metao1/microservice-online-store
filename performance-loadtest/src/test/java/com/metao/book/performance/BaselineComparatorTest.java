@@ -75,6 +75,7 @@ class BaselineComparatorTest {
             280.0,
             300.0,
             1.0,
+            0L,
             Map.of(),
             Map.of("HTTP_500", 50L)
         );
@@ -181,6 +182,7 @@ class BaselineComparatorTest {
             220.0,
             250.0,
             0.5,
+            0L,
             Map.of(),
             Map.of()
         );

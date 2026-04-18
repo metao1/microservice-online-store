@@ -6,6 +6,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -70,6 +71,10 @@ final class ScenarioExecutor {
         String lastErrorKey = "UNKNOWN";
         long lastBytes = 0L;
         int attempt = 0;
+        // Skip UTF-8 decode entirely when no assertion or extract needs the
+        // body as a string — at 10k+ RPS the decode cost is measurable and the
+        // byte count alone already feeds the throughput metric.
+        boolean needsBodyString = !step.assertions().isEmpty() || !step.extract().isEmpty();
 
         for (attempt = 1; attempt <= step.maxAttempts(); attempt += 1) {
             try {
@@ -105,17 +110,30 @@ final class ScenarioExecutor {
                     requestBuilder.method(renderedRequest.method(), HttpRequest.BodyPublishers.noBody());
                 }
 
-                HttpResponse<String> response = client.send(
-                    requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-                String body = response.body() == null ? "" : response.body();
-                lastBytes = body.length();
+                // Count true wire bytes instead of Java char count. For UTF-8
+                // responses with multi-byte characters the previous char count
+                // diverged from the actual transfer size.
+                HttpResponse<byte[]> response = client.send(
+                    requestBuilder.build(), HttpResponse.BodyHandlers.ofByteArray());
+                byte[] bodyBytes = response.body() == null ? new byte[0] : response.body();
+                lastBytes = bodyBytes.length;
 
                 if (step.accepts(response.statusCode())) {
+                    String body = needsBodyString ? new String(bodyBytes, StandardCharsets.UTF_8) : "";
                     AssertionEvaluator.evaluate(step, body, context);
                     return new StepOutcome(true, lastBytes, Map.copyOf(extractValues(step, body)), "none", attempt);
                 }
 
                 lastErrorKey = "HTTP_" + response.statusCode();
+            } catch (AssertionEvaluator.AssertionFailedException ignored) {
+                // Assertion mismatches are logical errors. Retry only when the
+                // scenario explicitly opts in (eventual-consistency polling);
+                // otherwise fail fast so CI doesn't spend the full retry budget
+                // waiting for a "status=FAILED" response to become "SUCCESSFUL".
+                lastErrorKey = "ASSERTION_FAILED";
+                if (!step.retryOnAssertion()) {
+                    return new StepOutcome(false, lastBytes, Map.of(), lastErrorKey, attempt);
+                }
             } catch (Exception exception) {
                 lastErrorKey = exception.getClass().getSimpleName();
             }

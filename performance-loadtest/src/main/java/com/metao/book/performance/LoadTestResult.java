@@ -26,6 +26,11 @@ record LoadTestResult(
     double p9999Ms,
     double maxMs,
     double errorRatePct,
+    // Count of workflow starts that missed their paced target time. Nonzero
+    // means the target service (or the load generator itself) couldn't sustain
+    // the configured --target-rps; the reported p95/p99 should be read with
+    // that caveat. Zero on closed-model runs (no --target-rps).
+    long paceMissCount,
     Map<String, StepLatencyStats> stepLatencyMs,
     Map<String, Long> errors
 ) {
@@ -37,6 +42,7 @@ record LoadTestResult(
         long success,
         long failures,
         long responseBytes,
+        long paceMissCount,
         Map<String, StepLatencyStats> stepLatencyMs,
         ConcurrentHashMap<String, LongAdder> errors
     ) {
@@ -65,6 +71,7 @@ record LoadTestResult(
             latenciesMicros.percentileMs(99.99),
             latenciesMicros.percentileMs(100),
             errorRatePct,
+            paceMissCount,
             Map.copyOf(stepLatencyMs),
             Map.copyOf(errorSnapshot)
         );

@@ -14,17 +14,36 @@ final class ConsoleSummaryPrinter {
     }
 
     static void print(
+        LoadTestConfig config,
         LoadTestResult result,
         List<ThresholdFailure> thresholdFailures,
         BaselineComparisonResult baselineComparison,
         LoadTestReportWriter.ReportArtifacts artifacts
     ) {
         System.out.println("Load test finished");
+        if (config.stages().size() > 1) {
+            System.out.println("stages=" + config.stages().size()
+                + " peakUsers=" + config.peakVirtualUsers()
+                + " totalDurationSec=" + config.totalStageDurationSec());
+            for (int index = 0; index < config.stages().size(); index += 1) {
+                LoadStage stage = config.stages().get(index);
+                System.out.println(" - stage" + (index + 1)
+                    + ": users=" + stage.users()
+                    + " durationSec=" + stage.durationSec()
+                    + " targetRps=" + (stage.targetRps() == null ? "-" : String.format("%.2f", stage.targetRps())));
+            }
+        }
         System.out.println("workflows=" + result.totalWorkflows()
             + ", success=" + result.success()
             + ", failures=" + result.failures());
         System.out.println("workflowThroughput(rps)=" + String.format("%.2f", result.throughputRps()));
         System.out.println("errorRatePct=" + String.format("%.3f", result.errorRatePct()));
+        if (result.paceMissCount() > 0) {
+            // Pace misses indicate the generator (or the target) couldn't
+            // sustain the configured rate. Print only when nonzero so closed-
+            // model runs don't get a useless "paceMisses=0" line.
+            System.out.println("paceMisses=" + result.paceMissCount());
+        }
         System.out.println("latency(ms, success-only): min=" + String.format("%.3f", result.minMs())
             + " p50=" + String.format("%.3f", result.p50Ms())
             + " p95=" + String.format("%.3f", result.p95Ms())

@@ -28,6 +28,7 @@ class LoadTestThresholdsTest {
             750.0,
             800.0,
             5.0,
+            0L,
             Map.of(),
             Map.of("HTTP_500", 5L)
         );

@@ -128,8 +128,22 @@ final class LoadTestConfigParser {
             overrideThresholds(scenarioThresholds, options),
             parseBaselineComparison(options, selectedScenario.comparison, scenarioBaseDir),
             scenarioFile + "#" + selectedScenario.name,
-            selectedScenario.variables == null ? Map.of() : selectedScenario.variables
+            selectedScenario.variables == null ? Map.of() : selectedScenario.variables,
+            toStages(selectedScenario.load.stages)
         );
+    }
+
+    private static List<LoadStage> toStages(List<StageDefinition> definitions) {
+        if (definitions == null || definitions.isEmpty()) {
+            // Empty list lets LoadTestConfig synthesize a single stage from
+            // the top-level fields.
+            return List.of();
+        }
+        List<LoadStage> stages = new ArrayList<>(definitions.size());
+        for (StageDefinition definition : definitions) {
+            stages.add(new LoadStage(definition.durationSec, definition.users, definition.targetRps));
+        }
+        return stages;
     }
 
     private static List<ScenarioStep> toScenarioSteps(ScenarioDefinition scenario, Path scenarioBaseDir) throws IOException {
@@ -156,7 +170,8 @@ final class LoadTestConfigParser {
                     toAssertions(stepDefinition.assertions),
                     stepDefinition.expectedStatus,
                     stepDefinition.maxAttempts,
-                    stepDefinition.retryDelayMs
+                    stepDefinition.retryDelayMs,
+                    stepDefinition.retryOnAssertion
                 ));
             }
             return parsedSteps;
@@ -465,6 +480,14 @@ final class LoadTestConfigParser {
         public Integer expectedStatus;
         public int maxAttempts = 1;
         public long retryDelayMs = 0L;
+        /**
+         * When {@code true}, assertion mismatches retry under {@code maxAttempts}
+         * and {@code retryDelayMs} — useful for polling eventually-consistent
+         * state (e.g. "wait until inventory has decreased"). When {@code false}
+         * (default), assertion mismatches fail fast so a logical error doesn't
+         * spend the full retry budget before surfacing.
+         */
+        public boolean retryOnAssertion = false;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -498,6 +521,20 @@ final class LoadTestConfigParser {
         public int warmupSec = 10;
         public int timeoutSec = 5;
         public long thinkMs = 0L;
+        /**
+         * Optional ramped load profile. When non-empty, the driver iterates
+         * these stages instead of using the top-level {@code users} /
+         * {@code durationSec} / {@code targetRps} fields. Each stage has its
+         * own pacing window and VU pool.
+         */
+        public List<StageDefinition> stages = List.of();
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static final class StageDefinition {
+        public int durationSec;
+        public int users;
+        public Double targetRps;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

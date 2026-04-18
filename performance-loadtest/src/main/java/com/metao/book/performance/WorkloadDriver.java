@@ -16,14 +16,16 @@ import java.util.concurrent.locks.LockSupport;
 /**
  * Runs the warmup pass and the measured load pass. One instance per test run.
  * <p>
- * Concurrency model: each virtual user is its own virtual thread. When
- * {@link LoadTestConfig#targetRps()} is set, the driver paces workflow starts
- * to match the target rate (open model with HdrHistogram coordinated-omission
- * correction). Otherwise every VU self-paces with {@code thinkTimeMs} between
- * iterations (closed model).
+ * Concurrency model: each virtual user is its own virtual thread. When a stage
+ * has a {@code targetRps}, the driver paces workflow starts to match the
+ * target rate (open model with HdrHistogram coordinated-omission correction).
+ * Otherwise every VU self-paces with {@code thinkTimeMs} between iterations
+ * (closed model).
  * <p>
  * Stop conditions use {@link System#nanoTime()} rather than wall-clock time so
- * NTP adjustments can't extend or truncate the measured window.
+ * NTP adjustments can't extend or truncate the measured window. A stage that
+ * cannot sustain its target rate increments {@code paceMissCount} so the
+ * report can distinguish "slow service" from "slow generator".
  */
 final class WorkloadDriver {
 
@@ -38,22 +40,22 @@ final class WorkloadDriver {
     }
 
     /**
-     * Runs {@code warmupSec} seconds of load using the same virtual-user count
-     * as the real run. This is essential so JIT, connection pools, DB caches,
-     * and GC generations are primed against the correct load shape; a single-
-     * threaded warmup would silently hand the first measured seconds of the
-     * main run a warmup cost.
+     * Runs {@code warmupSec} seconds of load using the peak virtual-user count
+     * across all stages. Priming JIT / connection pools / DB caches / GC
+     * generations against a smaller VU count than the real peak would hand the
+     * first seconds of the measured window a warmup cost.
      */
     void runWarmup() throws Exception {
         if (config.warmupSec() <= 0) {
             return;
         }
+        int warmupUsers = config.peakVirtualUsers();
         long stopAtNanos = System.nanoTime() + TimeUnit.SECONDS.toNanos(config.warmupSec());
         AtomicLong workflowCounter = new AtomicLong();
 
         try (ExecutorService pool = Executors.newVirtualThreadPerTaskExecutor()) {
             List<Future<?>> futures = new ArrayList<>();
-            for (int index = 0; index < config.virtualUsers(); index += 1) {
+            for (int index = 0; index < warmupUsers; index += 1) {
                 final int virtualUser = index + 1;
                 futures.add(pool.submit(() -> {
                     while (System.nanoTime() < stopAtNanos) {
@@ -72,35 +74,76 @@ final class WorkloadDriver {
     }
 
     LoadTestResult runLoad() throws Exception {
+        // Shared accumulators aggregate across all stages into one report.
         LatencyHistogram latenciesMicros = new LatencyHistogram();
         StepLatencyCollector stepLatencies = new StepLatencyCollector(config.steps());
         ConcurrentHashMap<String, LongAdder> errors = new ConcurrentHashMap<>();
         LongAdder success = new LongAdder();
         LongAdder failures = new LongAdder();
         LongAdder bytes = new LongAdder();
+        LongAdder paceMisses = new LongAdder();
 
+        Instant overallStart = Instant.now();
+        // Run each stage sequentially. Stage-local pacing means each stage
+        // gets its own fresh rate ramp; otherwise a fast "cruise" stage
+        // following a slow "ramp" stage would inherit the ramp's workflow
+        // counter and start late across all its VUs.
+        for (LoadStage stage : config.stages()) {
+            runStage(stage, latenciesMicros, stepLatencies, errors, success, failures, bytes, paceMisses);
+        }
+
+        return LoadTestResult.from(
+            overallStart,
+            Instant.now(),
+            latenciesMicros.snapshot(),
+            success.sum(),
+            failures.sum(),
+            bytes.sum(),
+            paceMisses.sum(),
+            stepLatencies.snapshot(),
+            errors
+        );
+    }
+
+    private void runStage(
+        LoadStage stage,
+        LatencyHistogram latenciesMicros,
+        StepLatencyCollector stepLatencies,
+        ConcurrentHashMap<String, LongAdder> errors,
+        LongAdder success,
+        LongAdder failures,
+        LongAdder bytes,
+        LongAdder paceMisses
+    ) throws Exception {
         // Expected inter-arrival time used for HdrHistogram's coordinated-
         // omission correction. Only meaningful under open-model pacing; under
         // closed-model (no targetRps) each VU self-paces so there is no
         // "expected start time" to compare against.
-        Long expectedIntervalMicros = (config.targetRps() != null && config.targetRps() > 0.0)
-            ? (long) Math.max(1.0d, 1_000_000d / config.targetRps())
+        Long expectedIntervalMicros = (stage.targetRps() != null && stage.targetRps() > 0.0)
+            ? (long) Math.max(1.0d, 1_000_000d / stage.targetRps())
             : null;
 
-        Instant start = Instant.now();
-        long startNanos = System.nanoTime();
-        long stopAtNanos = startNanos + TimeUnit.SECONDS.toNanos(config.durationSec());
-        AtomicLong workflowCounter = new AtomicLong();
+        long stageStartNanos = System.nanoTime();
+        long stageStopAtNanos = stageStartNanos + TimeUnit.SECONDS.toNanos(stage.durationSec());
+        // Stage-local counter so pacing math within a stage is relative to its
+        // own start time, not the overall run's start time.
+        AtomicLong stageWorkflowCounter = new AtomicLong();
 
         try (ExecutorService pool = Executors.newVirtualThreadPerTaskExecutor()) {
             List<Future<?>> futures = new ArrayList<>();
-            for (int index = 0; index < config.virtualUsers(); index += 1) {
+            for (int index = 0; index < stage.users(); index += 1) {
                 final int virtualUser = index + 1;
                 futures.add(pool.submit(() -> {
-                    while (System.nanoTime() < stopAtNanos) {
-                        long workflowId = workflowCounter.incrementAndGet();
-                        paceWorkflowStart(config.targetRps(), startNanos, workflowId, stopAtNanos);
-                        if (System.nanoTime() >= stopAtNanos) {
+                    while (System.nanoTime() < stageStopAtNanos) {
+                        long workflowId = stageWorkflowCounter.incrementAndGet();
+                        paceWorkflowStart(
+                            stage.targetRps(),
+                            stageStartNanos,
+                            workflowId,
+                            stageStopAtNanos,
+                            paceMisses
+                        );
+                        if (System.nanoTime() >= stageStopAtNanos) {
                             break;
                         }
                         long workflowStart = System.nanoTime();
@@ -128,19 +171,7 @@ final class WorkloadDriver {
                 }));
             }
             awaitAll(futures);
-            // Try-with-resources handles shutdown + awaitTermination; no manual call needed.
         }
-
-        return LoadTestResult.from(
-            start,
-            Instant.now(),
-            latenciesMicros.snapshot(),
-            success.sum(),
-            failures.sum(),
-            bytes.sum(),
-            stepLatencies.snapshot(),
-            errors
-        );
     }
 
     HttpClient client() {
@@ -149,19 +180,30 @@ final class WorkloadDriver {
 
     /**
      * Parks the current VU until its paced workflow start time, but never past
-     * the run deadline. Without the deadline cap the last VU to grab a counter
-     * slot could sit idle for seconds after the test window has closed.
+     * the stage deadline. When the target time has already elapsed we increment
+     * {@code paceMisses} — a standing count of lateness is a primary signal
+     * that either the generator or the target couldn't sustain the requested
+     * rate.
      */
-    private static void paceWorkflowStart(Double targetRps, long startNanos, long workflowNumber, long stopAtNanos) {
+    private static void paceWorkflowStart(
+        Double targetRps,
+        long stageStartNanos,
+        long workflowNumber,
+        long stageStopAtNanos,
+        LongAdder paceMisses
+    ) {
         if (targetRps == null || targetRps <= 0.0 || workflowNumber < 1) {
             return;
         }
         long nanosPerWorkflow = Math.max(1L, (long) (1_000_000_000d / targetRps));
-        long targetStartNanos = startNanos + ((workflowNumber - 1) * nanosPerWorkflow);
-        long deadlineNanos = Math.min(targetStartNanos, stopAtNanos);
+        long targetStartNanos = stageStartNanos + ((workflowNumber - 1) * nanosPerWorkflow);
+        long deadlineNanos = Math.min(targetStartNanos, stageStopAtNanos);
         long delayNanos = deadlineNanos - System.nanoTime();
         if (delayNanos > 0L) {
             LockSupport.parkNanos(delayNanos);
+        } else if (targetStartNanos < System.nanoTime()) {
+            // We're already past the target start time — this VU missed its slot.
+            paceMisses.increment();
         }
     }
 

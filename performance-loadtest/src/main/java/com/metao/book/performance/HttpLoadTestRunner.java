@@ -54,7 +54,7 @@ public final class HttpLoadTestRunner {
             thresholdFailures,
             baselineComparison
         );
-        ConsoleSummaryPrinter.print(result, thresholdFailures, baselineComparison, artifacts);
+        ConsoleSummaryPrinter.print(config, result, thresholdFailures, baselineComparison, artifacts);
         return thresholdFailures.isEmpty() && baselineComparison.passed() ? 0 : 2;
     }
 
@@ -63,12 +63,21 @@ public final class HttpLoadTestRunner {
         System.out.println("label=" + config.label() + ", source=" + config.sourceDescription());
         System.out.println("primaryTarget=" + config.request().url());
         System.out.println("steps=" + config.steps().size() + ", method=" + config.request().method());
-        System.out.println("durationSec=" + config.durationSec()
-            + ", warmupSec=" + config.warmupSec()
-            + ", users=" + config.virtualUsers()
-            + ", thinkMs=" + config.thinkTimeMs());
-        if (config.targetRps() != null) {
-            System.out.println("targetRps=" + String.format("%.2f", config.targetRps()));
+        if (config.stages().size() > 1) {
+            System.out.println("loadShape=staged"
+                + ", stages=" + config.stages().size()
+                + ", peakUsers=" + config.peakVirtualUsers()
+                + ", totalDurationSec=" + config.totalStageDurationSec()
+                + ", warmupSec=" + config.warmupSec()
+                + ", thinkMs=" + config.thinkTimeMs());
+        } else {
+            System.out.println("durationSec=" + config.durationSec()
+                + ", warmupSec=" + config.warmupSec()
+                + ", users=" + config.virtualUsers()
+                + ", thinkMs=" + config.thinkTimeMs());
+            if (config.targetRps() != null) {
+                System.out.println("targetRps=" + String.format("%.2f", config.targetRps()));
+            }
         }
         if (config.baselineComparison().enabled()) {
             System.out.println("baselineReport=" + config.baselineComparison().baselineReportPath());

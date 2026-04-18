@@ -85,6 +85,20 @@ final class LoadTestReportWriter {
         load.put("warmupSec", config.warmupSec());
         load.put("requestTimeoutSec", config.requestTimeoutSec());
         load.put("thinkTimeMs", config.thinkTimeMs());
+        // Always emit stages so report consumers can rely on a single shape;
+        // for a non-staged run this is a 1-element list synthesized from the
+        // top-level fields above.
+        load.put("stages", config.stages().stream()
+            .map(stage -> {
+                Map<String, Object> stagePayload = new LinkedHashMap<>();
+                stagePayload.put("durationSec", stage.durationSec());
+                stagePayload.put("users", stage.users());
+                stagePayload.put("targetRps", stage.targetRps());
+                return stagePayload;
+            })
+            .toList());
+        load.put("peakVirtualUsers", config.peakVirtualUsers());
+        load.put("totalStageDurationSec", config.totalStageDurationSec());
         scenario.put("load", load);
         return scenario;
     }
@@ -114,6 +128,7 @@ final class LoadTestReportWriter {
         payload.put("latencyMs", latencyMs);
         payload.put("stepLatencyMs", result.stepLatencyMs());
         payload.put("responseBytes", result.responseBytes());
+        payload.put("paceMissCount", result.paceMissCount());
         payload.put("errors", result.errors());
         return payload;
     }
@@ -176,6 +191,9 @@ final class LoadTestReportWriter {
             .append(", failures=").append(result.failures()).append(System.lineSeparator());
         summary.append("workflowThroughputRps=").append(String.format("%.2f", result.throughputRps())).append(System.lineSeparator());
         summary.append("errorRatePct=").append(String.format("%.3f", result.errorRatePct())).append(System.lineSeparator());
+        if (result.paceMissCount() > 0) {
+            summary.append("paceMissCount=").append(result.paceMissCount()).append(System.lineSeparator());
+        }
         summary.append("latencyMs (success-only) min=").append(String.format("%.3f", result.minMs()))
             .append(" p50=").append(String.format("%.3f", result.p50Ms()))
             .append(" p95=").append(String.format("%.3f", result.p95Ms()))
