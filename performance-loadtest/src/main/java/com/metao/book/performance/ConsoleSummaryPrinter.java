@@ -52,16 +52,9 @@ final class ConsoleSummaryPrinter {
             + " p99.99=" + String.format("%.3f", result.p9999Ms())
             + " max=" + String.format("%.3f", result.maxMs()));
         if (!result.stepLatencyMs().isEmpty()) {
-            System.out.println("stepLatency(ms)");
-            result.stepLatencyMs().forEach((stepName, step) -> System.out.println(
-                " - " + stepName + ": samples=" + step.samples()
-                    + " success=" + step.successes()
-                    + " failures=" + step.failures()
-                    + " retries=" + step.retries()
-                    + " p95=" + String.format("%.3f", step.p95Ms())
-                    + " p99=" + String.format("%.3f", step.p99Ms())
-                    + " p99.9=" + String.format("%.3f", step.p999Ms())
-            ));
+            System.out.println("Per-step breakdown:");
+            // Trailing newline included by the renderer; print() adds its own.
+            System.out.print(StepReportTable.render(config, result));
         }
 
         if (thresholdFailures.isEmpty()) {

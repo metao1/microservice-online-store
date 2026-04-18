@@ -55,7 +55,13 @@ final class ScenarioExecutor {
             StepOutcome outcome = executeStep(step, context);
             long stepElapsedMicros = TimeUnit.NANOSECONDS.toMicros(System.nanoTime() - stepStart);
             if (stepLatencies != null) {
-                stepLatencies.record(step.name(), stepElapsedMicros, outcome.success(), outcome.attempts());
+                stepLatencies.record(
+                    step.name(),
+                    stepElapsedMicros,
+                    outcome.success(),
+                    outcome.attempts(),
+                    outcome.statusCode()
+                );
             }
             responseBytes += outcome.responseBytes();
             if (!outcome.success()) {
@@ -71,12 +77,17 @@ final class ScenarioExecutor {
         String lastErrorKey = "UNKNOWN";
         long lastBytes = 0L;
         int attempt = 0;
+        // Terminal status code of the final attempt. Reset to NO_RESPONSE on
+        // each attempt so an exception on the last try doesn't falsely report
+        // a successful status from an earlier attempt.
+        int lastStatusCode = StepLatencyCollector.NO_RESPONSE_STATUS;
         // Skip UTF-8 decode entirely when no assertion or extract needs the
         // body as a string — at 10k+ RPS the decode cost is measurable and the
         // byte count alone already feeds the throughput metric.
         boolean needsBodyString = !step.assertions().isEmpty() || !step.extract().isEmpty();
 
         for (attempt = 1; attempt <= step.maxAttempts(); attempt += 1) {
+            lastStatusCode = StepLatencyCollector.NO_RESPONSE_STATUS;
             try {
                 HttpRequestSpec renderedRequest = TemplateRenderer.renderRequest(step.request(), context);
                 HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
@@ -117,11 +128,19 @@ final class ScenarioExecutor {
                     requestBuilder.build(), HttpResponse.BodyHandlers.ofByteArray());
                 byte[] bodyBytes = response.body() == null ? new byte[0] : response.body();
                 lastBytes = bodyBytes.length;
+                lastStatusCode = response.statusCode();
 
                 if (step.accepts(response.statusCode())) {
                     String body = needsBodyString ? new String(bodyBytes, StandardCharsets.UTF_8) : "";
                     AssertionEvaluator.evaluate(step, body, context);
-                    return new StepOutcome(true, lastBytes, Map.copyOf(extractValues(step, body)), "none", attempt);
+                    return new StepOutcome(
+                        true,
+                        lastBytes,
+                        Map.copyOf(extractValues(step, body)),
+                        "none",
+                        attempt,
+                        lastStatusCode
+                    );
                 }
 
                 lastErrorKey = "HTTP_" + response.statusCode();
@@ -130,9 +149,19 @@ final class ScenarioExecutor {
                 // scenario explicitly opts in (eventual-consistency polling);
                 // otherwise fail fast so CI doesn't spend the full retry budget
                 // waiting for a "status=FAILED" response to become "SUCCESSFUL".
+                // The HTTP status here is from the response that failed the
+                // assertion — meaningful signal ("endpoint returned 200 but
+                // payload was wrong") so we keep it on the outcome.
                 lastErrorKey = "ASSERTION_FAILED";
                 if (!step.retryOnAssertion()) {
-                    return new StepOutcome(false, lastBytes, Map.of(), lastErrorKey, attempt);
+                    return new StepOutcome(
+                        false,
+                        lastBytes,
+                        Map.of(),
+                        lastErrorKey,
+                        attempt,
+                        lastStatusCode
+                    );
                 }
             } catch (Exception exception) {
                 lastErrorKey = exception.getClass().getSimpleName();
@@ -143,7 +172,14 @@ final class ScenarioExecutor {
             }
         }
 
-        return new StepOutcome(false, lastBytes, Map.of(), lastErrorKey, Math.max(1, attempt - 1));
+        return new StepOutcome(
+            false,
+            lastBytes,
+            Map.of(),
+            lastErrorKey,
+            Math.max(1, attempt - 1),
+            lastStatusCode
+        );
     }
 
     private static Map<String, String> extractValues(ScenarioStep step, String body) throws Exception {
@@ -196,12 +232,21 @@ final class ScenarioExecutor {
     record WorkflowOutcome(boolean success, long responseBytes, String errorKey) {
     }
 
+    /**
+     * Internal per-step result. {@code statusCode} is the HTTP status of the
+     * final attempt, or {@link StepLatencyCollector#NO_RESPONSE_STATUS} when
+     * the step never received a response (exception / timeout / connection
+     * failure). For assertion failures the status code is the one returned by
+     * the server that triggered the mismatch (useful signal: "endpoint returned
+     * 200 but payload was wrong").
+     */
     private record StepOutcome(
         boolean success,
         long responseBytes,
         Map<String, String> extractedValues,
         String errorKey,
-        int attempts
+        int attempts,
+        int statusCode
     ) {
     }
 }

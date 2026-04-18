@@ -203,17 +203,8 @@ final class LoadTestReportWriter {
             .append(" max=").append(String.format("%.3f", result.maxMs()))
             .append(System.lineSeparator());
         if (!result.stepLatencyMs().isEmpty()) {
-            summary.append("stepLatencyMs").append(System.lineSeparator());
-            result.stepLatencyMs().forEach((stepName, step) -> summary.append(" - ")
-                .append(stepName)
-                .append(": samples=").append(step.samples())
-                .append(" success=").append(step.successes())
-                .append(" failures=").append(step.failures())
-                .append(" retries=").append(step.retries())
-                .append(" p95=").append(String.format("%.3f", step.p95Ms()))
-                .append(" p99=").append(String.format("%.3f", step.p99Ms()))
-                .append(" p99.9=").append(String.format("%.3f", step.p999Ms()))
-                .append(System.lineSeparator()));
+            summary.append("Per-step breakdown:").append(System.lineSeparator());
+            summary.append(StepReportTable.render(config, result));
         }
 
         if (thresholdFailures.isEmpty()) {
