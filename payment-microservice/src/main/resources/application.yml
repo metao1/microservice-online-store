@@ -138,6 +138,19 @@ spring:
           provider_disables_autocommit: true
         temp:
           use_jdbc_metadata_defaults: false
+app:
+  api:
+    version: ${API_VERSION:1.0}
+    cors:
+      enabled: ${CORS_ENABLED:false}
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:}
+      allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:}
+      allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,PATCH,DELETE,OPTIONS}
+      allowed-headers: ${CORS_ALLOWED_HEADERS:*}
+      exposed-headers: ${CORS_EXPOSED_HEADERS:}
+      allow-credentials: ${CORS_ALLOW_CREDENTIALS:false}
+      max-age: ${CORS_MAX_AGE:30m}
+
 kafka:
   enabled: ${KAFKA_ENABLED:true}
   topic:

@@ -1,2 +1,3 @@
 com.metao.book.shared.application.ObjectMapperAutoConfiguration
+com.metao.book.shared.config.OpenApiConfigFactory
 com.metao.book.shared.domain.base.DomainTranslatorAutoConfiguration

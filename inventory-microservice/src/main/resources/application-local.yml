@@ -28,6 +28,15 @@ spring:
       schema.registry.url: "http://localhost:8081"
       security.protocol: "PLAINTEXT"
       sasl.mechanism: "PLAIN"
+app:
+  api:
+    cors:
+      enabled: true
+      allowed-origin-patterns:
+        - http://localhost:*
+        - http://127.0.0.1:*
+      allow-credentials: true
+
 logging:
   level:
     org.springframework.data: DEBUG
