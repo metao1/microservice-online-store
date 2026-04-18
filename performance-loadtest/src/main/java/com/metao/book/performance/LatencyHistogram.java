@@ -25,6 +25,33 @@ final class LatencyHistogram {
         maxMicros.accumulate(clamped);
     }
 
+    /**
+     * Records a latency sample with coordinated-omission correction.
+     * <p>
+     * When the scheduler attempts to start workflows at a fixed rate and the
+     * system stalls, many workflows that "should have started" during the stall
+     * are never sampled, making p95/p99 look artificially good. HdrHistogram
+     * corrects this by back-filling synthetic samples in
+     * {@code [expectedInterval, 2*expectedInterval, ...]} steps whenever an
+     * observed latency exceeds the expected interval. The actual recorded
+     * sample still drives {@link #minMicros}/{@link #maxMicros}; synthetic
+     * samples only inflate the histogram distribution so tail percentiles
+     * reflect the stall.
+     *
+     * @param latencyMicros         observed end-to-end latency in microseconds
+     * @param expectedIntervalMicros target inter-arrival time in microseconds
+     *                              (e.g. {@code 1_000_000 / targetRps})
+     */
+    void recordWithExpectedInterval(long latencyMicros, long expectedIntervalMicros) {
+        long normalized = Math.max(0L, latencyMicros);
+        long clamped = Math.min(normalized, HIGHEST_TRACKABLE_LATENCY_MICROS);
+        long expected = Math.max(1L, expectedIntervalMicros);
+        recorder.recordValueWithExpectedInterval(clamped + 1L, expected);
+        sampleCount.increment();
+        minMicros.accumulate(clamped);
+        maxMicros.accumulate(clamped);
+    }
+
     Snapshot snapshot() {
         long count = sampleCount.sum();
         return new Snapshot(

@@ -7,7 +7,10 @@ record BaselineComparisonConfig(
     double maxThroughputDropPct,
     double maxP95RegressionPct,
     double maxP99RegressionPct,
-    double maxErrorRateIncreasePct
+    double maxErrorRateIncreasePct,
+    // When true, skip the scenario-label match guard. Useful for ad-hoc
+    // cross-scenario comparisons; never leave enabled in CI.
+    boolean forceCompare
 ) {
 
     static final double DEFAULT_MAX_THROUGHPUT_DROP_PCT = 10.0;
@@ -21,7 +24,8 @@ record BaselineComparisonConfig(
             DEFAULT_MAX_THROUGHPUT_DROP_PCT,
             DEFAULT_MAX_P95_REGRESSION_PCT,
             DEFAULT_MAX_P99_REGRESSION_PCT,
-            DEFAULT_MAX_ERROR_RATE_INCREASE_PCT
+            DEFAULT_MAX_ERROR_RATE_INCREASE_PCT,
+            false
         );
     }
 
@@ -35,4 +39,3 @@ record BaselineComparisonConfig(
         }
     }
 }
-

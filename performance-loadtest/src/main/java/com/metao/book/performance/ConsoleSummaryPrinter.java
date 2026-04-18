@@ -1,0 +1,81 @@
+package com.metao.book.performance;
+
+import java.util.List;
+
+/**
+ * Prints the final load-test summary to stdout. Extracted from
+ * {@code HttpLoadTestRunner} so the composition root stays compact and this
+ * rendering can evolve (colorized output, structured log lines, etc.) without
+ * touching orchestration code.
+ */
+final class ConsoleSummaryPrinter {
+
+    private ConsoleSummaryPrinter() {
+    }
+
+    static void print(
+        LoadTestConfig config,
+        LoadTestResult result,
+        List<ThresholdFailure> thresholdFailures,
+        BaselineComparisonResult baselineComparison,
+        LoadTestReportWriter.ReportArtifacts artifacts
+    ) {
+        System.out.println("Load test finished");
+        if (config.stages().size() > 1) {
+            System.out.println("stages=" + config.stages().size()
+                + " peakUsers=" + config.peakVirtualUsers()
+                + " totalDurationSec=" + config.totalStageDurationSec());
+            for (int index = 0; index < config.stages().size(); index += 1) {
+                LoadStage stage = config.stages().get(index);
+                System.out.println(" - stage" + (index + 1)
+                    + ": users=" + stage.users()
+                    + " durationSec=" + stage.durationSec()
+                    + " targetRps=" + (stage.targetRps() == null ? "-" : String.format("%.2f", stage.targetRps())));
+            }
+        }
+        System.out.println("workflows=" + result.totalWorkflows()
+            + ", success=" + result.success()
+            + ", failures=" + result.failures());
+        System.out.println("workflowThroughput(rps)=" + String.format("%.2f", result.throughputRps()));
+        System.out.println("errorRatePct=" + String.format("%.3f", result.errorRatePct()));
+        if (result.paceMissCount() > 0) {
+            // Pace misses indicate the generator (or the target) couldn't
+            // sustain the configured rate. Print only when nonzero so closed-
+            // model runs don't get a useless "paceMisses=0" line.
+            System.out.println("paceMisses=" + result.paceMissCount());
+        }
+        System.out.println("latency(ms, success-only): min=" + String.format("%.3f", result.minMs())
+            + " p50=" + String.format("%.3f", result.p50Ms())
+            + " p95=" + String.format("%.3f", result.p95Ms())
+            + " p99=" + String.format("%.3f", result.p99Ms())
+            + " p99.9=" + String.format("%.3f", result.p999Ms())
+            + " p99.99=" + String.format("%.3f", result.p9999Ms())
+            + " max=" + String.format("%.3f", result.maxMs()));
+        if (!result.stepLatencyMs().isEmpty()) {
+            System.out.println("Per-step breakdown:");
+            // Trailing newline included by the renderer; print() adds its own.
+            System.out.print(StepReportTable.render(config, result));
+        }
+
+        if (thresholdFailures.isEmpty()) {
+            System.out.println("thresholds=passed");
+        } else {
+            System.out.println("thresholds=failed");
+            thresholdFailures.forEach(failure -> System.out.println(
+                " - " + failure.metric() + ": expected " + failure.expected() + ", actual " + failure.actual()
+            ));
+        }
+
+        if (baselineComparison.enabled()) {
+            System.out.println("baselineComparison=" + (baselineComparison.passed() ? "passed" : "failed"));
+            if (!baselineComparison.passed()) {
+                baselineComparison.failures().forEach(failure -> System.out.println(
+                    " - " + failure.metric() + ": expected " + failure.expected() + ", actual " + failure.actual()
+                ));
+            }
+        }
+
+        System.out.println("jsonReport=" + artifacts.jsonReport().toAbsolutePath());
+        System.out.println("textReport=" + artifacts.textReport().toAbsolutePath());
+    }
+}

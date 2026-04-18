@@ -85,6 +85,20 @@ final class LoadTestReportWriter {
         load.put("warmupSec", config.warmupSec());
         load.put("requestTimeoutSec", config.requestTimeoutSec());
         load.put("thinkTimeMs", config.thinkTimeMs());
+        // Always emit stages so report consumers can rely on a single shape;
+        // for a non-staged run this is a 1-element list synthesized from the
+        // top-level fields above.
+        load.put("stages", config.stages().stream()
+            .map(stage -> {
+                Map<String, Object> stagePayload = new LinkedHashMap<>();
+                stagePayload.put("durationSec", stage.durationSec());
+                stagePayload.put("users", stage.users());
+                stagePayload.put("targetRps", stage.targetRps());
+                return stagePayload;
+            })
+            .toList());
+        load.put("peakVirtualUsers", config.peakVirtualUsers());
+        load.put("totalStageDurationSec", config.totalStageDurationSec());
         scenario.put("load", load);
         return scenario;
     }
@@ -103,15 +117,18 @@ final class LoadTestReportWriter {
         payload.put("workflowThroughputRps", result.throughputRps());
         // Backward-compatible alias.
         payload.put("throughputRps", result.throughputRps());
-        payload.put("latencyMs", Map.of(
-            "min", result.minMs(),
-            "p50", result.p50Ms(),
-            "p95", result.p95Ms(),
-            "p99", result.p99Ms(),
-            "max", result.maxMs()
-        ));
+        Map<String, Object> latencyMs = new LinkedHashMap<>();
+        latencyMs.put("min", result.minMs());
+        latencyMs.put("p50", result.p50Ms());
+        latencyMs.put("p95", result.p95Ms());
+        latencyMs.put("p99", result.p99Ms());
+        latencyMs.put("p999", result.p999Ms());
+        latencyMs.put("p9999", result.p9999Ms());
+        latencyMs.put("max", result.maxMs());
+        payload.put("latencyMs", latencyMs);
         payload.put("stepLatencyMs", result.stepLatencyMs());
         payload.put("responseBytes", result.responseBytes());
+        payload.put("paceMissCount", result.paceMissCount());
         payload.put("errors", result.errors());
         return payload;
     }
@@ -128,12 +145,13 @@ final class LoadTestReportWriter {
         payload.put("baselineReport", baselineComparison.baselineReportPath().toString());
         payload.put("passed", baselineComparison.passed());
         payload.put("metrics", baselineComparison.baselineMetrics());
-        payload.put("limits", Map.of(
-            "maxThroughputDropPct", config.baselineComparison().maxThroughputDropPct(),
-            "maxP95RegressionPct", config.baselineComparison().maxP95RegressionPct(),
-            "maxP99RegressionPct", config.baselineComparison().maxP99RegressionPct(),
-            "maxErrorRateIncreasePct", config.baselineComparison().maxErrorRateIncreasePct()
-        ));
+        Map<String, Object> limits = new LinkedHashMap<>();
+        limits.put("maxThroughputDropPct", config.baselineComparison().maxThroughputDropPct());
+        limits.put("maxP95RegressionPct", config.baselineComparison().maxP95RegressionPct());
+        limits.put("maxP99RegressionPct", config.baselineComparison().maxP99RegressionPct());
+        limits.put("maxErrorRateIncreasePct", config.baselineComparison().maxErrorRateIncreasePct());
+        limits.put("forceCompare", config.baselineComparison().forceCompare());
+        payload.put("limits", limits);
         payload.put("failures", baselineComparison.failures());
         return payload;
     }
@@ -173,20 +191,20 @@ final class LoadTestReportWriter {
             .append(", failures=").append(result.failures()).append(System.lineSeparator());
         summary.append("workflowThroughputRps=").append(String.format("%.2f", result.throughputRps())).append(System.lineSeparator());
         summary.append("errorRatePct=").append(String.format("%.3f", result.errorRatePct())).append(System.lineSeparator());
-        summary.append("latencyMs min=").append(String.format("%.3f", result.minMs()))
+        if (result.paceMissCount() > 0) {
+            summary.append("paceMissCount=").append(result.paceMissCount()).append(System.lineSeparator());
+        }
+        summary.append("latencyMs (success-only) min=").append(String.format("%.3f", result.minMs()))
             .append(" p50=").append(String.format("%.3f", result.p50Ms()))
             .append(" p95=").append(String.format("%.3f", result.p95Ms()))
             .append(" p99=").append(String.format("%.3f", result.p99Ms()))
+            .append(" p99.9=").append(String.format("%.3f", result.p999Ms()))
+            .append(" p99.99=").append(String.format("%.3f", result.p9999Ms()))
             .append(" max=").append(String.format("%.3f", result.maxMs()))
             .append(System.lineSeparator());
         if (!result.stepLatencyMs().isEmpty()) {
-            summary.append("stepLatencyMs").append(System.lineSeparator());
-            result.stepLatencyMs().forEach((stepName, step) -> summary.append(" - ")
-                .append(stepName)
-                .append(": samples=").append(step.samples())
-                .append(" p95=").append(String.format("%.3f", step.p95Ms()))
-                .append(" p99=").append(String.format("%.3f", step.p99Ms()))
-                .append(System.lineSeparator()));
+            summary.append("Per-step breakdown:").append(System.lineSeparator());
+            summary.append(StepReportTable.render(config, result));
         }
 
         if (thresholdFailures.isEmpty()) {
