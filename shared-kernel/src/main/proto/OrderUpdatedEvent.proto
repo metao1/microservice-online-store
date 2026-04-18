@@ -17,11 +17,14 @@ message OrderUpdatedEvent {
   double price = 5;
   string currency = 6;
   enum Status {
-    NEW = 0;
-    SUBMITTED = 1;
-    REJECTED = 2;
-    CONFIRMED = 3;
-    ROLLED_BACK = 4;
+    CREATED = 0;
+    PENDING_PAYMENT = 1;
+    PAID = 2;
+    PAYMENT_FAILED = 3;
+    PROCESSING = 4;
+    SHIPPED = 5;
+    DELIVERED = 6;
+    CANCELLED = 7;
   };
 
   message UUID {
