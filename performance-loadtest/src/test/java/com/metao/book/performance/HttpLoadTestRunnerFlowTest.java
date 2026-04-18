@@ -173,7 +173,7 @@ class HttpLoadTestRunnerFlowTest {
             )
         );
 
-        HttpLoadTestRunner.WorkflowOutcome result = HttpLoadTestRunner.executeWorkflow(
+        ScenarioExecutor.WorkflowOutcome result = HttpLoadTestRunner.executeWorkflow(
             HttpClient.newHttpClient(),
             config,
             1,
@@ -242,7 +242,7 @@ class HttpLoadTestRunnerFlowTest {
             Map.of()
         );
 
-        HttpLoadTestRunner.WorkflowOutcome outcome = HttpLoadTestRunner.executeWorkflow(
+        ScenarioExecutor.WorkflowOutcome outcome = HttpLoadTestRunner.executeWorkflow(
             HttpClient.newHttpClient(),
             config,
             1,
