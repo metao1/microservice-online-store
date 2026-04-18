@@ -15,6 +15,29 @@ class LoadTestConfigParserTest {
     Path tempDir;
 
     @Test
+    void helpTextDocumentsEveryPublicFlag() {
+        // Prevents silent help-drift: every flag the parser accepts must appear
+        // in --help. Scenario-mode flags used to be missing and this guard
+        // catches that category of bug.
+        String help = LoadTestConfigParser.helpText();
+        String[] mandatoryFlags = {
+            "--url", "--method", "--header", "--body", "--body-file",
+            "--scenario-file", "--scenario", "--label",
+            "--users", "--target-rps", "--duration-sec", "--warmup-sec",
+            "--timeout-sec", "--think-ms", "--report-dir",
+            "--max-error-rate-pct", "--min-throughput-rps",
+            "--max-p95-ms", "--max-p99-ms",
+            "--compare-to", "--max-throughput-drop-pct",
+            "--max-p95-regression-pct", "--max-p99-regression-pct",
+            "--max-error-rate-increase-pct", "--force-compare",
+            "--help"
+        };
+        for (String flag : mandatoryFlags) {
+            assertTrue(help.contains(flag), "helpText() is missing documentation for " + flag);
+        }
+    }
+
+    @Test
     void shouldParseDirectCliConfigWithHeadersAndThresholds() throws Exception {
         var parsed = LoadTestConfigParser.parse(new String[] {
             "--url", "http://localhost:8084/payments/status/PENDING?offset=0&limit=10",
