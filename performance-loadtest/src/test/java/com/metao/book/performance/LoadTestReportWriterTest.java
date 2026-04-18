@@ -54,8 +54,11 @@ class LoadTestReportWriterTest {
             25.0,
             90.0,
             120.0,
+            160.0,
+            180.0,
             200.0,
             0.0,
+            0L,
             Map.of(),
             Map.of()
         );
