@@ -88,8 +88,11 @@ public class VAT implements ValueObject {
     @NonNull
     public Money calculateTax(@NonNull Money amount) {
         Objects.requireNonNull(amount, "amount must not be null");
+        // Multiply before dividing to avoid a scale-0 intermediate that collapses
+        // percentages under 100 to zero (e.g. 21 / 100 at scale 0 rounds to 0).
         var tax = amount.fixedPointAmount()
-            .multiply(BigDecimal.valueOf(percentage).divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP));
+            .multiply(BigDecimal.valueOf(percentage))
+            .divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP);
         return Money.of(amount.currency(), tax);
     }
 

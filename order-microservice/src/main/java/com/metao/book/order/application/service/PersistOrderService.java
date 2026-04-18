@@ -6,6 +6,7 @@ import com.metao.book.order.domain.event.OrderCreatedEvent;
 import com.metao.book.order.domain.event.OrderCreatedEventItem;
 import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.repository.OrderRepository;
+import com.metao.book.shared.domain.financial.VAT;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,7 @@ public class PersistOrderService implements PersistOrderUseCase {
 
     private final OrderRepository orderRepository;
     private final ProcessedOrderCreatedEventPort processedOrderCreatedEventPort;
+    private final VAT vat;
 
     @Override
     @Transactional
@@ -30,7 +32,7 @@ public class PersistOrderService implements PersistOrderUseCase {
         }
 
         orderRepository.findById(event.orderId())
-            .ifPresentOrElse(order -> mergeOrderItems(order, event), () -> orderRepository.save(OrderAggregate.from(event)));
+            .ifPresentOrElse(order -> mergeOrderItems(order, event), () -> orderRepository.save(OrderAggregate.from(event, vat)));
     }
 
     private void mergeOrderItems(OrderAggregate order, OrderCreatedEvent event) {

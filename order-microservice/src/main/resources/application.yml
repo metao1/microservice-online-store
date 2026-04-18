@@ -133,6 +133,11 @@ app:
       exposed-headers: ${CORS_EXPOSED_HEADERS:}
       allow-credentials: ${CORS_ALLOW_CREDENTIALS:false}
       max-age: ${CORS_MAX_AGE:30m}
+  order:
+    vat:
+      # Integer VAT rate applied when computing order totals (e.g. 21 for 21 %).
+      # Defaults to 0 so unconfigured environments keep net-priced totals.
+      percentage: ${VAT_PERCENTAGE:0}
 
 kafka:
   enabled: ${KAFKA_ENABLED:true}

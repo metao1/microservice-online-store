@@ -38,6 +38,9 @@ app:
         - http://localhost:*
         - http://127.0.0.1:*
       allow-credentials: true
+  order:
+    vat:
+      percentage: 21
 
 logging:
   level:
