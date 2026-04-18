@@ -1,4 +1,15 @@
-import { Payment, PaymentMethodType, PaymentStatistics, Product } from '@types';
+import { OrderStatus, Payment, PaymentMethodType, PaymentStatistics, Product } from '@types';
+
+const KNOWN_ORDER_STATUSES = new Set<OrderStatus>([
+  'CREATED',
+  'PENDING_PAYMENT',
+  'PAID',
+  'PAYMENT_FAILED',
+  'PROCESSING',
+  'SHIPPED',
+  'DELIVERED',
+  'CANCELLED',
+]);
 
 export abstract class BaseApiClient {
   protected getPlaceholderImage(title: string, index: number): string {
@@ -127,24 +138,22 @@ export abstract class BaseApiClient {
     };
   }
 
-  protected mapOrderStatus(backendStatus: string): 'PENDING' | 'CONFIRMED' | 'SHIPPED' | 'DELIVERED' {
-    const status = (backendStatus || '').toUpperCase();
-    switch (status) {
-      case 'PENDING':
-      case 'PROCESSING':
-        return 'PENDING';
-      case 'CONFIRMED':
-      case 'CONFIRMED_ORDER':
-        return 'CONFIRMED';
-      case 'SHIPPED':
-      case 'IN_TRANSIT':
-        return 'SHIPPED';
-      case 'DELIVERED':
-      case 'COMPLETED':
-        return 'DELIVERED';
-      default:
-        return 'PENDING';
-    }
+  /**
+   * Normalises the `status` field returned by the order-microservice
+   * (propagated from `OrderCreatedEvent` / `OrderStatusChangedEvent`) into the
+   * strongly-typed `OrderStatus` union.
+   *
+   * Historically this method mapped the backend enum onto a much smaller
+   * hand-crafted subset (PENDING / CONFIRMED / SHIPPED / DELIVERED) and fell
+   * through to `'PENDING'` for anything it didn't recognise — which silently
+   * masked real statuses such as `PAID`, `PAYMENT_FAILED` and `CANCELLED`
+   * behind the generic "Processing" label. The frontend now tracks the
+   * backend enum verbatim, so this is a straight pass-through with a
+   * conservative fallback of `CREATED` for unknown values.
+   */
+  protected normalizeOrderStatus(backendStatus: string | null | undefined): OrderStatus {
+    const candidate = (backendStatus || '').toUpperCase() as OrderStatus;
+    return KNOWN_ORDER_STATUSES.has(candidate) ? candidate : 'CREATED';
   }
 
   protected mapPayment(dto: any): Payment {
