@@ -24,6 +24,8 @@ class LoadTestThresholdsTest {
             30.0,
             250.0,
             600.0,
+            700.0,
+            750.0,
             800.0,
             5.0,
             Map.of(),

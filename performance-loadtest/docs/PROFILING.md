@@ -60,6 +60,7 @@ Scenario files are JSON and contain a `scenarios` array. Each scenario can defin
 - `comparison.maxP95RegressionPct`
 - `comparison.maxP99RegressionPct`
 - `comparison.maxErrorRateIncreasePct`
+- `comparison.forceCompare` (bypass scenario-label match; default `false`)
 
 If a threshold is violated, the runner exits with a non-zero status so it can be used as a CI gate.
 
@@ -143,8 +144,10 @@ jcmd | grep payment-microservice
 
 ## 5) What to analyze
 
-- Throughput (`throughputRps`) and error ratio (`failures / requests`) from load-test JSON.
-- Tail latency (`p95`, `p99`) rather than average only.
+- Throughput (`workflowThroughputRps`) and error ratio (`failures / totalWorkflows`) from load-test JSON.
+- Tail latency (`p95`, `p99`, `p999`, `p9999`) — distributed microservice stacks often only reveal GC pauses, Kafka lag, and DB lock contention past p99.
+- Per-step counters (`stepLatencyMs[name].successes / failures / retries`) to locate the weakest link in a multi-service workflow.
+- Synthetic traceparent headers are injected automatically (one trace per workflow, one span per step) so you can pull any tail latency outlier from the report and jump straight into the service's OpenTelemetry trace view.
 - JFR hot methods and blocked threads:
   - lock contention
   - socket waits
@@ -182,3 +185,5 @@ This checks:
 - throughput drop percentage versus baseline
 - p95 and p99 latency regression percentages
 - error-rate increase percentage points
+
+The comparator refuses to run when the baseline report's `scenario.label` does not match the current run's label so a `payment-status-page` run cannot accidentally be compared against an `inventory-category-page` baseline. Pass `--force-compare` (or set `comparison.forceCompare: true` in the scenario JSON) if you really want cross-scenario comparisons; otherwise fix the `--compare-to` path.

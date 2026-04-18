@@ -20,6 +20,10 @@ record LoadTestResult(
     double p50Ms,
     double p95Ms,
     double p99Ms,
+    // Tail percentiles expose GC pauses, Kafka lag, and DB lock contention
+    // that p99 often hides in distributed microservice choreography.
+    double p999Ms,
+    double p9999Ms,
     double maxMs,
     double errorRatePct,
     Map<String, StepLatencyStats> stepLatencyMs,
@@ -57,6 +61,8 @@ record LoadTestResult(
             latenciesMicros.percentileMs(50),
             latenciesMicros.percentileMs(95),
             latenciesMicros.percentileMs(99),
+            latenciesMicros.percentileMs(99.9),
+            latenciesMicros.percentileMs(99.99),
             latenciesMicros.percentileMs(100),
             errorRatePct,
             Map.copyOf(stepLatencyMs),

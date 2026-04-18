@@ -59,6 +59,7 @@ final class LoadTestConfigParser {
             "  --max-p95-regression-pct <double>  Optional. Default 15.0",
             "  --max-p99-regression-pct <double>  Optional. Default 20.0",
             "  --max-error-rate-increase-pct <double> Optional. Default 1.0",
+            "  --force-compare                   Optional. Bypass scenario-label match guard",
             "  --help"
         );
     }
@@ -320,12 +321,16 @@ final class LoadTestConfigParser {
                 : BaselineComparisonConfig.DEFAULT_MAX_ERROR_RATE_INCREASE_PCT
         );
 
+        boolean forceCompare = options.has("--force-compare")
+            || (scenarioComparison != null && Boolean.TRUE.equals(scenarioComparison.forceCompare));
+
         return new BaselineComparisonConfig(
             baselinePath,
             maxThroughputDropPct,
             maxP95RegressionPct,
             maxP99RegressionPct,
-            maxErrorRateIncreasePct
+            maxErrorRateIncreasePct,
+            forceCompare
         );
     }
 
@@ -350,6 +355,9 @@ final class LoadTestConfigParser {
         return headers;
     }
 
+    // Flags that take no value; their presence alone is truthy.
+    private static final java.util.Set<String> BOOLEAN_FLAGS = java.util.Set.of("--force-compare");
+
     private static ParsedOptions parseOptions(String[] args) {
         Map<String, List<String>> options = new LinkedHashMap<>();
         boolean helpRequested = false;
@@ -362,6 +370,10 @@ final class LoadTestConfigParser {
             }
             if (!key.startsWith("--")) {
                 throw new IllegalArgumentException("Unexpected argument: " + key);
+            }
+            if (BOOLEAN_FLAGS.contains(key)) {
+                options.computeIfAbsent(key, ignored -> new ArrayList<>()).add("true");
+                continue;
             }
             if (index + 1 >= args.length) {
                 throw new IllegalArgumentException("Missing value for: " + key);
@@ -503,5 +515,6 @@ final class LoadTestConfigParser {
         public Double maxP95RegressionPct;
         public Double maxP99RegressionPct;
         public Double maxErrorRateIncreasePct;
+        public Boolean forceCompare;
     }
 }

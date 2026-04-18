@@ -28,6 +28,13 @@ public final class HttpLoadTestRunner {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final Pattern TEMPLATE_PATTERN = Pattern.compile("\\$\\{([^}]+)}");
 
+    // Workflow-scoped trace id placed in the context map. Reserved name so a
+    // user-defined scenario variable can't accidentally overwrite it.
+    private static final String TRACE_ID_KEY = "__traceId";
+    // java.util.Random would be the contention hotspot at 10k+ RPS; ThreadLocalRandom
+    // is per-thread and allocation-free on virtual threads.
+    private static final char[] HEX = "0123456789abcdef".toCharArray();
+
     private HttpLoadTestRunner() {
     }
 
@@ -203,7 +210,7 @@ public final class HttpLoadTestRunner {
             StepOutcome outcome = executeStep(client, config, step, context);
             long stepElapsedMicros = TimeUnit.NANOSECONDS.toMicros(System.nanoTime() - stepStart);
             if (stepLatencies != null) {
-                stepLatencies.record(step.name(), stepElapsedMicros);
+                stepLatencies.record(step.name(), stepElapsedMicros, outcome.success(), outcome.attempts());
             }
             responseBytes += outcome.responseBytes();
             if (!outcome.success()) {
@@ -223,8 +230,9 @@ public final class HttpLoadTestRunner {
     ) {
         String lastErrorKey = "UNKNOWN";
         long lastBytes = 0L;
+        int attempt = 0;
 
-        for (int attempt = 1; attempt <= step.maxAttempts(); attempt += 1) {
+        for (attempt = 1; attempt <= step.maxAttempts(); attempt += 1) {
             try {
                 HttpRequestSpec renderedRequest = renderRequest(step.request(), context);
                 HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
@@ -232,6 +240,19 @@ public final class HttpLoadTestRunner {
                     .timeout(Duration.ofSeconds(config.requestTimeoutSec()));
 
                 renderedRequest.headers().forEach(requestBuilder::header);
+
+                // Inject a W3C traceparent so the target service's OpenTelemetry
+                // pipeline can correlate this synthetic request with the span tree
+                // it produces. Same trace id across all steps of a workflow, fresh
+                // span id per request. A user-provided traceparent in the scenario
+                // always wins.
+                if (!renderedRequest.headers().containsKey("traceparent")) {
+                    String traceId = context.get(TRACE_ID_KEY);
+                    if (traceId != null) {
+                        requestBuilder.header("traceparent",
+                            "00-" + traceId + "-" + nextSpanId() + "-01");
+                    }
+                }
 
                 if (requiresRequestBody(renderedRequest.method())) {
                     requestBuilder.method(renderedRequest.method(), HttpRequest.BodyPublishers.ofString(renderedRequest.body()));
@@ -248,7 +269,7 @@ public final class HttpLoadTestRunner {
 
                 if (step.accepts(response.statusCode())) {
                     evaluateAssertions(step, body, context);
-                    return new StepOutcome(true, lastBytes, Map.copyOf(extractValues(step, body)), "none");
+                    return new StepOutcome(true, lastBytes, Map.copyOf(extractValues(step, body)), "none", attempt);
                 }
 
                 lastErrorKey = "HTTP_" + response.statusCode();
@@ -261,7 +282,7 @@ public final class HttpLoadTestRunner {
             }
         }
 
-        return new StepOutcome(false, lastBytes, Map.of(), lastErrorKey);
+        return new StepOutcome(false, lastBytes, Map.of(), lastErrorKey, Math.max(1, attempt - 1));
     }
 
     private static Map<String, String> extractValues(ScenarioStep step, String body) throws Exception {
@@ -371,8 +392,26 @@ public final class HttpLoadTestRunner {
         context.put("vu", Integer.toString(virtualUser));
         context.put("iteration", Long.toString(iteration));
         context.put("timestampEpochMs", Long.toString(System.currentTimeMillis()));
+        context.put(TRACE_ID_KEY, nextTraceId());
         context.putAll(resolveScenarioVariables(config.variables(), context));
         return context;
+    }
+
+    private static String nextTraceId() {
+        return randomHex(32);
+    }
+
+    private static String nextSpanId() {
+        return randomHex(16);
+    }
+
+    private static String randomHex(int length) {
+        java.util.concurrent.ThreadLocalRandom random = java.util.concurrent.ThreadLocalRandom.current();
+        char[] chars = new char[length];
+        for (int index = 0; index < length; index += 1) {
+            chars[index] = HEX[random.nextInt(16)];
+        }
+        return new String(chars);
     }
 
     private static Map<String, String> resolveScenarioVariables(Map<String, String> variables, Map<String, String> baseContext) {
@@ -480,13 +519,19 @@ public final class HttpLoadTestRunner {
             + " p50=" + String.format("%.3f", result.p50Ms())
             + " p95=" + String.format("%.3f", result.p95Ms())
             + " p99=" + String.format("%.3f", result.p99Ms())
+            + " p99.9=" + String.format("%.3f", result.p999Ms())
+            + " p99.99=" + String.format("%.3f", result.p9999Ms())
             + " max=" + String.format("%.3f", result.maxMs()));
         if (!result.stepLatencyMs().isEmpty()) {
             System.out.println("stepLatency(ms)");
             result.stepLatencyMs().forEach((stepName, step) -> System.out.println(
                 " - " + stepName + ": samples=" + step.samples()
+                    + " success=" + step.successes()
+                    + " failures=" + step.failures()
+                    + " retries=" + step.retries()
                     + " p95=" + String.format("%.3f", step.p95Ms())
                     + " p99=" + String.format("%.3f", step.p99Ms())
+                    + " p99.9=" + String.format("%.3f", step.p999Ms())
             ));
         }
 
@@ -526,7 +571,7 @@ public final class HttpLoadTestRunner {
     record WorkflowOutcome(boolean success, long responseBytes, String errorKey) {
     }
 
-    private record StepOutcome(boolean success, long responseBytes, Map<String, String> extractedValues, String errorKey) {
+    private record StepOutcome(boolean success, long responseBytes, Map<String, String> extractedValues, String errorKey, int attempts) {
     }
 
     static final class MissingTemplateValueException extends RuntimeException {

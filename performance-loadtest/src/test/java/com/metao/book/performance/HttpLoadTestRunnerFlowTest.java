@@ -1,6 +1,7 @@
 package com.metao.book.performance;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.sun.net.httpserver.HttpExchange;
@@ -13,8 +14,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -181,6 +184,88 @@ class HttpLoadTestRunnerFlowTest {
         assertTrue(result.responseBytes() > 0);
         assertEquals(2, paymentLookupAttempts.get());
         assertTrue(productReadAttempts.get() >= 2);
+    }
+
+    @Test
+    void shouldInjectWorkflowScopedTraceparentIntoEveryStep() throws Exception {
+        ConcurrentHashMap<String, String> capturedTraceparents = new ConcurrentHashMap<>();
+        AtomicReference<String> stepA = new AtomicReference<>();
+        AtomicReference<String> stepB = new AtomicReference<>();
+        server = HttpServer.create(new InetSocketAddress(0), 0);
+        server.setExecutor(Executors.newCachedThreadPool());
+        server.createContext("/a", exchange -> {
+            stepA.set(exchange.getRequestHeaders().getFirst("traceparent"));
+            capturedTraceparents.put("a", String.valueOf(stepA.get()));
+            respond(exchange, 200, "{\"ok\":true}");
+        });
+        server.createContext("/b", exchange -> {
+            stepB.set(exchange.getRequestHeaders().getFirst("traceparent"));
+            capturedTraceparents.put("b", String.valueOf(stepB.get()));
+            respond(exchange, 200, "{\"ok\":true}");
+        });
+        server.start();
+
+        int port = server.getAddress().getPort();
+        LoadTestConfig config = new LoadTestConfig(
+            "trace-flow",
+            new HttpRequestSpec("GET", "http://localhost:" + port + "/a", "", "none", Map.of()),
+            List.of(
+                new ScenarioStep(
+                    "step-a",
+                    new HttpRequestSpec("GET", "http://localhost:" + port + "/a", "", "none", Map.of()),
+                    Map.of(),
+                    List.of(),
+                    200,
+                    1,
+                    0L
+                ),
+                new ScenarioStep(
+                    "step-b",
+                    new HttpRequestSpec("GET", "http://localhost:" + port + "/b", "", "none", Map.of()),
+                    Map.of(),
+                    List.of(),
+                    200,
+                    1,
+                    0L
+                )
+            ),
+            1,
+            null,
+            1,
+            0,
+            5,
+            0L,
+            tempDir,
+            LoadTestThresholds.none(),
+            BaselineComparisonConfig.none(),
+            "test",
+            Map.of()
+        );
+
+        HttpLoadTestRunner.WorkflowOutcome outcome = HttpLoadTestRunner.executeWorkflow(
+            HttpClient.newHttpClient(),
+            config,
+            1,
+            1
+        );
+
+        assertTrue(outcome.success());
+        assertNotNull(stepA.get(), "step-a should have received a traceparent header");
+        assertNotNull(stepB.get(), "step-b should have received a traceparent header");
+
+        // W3C traceparent format: 00-<32 hex traceId>-<16 hex spanId>-<2 hex flags>
+        String[] partsA = stepA.get().split("-");
+        String[] partsB = stepB.get().split("-");
+        assertEquals(4, partsA.length);
+        assertEquals(4, partsB.length);
+        assertEquals("00", partsA[0]);
+        assertEquals(32, partsA[1].length());
+        assertEquals(16, partsA[2].length());
+        assertEquals("01", partsA[3]);
+
+        // Same trace id across steps of one workflow, fresh span id per step.
+        assertEquals(partsA[1], partsB[1], "traceId should be shared across workflow steps");
+        assertTrue(!partsA[2].equals(partsB[2]), "spanId should differ between steps");
     }
 
     private static void respond(HttpExchange exchange, int statusCode, String body) throws IOException {

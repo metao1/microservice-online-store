@@ -24,6 +24,7 @@ final class BaselineComparator {
 
         Path path = baselineConfig.baselineReportPath();
         JsonNode root = OBJECT_MAPPER.readTree(path.toFile());
+        guardScenarioLabel(root, path, config, baselineConfig);
         JsonNode result = root.path("result");
         JsonNode latency = result.path("latencyMs");
 
@@ -80,6 +81,45 @@ final class BaselineComparator {
             path,
             Map.copyOf(baselineMetrics),
             List.copyOf(failures)
+        );
+    }
+
+    /**
+     * Refuses to compare reports from different scenarios unless the caller
+     * explicitly opts in with {@code forceCompare}. Without this guard, running
+     * {@code --compare-to payment-status-page-report.json} against a
+     * {@code inventory-category-page} run would produce meaningless deltas and
+     * silently pass a CI gate. Baseline reports generated before this feature
+     * existed will not carry a scenario label; in that case we log a warning
+     * but let the comparison proceed so historical baselines remain usable.
+     */
+    private static void guardScenarioLabel(
+        JsonNode root,
+        Path baselinePath,
+        LoadTestConfig config,
+        BaselineComparisonConfig baselineConfig
+    ) {
+        JsonNode scenarioLabelNode = root.path("scenario").path("label");
+        if (!scenarioLabelNode.isTextual()) {
+            System.err.println(
+                "[baseline] warning: baseline report " + baselinePath
+                    + " has no scenario.label; cannot verify it matches current scenario '"
+                    + config.label() + "'. Proceeding."
+            );
+            return;
+        }
+        String baselineLabel = scenarioLabelNode.textValue();
+        if (baselineLabel.equals(config.label())) {
+            return;
+        }
+        String message = "Baseline scenario label '" + baselineLabel + "' does not match current scenario '"
+            + config.label() + "' (" + baselinePath + ")";
+        if (baselineConfig.forceCompare()) {
+            System.err.println("[baseline] warning: " + message + " — forceCompare=true, comparing anyway.");
+            return;
+        }
+        throw new IllegalStateException(
+            message + ". Re-run with --force-compare or point --compare-to at the right baseline."
         );
     }
 
