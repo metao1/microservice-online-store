@@ -79,7 +79,7 @@ Notes:
 
 ## Complete Order Processing Saga Flow
 
-This is the actual implemented choreography-based saga for order processing with payment:
+This is the actual implemented choreography-based purchase saga spanning all three microservices — **Order**, **Payment**, and **Inventory**. The inventory leg fires only on the successful-payment branch: after `OrderPaymentEvent(SUCCESSFUL)` is consumed, the order aggregate emits one `DomainInventoryReductionRequestedEvent` per line item, which is translated into a `ProductUpdatedEvent` carrying the `"INVENTORY_REDUCTION"` marker on the `product-updated` topic and consumed by the inventory service to atomically decrement stock.
 
 ```mermaid
 sequenceDiagram
@@ -98,6 +98,11 @@ sequenceDiagram
     participant PaymentRepo as Payment Repository
     participant PaymentEventPublisher as Payment Event Publisher
     participant PaymentListener as PaymentEventListener<br/>(OrderMS)
+    participant ProductUpdatedTranslator as ProductUpdatedEventTranslator<br/>(OrderMS)
+    participant InventoryListener as ProductKafkaListenerComponent<br/>(InventoryMS:8083)
+    participant InventoryUseCase as HandleProductUpdatedEventUseCase<br/>(InventoryMS)
+    participant ProductAggregate as Product Aggregate<br/>(InventoryMS)
+    participant ProductRepo as Product Repository<br/>(PostgreSQL:5432)
 
     %% Shopping Cart Phase
     User->>WebApp: Add items to cart
@@ -219,6 +224,51 @@ sequenceDiagram
     deactivate OrderRepo
 
     alt Payment Successful
+        Note over PaymentListener,OrderService: HandleOrderPaymentEventUseCase<br/>idempotency-checks event, then<br/>reduces inventory BEFORE marking PAID
+
+        OrderService->>OrderAggregate: updateItemQuantity()
+        activate OrderAggregate
+        Note over OrderAggregate: For each OrderItem:<br/>Raises DomainInventoryReductionRequestedEvent
+        OrderAggregate-->>OrderService: Inventory reduction events raised
+        deactivate OrderAggregate
+
+        OrderService->>EventHandler: Publish inventory reduction events
+        activate EventHandler
+        EventHandler->>ProductUpdatedTranslator: Translate DomainInventoryReductionRequestedEvent
+        activate ProductUpdatedTranslator
+        Note over ProductUpdatedTranslator: Builds ProductUpdatedEvent<br/>key = "orderId:sku"<br/>description = "INVENTORY_REDUCTION"<br/>volume = reserved quantity
+        ProductUpdatedTranslator-->>EventHandler: ProductUpdatedEvent (Protobuf)
+        deactivate ProductUpdatedTranslator
+        EventHandler->>Kafka: Publish to "product-updated" topic
+        deactivate EventHandler
+
+        Kafka->>InventoryListener: ProductUpdatedEvent consumed
+        activate InventoryListener
+        Note over InventoryListener: @KafkaListener on<br/>"product-updated" topic<br/>(RetryableTopic + DLT)
+
+        InventoryListener->>InventoryUseCase: handle(HandleProductUpdatedEventCommand)
+        activate InventoryUseCase
+        Note over InventoryUseCase: Filters by description == "INVENTORY_REDUCTION"<br/>Idempotency via ProcessedInventoryEventPort<br/>(processed_inventory_event table)
+
+        alt First time processing this eventId
+            InventoryUseCase->>ProductAggregate: reduceProductVolumeAtomically(sku, volume)
+            activate ProductAggregate
+            Note over ProductAggregate: Row-level lock + validate stock<br/>Quantity -= volume<br/>Raises ProductUpdatedEvent
+            ProductAggregate->>ProductRepo: save(product)
+            activate ProductRepo
+            ProductRepo-->>ProductAggregate: Stock updated
+            deactivate ProductRepo
+            ProductAggregate-->>InventoryUseCase: Volume reduced
+            deactivate ProductAggregate
+        else Duplicate eventId
+            Note over InventoryUseCase: Skip - already processed
+        end
+
+        InventoryUseCase-->>InventoryListener: ack
+        deactivate InventoryUseCase
+        InventoryListener->>Kafka: Acknowledge offset
+        deactivate InventoryListener
+
         OrderService->>OrderAggregate: updateStatus(PAID)
         activate OrderAggregate
         Note over OrderAggregate: Status: CREATED → PAID<br/>Status transition validated<br/>Raises OrderStatusChangedEvent
@@ -235,7 +285,10 @@ sequenceDiagram
         EventHandler->>Kafka: Publish to "order-updated" topic
         deactivate EventHandler
 
-        Note over User: User can now see<br/>Order Status: PAID
+        OrderService->>CartService: clearCart(userId)
+        Note over CartService: Shopping cart emptied<br/>after successful purchase
+
+        Note over User: User can now see<br/>Order Status: PAID<br/>(stock decremented, cart cleared)
 
     else Payment Failed
         OrderService->>OrderAggregate: updateStatus(PAYMENT_FAILED)
@@ -760,13 +813,13 @@ Services:
 
 ### Kafka Topics
 
-| Topic Name | Publisher | Consumers | Event Type |
-|------------|-----------|-----------|------------|
-| `product-created` | Product MS | Product MS | ProductCreatedEvent |
-| `product-updated` | Product MS | Product MS | ProductUpdatedEvent |
-| `order-created-events` | Order MS | Payment MS | OrderCreatedEvent |
-| `order-updated` | Order MS | - | OrderStatusChangedEvent |
-| `order-payment-events` | Payment MS | Order MS | OrderPaymentEvent |
+| Topic Name | Publisher | Consumers | Event Type | Purpose |
+|------------|-----------|-----------|------------|---------|
+| `product-created` | Inventory MS | Inventory MS | `ProductCreatedEvent` | Product lifecycle — audit / cache warming. |
+| `product-updated` | Inventory MS, **Order MS** | Inventory MS | `ProductUpdatedEvent` | Two semantics distinguished by the `description` field: plain product edits, or `"INVENTORY_REDUCTION"` markers emitted by Order MS as part of the purchase saga. |
+| `order-created-events` | Order MS | Payment MS | `OrderCreatedEvent` | Triggers payment processing for a newly created order. |
+| `order-updated` | Order MS | — | `OrderStatusChangedEvent` | Publishes order status transitions (e.g. `CREATED → PAID`). |
+| `order-payment-events` | Payment MS | Order MS | `OrderPaymentUpdatedEvent` | Result of payment processing — drives order state machine and inventory reduction. |
 
 ### Serialization
 
@@ -860,27 +913,33 @@ spring.json.use.type.headers=false
 
 ## Saga Pattern Implementation
 
-### Order-Payment Choreography Saga
+### Order → Payment → Inventory Choreography Saga
+
+Three microservices participate in the purchase saga — **Order**, **Payment**, and **Inventory** — coordinating exclusively through Kafka events with no central orchestrator.
 
 **Happy Path:**
-1. User creates order → Order status: CREATED
-2. OrderCreatedEvent published
-3. Payment service consumes event → Processes payment
-4. PaymentProcessedEvent published (80% chance)
-5. Order service consumes event → Order status: PAID
-6. Order can proceed to SHIPPED → DELIVERED
+1. User creates order → **Order MS** persists aggregate with status `CREATED`.
+2. `OrderCreatedEvent` published to `order-created-events`.
+3. **Payment MS** consumes the event, creates a Payment aggregate, and processes it (80% success).
+4. `OrderPaymentEvent(status=SUCCESSFUL)` published to `order-payment-events`.
+5. **Order MS** consumes the payment event (`HandleOrderPaymentEventUseCase`, idempotent via `ProcessedPaymentEventPort`) and, **before** flipping the order to `PAID`, calls `OrderAggregate.updateItemQuantity()` which raises one `DomainInventoryReductionRequestedEvent` per order item.
+6. `ProductUpdatedEventTranslator` translates each domain event into a `ProductUpdatedEvent` with `description="INVENTORY_REDUCTION"`, key `"orderId:sku"`, and publishes to `product-updated`.
+7. **Inventory MS** consumes `product-updated` (`ProductKafkaListenerComponent` → `HandleProductUpdatedEventUseCase`). Events without the `INVENTORY_REDUCTION` marker are ignored, and duplicates are filtered via `ProcessedInventoryEventPort` (`processed_inventory_event` table). Stock is decremented through `ProductDomainService.reduceProductVolumeAtomically(sku, volume)` under a row-level lock.
+8. Order MS then transitions the order `CREATED → PAID`, publishes `OrderStatusChangedEvent` to `order-updated`, and clears the user's shopping cart.
+9. Order can subsequently progress `PAID → SHIPPED → DELIVERED`.
 
-**Compensation Path:**
-1. Payment fails (20% chance)
-2. PaymentFailedEvent published
-3. Order service consumes event → Order status: PAYMENT_FAILED
-4. User notified to retry payment or cancel
+**Compensation Path (payment failure):**
+1. Payment fails (20% chance) → `OrderPaymentEvent(status=FAILED)` published to `order-payment-events`.
+2. Order MS transitions the order to `PAYMENT_FAILED`.
+3. **No inventory reduction is emitted**, so Inventory MS stock is untouched — the saga compensates implicitly by skipping the stock-decrement step.
+4. User is notified to retry payment or cancel.
 
 ### Saga Characteristics
-- **Type**: Choreography-based (no central coordinator)
-- **Compensation**: Automatic on payment failure
-- **Idempotency**: All event handlers are idempotent
-- **Audit Trail**: All events stored in Kafka for replay
+- **Type**: Choreography-based (no central coordinator).
+- **Participants**: Order MS, Payment MS, Inventory MS.
+- **Compensation**: Implicit on payment failure — inventory is only reserved after payment succeeds, so a failed payment requires no reverse stock operation.
+- **Idempotency**: All three handlers are idempotent — `ProcessedPaymentEventPort` (Order MS), `ProcessedInventoryEventPort` (Inventory MS), and aggregate-level status-transition guards prevent double-processing of replayed events.
+- **Audit Trail**: All events persisted in Kafka for replay; DLTs capture poison messages on every listener.
 
 ## Resilience Patterns
 
