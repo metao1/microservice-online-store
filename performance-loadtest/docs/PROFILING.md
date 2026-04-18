@@ -35,7 +35,7 @@ You can still override selected values from the CLI, for example:
 Scenario files are JSON and contain a `scenarios` array. Each scenario can define:
 
 - `name`
-- `variables`
+- `variables` (auto-injected: `${vu}`, `${iteration}`, `${uuid}`, `${timestampEpochMs}`)
 - `request.url`
 - `request.method`
 - `request.headers`
@@ -45,12 +45,19 @@ Scenario files are JSON and contain a `scenarios` array. Each scenario can defin
 - `steps[].expectedStatus`
 - `steps[].maxAttempts`
 - `steps[].retryDelayMs`
+- `steps[].retryOnAssertion` (default `false`; set `true` to poll for eventually-consistent state)
+- `steps[].assertions[]` — `{ path, operator, expected }`
+  - operators: `eq`, `ne`, `contains` (string); `lt`, `lte`, `gt`, `gte` (numeric coercion when both sides parse as numbers). Unknown operator symbols are rejected at scenario-parse time, not at first request, so typos surface before any load is generated.
+  - `expected` is templated against the workflow context, so `${beforeVolume}` works
 - `load.users`
-- `load.targetRps`
+- `load.targetRps` (switches into open-model pacing with HdrHistogram coordinated-omission correction)
 - `load.durationSec`
 - `load.warmupSec`
 - `load.timeoutSec`
 - `load.thinkMs`
+- `load.stages[]` — ramped profile; overrides the top-level load fields:
+  - `{ durationSec, users, targetRps? }` per stage
+  - executed sequentially, each with its own VU pool and pacing window
 - `thresholds.maxErrorRatePct`
 - `thresholds.minThroughputRps`
 - `thresholds.maxP95Ms`
@@ -63,6 +70,26 @@ Scenario files are JSON and contain a `scenarios` array. Each scenario can defin
 - `comparison.forceCompare` (bypass scenario-label match; default `false`)
 
 If a threshold is violated, the runner exits with a non-zero status so it can be used as a CI gate.
+
+### Ramped load example
+
+```json
+"load": {
+  "warmupSec": 10,
+  "timeoutSec": 5,
+  "thinkMs": 5,
+  "stages": [
+    { "durationSec": 30, "users": 25,  "targetRps": 25 },
+    { "durationSec": 60, "users": 75,  "targetRps": 100 },
+    { "durationSec": 30, "users": 150, "targetRps": 200 },
+    { "durationSec": 30, "users": 25,  "targetRps": 25 }
+  ]
+}
+```
+
+Latency and throughput are aggregated across all stages into one report;
+per-stage metadata is preserved under `scenario.load.stages[]` so post-hoc
+analysis can slice by stage.
 
 ### End-to-end checkout workflow
 
@@ -107,6 +134,9 @@ Each run now writes:
 - `*.json` machine-readable report
 - `*.txt` human-readable summary
 - per-step latency stats (`stepLatencyMs`) for multi-step scenarios
+- per-step terminal HTTP status code distribution (`stepLatencyMs[step].statusCodeCounts`).
+  Sentinel code `0` represents "no response received" (connection error / timeout);
+  the CLI table renders that as `ERR:N`.
 
 `throughputRps` and `totalWorkflows` represent completed workflow iterations per second/count (not raw HTTP request count).
 

@@ -1,6 +1,7 @@
 package com.metao.book.performance;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -13,6 +14,21 @@ class TemplateRendererTest {
     @Test
     void shouldLeaveStringWithoutPlaceholdersUntouched() {
         assertEquals("plain-string", TemplateRenderer.resolve("plain-string", Map.of()));
+    }
+
+    @Test
+    void shouldReturnSameInstanceWhenNoDollarSignPresent() {
+        // Hot-path fast-path: strings without any '$' must skip the Matcher
+        // entirely and return the original instance (no allocation).
+        String template = "http://localhost:8083/products/category/books?offset=0&limit=16";
+        assertSame(template, TemplateRenderer.resolve(template, Map.of("vu", "1")));
+    }
+
+    @Test
+    void shouldStillSubstituteWhenFastPathMisses() {
+        // Dollar sign present but not a placeholder — fall-through branch must
+        // still render correctly (regression guard for the fast-path check).
+        assertEquals("price:$10", TemplateRenderer.resolve("price:$10", Map.of()));
     }
 
     @Test
