@@ -45,8 +45,21 @@ cd frontend && npm install && npm run dev
 ## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md) - System overview and event flows
-- [API Reference](docs/API.md) - REST endpoints for all services
+- [API Reference](docs/API.md) - REST endpoints and Swagger links
 - [Events](docs/EVENTS.md) - Kafka topics and Protobuf schemas
+
+### Swagger UI
+
+| Service | URL |
+|---------|-----|
+| Inventory | http://localhost:8083/swagger-ui.html |
+| Order | http://localhost:8086/swagger-ui.html |
+| Payment | http://localhost:8084/swagger-ui.html |
+
+```bash
+# Generate OpenAPI specs
+./scripts/generate-openapi.sh
+```
 
 ## License
 

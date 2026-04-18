@@ -26,79 +26,64 @@ flowchart TB
     FE --> PAY_API --> PAY
 ```
 
-## Inventory Service (Port 8083)
+## Swagger UI (Live Documentation)
 
-### Products
+Each service exposes OpenAPI documentation via Swagger UI:
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/products/{sku}` | Get product by SKU |
-| GET | `/products/by-skus?skus=...` | Get products by SKU list |
-| POST | `/products` | Create product |
-| PUT | `/products/{sku}` | Update product |
-| GET | `/products/category/{categoryName}` | Get products by category |
-| GET | `/products/search?keyword=...` | Search products |
-| GET | `/products/{sku}/related` | Get related products |
-| POST | `/products/{sku}/categories/{categoryName}` | Assign to category |
-| POST | `/products/{sku}/volume/reduce?quantity=...` | Reduce stock |
-| POST | `/products/{sku}/volume/increase?quantity=...` | Increase stock |
+| Service | Swagger UI | OpenAPI Spec |
+|---------|------------|--------------|
+| Inventory | http://localhost:8083/swagger-ui.html | http://localhost:8083/v3/api-docs |
+| Order | http://localhost:8086/swagger-ui.html | http://localhost:8086/v3/api-docs |
+| Payment | http://localhost:8084/swagger-ui.html | http://localhost:8084/v3/api-docs |
 
-### Categories
+## Generate Static OpenAPI Specs
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/products/categories` | List categories |
+```bash
+# Start services
+docker-compose up -d
 
----
+# Generate specs (saves to docs/api/)
+./scripts/generate-openapi.sh
 
-## Order Service (Port 8086)
+# Or manually
+curl http://localhost:8083/v3/api-docs > docs/api/inventory-openapi.json
+curl http://localhost:8086/v3/api-docs > docs/api/order-openapi.json
+curl http://localhost:8084/v3/api-docs > docs/api/payment-openapi.json
+```
 
-### Shopping Cart
+## Service Endpoints Overview
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/cart/{userId}` | Get user cart |
-| POST | `/cart` | Add items to cart |
-| PUT | `/cart/{userId}/{sku}` | Update item quantity |
-| DELETE | `/cart/{userId}/{sku}` | Remove item |
-| DELETE | `/cart/{userId}` | Clear cart |
+### Inventory Service (Port 8083)
 
-### Orders
+- `GET /products/{sku}` - Get product
+- `GET /products/by-skus` - Batch get products
+- `POST /products` - Create product
+- `PUT /products/{sku}` - Update product
+- `GET /products/category/{name}` - Products by category
+- `GET /products/search` - Search products
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/order` | Create order |
-| PATCH | `/api/order/{orderId}/status` | Update order status |
-| GET | `/api/order/customer/{userId}` | Get customer orders |
-| GET | `/api/order/customer/{userId}/paged` | Get orders (paginated) |
+### Order Service (Port 8086)
 
----
+- `GET /cart/{userId}` - Get cart
+- `POST /cart` - Add to cart
+- `PUT /cart/{userId}/{sku}` - Update quantity
+- `DELETE /cart/{userId}/{sku}` - Remove item
+- `POST /api/order` - Create order
+- `GET /api/order/customer/{userId}` - Get orders
 
-## Payment Service (Port 8084)
+### Payment Service (Port 8084)
 
-### Payments
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/payments` | Create payment |
-| POST | `/payments/{paymentId}/process` | Process payment |
-| POST | `/payments/{paymentId}/retry` | Retry failed payment |
-| POST | `/payments/{paymentId}/cancel` | Cancel payment |
-| GET | `/payments/{paymentId}` | Get payment by ID |
-| GET | `/payments/order/{orderId}` | Get payment by order |
-| GET | `/payments/status/{status}` | List by status |
-| GET | `/payments/statistics` | Get statistics |
-
----
+- `POST /payments` - Create payment
+- `POST /payments/{id}/process` - Process payment
+- `GET /payments/{id}` - Get payment
+- `GET /payments/order/{orderId}` - Get by order
 
 ## Health Endpoints
 
-All services expose Spring Boot Actuator endpoints:
+All services expose:
 
 | Endpoint | Description |
 |----------|-------------|
 | `/actuator/health` | Health check |
-| `/actuator/health/liveness` | Liveness probe |
-| `/actuator/health/readiness` | Readiness probe |
-| `/actuator/metrics` | Metrics |
-| `/actuator/prometheus` | Prometheus metrics |
+| `/actuator/health/liveness` | K8s liveness probe |
+| `/actuator/health/readiness` | K8s readiness probe |

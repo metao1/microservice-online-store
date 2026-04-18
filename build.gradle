@@ -13,6 +13,7 @@ ext {
   testcontainersVersion = "2.0.2"
   springBootDependenciesVersion = "4.0.3"
   resilience4jVersion = "2.2.0"
+  springdocVersion = "2.8.9"
 }
 
 subprojects {
@@ -41,6 +42,7 @@ subprojects {
       implementation "org.springframework.boot:spring-boot-kafka"
       implementation "commons-codec:commons-codec:1.17.1"
       implementation "io.github.resilience4j:resilience4j-spring-boot3:${resilience4jVersion}"
+      implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocVersion}"
 
       testImplementation "org.springframework.boot:spring-boot-starter-test"
     }
@@ -152,4 +154,31 @@ tasks.register('publishLocalDependencies') {
 
 tasks.named('build') {
   dependsOn ':buildDependencies'
+}
+
+tasks.register('generateOpenApiDocs') {
+  group = 'documentation'
+  description = 'Generates OpenAPI documentation for all microservices'
+  dependsOn ':buildDependencies'
+
+  doLast {
+    def docsDir = file("${rootDir}/docs/api")
+    docsDir.mkdirs()
+
+    def services = [
+      [name: 'inventory', port: 8083, module: ':inventory-microservice'],
+      [name: 'order', port: 8086, module: ':order-microservice'],
+      [name: 'payment', port: 8084, module: ':payment-microservice']
+    ]
+
+    println "OpenAPI specs will be available at runtime:"
+    services.each { svc ->
+      println "  - ${svc.name}: http://localhost:${svc.port}/v3/api-docs"
+      println "  - ${svc.name} UI: http://localhost:${svc.port}/swagger-ui.html"
+    }
+    println "\nTo generate static specs, run services and execute:"
+    println "  curl http://localhost:8083/v3/api-docs > docs/api/inventory-openapi.json"
+    println "  curl http://localhost:8086/v3/api-docs > docs/api/order-openapi.json"
+    println "  curl http://localhost:8084/v3/api-docs > docs/api/payment-openapi.json"
+  }
 }
