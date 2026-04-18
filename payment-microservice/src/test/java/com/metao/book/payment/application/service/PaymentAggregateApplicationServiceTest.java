@@ -7,7 +7,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.metao.book.payment.application.config.DomainEventToKafkaEventHandler;
+import com.metao.book.payment.application.config.KafkaDomainEventPublisher;
 import com.metao.book.payment.application.dto.CreatePaymentCommand;
 import com.metao.book.payment.application.dto.PaymentDTO;
 import com.metao.book.payment.application.mapper.PaymentApplicationMapper;
@@ -47,7 +47,7 @@ class PaymentAggregateApplicationServiceTest {
     private PaymentDomainService paymentDomainService;
 
     @Mock
-    private DomainEventToKafkaEventHandler eventPublisher;
+    private KafkaDomainEventPublisher eventPublisher;
 
     private PaymentApplicationService paymentApplicationService;
 

@@ -8,9 +8,9 @@ import static org.mockito.Mockito.when;
 import com.metao.book.order.application.cart.ShoppingCartDto;
 import com.metao.book.order.application.cart.ShoppingCartItem;
 import com.metao.book.order.application.cart.ShoppingCartService;
-import com.metao.book.order.application.service.DomainEventToKafkaEventHandler;
 import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.domain.repository.OrderRepository;
+import com.metao.book.shared.config.KafkaDomainEventPublisher;
 import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.Set;
@@ -27,7 +27,7 @@ class OrderManagementServiceTest {
     private OrderRepository orderRepository;
 
     @Mock
-    private DomainEventToKafkaEventHandler eventPublisher;
+    private KafkaDomainEventPublisher eventPublisher;
 
     @Mock
     private ShoppingCartService shoppingCartService;

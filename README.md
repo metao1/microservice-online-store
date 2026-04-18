@@ -1,75 +1,66 @@
-[![Java CI with Gradle](https://github.com/metao1/microservice-online-book-store/actions/workflows/gradle.yml/badge.svg)](https://github.com/metao1/microservice-online-book-store/actions/workflows/gradle.yml) [![Frontend tests](https://github.com/metao1/microservice-online-book-store/actions/workflows/frontend-tests.yml/badge.svg)](https://github.com/metao1/microservice-online-book-store/actions/workflows/frontend-tests.yml) [![Test Coverage Validation](https://github.com/metao1/microservice-online-book-store/actions/workflows/test-coverage.yml/badge.svg)](https://github.com/metao1/microservice-online-book-store/actions/workflows/test-coverage.yml)
-
 # Microservice Online Store
 
-Event-driven e‑commerce platform built with DDD aggregates, Kafka messaging, and a choreography-based saga across payment, order, and inventory services. See `docs/ARCHITECTURE.md` for the current message flows and per-service diagrams.
+Event-driven e-commerce platform with DDD, Kafka messaging, and choreography-based saga.
 
-## Prerequisites
-- Docker & Docker Compose
-- Java 17+ (for local builds/tests)
-- Node.js 18+ (if you want to run the React frontend outside Compose)
+## Tech Stack
 
-## Run with Docker Compose
-This is the recommended way to start the full stack (infrastructure, microservices, and frontend).
+- **Backend:** Java 17+, Spring Boot, Kafka, PostgreSQL
+- **Frontend:** React + Vite + TypeScript
+- **Observability:** OpenTelemetry, Jaeger
+
+## Services
+
+| Service | Port | Description |
+|---------|------|-------------|
+| Frontend | 3000 | React storefront |
+| Inventory | 8083 | Product catalog |
+| Order | 8086 | Shopping cart & orders |
+| Payment | 8084 | Payment processing |
+| Kafka | 9092 | Event streaming |
+| Jaeger | 16686 | Distributed tracing |
+
+## Quick Start
 
 ```bash
 docker-compose up -d
 ```
 
-Services and ports:
-- Zookeeper (2181), Kafka (9092/9094), Schema Registry (8081)
-- PostgreSQL for inventory (5432) and order (5433)
-- Inventory service (8083), Order service (8080), Payment service (8084)
-- React frontend (3000) at http://localhost:3000
-- Jaeger UI (16686) at http://localhost:16686 for distributed traces
+Open http://localhost:3000
 
-Common commands:
-- `docker-compose logs -f` – follow logs
-- `docker-compose ps` – check health/status
-- `docker-compose down -v` – stop and remove volumes
+## Development
 
-## Testing
 ```bash
-# All services
+# Run tests
 ./gradlew test
 
-# Specific microservice
+# Test specific service
 ./gradlew :inventory-microservice:test
 ./gradlew :order-microservice:test
 ./gradlew :payment-microservice:test
+
+# Frontend
+cd frontend && npm install && npm run dev
 ```
 
-## Architecture
-Diagrams, message contracts, and sequence flows live in `docs/ARCHITECTURE.md`. Each microservice section shows the current implementation and Kafka topics involved.
+## Documentation
 
-## Distributed Tracing
-Tracing is enabled for `order`, `payment`, and `inventory` services with OpenTelemetry export over OTLP.
+- [Architecture](docs/ARCHITECTURE.md) - System overview and event flows
+- [API Reference](docs/API.md) - REST endpoints and Swagger links
+- [Events](docs/EVENTS.md) - Kafka topics and Protobuf schemas
 
-- Default export endpoint: `http://localhost:4318/v1/traces`
-- Docker Compose sets `OTLP_TRACING_ENDPOINT=http://otel-collector:4318/v1/traces`
-- Correlated log fields: `traceId` and `spanId` are included in console logs
+### Swagger UI
 
-Quick verification:
-1. Trigger a purchase flow from frontend/API.
-2. Open Jaeger at http://localhost:16686.
-3. Search by service (`order-microservice`, `payment-microservice`, `product-microservice`) and inspect the trace graph across HTTP -> Kafka -> persistence spans.
+| Service | URL |
+|---------|-----|
+| Inventory | http://localhost:8083/swagger-ui.html |
+| Order | http://localhost:8086/swagger-ui.html |
+| Payment | http://localhost:8084/swagger-ui.html |
 
-Tracing stack in Compose:
-- OTEL Collector receiver: `4317` (gRPC), `4318` (HTTP)
-- Jaeger UI: `16686`
-- Collector config: [observability/otel-collector-config.yaml](/Users/mehrdad/projects/microservice-online-book-store/observability/otel-collector-config.yaml)
-- Debug runbook: [docs/TRACING_DEBUG_RUNBOOK.md](/Users/mehrdad/projects/microservice-online-book-store/docs/TRACING_DEBUG_RUNBOOK.md)
-
-## Troubleshooting
-- Kafka topics: `docker exec -it kafka kafka-topics --list --bootstrap-server localhost:9092`
-- Service health: `curl http://localhost:<port>/actuator/health`
-- Database access: `psql -h localhost -p 5432 -U admin -d bookstore` (inventory), `-p 5433 -d bookstore-order` (order)
-
-## Contributing
-1. Create a feature branch.
-2. Write tests with your changes.
-3. Run `./gradlew test`.
-4. Open a PR with context on the service(s) touched.
+```bash
+# Generate OpenAPI specs (auto-generated on build)
+./gradlew generateOpenApiDocs
+```
 
 ## License
+
 MIT

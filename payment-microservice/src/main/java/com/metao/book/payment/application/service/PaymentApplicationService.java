@@ -1,6 +1,5 @@
 package com.metao.book.payment.application.service;
 
-import com.metao.book.payment.application.config.DomainEventToKafkaEventHandler;
 import com.metao.book.payment.application.dto.CreatePaymentCommand;
 import com.metao.book.payment.application.dto.PaymentDTO;
 import com.metao.book.payment.application.mapper.PaymentApplicationMapper;
@@ -13,6 +12,7 @@ import com.metao.book.payment.domain.model.valueobject.PaymentMethod;
 import com.metao.book.payment.domain.model.valueobject.PaymentStatus;
 import com.metao.book.payment.domain.repository.PaymentRepository;
 import com.metao.book.payment.domain.service.PaymentDomainService;
+import com.metao.book.shared.config.KafkaDomainEventPublisher;
 import com.metao.book.shared.domain.financial.Money;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -41,7 +41,7 @@ public class PaymentApplicationService {
 
     private final PaymentRepository paymentRepository;
     private final PaymentDomainService paymentDomainService;
-    private final DomainEventToKafkaEventHandler eventPublisher;
+    private final KafkaDomainEventPublisher eventPublisher;
 
     /**
      * Create a new payment and save it into database

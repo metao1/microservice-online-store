@@ -6,6 +6,7 @@ plugins {
   id "org.springframework.boot" version "4.0.2" apply false
   id "io.spring.dependency-management" version "1.1.7" apply false
   id "com.google.protobuf" version "0.9.4" apply false
+  id "org.springdoc.openapi-gradle-plugin" version "1.9.0" apply false
 }
 
 ext {
@@ -13,6 +14,7 @@ ext {
   testcontainersVersion = "2.0.2"
   springBootDependenciesVersion = "4.0.3"
   resilience4jVersion = "2.2.0"
+  springdocVersion = "2.8.9"
 }
 
 subprojects {
@@ -41,6 +43,7 @@ subprojects {
       implementation "org.springframework.boot:spring-boot-kafka"
       implementation "commons-codec:commons-codec:1.17.1"
       implementation "io.github.resilience4j:resilience4j-spring-boot3:${resilience4jVersion}"
+      implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocVersion}"
 
       testImplementation "org.springframework.boot:spring-boot-starter-test"
     }
@@ -153,3 +156,13 @@ tasks.register('publishLocalDependencies') {
 tasks.named('build') {
   dependsOn ':buildDependencies'
 }
+
+tasks.register('generateOpenApiDocs') {
+  group = 'documentation'
+  description = 'Generates OpenAPI documentation for all microservices'
+  dependsOn ':inventory-microservice:generateOpenApiDocs'
+  dependsOn ':order-microservice:generateOpenApiDocs'
+  dependsOn ':payment-microservice:generateOpenApiDocs'
+}
+
+
