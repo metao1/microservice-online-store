@@ -1,4 +1,4 @@
-import {Cart, Category, Order, PaginatedResult, Payment, PaymentStatistics, Product} from '@types';
+import {Cart, Category, Order, OrderStatus, PaginatedResult, Payment, PaymentStatistics, Product} from '@types';
 import {ApiClientContract, PaymentCommand} from './api.types';
 import {BaseApiClient} from './api.base';
 import mockProducts from '../../dev/api-mocks/products.json';
@@ -152,7 +152,7 @@ export class MockApiClient extends BaseApiClient implements ApiClientContract {
       userId,
       items: cart.items,
       total: cart.total,
-      status: 'PENDING',
+      status: this.normalizeOrderStatus("CREATED"),
       createdAt: new Date().toISOString(),
     };
   }
@@ -175,7 +175,7 @@ export class MockApiClient extends BaseApiClient implements ApiClientContract {
         cartQuantity: item.quantity,
       })),
       total: o.total,
-      status: this.mapOrderStatus(o.status),
+      status: this.normalizeOrderStatus(o.status),
       createdAt: o.createdAt,
     }));
   }
