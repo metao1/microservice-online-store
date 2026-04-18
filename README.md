@@ -57,8 +57,8 @@ cd frontend && npm install && npm run dev
 | Payment | http://localhost:8084/swagger-ui.html |
 
 ```bash
-# Generate OpenAPI specs
-./scripts/generate-openapi.sh
+# Generate OpenAPI specs (auto-generated on build)
+./gradlew generateOpenApiDocs
 ```
 
 ## License

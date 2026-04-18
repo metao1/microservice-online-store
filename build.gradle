@@ -6,6 +6,7 @@ plugins {
   id "org.springframework.boot" version "4.0.2" apply false
   id "io.spring.dependency-management" version "1.1.7" apply false
   id "com.google.protobuf" version "0.9.4" apply false
+  id "org.springdoc.openapi-gradle-plugin" version "1.9.0" apply false
 }
 
 ext {
@@ -159,26 +160,9 @@ tasks.named('build') {
 tasks.register('generateOpenApiDocs') {
   group = 'documentation'
   description = 'Generates OpenAPI documentation for all microservices'
-  dependsOn ':buildDependencies'
-
-  doLast {
-    def docsDir = file("${rootDir}/docs/api")
-    docsDir.mkdirs()
-
-    def services = [
-      [name: 'inventory', port: 8083, module: ':inventory-microservice'],
-      [name: 'order', port: 8086, module: ':order-microservice'],
-      [name: 'payment', port: 8084, module: ':payment-microservice']
-    ]
-
-    println "OpenAPI specs will be available at runtime:"
-    services.each { svc ->
-      println "  - ${svc.name}: http://localhost:${svc.port}/v3/api-docs"
-      println "  - ${svc.name} UI: http://localhost:${svc.port}/swagger-ui.html"
-    }
-    println "\nTo generate static specs, run services and execute:"
-    println "  curl http://localhost:8083/v3/api-docs > docs/api/inventory-openapi.json"
-    println "  curl http://localhost:8086/v3/api-docs > docs/api/order-openapi.json"
-    println "  curl http://localhost:8084/v3/api-docs > docs/api/payment-openapi.json"
-  }
+  dependsOn ':inventory-microservice:generateOpenApiDocs'
+  dependsOn ':order-microservice:generateOpenApiDocs'
+  dependsOn ':payment-microservice:generateOpenApiDocs'
 }
+
+

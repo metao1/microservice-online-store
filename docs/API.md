@@ -38,18 +38,22 @@ Each service exposes OpenAPI documentation via Swagger UI:
 
 ## Generate Static OpenAPI Specs
 
+OpenAPI specs are automatically generated to `docs/api/` during build:
+
 ```bash
-# Start services
-docker-compose up -d
+# Generate all specs (starts each service, fetches spec, shuts down)
+./gradlew generateOpenApiDocs
 
-# Generate specs (saves to docs/api/)
-./scripts/generate-openapi.sh
-
-# Or manually
-curl http://localhost:8083/v3/api-docs > docs/api/inventory-openapi.json
-curl http://localhost:8086/v3/api-docs > docs/api/order-openapi.json
-curl http://localhost:8084/v3/api-docs > docs/api/payment-openapi.json
+# Or generate per service
+./gradlew :inventory-microservice:generateOpenApiDocs
+./gradlew :order-microservice:generateOpenApiDocs
+./gradlew :payment-microservice:generateOpenApiDocs
 ```
+
+Generated files:
+- `docs/api/inventory-openapi.json`
+- `docs/api/order-openapi.json`
+- `docs/api/payment-openapi.json`
 
 ## Service Endpoints Overview
 
