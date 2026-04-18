@@ -159,6 +159,32 @@
       }
     },
     {
+      "name": "inventory-category-page-ramp",
+      "request": {
+        "url": "http://localhost:8083/products/category/books?offset=0&limit=16",
+        "method": "GET",
+        "headers": {
+          "Accept": "application/json"
+        }
+      },
+      "load": {
+        "warmupSec": 10,
+        "timeoutSec": 5,
+        "thinkMs": 5,
+        "stages": [
+          { "durationSec": 30, "users": 25,  "targetRps": 25 },
+          { "durationSec": 60, "users": 75,  "targetRps": 100 },
+          { "durationSec": 30, "users": 150, "targetRps": 200 },
+          { "durationSec": 30, "users": 25,  "targetRps": 25 }
+        ]
+      },
+      "thresholds": {
+        "maxErrorRatePct": 1.0,
+        "maxP95Ms": 200.0,
+        "maxP99Ms": 500.0
+      }
+    },
+    {
       "name": "bookstore-e2e-order-payment-inventory",
       "variables": {
         "sku": "0594511488",
