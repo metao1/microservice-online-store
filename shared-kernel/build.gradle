@@ -24,7 +24,6 @@ dependencies {
   // OpenAPI/Swagger for shared OpenApiConfigFactory
   compileOnly "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9"
 
-  // Kafka for shared KafkaDomainEventPublisher
   compileOnly "org.springframework.kafka:spring-kafka"
   compileOnly project(":kafka-lib")
 
