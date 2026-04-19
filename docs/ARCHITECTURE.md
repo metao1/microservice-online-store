@@ -6,7 +6,7 @@ This document describes the complete microservices architecture for the online s
 
 ## Technology Stack
 
-- **Language**: Java 17+
+- **Language**: Java 21+
 - **Framework**: Spring Boot 3.x
 - **Build Tool**: Gradle
 - **Databases**: PostgreSQL (per service)

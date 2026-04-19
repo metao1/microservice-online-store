@@ -1,3 +1,13 @@
+plugins {
+  id 'org.springdoc.openapi-gradle-plugin'
+}
+
+openApi {
+  apiDocsUrl = "http://localhost:8084/v3/api-docs"
+  outputDir = file("${rootDir}/docs/api")
+  outputFileName = "payment-openapi.json"
+}
+
 dependencies {
   implementation project(':shared-kernel')
   implementation project(':kafka-lib')

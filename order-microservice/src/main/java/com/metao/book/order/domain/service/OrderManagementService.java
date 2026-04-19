@@ -2,7 +2,6 @@ package com.metao.book.order.domain.service;
 
 import com.metao.book.order.application.cart.ShoppingCart;
 import com.metao.book.order.application.cart.ShoppingCartService;
-import com.metao.book.order.application.service.DomainEventToKafkaEventHandler;
 import com.metao.book.order.domain.exception.OrderNotFoundException;
 import com.metao.book.order.domain.exception.ShoppingCartIsEmptyException;
 import com.metao.book.order.domain.model.aggregate.OrderAggregate;
@@ -10,6 +9,7 @@ import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.domain.repository.OrderRepository;
+import com.metao.book.shared.config.KafkaDomainEventPublisher;
 import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.financial.VAT;
@@ -23,11 +23,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+
+@Service
 @RequiredArgsConstructor
 public class OrderManagementService {
 
     private final OrderRepository orderRepository;
-    private final DomainEventToKafkaEventHandler eventPublisher;
+    private final KafkaDomainEventPublisher eventPublisher;
     private final ShoppingCartService shoppingCartService;
     private final VAT vat;
 
