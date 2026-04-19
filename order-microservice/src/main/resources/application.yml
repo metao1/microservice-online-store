@@ -147,7 +147,7 @@ kafka:
     order-created:
       id: "order-created-id"
       name: "order-created"
-      group-id: "order-created-group"
+      group-id: "order-created-group-order"
       class-path: "com.metao.book.shared.OrderCreatedEvent"
     order-updated:
       id: "order-updated-id"

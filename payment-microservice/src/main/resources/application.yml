@@ -158,7 +158,7 @@ kafka:
     order-created:
       id: order-created-id
       name: order-created
-      group-id: order-created-group
+      group-id: order-created-group-payment
       class-path: com.metao.book.shared.OrderCreatedEvent
     order-payment:
       id: order-payment-id

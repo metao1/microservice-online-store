@@ -11,9 +11,11 @@ import com.metao.book.order.application.cart.ShoppingCartService;
 import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.domain.repository.OrderRepository;
 import com.metao.book.shared.config.KafkaDomainEventPublisher;
+import com.metao.book.shared.domain.financial.VAT;
 import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -34,6 +36,16 @@ class OrderManagementServiceTest {
 
     @InjectMocks
     private OrderManagementService orderManagementService;
+
+    @BeforeEach
+    void setUp() {
+        orderManagementService = new OrderManagementService(
+            orderRepository,
+            eventPublisher,
+            shoppingCartService,
+            new VAT(0)
+        );
+    }
 
     @Test
     void createOrderPublishesSingleCreatedEventWithAllCartItems() {
