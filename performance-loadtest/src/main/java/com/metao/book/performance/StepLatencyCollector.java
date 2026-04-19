@@ -1,6 +1,7 @@
 package com.metao.book.performance;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -106,7 +107,7 @@ final class StepLatencyCollector {
                 snapshotStatusCodes(stepName)
             ));
         }
-        return Map.copyOf(stats);
+        return Collections.unmodifiableMap(new LinkedHashMap<>(stats));
     }
 
     private Map<Integer, Long> snapshotStatusCodes(String stepName) {
@@ -117,7 +118,7 @@ final class StepLatencyCollector {
         // TreeMap for deterministic ascending order in JSON and table output.
         TreeMap<Integer, Long> snapshot = new TreeMap<>();
         raw.forEach((code, adder) -> snapshot.put(code, adder.sum()));
-        return Map.copyOf(snapshot);
+        return Collections.unmodifiableMap(new TreeMap<>(snapshot));
     }
 
     private static long sumOrZero(Map<String, LongAdder> source, String key) {
