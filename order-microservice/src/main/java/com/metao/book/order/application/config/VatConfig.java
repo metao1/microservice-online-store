@@ -14,7 +14,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @EnableConfigurationProperties(VatProperties.class)
 public class VatConfig {
-
     @Bean
     public VAT vat(VatProperties properties) {
         VAT vat = properties.toVat();

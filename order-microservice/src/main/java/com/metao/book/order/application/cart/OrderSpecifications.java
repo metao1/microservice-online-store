@@ -30,7 +30,7 @@ public class OrderSpecifications {
         };
     }
 
-    private Predicate addPredicateForField(
+    private static Predicate addPredicateForField(
         CriteriaBuilder criteriaBuilder,
         Predicate predicate,
         Path<Object> path,

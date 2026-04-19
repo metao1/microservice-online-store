@@ -42,6 +42,31 @@ Open http://localhost:3000
 cd frontend && npm install && npm run dev
 ```
 
+## Docker Build Performance Tips
+
+If Docker builds look "stuck" at:
+
+`RUN --mount=type=cache,... gradle ...`
+
+it usually means Gradle is still resolving dependencies/compiling inside that step.
+
+Use plain-progress logs:
+
+```bash
+docker-compose build --progress=plain order-microservice
+```
+
+Warm Gradle caches once, then rebuild:
+
+```bash
+docker-compose build order-microservice payment-microservice inventory-microservice
+```
+
+Notes:
+- First build can be much slower than subsequent builds because dependencies and Gradle metadata are cached.
+- Building one service at a time can be faster on low-memory Docker Desktop setups.
+- Shared Gradle cache mount uses `sharing=locked` so parallel builds queue instead of failing on cache lock contention.
+
 ## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md) - System overview and event flows

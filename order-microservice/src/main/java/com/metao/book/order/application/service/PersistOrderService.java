@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class PersistOrderService implements PersistOrderUseCase {
-
     private final OrderRepository orderRepository;
     private final ProcessedOrderCreatedEventPort processedOrderCreatedEventPort;
     private final VAT vat;

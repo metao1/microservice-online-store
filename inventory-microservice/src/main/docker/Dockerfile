@@ -3,6 +3,7 @@
 FROM gradle:9-jdk21 AS build
 
 WORKDIR /workspace
+ENV GRADLE_USER_HOME=/home/gradle/.gradle
 
 COPY settings.gradle build.gradle gradle.properties /workspace/
 COPY shared-kernel/build.gradle /workspace/shared-kernel/build.gradle
@@ -13,9 +14,9 @@ COPY inventory-microservice/build.gradle /workspace/inventory-microservice/build
 COPY inventory-microservice/src/main /workspace/inventory-microservice/src/main
 
 # Build layered fat jar (skip tests; they should run in CI)
-RUN --mount=type=cache,id=gradle-user-home,target=/home/gradle/.gradle \
-    --mount=type=cache,id=gradle-project-cache,target=/workspace/.gradle \
-    gradle :inventory-microservice:bootJar -x test --no-daemon --configuration-cache --build-cache --parallel
+RUN --mount=type=cache,id=bookstore-gradle-user-home,target=/home/gradle/.gradle,sharing=locked \
+    --mount=type=cache,id=bookstore-inventory-gradle-project-cache,target=/workspace/.gradle,sharing=shared \
+    gradle :inventory-microservice:bootJar -x test --no-daemon --configuration-cache --build-cache --max-workers=2 --console=plain
 
 # Extract layers for slimmer runtime image
 RUN java -Djarmode=layertools -jar inventory-microservice/build/libs/inventory-microservice.jar extract --destination /workspace/layers
