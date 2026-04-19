@@ -100,6 +100,7 @@ public class KafkaEventConfiguration {
     }
 
     @Bean
+    @ConditionalOnProperty(name = "spring.kafka.producer.transaction-id-prefix")
     public <K, V> KafkaTransactionManager<K, V> kafkaTransactionManager(ProducerFactory<K, V> producerFactory) {
         return new KafkaTransactionManager<>(producerFactory);
     }
