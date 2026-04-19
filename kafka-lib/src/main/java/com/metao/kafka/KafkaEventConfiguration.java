@@ -28,6 +28,7 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.transaction.KafkaTransactionManager;
 
 @Getter
 @Setter
@@ -96,6 +97,11 @@ public class KafkaEventConfiguration {
         template.setAllowNonTransactional(true);
         template.setObservationEnabled(true);
         return template;
+    }
+
+    @Bean
+    public <K, V> KafkaTransactionManager<K, V> kafkaTransactionManager(ProducerFactory<K, V> producerFactory) {
+        return new KafkaTransactionManager<>(producerFactory);
     }
 
     @Bean

@@ -22,6 +22,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.transaction.KafkaAwareTransactionManager;
 import org.springframework.util.backoff.FixedBackOff;
 
 @EnableKafka
@@ -31,6 +32,7 @@ import org.springframework.util.backoff.FixedBackOff;
 public class KafkaConsumerConfig {
 
     private final KafkaProperties kafkaProperties;
+    private final KafkaAwareTransactionManager<Object, Object> kafkaTransactionManager;
 
     @Value("${kafka.consumer.concurrency:1}")
     private int consumerConcurrency;
@@ -87,6 +89,8 @@ public class KafkaConsumerConfig {
         factory.setConsumerFactory(consumerFactory);
         factory.setConcurrency(consumerConcurrency);
         factory.getContainerProperties().setObservationEnabled(true);
+        factory.getContainerProperties().setKafkaAwareTransactionManager(kafkaTransactionManager);
+        factory.getContainerProperties().setEosMode(ContainerProperties.EOSMode.V2);
         factory.setCommonErrorHandler(errorHandler);
         return factory;
     }

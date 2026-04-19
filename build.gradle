@@ -9,6 +9,9 @@ plugins {
   id "org.springdoc.openapi-gradle-plugin" version "1.9.0" apply false
 }
 
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+
 ext {
   micrometerVersion = "1.16.2"
   testcontainersVersion = "2.0.2"
@@ -155,14 +158,36 @@ tasks.register('publishLocalDependencies') {
 
 tasks.named('build') {
   dependsOn ':buildDependencies'
+  dependsOn ':generateOpenApiDocs'
 }
+
+def openApiTargets = [
+  [name: 'inventory', url: 'http://localhost:8083/v3/api-docs', file: 'inventory-openapi.json'],
+  [name: 'order', url: 'http://localhost:8086/v3/api-docs', file: 'order-openapi.json'],
+  [name: 'payment', url: 'http://localhost:8084/v3/api-docs', file: 'payment-openapi.json'],
+]
 
 tasks.register('generateOpenApiDocs') {
   group = 'documentation'
-  description = 'Generates OpenAPI documentation for all microservices'
-  dependsOn ':inventory-microservice:generateOpenApiDocs'
-  dependsOn ':order-microservice:generateOpenApiDocs'
-  dependsOn ':payment-microservice:generateOpenApiDocs'
+  description = 'Fetches OpenAPI JSON from running services into docs/api'
+  outputs.files(openApiTargets.collect { file("${rootDir}/docs/api/${it.file}") })
+  doLast {
+    def outputDir = file("${rootDir}/docs/api")
+    outputDir.mkdirs()
+    openApiTargets.each { target ->
+      def connection = new URL(target.url).openConnection()
+      connection.setConnectTimeout(10000)
+      connection.setReadTimeout(30000)
+      def body = connection.inputStream.getText('UTF-8')
+      def parsed = new JsonSlurper().parseText(body)
+      file("${outputDir}/${target.file}").text = JsonOutput.prettyPrint(JsonOutput.toJson(parsed)) + "\n"
+      logger.lifecycle("Generated OpenAPI spec for ${target.name}: ${outputDir}/${target.file}")
+    }
+  }
 }
 
-
+subprojects {
+  tasks.matching { it.name == 'generateOpenApiDocs' }.configureEach {
+    enabled = false
+  }
+}

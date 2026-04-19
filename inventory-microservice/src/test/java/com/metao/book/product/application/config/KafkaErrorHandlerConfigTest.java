@@ -13,6 +13,7 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.transaction.KafkaAwareTransactionManager;
 import org.springframework.test.util.ReflectionTestUtils;
 
 class KafkaErrorHandlerConfigTest {
@@ -21,7 +22,10 @@ class KafkaErrorHandlerConfigTest {
 
     @BeforeEach
     void setUp() {
-        this.config = new KafkaConsumerConfig(new KafkaProperties());
+        this.config = new KafkaConsumerConfig(
+            new KafkaProperties(),
+            Mockito.mock(KafkaAwareTransactionManager.class)
+        );
     }
 
     @Test
