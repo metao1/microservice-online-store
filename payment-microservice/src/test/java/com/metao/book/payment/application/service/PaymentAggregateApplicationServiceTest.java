@@ -7,7 +7,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.metao.book.payment.application.config.KafkaDomainEventPublisher;
 import com.metao.book.payment.application.dto.CreatePaymentCommand;
 import com.metao.book.payment.application.dto.PaymentDTO;
 import com.metao.book.payment.application.mapper.PaymentApplicationMapper;
@@ -18,6 +17,7 @@ import com.metao.book.payment.domain.model.valueobject.PaymentMethod;
 import com.metao.book.payment.domain.model.valueobject.PaymentStatus;
 import com.metao.book.payment.domain.repository.PaymentRepository;
 import com.metao.book.payment.domain.service.PaymentDomainService;
+import com.metao.book.shared.config.KafkaDomainEventPublisher;
 import com.metao.book.shared.domain.financial.Money;
 import java.math.BigDecimal;
 import java.time.Instant;
