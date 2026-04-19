@@ -1,5 +1,6 @@
 package com.metao.book.order.domain.model.aggregate;
 
+import com.metao.book.order.domain.event.OrderCreatedEvent;
 import com.metao.book.order.domain.exception.OrderStateTransitionNotAllowed;
 import com.metao.book.order.domain.model.entity.OrderItem;
 import com.metao.book.order.domain.model.event.DomainInventoryReductionRequestedEvent;
@@ -70,11 +71,11 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
         recomputeTotals();
     }
 
-    public static OrderAggregate from(com.metao.book.order.domain.event.OrderCreatedEvent event) {
+    public static OrderAggregate from(OrderCreatedEvent event) {
         return from(event, ZERO_VAT);
     }
 
-    public static OrderAggregate from(com.metao.book.order.domain.event.OrderCreatedEvent event, VAT vat) {
+    public static OrderAggregate from(OrderCreatedEvent event, VAT vat) {
         OrderAggregate order = new OrderAggregate(
             event.orderId(),
             event.userId(),

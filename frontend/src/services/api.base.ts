@@ -13,7 +13,7 @@ const KNOWN_ORDER_STATUSES = new Set<OrderStatus>([
 
 export abstract class BaseApiClient {
   protected getPlaceholderImage(title: string, index: number): string {
-    const colors = ['4A90E2', '7ED321', 'F5A623', 'D0021B', '9013FE', '50E3C2'];
+    const colors = ['4A90E2', '7ED321', '9013FE', 'D0021B', 'F5A623', '50E3C2', 'FF6B6B', '4ECDC4'];
     const bgColor = colors[index % colors.length];
     const textColor = 'FFFFFF';
     const cleanTitle = encodeURIComponent(title.substring(0, 20).replace(/[^a-zA-Z0-9\s]/g, ''));

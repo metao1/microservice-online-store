@@ -67,6 +67,10 @@ const getStatusColor = (status: string): string => {
       return '#f39c12';
     case 'cancelled':
       return '#e74c3c';
+    case 'failed':
+      return '#e74c3c';
+    case 'paid':
+      return '#5592f5';
     default:
       return '#666666';
   }
@@ -76,13 +80,14 @@ const getPaymentStatusColor = (status: string): string => {
   const normalized = (status || '').toUpperCase();
   if (normalized === 'COMPLETED' || normalized === 'SUCCESSFUL') {
     return '#27ae60';
-  }
-  if (normalized === 'FAILED' || normalized === 'CANCELLED') {
+  } else if (normalized === 'FAILED' || normalized === 'CANCELLED') {
     return '#e74c3c';
-  }
-  if (normalized === 'PROCESSING' || normalized === 'PENDING' || normalized === 'CREATED') {
+  } else if (normalized === 'PROCESSING' || normalized === 'PENDING' || normalized === 'CREATED') {
     return '#f39c12';
+  } else if (normalized === 'PAID') {
+    return '#0040ff';
   }
+
   return '#666666';
 };
 
