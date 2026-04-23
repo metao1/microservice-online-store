@@ -27,7 +27,7 @@ public class OrderSpecifications {
 
             predicate = addPredicateForField(criteriaBuilder, predicate, root.get("status"), statuses);
             return predicate;
-        };
+    public static Specification<OrderJpaEntity> findOrdersByCriteria(
     }
 
     private static Predicate addPredicateForField(
