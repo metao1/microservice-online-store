@@ -11,8 +11,6 @@ import com.metao.book.product.infrastructure.persistence.entity.ProductEntity;
 import com.metao.book.product.infrastructure.persistence.mapper.ProductEntityMapper;
 import com.metao.book.shared.application.persistence.OffsetBasedPageRequest;
 import com.metao.book.shared.domain.product.ProductSku;
-import io.micrometer.observation.Observation;
-import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.observation.annotation.Observed;
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
@@ -44,13 +42,11 @@ import org.springframework.stereotype.Repository;
 @Observed(name = "product.persistence.repository", contextualName = "product-repository")
 public class ProductRepositoryImpl implements ProductRepository {
 
-    private static final long SLOW_REPOSITORY_CALL_THRESHOLD_MS = 250L;
     private static final int CATEGORY_ID_CACHE_MAXIMUM_SIZE = 2_048;
 
     private final JpaProductRepository jpaProductRepository;
     private final JpaCategoryRepository jpaCategoryRepository;
     private final ProductEntityMapper productEntityMapper;
-    private final ObservationRegistry observationRegistry;
     private final Cache<String, Optional<String>> categoryIdCache = Caffeine.newBuilder()
         .maximumSize(CATEGORY_ID_CACHE_MAXIMUM_SIZE)
         .expireAfterAccess(Duration.ofHours(6))
@@ -112,32 +108,12 @@ public class ProductRepositoryImpl implements ProductRepository {
     @Override
     public List<ProductAggregate> findByCategory(CategoryName categoryName, int offset, int limit) {
         Pageable pageable = new OffsetBasedPageRequest(offset, limit);
-        long startedAt = System.nanoTime();
-        TimedResult<Optional<String>> categoryResult = observeTimed(
-            "product.persistence.find-by-category.find-category",
-            "find-category-by-name",
-            () -> resolveCategoryId(categoryName.value())
-        );
-        if (categoryResult.value().isEmpty()) {
+        Optional<String> categoryId = resolveCategoryId(categoryName.value());
+        if (categoryId.isEmpty()) {
             return List.of();
         }
-        TimedResult<List<ProductSku>> skusResult = observeTimed(
-            "product.persistence.find-by-category.find-skus",
-            "find-category-skus",
-            () -> jpaProductRepository.findSkusByCategoryId(categoryResult.value().get(), pageable)
-        );
-        TimedLoadResult loadResult = loadProductsWithCategoriesInOrder(skusResult.value(), "find-by-category");
-        logIfSlow(
-            "findByCategory",
-            startedAt,
-            skusResult.value().size(),
-            loadResult.products().size(),
-            categoryResult.elapsedMs(),
-            skusResult.elapsedMs(),
-            loadResult.fetchProductsMs(),
-            loadResult.mapDomainMs()
-        );
-        return loadResult.products();
+        List<ProductSku> skus = jpaProductRepository.findSkusByCategoryId(categoryId.get(), pageable);
+        return loadProductsWithCategoriesInOrder(skus);
     }
 
     @Override
@@ -151,47 +127,15 @@ public class ProductRepositoryImpl implements ProductRepository {
         if (categoryIds.isEmpty()) {
             return List.of();
         }
-        long startedAt = System.nanoTime();
-        TimedResult<List<ProductSku>> skusResult = observeTimed(
-            "product.persistence.find-by-categories.find-skus",
-            "find-categories-skus",
-            () -> jpaProductRepository.findSkusByCategoryIds(categoryIds, pageable)
-        );
-        TimedLoadResult loadResult = loadProductsWithCategoriesInOrder(skusResult.value(), "find-by-categories");
-        logIfSlow(
-            "findByCategories",
-            startedAt,
-            skusResult.value().size(),
-            loadResult.products().size(),
-            0L,
-            skusResult.elapsedMs(),
-            loadResult.fetchProductsMs(),
-            loadResult.mapDomainMs()
-        );
-        return loadResult.products();
+        List<ProductSku> skus = jpaProductRepository.findSkusByCategoryIds(categoryIds, pageable);
+        return loadProductsWithCategoriesInOrder(skus);
     }
 
     @Override
     public List<ProductAggregate> searchByKeyword(String keyword, int offset, int limit) {
         Pageable pageable = new OffsetBasedPageRequest(offset, limit);
-        long startedAt = System.nanoTime();
-        TimedResult<List<ProductSku>> skusResult = observeTimed(
-            "product.persistence.search-by-keyword.find-skus",
-            "search-keyword-skus",
-            () -> jpaProductRepository.searchSkusByKeyword(keyword, pageable)
-        );
-        TimedLoadResult loadResult = loadProductsWithCategoriesInOrder(skusResult.value(), "search-by-keyword");
-        logIfSlow(
-            "searchByKeyword",
-            startedAt,
-            skusResult.value().size(),
-            loadResult.products().size(),
-            0L,
-            skusResult.elapsedMs(),
-            loadResult.fetchProductsMs(),
-            loadResult.mapDomainMs()
-        );
-        return loadResult.products();
+        List<ProductSku> skus = jpaProductRepository.searchSkusByKeyword(keyword, pageable);
+        return loadProductsWithCategoriesInOrder(skus);
     }
 
     @Override
@@ -229,7 +173,7 @@ public class ProductRepositoryImpl implements ProductRepository {
     private Optional<String> resolveCategoryId(String categoryName) {
         String normalizedCategoryName = normalizeCategoryCacheKey(categoryName);
         Optional<String> cachedCategoryId = categoryIdCache.getIfPresent(normalizedCategoryName);
-        if (cachedCategoryId != null) {
+        if (cachedCategoryId != null &&cachedCategoryId.isPresent()) {
             return cachedCategoryId;
         }
 
@@ -295,34 +239,21 @@ public class ProductRepositoryImpl implements ProductRepository {
         return categoryName == null ? null : categoryName.toLowerCase(Locale.ROOT).trim();
     }
 
-    private TimedLoadResult loadProductsWithCategoriesInOrder(List<ProductSku> skus, String operation) {
+    private List<ProductAggregate> loadProductsWithCategoriesInOrder(List<ProductSku> skus) {
         if (skus == null || skus.isEmpty()) {
-            return new TimedLoadResult(List.of(), 0L, 0L);
+            return List.of();
         }
 
-        TimedResult<ProductReadModel> readModelResult = observeTimed(
-            "product.persistence." + operation + ".fetch-products",
-            "fetch-products-with-categories",
-            () -> loadProductReadModel(skus)
-        );
+        ProductReadModel readModel = loadProductReadModel(skus);
 
-        TimedResult<List<ProductAggregate>> productsResult = observeTimed(
-            "product.persistence." + operation + ".map-domain",
-            "map-products-to-domain",
-            () -> skus.stream()
-                .map(readModelResult.value().productsBySku()::get)
-                .filter(Objects::nonNull)
-                .map(entity -> productEntityMapper.toDomain(
-                    entity,
-                    readModelResult.value().categoriesBySku().getOrDefault(entity.getSku(), Set.of())
-                ))
-                .toList()
-        );
-        return new TimedLoadResult(
-            productsResult.value(),
-            readModelResult.elapsedMs(),
-            productsResult.elapsedMs()
-        );
+        return skus.stream()
+            .map(readModel.productsBySku()::get)
+            .filter(Objects::nonNull)
+            .map(entity -> productEntityMapper.toDomain(
+                entity,
+                readModel.categoriesBySku().getOrDefault(entity.getSku(), Set.of())
+            ))
+            .toList();
     }
 
     private ProductReadModel loadProductReadModel(List<ProductSku> skus) {
@@ -343,51 +274,6 @@ public class ProductRepositoryImpl implements ProductRepository {
         Map<ProductSku, ProductEntity> productsBySku,
         Map<ProductSku, Set<ProductCategory>> categoriesBySku
     ) {
-    }
-
-    private <T> T observe(String name, String contextualName, java.util.function.Supplier<T> supplier) {
-        return Observation.createNotStarted(name, observationRegistry)
-            .contextualName(contextualName)
-            .observe(supplier);
-    }
-
-    private <T> TimedResult<T> observeTimed(String name, String contextualName, java.util.function.Supplier<T> supplier) {
-        long startedAt = System.nanoTime();
-        T value = observe(name, contextualName, supplier);
-        long elapsedMs = (System.nanoTime() - startedAt) / 1_000_000;
-        return new TimedResult<>(value, elapsedMs);
-    }
-
-    private void logIfSlow(
-        String operation,
-        long startedAt,
-        int skuCount,
-        int resultCount,
-        long findCategoryMs,
-        long findSkusMs,
-        long fetchProductsMs,
-        long mapDomainMs
-    ) {
-        long elapsedMs = (System.nanoTime() - startedAt) / 1_000_000;
-        if (elapsedMs >= SLOW_REPOSITORY_CALL_THRESHOLD_MS) {
-            log.warn(
-                "Slow product repository call: operation={}, elapsedMs={}, skuCount={}, resultCount={}, findCategoryMs={}, findSkusMs={}, fetchProductsMs={}, mapDomainMs={}",
-                operation,
-                elapsedMs,
-                skuCount,
-                resultCount,
-                findCategoryMs,
-                findSkusMs,
-                fetchProductsMs,
-                mapDomainMs
-            );
-        }
-    }
-
-    private record TimedResult<T>(T value, long elapsedMs) {
-    }
-
-    private record TimedLoadResult(List<ProductAggregate> products, long fetchProductsMs, long mapDomainMs) {
     }
 
 }

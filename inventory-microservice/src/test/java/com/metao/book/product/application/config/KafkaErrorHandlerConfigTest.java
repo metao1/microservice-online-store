@@ -8,12 +8,12 @@ import org.apache.kafka.common.TopicPartition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DefaultErrorHandler;
-import org.springframework.kafka.transaction.KafkaAwareTransactionManager;
 import org.springframework.test.util.ReflectionTestUtils;
 
 class KafkaErrorHandlerConfigTest {
@@ -24,7 +24,7 @@ class KafkaErrorHandlerConfigTest {
     void setUp() {
         this.config = new KafkaConsumerConfig(
             new KafkaProperties(),
-            Mockito.mock(KafkaAwareTransactionManager.class)
+            Mockito.mock(ObjectProvider.class)
         );
     }
 
