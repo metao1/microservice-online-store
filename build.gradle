@@ -168,6 +168,8 @@ def openApiTargets = [
 tasks.register('generateOpenApiDocs') {
   group = 'documentation'
   description = 'Fetches OpenAPI JSON from running services into docs/api'
+  group = 'documentation'
+  description = 'Fetches OpenAPI JSON from running services into docs/api'
 
   def docsDir = layout.projectDirectory.dir("docs/api")
   outputs.dir(docsDir)
