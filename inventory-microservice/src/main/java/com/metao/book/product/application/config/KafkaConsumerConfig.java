@@ -32,7 +32,16 @@ import org.springframework.util.backoff.FixedBackOff;
 public class KafkaConsumerConfig {
 
     private final KafkaProperties kafkaProperties;
-    private final KafkaAwareTransactionManager<Object, Object> kafkaTransactionManager;
+    private final KafkaProperties kafkaProperties;
+    private final ObjectProvider<KafkaAwareTransactionManager<Object, Object>> kafkaTransactionManagerProvider;
+
+    public KafkaConsumerConfig(
+        KafkaProperties kafkaProperties,
+        ObjectProvider<KafkaAwareTransactionManager<Object, Object>> kafkaTransactionManagerProvider
+    ) {
+        this.kafkaProperties = kafkaProperties;
+        this.kafkaTransactionManagerProvider = kafkaTransactionManagerProvider;
+    }
 
     @Value("${kafka.consumer.concurrency:1}")
     private int consumerConcurrency;
