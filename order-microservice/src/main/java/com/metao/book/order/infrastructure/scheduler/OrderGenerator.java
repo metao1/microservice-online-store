@@ -4,7 +4,6 @@ import com.google.protobuf.Message;
 import com.metao.book.shared.OrderCreatedEvent;
 import com.metao.book.shared.OrderCreatedEvent.OrderItem;
 import com.metao.kafka.KafkaEventHandler;
-import com.metao.kafka.KafkaTraceHeaders;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,7 +44,6 @@ public class OrderGenerator {
 
         var topic = eventHandler.getKafkaTopic(orderEvent.getClass());
         var record = new ProducerRecord<String, Message>(topic, orderEvent.getUserId(), orderEvent);
-        KafkaTraceHeaders.enrich(record.headers());
         kafkaTemplate.send(record);
     }
 

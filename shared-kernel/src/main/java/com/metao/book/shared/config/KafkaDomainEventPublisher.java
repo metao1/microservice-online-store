@@ -5,7 +5,6 @@ import com.metao.book.shared.domain.base.DelegatingDomainEventTranslator;
 import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.domain.base.DomainEventPublisher;
 import com.metao.kafka.KafkaEventHandler;
-import com.metao.kafka.KafkaTraceHeaders;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -38,7 +37,6 @@ public class KafkaDomainEventPublisher implements DomainEventPublisher {
                     translationResult.key(),
                     translationResult.message()
                 );
-                KafkaTraceHeaders.enrich(record.headers());
                 kafkaTemplate.send(record);
                 log.debug("Published domain event {} to topic {}", event.getEventType(), kafkaTopic);
             };
