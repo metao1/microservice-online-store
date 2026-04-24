@@ -1,8 +1,7 @@
 package com.metao.book.shared.config;
 
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -32,12 +31,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * {@code app.api.cors.enabled=true} and provide an allow-list, which prevents
  * an accidental "allow any origin with credentials" deployment.
  */
+@Slf4j
 @AutoConfiguration
 @ConditionalOnClass(WebMvcConfigurer.class)
 @EnableConfigurationProperties(ApiProperties.class)
-public class OpenApiConfigFactory {
+public class WebSecurityAutoConfiguration {
 
-    private static final Logger log = LoggerFactory.getLogger(OpenApiConfigFactory.class);
 
     /**
      * Exposes the configured API version as a bean so that downstream components
