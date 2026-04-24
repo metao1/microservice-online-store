@@ -22,7 +22,16 @@ message OrderUpdatedEvent {
     PAID = 2;
     PAYMENT_FAILED = 3;
     PROCESSING = 4;
+  enum Status {
+    CREATED = 0;
+    PENDING_PAYMENT = 1;
+    PAID = 2;
+    PAYMENT_FAILED = 3;
+    PROCESSING = 4;
     SHIPPED = 5;
+    DELIVERED = 6;
+    CANCELLED = 7;
+  };
     DELIVERED = 6;
     CANCELLED = 7;
   };
