@@ -176,7 +176,7 @@ public class ProductRepositoryImpl implements ProductRepository {
     private Optional<String> resolveCategoryId(String categoryName) {
         String normalizedCategoryName = normalizeCategoryCacheKey(categoryName);
         Optional<String> cachedCategoryId = categoryIdCache.getIfPresent(normalizedCategoryName);
-        if (cachedCategoryId != null &&cachedCategoryId.isPresent()) {
+        if (cachedCategoryId != null) {
             return cachedCategoryId;
         }
 
