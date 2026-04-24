@@ -163,7 +163,9 @@ def openApiTargets = [
   [name: 'inventory', url: 'http://localhost:8083/v3/api-docs', file: 'inventory-openapi.json'],
   [name: 'order', url: 'http://localhost:8086/v3/api-docs', file: 'order-openapi.json'],
   [name: 'payment', url: 'http://localhost:8084/v3/api-docs', file: 'payment-openapi.json'],
-]
+tasks.register('generateOpenApiDocs') {
+  group = 'documentation'
+  description = 'Fetches OpenAPI JSON from running services into docs/api'
 
 tasks.register('generateOpenApiDocs') {
   group = 'documentation'
