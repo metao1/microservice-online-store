@@ -35,7 +35,7 @@ public class KafkaConsumerConfig {
     private final KafkaProperties kafkaProperties;
     private final KafkaAwareTransactionManager<Object, Object> kafkaTransactionManager;
 
-    @Value("${kafka.consumer.concurrency:1}")
+    @Value("${kafka.consumer.concurrency:3}")
     private int consumerConcurrency;
 
     @Bean

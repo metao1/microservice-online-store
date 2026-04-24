@@ -14,6 +14,7 @@ import com.metao.book.payment.domain.repository.PaymentRepository;
 import com.metao.book.payment.domain.service.PaymentDomainService;
 import com.metao.book.shared.config.KafkaDomainEventPublisher;
 import com.metao.book.shared.domain.financial.Money;
+import io.micrometer.core.annotation.Timed;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
@@ -138,6 +139,7 @@ public class PaymentApplicationService {
      * Get payment by order ID
      */
     @Transactional(readOnly = true)
+    @Timed(value = "payment.application.get-by-order-id")
     public Optional<PaymentDTO> getPaymentByOrderId(String orderId) {
         log.debug("Getting payment by order ID: {}", orderId);
 
@@ -171,6 +173,7 @@ public class PaymentApplicationService {
     /**
      * Process order created event (from order microservice)
      */
+    @Timed(value = "payment.application.process-order-created-event")
     public PaymentDTO processOrderCreatedEvent(String orderId, BigDecimal amount, String currency) {
         log.info("Processing order created event for order: {}", orderId);
 
@@ -201,6 +204,7 @@ public class PaymentApplicationService {
     /**
      * Process a payment
      */
+    @Timed(value = "payment.application.process-payment")
     public PaymentDTO processPayment(String id) {
         log.info("Processing payment: {}", id);
         long startedAtNanos = System.nanoTime();
@@ -274,9 +278,9 @@ public class PaymentApplicationService {
         Throwable current = throwable;
         while (current != null) {
             String message = current.getMessage();
-            if (message != null && (message.contains("uk_payment_order_id")
-                || message.contains("payment_order_id_key")
-                || message.contains("duplicate key value violates unique constraint"))) {
+            if (message != null && (message.contains("uk_payment_order_id") ||
+                message.contains("payment_order_id_key") ||
+                message.contains("duplicate key value violates unique constraint"))) {
                 return true;
             }
             current = current.getCause();

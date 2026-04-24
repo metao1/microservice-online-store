@@ -1,5 +1,7 @@
 package com.metao.book.product.application.service;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.metao.book.product.application.dto.CreateProductCommand;
 import com.metao.book.product.application.dto.UpdateProductCommand;
 import com.metao.book.product.domain.exception.CategoryNotFoundException;
@@ -23,6 +25,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -44,10 +47,16 @@ import org.springframework.validation.annotation.Validated;
 @RequiredArgsConstructor
 public class ProductDomainService {
 
+    private static final int CATEGORY_PAGE_CACHE_MAXIMUM_SIZE = 1_024;
+
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductCreateIdempotencyRepository productCreateIdempotencyRepository;
     private final DomainEventPublisher eventPublisher;
+    private final Cache<CategoryPageKey, List<ProductAggregate>> categoryPageCache = Caffeine.newBuilder()
+        .maximumSize(CATEGORY_PAGE_CACHE_MAXIMUM_SIZE)
+        .expireAfterWrite(Duration.ofSeconds(15))
+        .build();
     /**
      * Create a new product
      */
@@ -121,6 +130,7 @@ public class ProductDomainService {
         if (!inserted) {
             return CreateProductResult.ALREADY_EXISTS;
         }
+        invalidateReadCaches();
         publishEvents(product);
         return CreateProductResult.CREATED;
     }
@@ -139,6 +149,7 @@ public class ProductDomainService {
         product.updatePrice(newPrice);
 
         productRepository.save(product);
+        invalidateReadCaches();
 
         log.info("Product updated successfully with ID: {}", product.getId());
         publishEvents(product);
@@ -198,7 +209,9 @@ public class ProductDomainService {
         }
         log.debug("Getting products by category: {}", categoryName);
 
-        return productRepository.findByCategory(categoryName, offset, limit);
+        CategoryPageKey cacheKey = new CategoryPageKey(categoryName.value(), offset, limit);
+        return categoryPageCache.get(cacheKey, ignored ->
+            List.copyOf(productRepository.findByCategory(categoryName, offset, limit)));
     }
 
     /**
@@ -237,6 +250,7 @@ public class ProductDomainService {
 
         product.addCategory(category);
         productRepository.save(product);
+        invalidateReadCaches();
         publishEvents(product);
         log.info("Product {} assigned to category {} successfully", productSku, categoryName);
     }
@@ -255,6 +269,7 @@ public class ProductDomainService {
 
         product.reduceVolume(quantity);
         productRepository.save(product);
+        invalidateReadCaches();
         publishEvents(product);
         log.info("Product volume reduced successfully for {}", sku);
     }
@@ -278,6 +293,7 @@ public class ProductDomainService {
             }
             throw new IllegalStateException("Insufficient product volume for SKU " + sku);
         }
+        invalidateReadCaches();
         log.info("Product volume reduced atomically for {}", sku);
     }
 
@@ -295,6 +311,7 @@ public class ProductDomainService {
 
         product.increaseVolume(quantity);
         productRepository.save(product);
+        invalidateReadCaches();
 
         log.info("Product volume increased successfully for {}", sku);
     }
@@ -307,6 +324,10 @@ public class ProductDomainService {
         List<DomainEvent> events = product.getDomainEvents();
         events.forEach(eventPublisher::publish);
         //product.clearDomainEvents();
+    }
+
+    private void invalidateReadCaches() {
+        categoryPageCache.invalidateAll();
     }
 
     private String normalizeIdempotencyKey(String idempotencyKey) {
@@ -360,5 +381,12 @@ public class ProductDomainService {
             .stream()
             .filter(p -> !p.getId().equals(productSku))
             .toList();
+    }
+
+    private record CategoryPageKey(
+        String categoryName,
+        int offset,
+        int limit
+    ) {
     }
 }

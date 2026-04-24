@@ -13,6 +13,7 @@ import com.metao.book.shared.application.persistence.OffsetBasedPageRequest;
 import com.metao.book.shared.domain.product.ProductSku;
 import io.micrometer.observation.annotation.Observed;
 import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.Duration;
@@ -29,6 +30,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
@@ -46,6 +48,7 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     private final JpaProductRepository jpaProductRepository;
     private final JpaCategoryRepository jpaCategoryRepository;
+    private final EntityManager entityManager;
     private final ProductEntityMapper productEntityMapper;
     private final Cache<String, Optional<String>> categoryIdCache = Caffeine.newBuilder()
         .maximumSize(CATEGORY_ID_CACHE_MAXIMUM_SIZE)
@@ -159,7 +162,7 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     private CategoryEntity resolveCategoryEntity(ProductCategory category) {
-        return jpaCategoryRepository.findByCategory(category.getName().value())
+        return findCategoryByNaturalId(category.getName().value())
             .map(existingCategory -> {
                 categoryIdCache.put(
                     normalizeCategoryCacheKey(existingCategory.getCategory()),
@@ -177,7 +180,7 @@ public class ProductRepositoryImpl implements ProductRepository {
             return cachedCategoryId;
         }
 
-        Optional<String> categoryId = jpaCategoryRepository.findByCategory(normalizedCategoryName)
+        Optional<String> categoryId = findCategoryByNaturalId(normalizedCategoryName)
             .map(CategoryEntity::getId);
         categoryIdCache.put(normalizedCategoryName, categoryId);
         return categoryId;
@@ -192,7 +195,7 @@ public class ProductRepositoryImpl implements ProductRepository {
         for (String categoryName : categoryNames) {
             String normalizedCategoryName = normalizeCategoryCacheKey(categoryName);
             Optional<String> cachedCategoryId = categoryIdCache.getIfPresent(normalizedCategoryName);
-            if (cachedCategoryId != null) {
+            if (cachedCategoryId != null && cachedCategoryId.isPresent()) {
                 resolvedCategoryIds.put(normalizedCategoryName, cachedCategoryId);
             }
         }
@@ -237,6 +240,12 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     private String normalizeCategoryCacheKey(String categoryName) {
         return categoryName == null ? null : categoryName.toLowerCase(Locale.ROOT).trim();
+    }
+
+    private Optional<CategoryEntity> findCategoryByNaturalId(String categoryName) {
+        Session session = entityManager.unwrap(Session.class);
+        return session.bySimpleNaturalId(CategoryEntity.class)
+            .loadOptional(categoryName);
     }
 
     private List<ProductAggregate> loadProductsWithCategoriesInOrder(List<ProductSku> skus) {
