@@ -162,7 +162,9 @@ tasks.named('build') {
 def openApiTargets = [
   [name: 'inventory', url: 'http://localhost:8083/v3/api-docs', file: 'inventory-openapi.json'],
   [name: 'order', url: 'http://localhost:8086/v3/api-docs', file: 'order-openapi.json'],
-  [name: 'payment', url: 'http://localhost:8084/v3/api-docs', file: 'payment-openapi.json'],
+  [name: 'payment', url: 'http://localhost:8084/v3/api-docs', file: 'payment-openapi.json']
+]
+
 tasks.register('generateOpenApiDocs') {
   group = 'documentation'
   description = 'Fetches OpenAPI JSON from running services into docs/api'
@@ -175,11 +177,11 @@ tasks.register('generateOpenApiDocs') {
 
   def docsDir = layout.projectDirectory.dir("docs/api")
   outputs.dir(docsDir)
-tasks.register('generateOpenApiDocs') {
-  group = 'documentation'
-  description = 'Generates OpenAPI documentation for all microservices'
-  // Consider using the springdoc-openapi-gradle-plugin for build-time generation
-}
+  tasks.register('generateOpenApiDocs') {
+    group = 'documentation'
+    description = 'Generates OpenAPI documentation for all microservices'
+    // Consider using the springdoc-openapi-gradle-plugin for build-time generation
+  }
   doLast {
     def outputDir = docsDir.get().asFile
     outputDir.mkdirs()
@@ -200,4 +202,5 @@ subprojects {
   tasks.matching { it.name == 'generateOpenApiDocs' }.configureEach {
     enabled = false
   }
+}
 }
