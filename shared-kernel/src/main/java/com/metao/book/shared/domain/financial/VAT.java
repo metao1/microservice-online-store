@@ -93,6 +93,8 @@ public class VAT implements ValueObject {
         var tax = amount.fixedPointAmount()
             .multiply(BigDecimal.valueOf(percentage))
             .divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP);
+            .multiply(BigDecimal.valueOf(percentage))
+            .divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP);
         return Money.of(amount.currency(), tax);
     }
 
