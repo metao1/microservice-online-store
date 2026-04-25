@@ -40,6 +40,10 @@
   margin-bottom: 1.5rem;
 }
 
+.mobile-category-tabs {
+  display: none;
+}
+
 .segment-tab {
   border: none;
   background: #f2f2f2;
@@ -373,6 +377,38 @@
   .segment-tabs {
     justify-content: flex-start;
     overflow-x: auto;
+  }
+
+  .mobile-category-tabs {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin-bottom: 0.8rem;
+    padding-bottom: 0.2rem;
+  }
+
+  .mobile-category-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-category-tab {
+    flex: 0 0 auto;
+    border: 1px solid #d7d7d7;
+    background: #ffffff;
+    color: #111111;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.45rem 0.75rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .mobile-category-tab.active {
+    border-color: #111111;
+    background: #111111;
+    color: #ffffff;
   }
 
   .segment-tab {
