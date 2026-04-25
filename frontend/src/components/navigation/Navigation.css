@@ -126,6 +126,11 @@
   font-weight: 600;
 }
 
+.lang-toggle {
+  border: 1px solid #dcdcdc;
+  border-radius: 999px;
+}
+
 .icon-link,
 .icon-button {
   width: 32px;
@@ -141,6 +146,10 @@
 .icon-button:hover {
   background: #f3f3f3;
   text-decoration: none;
+}
+
+.icon-link.active {
+  background: #f3f3f3;
 }
 
 .icon-link {
@@ -377,13 +386,17 @@
 }
 
 .mobile-menu-toggle {
-  width: 40px;
-  height: 40px;
-  border: 1px solid #e6e6e6;
+  width: 38px;
+  height: 38px;
+  border: 1px solid #111111;
   background: #ffffff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.mobile-menu-toggle:hover {
+  background: #f7f7f7;
 }
 
 .nav-search-mobile {
