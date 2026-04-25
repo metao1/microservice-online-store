@@ -18,6 +18,20 @@ public interface PaymentRepository {
     PaymentAggregate save(PaymentAggregate payment);
 
     /**
+     * Save a payment and flush changes to database immediately.
+     */
+    default PaymentAggregate saveAndFlush(PaymentAggregate payment) {
+        return save(payment);
+    }
+
+    /**
+     * Acquire a DB-backed lock for payment creation on a specific order ID.
+     */
+    default void lockOrderForCreation(OrderId orderId) {
+        // Default no-op for non-database-backed implementations.
+    }
+
+    /**
      * Find payment by ID
      */
     Optional<PaymentAggregate> findById(PaymentId paymentId);

@@ -3,6 +3,7 @@ package com.metao.book.payment.domain.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -163,6 +164,68 @@ class PaymentAggregateDomainServiceTest {
         assertThatThrownBy(() -> paymentDomainService.processPayment(paymentId))
             .isInstanceOf(PaymentNotFoundException.class)
             .hasMessageContaining("Payment id payment-123 not found");
+    }
+
+    @Test
+    void retryPayment_withFailedPayment_shouldUseOptimisticReadAndSave() {
+        // Given
+        PaymentId paymentId = PaymentId.of("payment-123");
+        PaymentAggregate payment = createMockPayment(paymentId, PaymentStatus.FAILED);
+        when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
+        when(paymentRepository.save(payment)).thenReturn(payment);
+
+        // When
+        paymentDomainService.retryPayment(paymentId);
+
+        // Then
+        verify(paymentRepository).findById(paymentId);
+        verify(paymentRepository, never()).findByIdForUpdate(paymentId);
+        verify(payment).retry();
+        verify(paymentRepository).save(payment);
+    }
+
+    @Test
+    void retryPayment_withMissingPayment_shouldThrowPaymentNotFound() {
+        // Given
+        PaymentId paymentId = PaymentId.of("payment-123");
+        when(paymentRepository.findById(paymentId)).thenReturn(Optional.empty());
+
+        // When / Then
+        assertThatThrownBy(() -> paymentDomainService.retryPayment(paymentId))
+            .isInstanceOf(PaymentNotFoundException.class)
+            .hasMessageContaining("Payment id payment-123 not found");
+        verify(paymentRepository, never()).findByIdForUpdate(paymentId);
+    }
+
+    @Test
+    void cancelPayment_withPendingPayment_shouldUseOptimisticReadAndSave() {
+        // Given
+        PaymentId paymentId = PaymentId.of("payment-123");
+        PaymentAggregate payment = createMockPayment(paymentId, PaymentStatus.PENDING);
+        when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
+        when(paymentRepository.save(payment)).thenReturn(payment);
+
+        // When
+        paymentDomainService.cancelPayment(paymentId);
+
+        // Then
+        verify(paymentRepository).findById(paymentId);
+        verify(paymentRepository, never()).findByIdForUpdate(paymentId);
+        verify(payment).cancel();
+        verify(paymentRepository).save(payment);
+    }
+
+    @Test
+    void cancelPayment_withMissingPayment_shouldThrowPaymentNotFound() {
+        // Given
+        PaymentId paymentId = PaymentId.of("payment-123");
+        when(paymentRepository.findById(paymentId)).thenReturn(Optional.empty());
+
+        // When / Then
+        assertThatThrownBy(() -> paymentDomainService.cancelPayment(paymentId))
+            .isInstanceOf(PaymentNotFoundException.class)
+            .hasMessageContaining("Payment id payment-123 not found");
+        verify(paymentRepository, never()).findByIdForUpdate(paymentId);
     }
 
     @Test

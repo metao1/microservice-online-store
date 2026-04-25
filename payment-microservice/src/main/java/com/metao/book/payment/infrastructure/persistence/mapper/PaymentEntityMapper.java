@@ -18,7 +18,7 @@ public class PaymentEntityMapper {
      * Convert domain Payment to PaymentEntity
      */
     public PaymentEntity toEntity(PaymentAggregate payment) {
-        return new PaymentEntity(
+        PaymentEntity entity = new PaymentEntity(
             payment.getId().value(),
             payment.getOrderId().value(),
             payment.getAmount().fixedPointAmount(),
@@ -28,6 +28,10 @@ public class PaymentEntityMapper {
             mapPaymentStatus(payment.getStatus()),
             payment.getCreatedAt()
         );
+        entity.setFailureReason(payment.getFailureReason());
+        entity.setProcessedAt(payment.getProcessedAt());
+        entity.setVersion(payment.getVersion());
+        return entity;
     }
 
     /**
@@ -48,7 +52,8 @@ public class PaymentEntityMapper {
             status,
             payment.getFailureReason(),
             payment.getProcessedAt(),
-            payment.getCreatedAt()
+            payment.getCreatedAt(),
+            payment.getVersion()
         );
     }
 

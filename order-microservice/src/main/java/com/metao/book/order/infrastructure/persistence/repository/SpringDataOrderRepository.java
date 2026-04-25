@@ -15,8 +15,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface SpringDataOrderRepository extends JpaRepository<OrderJpaEntity, String> {
 
-    @EntityGraph(attributePaths = "items")
     @Override
+    @EntityGraph(attributePaths = "items")
     Optional<OrderJpaEntity> findById(String orderId);
 
     @EntityGraph(attributePaths = "items")

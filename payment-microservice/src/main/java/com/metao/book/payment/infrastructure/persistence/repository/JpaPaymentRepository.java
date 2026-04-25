@@ -36,6 +36,10 @@ public interface JpaPaymentRepository extends JpaRepository<PaymentEntity, Payme
     @Timed(value = "payment.db.exists-by-order-id")
     boolean existsByOrderId(String orderId);
 
+    @Timed(value = "payment.db.lock-order-for-creation")
+    @Query(value = "SELECT pg_advisory_xact_lock(hashtextextended(cast(:orderId as text), 0))", nativeQuery = true)
+    void lockOrderForCreation(@Param("orderId") String orderId);
+
     @Timed(value = "payment.db.count-by-status")
     long countByStatus(PaymentEntity.PaymentStatusEntity status);
 }

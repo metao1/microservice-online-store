@@ -3,6 +3,7 @@ package com.metao.book.payment.application.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -10,6 +11,7 @@ import static org.mockito.Mockito.when;
 import com.metao.book.payment.application.dto.CreatePaymentCommand;
 import com.metao.book.payment.application.dto.PaymentDTO;
 import com.metao.book.payment.application.mapper.PaymentApplicationMapper;
+import com.metao.book.payment.domain.exception.DuplicatePaymentException;
 import com.metao.book.payment.domain.model.aggregate.PaymentAggregate;
 import com.metao.book.payment.domain.model.valueobject.OrderId;
 import com.metao.book.payment.domain.model.valueobject.PaymentId;
@@ -27,11 +29,11 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.dao.DataIntegrityViolationException;
 
 /**
  * Unit tests for PaymentApplicationService
@@ -75,7 +77,7 @@ class PaymentAggregateApplicationServiceTest {
 
         when(paymentDomainService.isPaymentMethodValidForAmount(any(), any())).thenReturn(true);
         when(paymentDomainService.createPayment(any(), any(), any())).thenReturn(payment);
-        when(paymentRepository.save(payment)).thenReturn(payment);
+        when(paymentRepository.saveAndFlush(payment)).thenReturn(payment);
 
         // When
         PaymentDTO result = paymentApplicationService.createPayment(command);
@@ -83,8 +85,34 @@ class PaymentAggregateApplicationServiceTest {
         // Then
         assertThat(result).isEqualTo(expectedDTO);
         verify(paymentDomainService).createPayment(any(OrderId.class), any(Money.class), any(PaymentMethod.class));
-        verify(paymentRepository).save(payment);
+        verify(paymentRepository).saveAndFlush(payment);
         // Note: kafkaEventHandler.handle is only called if payment has domain events
+    }
+
+    @Test
+    void createPayment_shouldLockOrderBeforeReadAndWrite() {
+        // Given
+        CreatePaymentCommand command = new CreatePaymentCommand(
+            "order-123",
+            BigDecimal.valueOf(100.00),
+            "EUR",
+            PaymentMethod.Type.CREDIT_CARD,
+            "****-1234"
+        );
+
+        PaymentAggregate payment = createPaymentAggregate(PaymentStatus.PENDING, null);
+        when(paymentDomainService.isPaymentMethodValidForAmount(any(), any())).thenReturn(true);
+        when(paymentDomainService.createPayment(any(), any(), any())).thenReturn(payment);
+        when(paymentRepository.saveAndFlush(payment)).thenReturn(payment);
+
+        // When
+        paymentApplicationService.createPayment(command);
+
+        // Then
+        InOrder inOrder = inOrder(paymentRepository);
+        inOrder.verify(paymentRepository).lockOrderForCreation(any(OrderId.class));
+        inOrder.verify(paymentRepository).findByOrderId(any(OrderId.class));
+        inOrder.verify(paymentRepository).saveAndFlush(payment);
     }
 
     @Test
@@ -111,7 +139,7 @@ class PaymentAggregateApplicationServiceTest {
     }
 
     @Test
-    void createPayment_whenConcurrentDuplicateInsertOccurs_shouldReturnExistingPayment() {
+    void createPayment_whenDuplicateDetectedAtDomainLevel_shouldReturnExistingPayment() {
         // Given
         CreatePaymentCommand command = new CreatePaymentCommand(
             "order-123",
@@ -121,13 +149,11 @@ class PaymentAggregateApplicationServiceTest {
             "****-1234"
         );
 
-        PaymentAggregate paymentToCreate = createPaymentAggregate(PaymentStatus.PENDING, null);
         PaymentAggregate existingPayment = createPaymentAggregate(PaymentStatus.PENDING, null);
 
         when(paymentDomainService.isPaymentMethodValidForAmount(any(), any())).thenReturn(true);
-        when(paymentDomainService.createPayment(any(), any(), any())).thenReturn(paymentToCreate);
-        when(paymentRepository.save(paymentToCreate))
-            .thenThrow(new DataIntegrityViolationException("duplicate key value violates unique constraint uk_payment_order_id"));
+        when(paymentDomainService.createPayment(any(), any(), any()))
+            .thenThrow(new DuplicatePaymentException("Payment already exists for order: order-123"));
         when(paymentRepository.findByOrderId(any(OrderId.class)))
             .thenReturn(Optional.empty())
             .thenReturn(Optional.of(existingPayment));
@@ -310,7 +336,7 @@ class PaymentAggregateApplicationServiceTest {
 
         when(paymentDomainService.isPaymentMethodValidForAmount(any(), any())).thenReturn(true);
         when(paymentDomainService.createPayment(any(), any(), any())).thenReturn(createdPayment);
-        when(paymentRepository.save(createdPayment)).thenReturn(createdPayment);
+        when(paymentRepository.saveAndFlush(createdPayment)).thenReturn(createdPayment);
         when(paymentDomainService.processPayment(any(PaymentId.class))).thenReturn(processedPayment);
 
         // When
