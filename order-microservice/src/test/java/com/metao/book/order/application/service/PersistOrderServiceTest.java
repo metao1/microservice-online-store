@@ -13,16 +13,19 @@ import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.domain.repository.OrderRepository;
 import com.metao.book.shared.domain.financial.Money;
+import com.metao.book.shared.domain.financial.VAT;
 import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.book.shared.domain.product.Quantity;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Currency;
+import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -35,8 +38,16 @@ class PersistOrderServiceTest {
     @Mock
     private ProcessedOrderCreatedEventPort processedOrderCreatedEventPort;
 
-    @InjectMocks
     private PersistOrderService persistOrderService;
+
+    @BeforeEach
+    void setUp() {
+        persistOrderService = new PersistOrderService(
+            orderRepository,
+            processedOrderCreatedEventPort,
+            new VAT(0)
+        );
+    }
 
     @Test
     void persistOrderSkipsDuplicateProcessedEvent() {
@@ -59,14 +70,14 @@ class PersistOrderServiceTest {
 
         persistOrderService.persistOrder(event);
 
-        verify(orderRepository).save(org.mockito.ArgumentMatchers.any(OrderAggregate.class));
+        verify(orderRepository).save(ArgumentMatchers.any(OrderAggregate.class));
     }
 
     private OrderCreatedEvent buildEvent(String orderId) {
         return new OrderCreatedEvent(
             OrderId.of(orderId),
             UserId.of("user-1"),
-            java.util.List.of(
+            List.of(
                 new OrderCreatedEventItem(
                     ProductSku.of("SKU-1"),
                     ProductTitle.of("Book 1"),

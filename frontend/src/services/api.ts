@@ -118,7 +118,7 @@ class RemoteApiClient extends BaseApiClient implements ApiClientContract {
       userId: backendOrder.userId || userId,
       items: enrichedItems,
       total: backendTotal ?? computedTotal,
-      status: this.mapOrderStatus(backendOrder.status || 'PENDING'),
+      status: this.normalizeOrderStatus(backendOrder.status || 'PENDING'),
       createdAt: backendOrder.createdAt || backendOrder.orderDate || new Date().toISOString(),
     };
   }
@@ -385,7 +385,7 @@ class RemoteApiClient extends BaseApiClient implements ApiClientContract {
       userId: backendOrder.userId || backendOrder.userId || userId,
       items: enrichedItems,
       total: backendTotal ?? computedTotal,
-      status: this.mapOrderStatus(backendOrder.status || 'PENDING'),
+      status: this.normalizeOrderStatus(backendOrder.status || 'PENDING'),
       createdAt: backendOrder.createdAt || backendOrder.orderDate || new Date().toISOString(),
     };
   }

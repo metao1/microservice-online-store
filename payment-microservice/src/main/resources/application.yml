@@ -89,6 +89,7 @@ spring:
       value-serializer: io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer
       properties:
         enable.idempotence: true
+      transaction-id-prefix: ${INSTANCE_ID:${spring.application.name}}-tx-
   output.ansi.enabled: ALWAYS
   datasource:
     url: ${DATABASE_URL}
@@ -138,13 +139,26 @@ spring:
           provider_disables_autocommit: true
         temp:
           use_jdbc_metadata_defaults: false
+app:
+  api:
+    version: ${API_VERSION:1.0}
+    cors:
+      enabled: ${CORS_ENABLED:true}
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}
+      allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:}
+      allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,PATCH,DELETE,OPTIONS}
+      allowed-headers: ${CORS_ALLOWED_HEADERS:*}
+      exposed-headers: ${CORS_EXPOSED_HEADERS:}
+      allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
+      max-age: ${CORS_MAX_AGE:30m}
+
 kafka:
   enabled: ${KAFKA_ENABLED:true}
   topic:
     order-created:
       id: order-created-id
       name: order-created
-      group-id: order-created-group
+      group-id: order-created-group-payment
       class-path: com.metao.book.shared.OrderCreatedEvent
     order-payment:
       id: order-payment-id

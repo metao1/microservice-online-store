@@ -1,5 +1,6 @@
 package com.metao.book.order.domain.model.aggregate;
 
+import com.metao.book.order.domain.event.OrderCreatedEvent;
 import com.metao.book.order.domain.exception.OrderStateTransitionNotAllowed;
 import com.metao.book.order.domain.model.entity.OrderItem;
 import com.metao.book.order.domain.model.event.DomainInventoryReductionRequestedEvent;
@@ -10,6 +11,7 @@ import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.shared.domain.base.AggregateRoot;
 import com.metao.book.shared.domain.financial.Money;
+import com.metao.book.shared.domain.financial.VAT;
 import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.book.shared.domain.product.Quantity;
@@ -24,16 +26,29 @@ import lombok.Getter;
 @Getter
 @EqualsAndHashCode(of = {"id"}, callSuper = true)
 public class OrderAggregate extends AggregateRoot<OrderId> {
+    /**
+     * Default VAT rate used when no explicit rate is supplied. Zero-rated so historical
+     * callers and unit tests keep their original net-total semantics.
+     */
+    public static final VAT ZERO_VAT = new VAT(0);
+
     private final OrderId id;
     private final UserId userId;
     private final List<OrderItem> items;
     private final Instant createdAt;
+    private final VAT vat;
+    private Money subtotal;
+    private Money tax;
     private Money total;
     private OrderStatus status;
     private Instant updatedAt;
 
     public OrderAggregate(OrderId id, UserId userId) {
-        this(id, userId, new ArrayList<>(), OrderStatus.CREATED, Instant.now(), Instant.now());
+        this(id, userId, ZERO_VAT);
+    }
+
+    public OrderAggregate(OrderId id, UserId userId, VAT vat) {
+        this(id, userId, new ArrayList<>(), OrderStatus.CREATED, Instant.now(), Instant.now(), vat);
     }
 
     private OrderAggregate(
@@ -42,7 +57,8 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
         List<OrderItem> items,
         OrderStatus status,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        VAT vat
     ) {
         super(Objects.requireNonNull(id, "id can't be null"));
         this.id = id;
@@ -51,22 +67,28 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
         this.status = Objects.requireNonNull(status, "status can't be null");
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt can't be null");
         this.updatedAt = Objects.requireNonNull(updatedAt, "updatedAt can't be null");
-        this.total = calculateTotal();
+        this.vat = Objects.requireNonNull(vat, "vat can't be null");
+        recomputeTotals();
     }
 
-    public static OrderAggregate from(com.metao.book.order.domain.event.OrderCreatedEvent event) {
+    public static OrderAggregate from(OrderCreatedEvent event) {
+        return from(event, ZERO_VAT);
+    }
+
+    public static OrderAggregate from(OrderCreatedEvent event, VAT vat) {
         OrderAggregate order = new OrderAggregate(
             event.orderId(),
             event.userId(),
             new ArrayList<>(),
             event.status(),
             event.createdAt(),
-            event.updatedAt()
+            event.updatedAt(),
+            vat
         );
         event.items().forEach(item ->
             order.items.add(new OrderItem(item.productSku(), item.productTitle(), item.quantity(), item.unitPrice()))
         );
-        order.total = order.calculateTotal();
+        order.recomputeTotals();
         return order;
     }
 
@@ -78,7 +100,19 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
         Instant createdAt,
         Instant updatedAt
     ) {
-        return new OrderAggregate(id, userId, new ArrayList<>(items), status, createdAt, updatedAt);
+        return reconstitute(id, userId, items, status, createdAt, updatedAt, ZERO_VAT);
+    }
+
+    public static OrderAggregate reconstitute(
+        OrderId id,
+        UserId userId,
+        List<OrderItem> items,
+        OrderStatus status,
+        Instant createdAt,
+        Instant updatedAt,
+        VAT vat
+    ) {
+        return new OrderAggregate(id, userId, new ArrayList<>(items), status, createdAt, updatedAt, vat);
     }
 
     public void addItem(
@@ -105,7 +139,7 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
         }
 
         updatedAt = Instant.now();
-        total = calculateTotal();
+        recomputeTotals();
     }
 
     public boolean hasItem(ProductSku productSku) {
@@ -117,7 +151,10 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
             id,
             userId,
             List.copyOf(items),
+            subtotal,
+            tax,
             total,
+            vat,
             createdAt
         ));
     }
@@ -139,7 +176,7 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
             addDomainEvent(new DomainInventoryReductionRequestedEvent(occurredOn, item.getProductSku(), item.getQuantity()));
         });
         updatedAt = occurredOn;
-        total = calculateTotal();
+        recomputeTotals();
     }
 
     public synchronized void removeItem(ProductSku sku) {
@@ -149,7 +186,7 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
         boolean removed = items.removeIf(item -> item.getProductSku().equals(sku));
         if (removed) {
             updatedAt = Instant.now();
-            total = calculateTotal();
+            recomputeTotals();
         }
     }
 
@@ -157,8 +194,13 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
         return Collections.unmodifiableList(items);
     }
 
-    private Money calculateTotal() {
-        return items.stream()
+    /**
+     * Recomputes {@link #subtotal} (sum of net line totals), {@link #tax} (VAT on subtotal)
+     * and {@link #total} (subtotal + tax). When no items are present all three are {@code null}
+     * to preserve the previous empty-order contract.
+     */
+    private void recomputeTotals() {
+        Money newSubtotal = items.stream()
             .map(OrderItem::getTotalPrice)
             .reduce((left, right) -> {
                 if (!left.currency().equals(right.currency())) {
@@ -167,6 +209,17 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
                 return left.add(right);
             })
             .orElse(null);
+
+        if (newSubtotal == null) {
+            this.subtotal = null;
+            this.tax = null;
+            this.total = null;
+            return;
+        }
+
+        this.subtotal = newSubtotal;
+        this.tax = vat.calculateTax(newSubtotal);
+        this.total = vat.addTax(newSubtotal);
     }
 
     private synchronized void validateStatusTransition(OrderStatus newStatus) {

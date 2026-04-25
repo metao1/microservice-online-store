@@ -8,6 +8,7 @@ import com.metao.book.order.infrastructure.persistence.entity.OrderItemEntity;
 import com.metao.book.order.infrastructure.persistence.entity.OrderJpaEntity;
 import com.metao.book.order.infrastructure.persistence.mapper.OrderEntityMapper;
 import com.metao.book.shared.application.persistence.OffsetBasedPageRequest;
+import com.metao.book.shared.domain.financial.VAT;
 import io.micrometer.observation.annotation.Observed;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Repository;
 public class OrderRepositoryAdapter implements OrderRepository {
 
     private final SpringDataOrderRepository springDataOrderRepository;
+    private final VAT vat;
 
     @Override
     public void save(OrderAggregate order) {
@@ -50,19 +52,19 @@ public class OrderRepositoryAdapter implements OrderRepository {
     @Override
     public Optional<OrderAggregate> findById(OrderId orderId) {
         return springDataOrderRepository.findById(orderId.value())
-            .map(OrderEntityMapper::toDomain);
+            .map(entity -> OrderEntityMapper.toDomain(entity, vat));
     }
 
     @Override
     public Optional<OrderAggregate> findByIdForUpdate(OrderId orderId) {
         return springDataOrderRepository.findByIdForUpdate(orderId.value())
-            .map(OrderEntityMapper::toDomain);
+            .map(entity -> OrderEntityMapper.toDomain(entity, vat));
     }
 
     @Override
     public List<OrderAggregate> findByUserId(UserId userId) {
         return springDataOrderRepository.findByUserId(userId).stream()
-            .map(OrderEntityMapper::toDomain)
+            .map(entity -> OrderEntityMapper.toDomain(entity, vat))
             .toList();
     }
 
@@ -85,7 +87,7 @@ public class OrderRepositoryAdapter implements OrderRepository {
 
         List<OrderAggregate> orders = springDataOrderRepository.findAllByIdInWithItems(orderIds).stream()
             .sorted(Comparator.comparingInt(order -> orderIndexById.getOrDefault(order.getId(), Integer.MAX_VALUE)))
-            .map(OrderEntityMapper::toDomain)
+            .map(entity -> OrderEntityMapper.toDomain(entity, vat))
             .toList();
 
         return new PageImpl<>(orders, orderIdPage.getPageable(), orderIdPage.getTotalElements());

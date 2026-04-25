@@ -9,6 +9,9 @@ plugins {
   id "org.springdoc.openapi-gradle-plugin" version "1.9.0" apply false
 }
 
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+
 ext {
   micrometerVersion = "1.16.2"
   testcontainersVersion = "2.0.2"
@@ -121,8 +124,6 @@ subprojects {
   }
 
   // Gradle configuration cache currently doesn't support Maven publishing tasks in this build.
-  // Keep config cache enabled for normal builds, but opt publishing tasks out so `publishToMavenLocal`
-  // works without requiring `--no-configuration-cache`.
   plugins.withId('maven-publish') {
     tasks.withType(org.gradle.api.publish.maven.tasks.GenerateMavenPom).configureEach {
       notCompatibleWithConfigurationCache("maven-publish POM generation is not configuration-cache compatible in this build")
@@ -155,14 +156,50 @@ tasks.register('publishLocalDependencies') {
 
 tasks.named('build') {
   dependsOn ':buildDependencies'
+  if (providers.gradleProperty('includeOpenApiDocsInBuild').map { it.toBoolean() }.orElse(false).get()) {
+    dependsOn ':generateOpenApiDocs'
+  }
 }
+
+def openApiTargets = [
+  [name: 'inventory', url: 'http://localhost:8083/v3/api-docs', file: 'inventory-openapi.json'],
+  [name: 'order', url: 'http://localhost:8086/v3/api-docs', file: 'order-openapi.json'],
+  [name: 'payment', url: 'http://localhost:8084/v3/api-docs', file: 'payment-openapi.json']
+]
 
 tasks.register('generateOpenApiDocs') {
   group = 'documentation'
-  description = 'Generates OpenAPI documentation for all microservices'
-  dependsOn ':inventory-microservice:generateOpenApiDocs'
-  dependsOn ':order-microservice:generateOpenApiDocs'
-  dependsOn ':payment-microservice:generateOpenApiDocs'
+  description = 'Fetches OpenAPI JSON from running services into docs/api'
+
+  def docsDir = layout.projectDirectory.dir("docs/api")
+  outputs.dir(docsDir)
+  def strictOpenApiDocs = providers.gradleProperty('strictOpenApiDocs').map { it.toBoolean() }.orElse(false).get()
+
+  doLast {
+    def outputDir = docsDir.get().asFile
+    outputDir.mkdirs()
+    openApiTargets.each { target ->
+      try {
+        def connection = new URL(target.url).openConnection()
+        connection.connectTimeout = 10000
+        connection.readTimeout = 30000
+        def body = connection.inputStream.getText('UTF-8')
+        def parsed = new JsonSlurper().parseText(body)
+        def outFile = new File(outputDir, target.file)
+        outFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(parsed)) + "\n"
+        logger.lifecycle("Generated OpenAPI spec for ${target.name}: ${outFile}")
+      } catch (Exception ex) {
+        if (strictOpenApiDocs) {
+          throw new GradleException("Failed to fetch OpenAPI spec from ${target.url}", ex)
+        }
+        logger.warn("Skipping OpenAPI spec for ${target.name} (${target.url}): ${ex.message}")
+      }
+    }
+  }
 }
 
-
+subprojects {
+  tasks.matching { it.name == 'generateOpenApiDocs' }.configureEach {
+    enabled = false
+  }
+}

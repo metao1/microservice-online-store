@@ -4,6 +4,7 @@ import com.metao.book.payment.application.dto.CreatePaymentCommand;
 import com.metao.book.payment.application.dto.PaymentDTO;
 import com.metao.book.payment.application.service.PaymentApplicationService;
 import com.metao.book.payment.domain.service.PaymentDomainService;
+import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +37,7 @@ public class PaymentController {
      * Create a new payment
      */
     @PostMapping
+    @Timed(value = "payment.api.create")
     @ResponseStatus(HttpStatus.CREATED)
     public PaymentDTO createPayment(@RequestBody CreatePaymentCommand command) {
         log.info("Creating payment for order: {}", command.orderId());
@@ -45,6 +47,7 @@ public class PaymentController {
     /**
      * Process a pending payment
      */
+    @Timed(value = "payment.api.process")
     @PostMapping("/{paymentId}/process")
     public PaymentDTO processPayment(@PathVariable String paymentId) {
         log.info("Processing payment: {}", paymentId);
@@ -85,6 +88,7 @@ public class PaymentController {
      * Get payment by order ID
      */
     @GetMapping("/order/{orderId}")
+    @Timed(value = "payment.api.get-by-order-id")
     public ResponseEntity<PaymentDTO> getPaymentInfoByOrderId(@PathVariable String orderId) {
         log.debug("Getting payment for order: {}", orderId);
         Optional<PaymentDTO> payment = paymentApplicationService.getPaymentByOrderId(orderId);

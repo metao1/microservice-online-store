@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class HandleOrderPaymentEventUseCase {
-
     private final OrderManagementService orderManagementService;
     private final ProcessedPaymentEventPort processedPaymentEventPort;
     private final ShoppingCartService shoppingCartService;

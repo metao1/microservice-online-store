@@ -1,0 +1,392 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "OpenAPI definition",
+        "version": "v0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8084",
+            "description": "Generated server url"
+        }
+    ],
+    "paths": {
+        "/payments": {
+            "post": {
+                "tags": [
+                    "payment-controller"
+                ],
+                "operationId": "createPayment",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreatePaymentCommand"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaymentDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/payments/{paymentId}/retry": {
+            "post": {
+                "tags": [
+                    "payment-controller"
+                ],
+                "operationId": "retryPayment",
+                "parameters": [
+                    {
+                        "name": "paymentId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaymentDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/payments/{paymentId}/process": {
+            "post": {
+                "tags": [
+                    "payment-controller"
+                ],
+                "operationId": "processPayment",
+                "parameters": [
+                    {
+                        "name": "paymentId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaymentDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/payments/{paymentId}/cancel": {
+            "post": {
+                "tags": [
+                    "payment-controller"
+                ],
+                "operationId": "cancelPayment",
+                "parameters": [
+                    {
+                        "name": "paymentId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/payments/{paymentId}": {
+            "get": {
+                "tags": [
+                    "payment-controller"
+                ],
+                "operationId": "getPayment",
+                "parameters": [
+                    {
+                        "name": "paymentId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaymentDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/payments/status/{status}": {
+            "get": {
+                "tags": [
+                    "payment-controller"
+                ],
+                "operationId": "getPaymentsByStatus",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int32",
+                            "default": 0
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int32",
+                            "default": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/PaymentDTO"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/payments/statistics": {
+            "get": {
+                "tags": [
+                    "payment-controller"
+                ],
+                "operationId": "getPaymentStatistics",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaymentStatistics"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/payments/order/{orderId}": {
+            "get": {
+                "tags": [
+                    "payment-controller"
+                ],
+                "operationId": "getPaymentInfoByOrderId",
+                "parameters": [
+                    {
+                        "name": "orderId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaymentDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "CreatePaymentCommand": {
+                "type": "object",
+                "properties": {
+                    "orderId": {
+                        "type": "string"
+                    },
+                    "amount": {
+                        "type": "number"
+                    },
+                    "currency": {
+                        "type": "string"
+                    },
+                    "paymentMethodType": {
+                        "type": "string",
+                        "enum": [
+                            "Credit Card",
+                            "Debit Card",
+                            "PayPal",
+                            "Bank Transfer",
+                            "Digital Wallet"
+                        ]
+                    },
+                    "paymentMethodDetails": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "amount",
+                    "currency",
+                    "orderId",
+                    "paymentMethodType"
+                ]
+            },
+            "PaymentDTO": {
+                "type": "object",
+                "properties": {
+                    "paymentId": {
+                        "type": "string"
+                    },
+                    "orderId": {
+                        "type": "string"
+                    },
+                    "amount": {
+                        "type": "number"
+                    },
+                    "currency": {
+                        "type": "object",
+                        "properties": {
+                            "currencyCode": {
+                                "type": "string"
+                            },
+                            "numericCode": {
+                                "type": "integer",
+                                "format": "int32"
+                            },
+                            "numericCodeAsString": {
+                                "type": "string"
+                            },
+                            "displayName": {
+                                "type": "string"
+                            },
+                            "symbol": {
+                                "type": "string"
+                            },
+                            "defaultFractionDigits": {
+                                "type": "integer",
+                                "format": "int32"
+                            }
+                        }
+                    },
+                    "paymentMethod": {
+                        "type": "string"
+                    },
+                    "paymentMethodDetails": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "failureReason": {
+                        "type": "string"
+                    },
+                    "processedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "isCompleted": {
+                        "type": "boolean"
+                    },
+                    "isSuccessful": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "PaymentStatistics": {
+                "type": "object",
+                "properties": {
+                    "totalPayments": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "successfulPayments": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "failedPayments": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "pendingPayments": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "successRate": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "failureRate": {
+                        "type": "number",
+                        "format": "double"
+                    }
+                }
+            }
+        }
+    }
+}

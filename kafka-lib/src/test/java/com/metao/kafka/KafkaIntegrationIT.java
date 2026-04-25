@@ -4,18 +4,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 import com.metao.shared.test.KafkaContainer;
+import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
 import java.time.Duration;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
 import lombok.SneakyThrows;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.PartitionInfo;
@@ -110,50 +110,43 @@ class KafkaIntegrationIT extends KafkaContainer {
         Set<String> expectedIds = IntStream.range(0, messageCount)
             .mapToObj(i -> orderIdPrefix + i)
             .collect(Collectors.toSet());
-        Set<String> receivedIds = Collections.synchronizedSet(new HashSet<>());
+        Set<String> receivedIds = ConcurrentHashMap.newKeySet();
 
-        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try (ExecutorService executor = Executors.newFixedThreadPool(2)) {
+            Runnable consumerTask = () -> {
+                consumeExpectedRecords(
+                        consumerFactory,
+                        kafkaTopic,
+                        partition,
+                        startingOffset,
+                        orderIdPrefix,
+                        expectedIds,
+                        receivedIds,
+                        Duration.ofSeconds(20)
+                );
+            };
 
-        Runnable consumerTask = () -> {
-            consumeExpectedRecords(
-                consumerFactory,
-                kafkaTopic,
-                partition,
-                startingOffset,
-                orderIdPrefix,
-                expectedIds,
-                receivedIds,
-                Duration.ofSeconds(20)
-            );
-        };
-
-        Runnable producerTask = () -> {
-            for (int i = 0; i < messageCount; i++) {
-                CreatedEventTest event = CreatedEventTest.newBuilder()
-                    .setId(orderIdPrefix + i)
-                    .setUserId("cust-" + i)
-                    .setProductSku("prod-" + i)
-                    .setPrice(10.0 + i)
-                    .setQuantity(1.0)
-                    .setCurrency("USD")
-                    .setStatus(CreatedEventTest.Status.NEW)
-                    .build();
-                kafkaTemplate.send(kafkaTopic, orderIdPrefix, event);
-            }
-            kafkaTemplate.flush();
-        };
-
-        try {
+            Runnable producerTask = () -> {
+                for (int i = 0; i < messageCount; i++) {
+                    CreatedEventTest event = CreatedEventTest.newBuilder()
+                            .setId(orderIdPrefix + i)
+                            .setUserId("cust-" + i)
+                            .setProductSku("prod-" + i)
+                            .setPrice(10.0 + i)
+                            .setQuantity(1.0)
+                            .setCurrency("USD")
+                            .setStatus(CreatedEventTest.Status.NEW)
+                            .build();
+                    kafkaTemplate.send(kafkaTopic, orderIdPrefix, event);
+                }
+                kafkaTemplate.flush();
+            };
             executor.submit(consumerTask);
             executor.submit(producerTask);
-
             await().atMost(Duration.ofSeconds(30))
-                .untilAsserted(() -> assertThat(receivedIds).containsAll(expectedIds));
-        } finally {
-            executor.shutdownNow();
+                    .untilAsserted(() -> assertThat(receivedIds).containsAll(expectedIds));
+            assertThat(receivedIds).hasSize(messageCount);
         }
-
-        assertThat(receivedIds).hasSize(messageCount);
     }
 
     @Test
@@ -181,7 +174,7 @@ class KafkaIntegrationIT extends KafkaContainer {
             }
         }
 
-        Set<String> receivedIds = Collections.synchronizedSet(new HashSet<>());
+        Set<String> receivedIds = ConcurrentHashMap.newKeySet();
 
         ExecutorService executor = Executors.newFixedThreadPool(producerThreads + 1);
 

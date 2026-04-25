@@ -3,7 +3,6 @@ package com.metao.book.product.infrastructure.factory.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.metao.book.product.application.dto.CreateProductCommand;
 import com.metao.book.product.application.dto.ProductDTO;
-import com.metao.book.product.application.mapper.ProductApplicationMapper;
 import com.metao.book.product.application.service.CreateProductResult;
 import com.metao.book.product.application.service.ProductDomainService;
 import jakarta.persistence.EntityManager;
@@ -121,7 +120,7 @@ public class ProductGenerator {
     private ProductDTO parseProduct(String str) {
         try {
             ProductDTO productDto = dtoMapper.readValue(str, ProductDTO.class);
-            productDto = ProductDTO.builder()
+            return ProductDTO.builder()
                 .sku(productDto.sku())
                 .title(productDto.title())
                 .description(productDto.description())
@@ -133,7 +132,6 @@ public class ProductGenerator {
                 .createdTime(Instant.now())
                 .volume(productDto.volume())
                 .build();
-            return ProductApplicationMapper.validateAndSetDefault(productDto);
         } catch (Exception e) {
             log.error("Error parsing product: {}", str, e);
             return null;

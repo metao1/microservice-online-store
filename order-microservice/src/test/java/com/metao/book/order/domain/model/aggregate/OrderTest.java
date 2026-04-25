@@ -298,7 +298,7 @@ class OrderTest {
             assertThatThrownBy(
                 () -> events.add(
                     new DomainOrderCreatedEvent(OrderId.generate(), UserId.of("user123"), List.of(), Money.ZERO,
-                        Instant.now())))
+                        Money.ZERO, Money.ZERO, OrderAggregate.ZERO_VAT, Instant.now())))
                 .isInstanceOf(UnsupportedOperationException.class);
         }
 

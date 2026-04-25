@@ -110,7 +110,7 @@ class OrderEventHandlerContainerIT extends KafkaContainer {
             .setQuantity(100d)
             .setPrice(100d)
             .setCurrency("USD")
-            .setStatus(Status.CONFIRMED)
+            .setStatus(Status.PAID)
             .build();
 
         kafkaTemplate1.send(eventHandler.getKafkaTopic(event1.getClass()), event1.getId(), event1)

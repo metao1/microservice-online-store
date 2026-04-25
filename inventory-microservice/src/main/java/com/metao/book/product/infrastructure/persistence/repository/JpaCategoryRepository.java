@@ -1,6 +1,7 @@
 package com.metao.book.product.infrastructure.persistence.repository;
 
 import com.metao.book.product.infrastructure.persistence.entity.CategoryEntity;
+import io.micrometer.core.annotation.Timed;
 import java.util.Optional;
 import java.util.List;
 import jakarta.validation.constraints.NotNull;
@@ -15,9 +16,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface JpaCategoryRepository extends JpaRepository<CategoryEntity, String> {
 
+    @Timed(value = "inventory.db.category.find-by-category")
     @NotNull
     Optional<CategoryEntity> findByCategory(String category);
 
+    @Timed(value = "inventory.db.category.find-ids-by-category-in")
     @Query("""
         select c.id
         from product_category c
@@ -25,5 +28,6 @@ public interface JpaCategoryRepository extends JpaRepository<CategoryEntity, Str
         """)
     List<String> findIdsByCategoryIn(@Param("categories") List<String> categories);
 
+    @Timed(value = "inventory.db.category.exists-by-category")
     boolean existsByCategory(String category);
 }
