@@ -13,7 +13,9 @@ import static org.hamcrest.Matchers.notNullValue;
 import com.metao.shared.test.KafkaContainer;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import jakarta.persistence.EntityManagerFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.SessionFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,6 +28,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import com.metao.book.product.infrastructure.persistence.entity.CategoryEntity;
 import java.util.UUID;
 
 @Slf4j
@@ -44,6 +47,9 @@ public class ProductAggregateManagementIT extends KafkaContainer {
     @Autowired
     private PlatformTransactionManager transactionManager;
 
+    @Autowired
+    private EntityManagerFactory entityManagerFactory;
+
     @BeforeEach
     void setUp() {
         new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
@@ -53,6 +59,11 @@ public class ProductAggregateManagementIT extends KafkaContainer {
             jdbcTemplate.update("DELETE FROM bookstore.product_create_request");
             jdbcTemplate.update("DELETE FROM bookstore.processed_inventory_event");
         });
+
+        SessionFactory sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
+        sessionFactory.getCache().evictEntityData(CategoryEntity.class);
+        sessionFactory.getCache().evictNaturalIdData(CategoryEntity.class);
+
         RestAssured.port = port;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     }

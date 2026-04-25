@@ -162,7 +162,9 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     private CategoryEntity resolveCategoryEntity(ProductCategory category) {
-        return findCategoryByNaturalId(category.getName().value())
+        String normalizedCategoryName = normalizeCategoryCacheKey(category.getName().value());
+        return findCategoryByNaturalId(normalizedCategoryName)
+            .filter(existingCategory -> categoryStillExists(existingCategory.getId(), normalizedCategoryName))
             .map(existingCategory -> {
                 categoryIdCache.put(
                     normalizeCategoryCacheKey(existingCategory.getCategory()),
@@ -240,6 +242,14 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     private String normalizeCategoryCacheKey(String categoryName) {
         return categoryName == null ? null : categoryName.toLowerCase(Locale.ROOT).trim();
+    }
+
+    private boolean categoryStillExists(String categoryId, String normalizedCategoryName) {
+        if (categoryId == null || !jpaCategoryRepository.existsById(categoryId)) {
+            categoryIdCache.invalidate(normalizedCategoryName);
+            return false;
+        }
+        return true;
     }
 
     private Optional<CategoryEntity> findCategoryByNaturalId(String categoryName) {
