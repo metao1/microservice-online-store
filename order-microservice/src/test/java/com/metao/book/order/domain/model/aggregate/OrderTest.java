@@ -28,6 +28,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class OrderTest {
+    private static final Currency EUR =  Currency.getInstance("EUR");
 
     @Nested
     class OrderCreation {
@@ -85,7 +86,7 @@ class OrderTest {
             ProductSku productSku = ProductSku.of("product123");
             ProductTitle productTitle = new ProductTitle("product123");
             Quantity quantity = Quantity.of(BigDecimal.valueOf(2.0));
-            Money unitPrice = Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(10.0));
+            Money unitPrice = Money.of(EUR, BigDecimal.valueOf(10.0));
 
             // When
             order.addItem(productSku, productTitle, quantity, unitPrice);
@@ -110,7 +111,7 @@ class OrderTest {
             DomainOrderCreatedEvent orderCreatedEvent = (DomainOrderCreatedEvent) events.getFirst();
             assertThat(orderCreatedEvent.getOrderId()).isNotNull();
             assertThat(orderCreatedEvent.getTotal()).isEqualTo(
-                Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(20.0)));
+                Money.of(EUR, BigDecimal.valueOf(23.80)));
             assertThat(orderCreatedEvent.getUserId()).extracting(UserId::toString).isEqualTo("user123");
         }
 
@@ -120,7 +121,7 @@ class OrderTest {
             assertThatThrownBy(() -> order.addItem(null,
                 ProductTitle.of("product-123"),
                 Quantity.of(BigDecimal.ONE),
-                Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(10.0))))
+                Money.of(EUR, BigDecimal.valueOf(10.0))))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("productSku can't be null");
         }
@@ -218,22 +219,22 @@ class OrderTest {
                         new OrderItemData("product1", "Product 1", BigDecimal.TWO, BigDecimal.valueOf(10.0)),
                         new OrderItemData("product2", "Product 2", BigDecimal.ONE, BigDecimal.valueOf(15.0))
                     ),
-                    BigDecimal.valueOf(35.0),
-                    "Multiple items calculation: (2 * 10.0) + (1 * 15.0)"
+                    BigDecimal.valueOf(41.7),
+                    "Multiple items calculation: (2 * 10.0) + (1 * 15.0) * %19"
                 ),
                 Arguments.of(
                     List.of(
                         new OrderItemData("product1", "Product 1", BigDecimal.valueOf(1000), BigDecimal.valueOf(999.99))
                     ),
-                    BigDecimal.valueOf(999990.00),
-                    "Large numbers calculation: 1000 * 999.99"
+                    BigDecimal.valueOf(1189988.10),
+                    "Large numbers calculation: 1000 * 999.99 * %19"
                 ),
                 Arguments.of(
                     List.of(
                         new OrderItemData("product1", "Product 1", BigDecimal.ONE, BigDecimal.valueOf(0.01))
                     ),
                     BigDecimal.valueOf(0.01),
-                    "Small decimal calculation: 1 * 0.01"
+                    "Small decimal calculation: 1 * 0.01 * %19"
                 )
             );
         }
@@ -254,12 +255,12 @@ class OrderTest {
                     ProductSku.of(item.productSku()),
                     ProductTitle.of("product-123"),
                     Quantity.of(item.quantity()),
-                    Money.of(Currency.getInstance("EUR"), item.unitPrice())
+                    Money.of(EUR, item.unitPrice())
                 );
             }
 
             // Then
-            Money expectedMoney = Money.of(Currency.getInstance("EUR"), expectedTotal);
+            Money expectedMoney = Money.of(EUR, expectedTotal);
             assertThat(order.getTotal()).isEqualTo(expectedMoney);
         }
 
@@ -280,7 +281,7 @@ class OrderTest {
             // Given
             OrderAggregate order = new OrderAggregate(OrderId.generate(), UserId.of("user123"));
             order.addItem(ProductSku.of("product1"), ProductTitle.of("product-123"),
-                Quantity.of(BigDecimal.ONE), Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(10.0)));
+                Quantity.of(BigDecimal.ONE), Money.of(EUR, BigDecimal.valueOf(10.0)));
             order.raiseOrderCreatedEvents();
             order.updateStatus(OrderStatus.PAID);
 
@@ -298,7 +299,7 @@ class OrderTest {
             assertThatThrownBy(
                 () -> events.add(
                     new DomainOrderCreatedEvent(OrderId.generate(), UserId.of("user123"), List.of(), Money.ZERO,
-                        Money.ZERO, Money.ZERO, OrderAggregate.ZERO_VAT, Instant.now())))
+                        Money.ZERO, Money.ZERO, OrderAggregate.VAT, Instant.now())))
                 .isInstanceOf(UnsupportedOperationException.class);
         }
 
@@ -306,7 +307,7 @@ class OrderTest {
         void shouldAccumulateEventsForMultipleOperations() {
             OrderAggregate order = new OrderAggregate(OrderId.generate(), UserId.of("user123"));
             order.addItem(ProductSku.of("product1"), ProductTitle.of("product-123"),
-                Quantity.of(BigDecimal.ONE), Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(10.0)));
+                Quantity.of(BigDecimal.ONE), Money.of(EUR, BigDecimal.valueOf(10.0)));
             order.raiseOrderCreatedEvents();
             order.updateStatus(OrderStatus.PAID);
 
@@ -324,13 +325,13 @@ class OrderTest {
                 ProductSku.of("product1"),
                 ProductTitle.of("product-123"),
                 Quantity.of(BigDecimal.ONE),
-                Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(10.0))
+                Money.of(EUR, BigDecimal.valueOf(10.0))
             );
             order.addItem(
                 ProductSku.of("product2"),
                 ProductTitle.of("product-456"),
                 Quantity.of(BigDecimal.TWO),
-                Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(15.0))
+                Money.of(EUR, BigDecimal.valueOf(15.0))
             );
 
             order.raiseOrderCreatedEvents();
