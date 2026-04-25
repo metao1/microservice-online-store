@@ -92,10 +92,15 @@
 
 .products-main {
   min-width: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .filter-bar {
   position: sticky;
+  top: 88px;
+  z-index: 1200;
+  background: #ffffff;
   margin-bottom: 1rem;
   flex-wrap: wrap;
   gap: 1rem;
@@ -106,6 +111,8 @@
   flex-wrap: wrap;
   gap: 0.75rem;
   align-items: center;
+  position: relative;
+  z-index: 1201;
 }
 
 .filter-buttons {
@@ -116,6 +123,32 @@
   row-gap: 0.75rem;
 }
 
+.filter-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.filter-scroll-btn {
+  display: none;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #111111;
+  background: #ffffff;
+  color: #111111;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.filter-scroll-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
 .filter-actions {
   display: flex;
   align-items: center;
@@ -123,6 +156,7 @@
 
 .filter-dropdown {
   position: relative;
+  z-index: 1202;
 }
 
 .filter-btn {
@@ -151,7 +185,7 @@
   background: #ffffff;
   border: 1px solid #e5e5e5;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
-  z-index: 50;
+  z-index: 1300;
 }
 
 .filter-dropdown-menu button {
@@ -183,6 +217,106 @@
 
 .filter-icon {
   display: inline-flex;
+}
+
+.all-filters-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  border: none;
+  z-index: 1500;
+}
+
+.all-filters-drawer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 80vh;
+  background: #ffffff;
+  z-index: 1510;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid #dcdcdc;
+}
+
+.all-filters-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.all-filters-header h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.all-filters-close {
+  border: 1px solid #111111;
+  background: #ffffff;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.all-filters-groups {
+  padding: 0.75rem 1rem;
+  overflow-y: auto;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.all-filters-group h3 {
+  margin: 0 0 0.45rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.all-filters-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.all-filters-options button {
+  border: 1px solid #d4d4d4;
+  background: #ffffff;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.all-filters-options button.selected {
+  border-color: #111111;
+  background: #f4f4f4;
+}
+
+.all-filters-footer {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-top: 1px solid #e8e8e8;
+}
+
+.all-filters-reset,
+.all-filters-apply {
+  flex: 1;
+  height: 38px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.all-filters-reset {
+  border: 1px solid #111111;
+  background: #ffffff;
+}
+
+.all-filters-apply {
+  border: 1px solid #111111;
+  background: #111111;
+  color: #ffffff;
 }
 
 .product-count {
@@ -257,22 +391,30 @@
     align-items: flex-start;
   }
 
-  /* Two-row horizontal scroller like the reference (wraps into 2 rows, scrolls horizontally). */
+  /* Horizontal filter strip on mobile/tablet. */
   .filter-buttons {
-    display: grid;
-    grid-auto-flow: column;
-    grid-template-rows: repeat(2, auto);
-    grid-auto-columns: max-content;
-    column-gap: 0.75rem;
-    row-gap: 0.75rem;
+    flex: 1 1 auto;
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.75rem;
     overflow-x: auto;
     padding-bottom: 0.25rem;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
 
+  .filter-scroll-btn {
+    display: inline-flex;
+    flex: 0 0 auto;
+  }
+
   .filter-buttons::-webkit-scrollbar {
     display: none;
+  }
+
+  .filter-dropdown {
+    flex: 0 0 auto;
   }
 
   .filter-btn {

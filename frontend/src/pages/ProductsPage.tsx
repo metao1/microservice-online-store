@@ -9,11 +9,34 @@ interface ProductsPageProps {
   category?: string;
 }
 
-const PRIMARY_TABS = [
-  { id: 'women', name: 'Women' },
-  { id: 'men', name: 'Men' },
-  { id: 'kids', name: 'Kids' }
-];
+interface SegmentTab {
+  id: string;
+  name: string;
+  terms: string[];
+}
+
+const CATEGORY_SEGMENT_PRESETS: Record<string, SegmentTab[]> = {
+  books: [
+    { id: 'technology', name: 'Technology', terms: ['software', 'programming', 'code', 'architecture', 'domain', 'design', 'tech', 'computer', 'data'] },
+    { id: 'business', name: 'Business', terms: ['business', 'startup', 'leadership', 'management', 'finance', 'marketing', 'strategy'] },
+    { id: 'fiction', name: 'Fiction', terms: ['fiction', 'novel', 'story', 'fantasy', 'romance', 'mystery', 'thriller'] }
+  ],
+  electronics: [
+    { id: 'audio', name: 'Audio', terms: ['audio', 'headphone', 'speaker', 'earbud', 'sound'] },
+    { id: 'computing', name: 'Computing', terms: ['laptop', 'computer', 'keyboard', 'monitor', 'tablet', 'pc'] },
+    { id: 'accessories', name: 'Accessories', terms: ['accessory', 'charger', 'cable', 'case', 'adapter'] }
+  ],
+  apparel: [
+    { id: 'women', name: 'Women', terms: ['women', 'woman', 'female', 'ladies'] },
+    { id: 'men', name: 'Men', terms: ['men', 'man', 'male'] },
+    { id: 'kids', name: 'Kids', terms: ['kids', 'kid', 'children', 'child', 'youth'] }
+  ],
+  fashion: [
+    { id: 'women', name: 'Women', terms: ['women', 'woman', 'female', 'ladies'] },
+    { id: 'men', name: 'Men', terms: ['men', 'man', 'male'] },
+    { id: 'kids', name: 'Kids', terms: ['kids', 'kid', 'children', 'child', 'youth'] }
+  ]
+};
 
 const FILTER_GROUPS = [
   {
@@ -116,28 +139,33 @@ const FILTER_GROUPS = [
   }
 ];
 
+const createDefaultSelectedFilters = () => ({
+  size: '',
+  brand: '',
+  price: '',
+  color: '',
+  qualities: '',
+  collection: '',
+  material: '',
+  heel: '',
+  shoeWidth: '',
+  toe: ''
+});
+
 const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
   const { products, loading, error, fetchProducts, searchProducts } = useProducts();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const [activeCategory, setActiveCategory] = useState<string>('books');
-  const [activeSegment, setActiveSegment] = useState<string>('women');
+  const [activeSegment, setActiveSegment] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState<'name' | 'price' | 'rating'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
-  const [selectedFilters, setSelectedFilters] = useState({
-    size: '',
-    brand: '',
-    price: '',
-    color: '',
-    qualities: '',
-    collection: '',
-    material: '',
-    heel: '',
-    shoeWidth: '',
-    toe: ''
-  });
+  const [isAllFiltersOpen, setIsAllFiltersOpen] = useState(false);
+  const [canScrollFiltersLeft, setCanScrollFiltersLeft] = useState(false);
+  const [canScrollFiltersRight, setCanScrollFiltersRight] = useState(false);
+  const [selectedFilters, setSelectedFilters] = useState(createDefaultSelectedFilters());
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -145,9 +173,38 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
   const requestKeyRef = useRef<string>('');
   const loadingMoreStartedAtRef = useRef<number>(0);
   const loadingMoreTimerRef = useRef<number | null>(null);
+  const filterButtonsRef = useRef<HTMLDivElement>(null);
   const limit = 16;
   const filtersKey = useMemo(() => `products-filters:${location.pathname}`, [location.pathname]);
   const hasHydratedFilters = useRef(false);
+
+  const buildSegmentTabsForCategory = useCallback((categoryName: string): SegmentTab[] => {
+    const normalized = categoryName.trim().toLowerCase();
+    if (normalized in CATEGORY_SEGMENT_PRESETS) {
+      return CATEGORY_SEGMENT_PRESETS[normalized];
+    }
+    return [
+      { id: `${normalized || 'general'}-popular`, name: 'Popular', terms: ['popular', 'featured', 'top'] },
+      { id: `${normalized || 'general'}-new`, name: 'New', terms: ['new', 'latest', 'recent'] },
+      { id: `${normalized || 'general'}-essentials`, name: 'Essentials', terms: ['essential', 'classic', 'core'] }
+    ];
+  }, []);
+
+  const segmentTabs = useMemo(() => buildSegmentTabsForCategory(activeCategory), [activeCategory, buildSegmentTabsForCategory]);
+
+  const getProductSearchText = useCallback((product: Product): string => {
+    return [
+      product.title,
+      product.description,
+      product.brand,
+      product.category,
+      ...(product.categories || []),
+      ...(product.tags || [])
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+  }, []);
 
   useEffect(() => {
     if (hasHydratedFilters.current) return;
@@ -187,11 +244,15 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
 
     if (urlCategory) {
       setActiveCategory(urlCategory);
-      if (PRIMARY_TABS.some(tab => tab.id === urlCategory)) {
-        setActiveSegment(urlCategory);
-      }
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!segmentTabs.length) return;
+    if (!segmentTabs.some((tab) => tab.id === activeSegment)) {
+      setActiveSegment(segmentTabs[0].id);
+    }
+  }, [segmentTabs, activeSegment]);
 
   // Close filter dropdown when clicking outside
   useEffect(() => {
@@ -337,6 +398,55 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
     setActiveFilter(activeFilter === filterType ? null : filterType);
   };
 
+  const openAllFilters = () => {
+    setIsAllFiltersOpen(true);
+  };
+
+  const closeAllFilters = () => {
+    setIsAllFiltersOpen(false);
+  };
+
+  const resetAllFilters = () => {
+    setSelectedFilters(createDefaultSelectedFilters());
+    setSortBy('name');
+    setSortOrder('asc');
+  };
+
+  const updateFilterScrollState = useCallback(() => {
+    const strip = filterButtonsRef.current;
+    if (!strip) return;
+    const maxScrollLeft = strip.scrollWidth - strip.clientWidth;
+    setCanScrollFiltersLeft(strip.scrollLeft > 1);
+    setCanScrollFiltersRight(maxScrollLeft - strip.scrollLeft > 1);
+  }, []);
+
+  const scrollFilters = (direction: 'left' | 'right') => {
+    const strip = filterButtonsRef.current;
+    if (!strip) return;
+    const delta = Math.max(140, Math.floor(strip.clientWidth * 0.7));
+    strip.scrollBy({
+      left: direction === 'left' ? -delta : delta,
+      behavior: 'smooth'
+    });
+  };
+
+  useEffect(() => {
+    updateFilterScrollState();
+    window.addEventListener('resize', updateFilterScrollState);
+    return () => {
+      window.removeEventListener('resize', updateFilterScrollState);
+    };
+  }, [updateFilterScrollState, activeFilter, allProducts.length]);
+
+  useEffect(() => {
+    if (!isAllFiltersOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isAllFiltersOpen]);
+
   const sortedProducts = useMemo(() => {
     return [...allProducts].sort((a, b) => {
       let aValue: string | number = '';
@@ -448,9 +558,26 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
     return sortedProducts.filter(matches);
   }, [sortedProducts, selectedFilters]);
 
+  const segmentedProducts = useMemo(() => {
+    const activeTab = segmentTabs.find((tab) => tab.id === activeSegment);
+    if (!activeTab) {
+      return filteredProducts;
+    }
+
+    const segmentMatches = filteredProducts.filter((product) => {
+      const text = getProductSearchText(product);
+      return activeTab.terms.some((term) => text.includes(term));
+    });
+
+    // If no item matches this segment, keep the list visible rather than showing a false empty state.
+    return segmentMatches.length > 0 ? segmentMatches : filteredProducts;
+  }, [filteredProducts, segmentTabs, activeSegment, getProductSearchText]);
+
   const activeCategoryName = useMemo(() => {
-    const match = PRIMARY_TABS.find(tab => tab.id === activeCategory);
-    return match?.name || activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1);
+    if (!activeCategory) {
+      return 'Products';
+    }
+    return activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1);
   }, [activeCategory]);
 
   return (
@@ -470,7 +597,7 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
         </h1>
 
         <div className="segment-tabs">
-          {PRIMARY_TABS.map(tab => (
+          {segmentTabs.map(tab => (
             <button
               key={tab.id}
               className={`segment-tab ${activeSegment === tab.id ? 'active' : ''}`}
@@ -486,8 +613,23 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
         <main className="products-main">
           <div className="filter-bar">
             <div className="filter-area">
-              <div className="filter-buttons" aria-label="Filters">
-                <div className="filter-dropdown">
+              <div className="filter-strip">
+                <button
+                  type="button"
+                  className="filter-scroll-btn"
+                  aria-label="Scroll filters left"
+                  onClick={() => scrollFilters('left')}
+                  disabled={!canScrollFiltersLeft}
+                >
+                  ‹
+                </button>
+                <div
+                  className="filter-buttons"
+                  aria-label="Filters"
+                  ref={filterButtonsRef}
+                  onScroll={updateFilterScrollState}
+                >
+                  <div className="filter-dropdown">
                   <button
                       className={`filter-btn ${activeFilter === 'sort' ? 'active' : ''}`}
                       onClick={() => toggleFilterDropdown('sort')}
@@ -551,10 +693,20 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
                       )}
                     </div>
                 ))}
+                </div>
+                <button
+                  type="button"
+                  className="filter-scroll-btn"
+                  aria-label="Scroll filters right"
+                  onClick={() => scrollFilters('right')}
+                  disabled={!canScrollFiltersRight}
+                >
+                  ›
+                </button>
               </div>
 
               <div className="filter-actions">
-                <button className="filter-show-all" type="button">
+                <button className="filter-show-all" type="button" onClick={openAllFilters}>
                   <span className="filter-icon" aria-hidden="true">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <line x1="4" y1="21" x2="4" y2="14"></line>
@@ -574,8 +726,52 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
             </div>
           </div>
 
+          {isAllFiltersOpen && (
+            <>
+              <button
+                type="button"
+                className="all-filters-backdrop"
+                aria-label="Close all filters"
+                onClick={closeAllFilters}
+              />
+              <section className="all-filters-drawer" role="dialog" aria-modal="true" aria-label="All filters">
+                <header className="all-filters-header">
+                  <h2>All filters</h2>
+                  <button type="button" onClick={closeAllFilters} className="all-filters-close">Close</button>
+                </header>
+                <div className="all-filters-groups">
+                  {FILTER_GROUPS.map((filter) => (
+                    <div className="all-filters-group" key={`drawer-${filter.id}`}>
+                      <h3>{filter.label}</h3>
+                      <div className="all-filters-options">
+                        {filter.options.map((option) => (
+                          <button
+                            type="button"
+                            key={`drawer-${filter.id}-${option.value || 'all'}`}
+                            className={selectedFilters[filter.id as keyof typeof selectedFilters] === option.value ? 'selected' : ''}
+                            onClick={() => handleFilterChange(filter.id as keyof typeof selectedFilters, option.value)}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <footer className="all-filters-footer">
+                  <button type="button" className="all-filters-reset" onClick={resetAllFilters}>
+                    Reset
+                  </button>
+                  <button type="button" className="all-filters-apply" onClick={closeAllFilters}>
+                    Apply
+                  </button>
+                </footer>
+              </section>
+            </>
+          )}
+
           <div className="product-count">
-            <span>{filteredProducts.length.toLocaleString()} items</span>
+            <span>{segmentedProducts.length.toLocaleString()} items</span>
             <span className="info-icon">i</span>
           </div>
 
@@ -586,7 +782,7 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
               </div>
             ) : (
               <ProductGrid
-                products={filteredProducts}
+                products={segmentedProducts}
                 loading={loading && currentPage === 1}
                 loadingMore={loadingMore}
                 hasMore={hasMore}
