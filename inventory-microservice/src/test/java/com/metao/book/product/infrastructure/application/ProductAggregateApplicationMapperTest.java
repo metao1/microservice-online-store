@@ -57,7 +57,7 @@ class ProductAggregateApplicationMapperTest {
             );
 
             // WHEN
-            ProductAggregate product = ProductApplicationMapper.validateAndSetDefault(dto);
+            ProductAggregate product = ProductApplicationMapper.toDomain(dto);
 
             // THEN
             assertThat(product).isNotNull();
@@ -87,7 +87,7 @@ class ProductAggregateApplicationMapperTest {
             );
 
             // WHEN
-            ProductAggregate product = ProductApplicationMapper.validateAndSetDefault(dto);
+            ProductAggregate product = ProductApplicationMapper.toDomain(dto);
 
             // THEN
             assertThat(product.getCategories())
@@ -112,7 +112,7 @@ class ProductAggregateApplicationMapperTest {
             );
 
             // WHEN
-            ProductAggregate product = ProductApplicationMapper.validateAndSetDefault(dto);
+            ProductAggregate product = ProductApplicationMapper.toDomain(dto);
 
             // THEN
             assertThat(product.getCategories()).isEmpty();
@@ -136,7 +136,7 @@ class ProductAggregateApplicationMapperTest {
             Instant beforeMapping = Instant.now();
 
             // WHEN
-            ProductAggregate product = ProductApplicationMapper.validateAndSetDefault(dto);
+            ProductAggregate product = ProductApplicationMapper.toDomain(dto);
 
             Instant afterMapping = Instant.now();
 
@@ -163,7 +163,7 @@ class ProductAggregateApplicationMapperTest {
             );
 
             // WHEN
-            ProductAggregate product = ProductApplicationMapper.validateAndSetDefault(dto);
+            ProductAggregate product = ProductApplicationMapper.toDomain(dto);
 
             // THEN
             assertThat(product.getMoney().fixedPointAmount()).isEqualByComparingTo(new BigDecimal("99.95"));
@@ -355,7 +355,7 @@ class ProductAggregateApplicationMapperTest {
             );
 
             // WHEN
-            ProductAggregate product = ProductApplicationMapper.validateAndSetDefault(originalDto);
+            ProductAggregate product = ProductApplicationMapper.toDomain(originalDto);
             ProductDTO resultDto = mapper.toDTO(product);
 
             // THEN
@@ -392,7 +392,7 @@ class ProductAggregateApplicationMapperTest {
             );
 
             // WHEN
-            ProductAggregate product = ProductApplicationMapper.validateAndSetDefault(dto);
+            ProductAggregate product = ProductApplicationMapper.toDomain(dto);
             ProductDTO resultDto = mapper.toDTO(product);
 
             // THEN
@@ -417,7 +417,7 @@ class ProductAggregateApplicationMapperTest {
             );
 
             // WHEN
-            ProductAggregate product = ProductApplicationMapper.validateAndSetDefault(dto);
+            ProductAggregate product = ProductApplicationMapper.toDomain(dto);
             ProductDTO resultDto = mapper.toDTO(product);
 
             // THEN
@@ -442,7 +442,7 @@ class ProductAggregateApplicationMapperTest {
             );
 
             // WHEN
-            ProductAggregate product = ProductApplicationMapper.validateAndSetDefault(dto);
+            ProductAggregate product = ProductApplicationMapper.toDomain(dto);
             ProductDTO resultDto = mapper.toDTO(product);
 
             // THEN
@@ -495,7 +495,7 @@ class ProductAggregateApplicationMapperTest {
             );
 
             // WHEN
-            ProductAggregate product = ProductApplicationMapper.validateAndSetDefault(dto);
+            ProductAggregate product = ProductApplicationMapper.toDomain(dto);
 
             // THEN
             assertThat(product.getVolume().value()).isEqualByComparingTo(new BigDecimal("1000000"));
@@ -518,7 +518,7 @@ class ProductAggregateApplicationMapperTest {
             );
 
             // WHEN
-            ProductAggregate product = ProductApplicationMapper.validateAndSetDefault(dto);
+            ProductAggregate product = ProductApplicationMapper.toDomain(dto);
 
             // THEN
             assertThat(product.getDescription().value()).hasSize(1000);

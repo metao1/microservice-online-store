@@ -50,6 +50,12 @@ export interface Product {
  */
 export interface CartItem extends Product {
   cartQuantity: number;
+  /**
+   * Authoritative line total for the item when sourced from the order service
+   * (OrderItemResponse.totalPrice). Optional because items coming from the
+   * shopping cart do not expose a server-computed total.
+   */
+  lineTotal?: number;
 }
 
 export interface Cart {
@@ -87,14 +93,39 @@ export interface User {
 
 /**
  * Order Types
+ *
+ * OrderStatus mirrors the backend `OrderStatus` enum emitted on
+ * `OrderCreatedEvent` / `OrderStatusChangedEvent`. Keeping this list in
+ * lock-step with the order-microservice avoids silently downgrading real
+ * statuses (e.g. PAID) to a placeholder on the frontend.
  */
+export type OrderStatus =
+  | 'CREATED'
+  | 'PENDING_PAYMENT'
+  | 'PAID'
+  | 'PAYMENT_FAILED'
+  | 'PROCESSING'
+  | 'SHIPPED'
+  | 'DELIVERED'
+  | 'CANCELLED';
+
 export interface Order {
   id: string;
   userId: string;
   items: CartItem[];
+  /** Server-computed gross total (subtotal + VAT) in the order currency. */
   total: number;
-  status: 'PENDING' | 'CONFIRMED' | 'SHIPPED' | 'DELIVERED';
+  /** Server-computed net total before VAT. Present when the backend returns it. */
+  subtotal?: number;
+  /** Server-computed VAT amount. Present when the backend returns it. */
+  tax?: number;
+  /** Integer VAT percentage applied to this order (e.g. 21 for 21%). */
+  vatPercentage?: number | null;
+  /** ISO 4217 currency code of the order totals. */
+  currency?: string;
+  status: OrderStatus;
   createdAt: string;
+  updatedAt?: string;
 }
 
 /**

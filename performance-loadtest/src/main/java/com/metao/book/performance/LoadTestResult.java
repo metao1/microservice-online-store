@@ -2,6 +2,8 @@ package com.metao.book.performance;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.LongAdder;
@@ -72,8 +74,8 @@ record LoadTestResult(
             latenciesMicros.percentileMs(100),
             errorRatePct,
             paceMissCount,
-            Map.copyOf(stepLatencyMs),
-            Map.copyOf(errorSnapshot)
+            Collections.unmodifiableMap(new LinkedHashMap<>(stepLatencyMs)),
+            Collections.unmodifiableMap(new LinkedHashMap<>(errorSnapshot))
         );
     }
 }

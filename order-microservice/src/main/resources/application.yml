@@ -121,6 +121,24 @@ spring:
         temp:
           use_jdbc_metadata_defaults: false
 
+app:
+  api:
+    version: ${API_VERSION:1.0}
+    cors:
+      enabled: ${CORS_ENABLED:true}
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}
+      allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:}
+      allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,PATCH,DELETE,OPTIONS}
+      allowed-headers: ${CORS_ALLOWED_HEADERS:*}
+      exposed-headers: ${CORS_EXPOSED_HEADERS:}
+      allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
+      max-age: ${CORS_MAX_AGE:30m}
+  order:
+    vat:
+      # Integer VAT rate applied when computing order totals (e.g. 21 for 21 %).
+      # Defaults to 0 so unconfigured environments keep net-priced totals.
+      percentage: ${VAT_PERCENTAGE:0}
+
 kafka:
   enabled: ${KAFKA_ENABLED:true}
   admin:
@@ -129,7 +147,7 @@ kafka:
     order-created:
       id: "order-created-id"
       name: "order-created"
-      group-id: "order-created-group"
+      group-id: "order-created-group-order"
       class-path: "com.metao.book.shared.OrderCreatedEvent"
     order-updated:
       id: "order-updated-id"

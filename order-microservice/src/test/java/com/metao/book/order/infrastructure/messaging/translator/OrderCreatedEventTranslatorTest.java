@@ -8,6 +8,7 @@ import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.shared.OrderCreatedEvent;
 import com.metao.book.shared.domain.financial.Money;
+import com.metao.book.shared.domain.financial.VAT;
 import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.book.shared.domain.product.Quantity;
@@ -35,11 +36,15 @@ class OrderCreatedEventTranslatorTest {
             Quantity.of(BigDecimal.ONE),
             Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(8.50))
         );
+        Money subtotal = Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(34.48));
         DomainOrderCreatedEvent event = new DomainOrderCreatedEvent(
             OrderId.of("order-1"),
             UserId.of("user-1"),
             List.of(firstOrderItem, secondOrderItem),
-            Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(34.48)),
+            subtotal,
+            Money.of(Currency.getInstance("EUR"), BigDecimal.ZERO),
+            subtotal,
+            new VAT(0),
             Instant.parse("2026-03-29T10:15:30Z")
         );
 

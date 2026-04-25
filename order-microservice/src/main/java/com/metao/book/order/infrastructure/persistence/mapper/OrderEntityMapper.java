@@ -5,6 +5,7 @@ import com.metao.book.order.domain.model.entity.OrderItem;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.infrastructure.persistence.entity.OrderItemEntity;
 import com.metao.book.order.infrastructure.persistence.entity.OrderJpaEntity;
+import com.metao.book.shared.domain.financial.VAT;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.experimental.UtilityClass;
@@ -31,7 +32,16 @@ public class OrderEntityMapper {
         return entity;
     }
 
+    /**
+     * Backwards-compatible reconstitution that assumes a zero-rated VAT. Prefer
+     * {@link #toDomain(OrderJpaEntity, VAT)} so the aggregate's {@code total}
+     * reflects the currently configured VAT rate.
+     */
     public static OrderAggregate toDomain(OrderJpaEntity entity) {
+        return toDomain(entity, OrderAggregate.ZERO_VAT);
+    }
+
+    public static OrderAggregate toDomain(OrderJpaEntity entity, VAT vat) {
         List<OrderItem> items = entity.getItems().stream()
             .map(itemEntity -> new OrderItem(
                 itemEntity.getProductSku(),
@@ -47,7 +57,8 @@ public class OrderEntityMapper {
             items,
             entity.getStatus(),
             entity.getCreatedAt(),
-            entity.getUpdatedAt()
+            entity.getUpdatedAt(),
+            vat
         );
     }
 }

@@ -8,7 +8,6 @@ import com.metao.book.shared.domain.product.Quantity;
 import com.metao.book.shared.domain.financial.Money;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
-import jakarta.persistence.Cacheable;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -26,20 +25,14 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.BatchSize;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.NaturalIdCache;
 
 /**
  * JPA entity for Product persistence
  */
 @Getter
-@Cacheable
-@NaturalIdCache
 @NoArgsConstructor
 @Entity(name = "product")
 @Table(name = "product_table")
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class ProductEntity implements Serializable {
 
     @EmbeddedId
@@ -81,7 +74,6 @@ public class ProductEntity implements Serializable {
 
     @BatchSize(size = 50)
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
-    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @JoinTable(
         name = "product_category_map",
         joinColumns = @JoinColumn(name = "product_sku"),

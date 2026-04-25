@@ -11,6 +11,7 @@ import {useCheckout} from '@hooks/useCheckout';
 import {useCartContext} from '@context/CartContext';
 import {Order, Payment} from '@types';
 import {apiClient} from '@services/api';
+import OrderDetailsModal from './OrderDetailsModal';
 import './OrdersPage.css';
 
 const PAGE_SIZE = 10;
@@ -33,6 +34,7 @@ const OrdersPage: FC = () => {
   const [paymentsByOrderId, setPaymentsByOrderId] = useState<Record<string, Payment | null>>({});
   const [retryingOrderId, setRetryingOrderId] = useState<string | null>(null);
   const [paymentActionError, setPaymentActionError] = useState<string | null>(null);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   const orders = apiOrders;
   const totalOrders = apiTotal;
@@ -314,8 +316,15 @@ const OrdersPage: FC = () => {
                 </div>
 
                 <div className="order-actions">
-                  <button className="order-action-btn">View Details</button>
-                  <button className="order-action-btn">Track Package</button>
+                  <button
+                    type="button"
+                    className="order-action-btn"
+                    onClick={() => setSelectedOrderId(order.id)}
+                    aria-haspopup="dialog"
+                  >
+                    View Details
+                  </button>
+                  <button type="button" className="order-action-btn">Track Package</button>
                   {order.status.toLowerCase() === 'delivered' && (
                     <Link to="/returns" className="order-action-btn">
                       Return Items
@@ -326,6 +335,20 @@ const OrdersPage: FC = () => {
             ))}
           </div>
         )}
+
+        {selectedOrderId && (() => {
+          const selectedOrder = orders.find((order) => order.id === selectedOrderId);
+          if (!selectedOrder) {
+            return null;
+          }
+          return (
+            <OrderDetailsModal
+              order={selectedOrder}
+              payment={paymentsByOrderId[selectedOrder.id]}
+              onClose={() => setSelectedOrderId(null)}
+            />
+          );
+        })()}
 
         {orders.length > 0 && (
           <div className="orders-pagination">

@@ -2,6 +2,7 @@ package com.metao.book.product.infrastructure.persistence.repository;
 
 import com.metao.book.product.infrastructure.persistence.entity.ProductEntity;
 import com.metao.book.shared.domain.product.ProductSku;
+import io.micrometer.core.annotation.Timed;
 import java.math.BigDecimal;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +24,7 @@ public interface JpaProductRepository extends JpaRepository<ProductEntity, Produ
         String getCategoryName();
     }
 
+    @Timed(value = "inventory.db.product.find-skus-by-category-id")
     @Query("""
         select p.sku
         from product p
@@ -32,6 +34,7 @@ public interface JpaProductRepository extends JpaRepository<ProductEntity, Produ
         """)
     List<ProductSku> findSkusByCategoryId(@Param("categoryId") String categoryId, Pageable pageable);
 
+    @Timed(value = "inventory.db.product.find-skus-by-category-ids")
     @Query("""
         select distinct p.sku
         from product p
@@ -41,6 +44,7 @@ public interface JpaProductRepository extends JpaRepository<ProductEntity, Produ
         """)
     List<ProductSku> findSkusByCategoryIds(@Param("categoryIds") List<String> categoryIds, Pageable pageable);
 
+    @Timed(value = "inventory.db.product.search-skus-by-keyword")
     @Query("""
         select p.sku
         from product p
@@ -52,6 +56,10 @@ public interface JpaProductRepository extends JpaRepository<ProductEntity, Produ
         """)
     List<ProductSku> searchSkusByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
+    @Timed(value = "inventory.db.product.find-all-by-id")
+    List<ProductEntity> findAllById(Iterable<ProductSku> skus);
+
+    @Timed(value = "inventory.db.product.find-all-with-categories-by-sku-in")
     @Query("""
         select distinct p
         from product p
@@ -60,6 +68,7 @@ public interface JpaProductRepository extends JpaRepository<ProductEntity, Produ
         """)
     List<ProductEntity> findAllWithCategoriesBySkuIn(@Param("skus") List<ProductSku> skus);
 
+    @Timed(value = "inventory.db.product.find-category-rows-by-sku-in")
     @Query("""
         select p.sku as sku, c.id as categoryId, c.category as categoryName
         from product p
@@ -68,6 +77,7 @@ public interface JpaProductRepository extends JpaRepository<ProductEntity, Produ
         """)
     List<ProductCategoryRow> findCategoryRowsBySkuIn(@Param("skus") List<ProductSku> skus);
 
+    @Timed(value = "inventory.db.product.insert-if-absent")
     @Modifying
     @Query(
         value = """
@@ -90,6 +100,7 @@ public interface JpaProductRepository extends JpaRepository<ProductEntity, Produ
     )
     int insertIfAbsent(@Param("product") ProductEntity product);
 
+    @Timed(value = "inventory.db.product.decrement-volume-if-enough")
     @Modifying
     @Query(
         value = """
@@ -103,5 +114,6 @@ public interface JpaProductRepository extends JpaRepository<ProductEntity, Produ
     )
     int decrementVolumeIfEnough(@Param("sku") String sku, @Param("quantity") BigDecimal quantity);
 
+    @Timed(value = "inventory.db.product.exists-by-sku")
     boolean existsBySku(ProductSku sku);
 }

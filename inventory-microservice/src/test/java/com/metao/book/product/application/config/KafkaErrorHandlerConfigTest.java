@@ -8,6 +8,7 @@ import org.apache.kafka.common.TopicPartition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -21,7 +22,10 @@ class KafkaErrorHandlerConfigTest {
 
     @BeforeEach
     void setUp() {
-        this.config = new KafkaConsumerConfig(new KafkaProperties());
+        this.config = new KafkaConsumerConfig(
+            new KafkaProperties(),
+            Mockito.mock(ObjectProvider.class)
+        );
     }
 
     @Test

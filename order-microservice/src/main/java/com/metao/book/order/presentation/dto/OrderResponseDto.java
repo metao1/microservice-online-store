@@ -16,7 +16,10 @@ public class OrderResponseDto {
     private String status;
     private Instant createdAt;
     private Instant updatedAt;
+    private Money subtotal;
+    private Money tax;
     private Money total;
+    private Integer vatPercentage;
 
     public static OrderResponseDto fromDomain(OrderAggregate order) {
         OrderResponseDto response = new OrderResponseDto();
@@ -25,7 +28,10 @@ public class OrderResponseDto {
         response.setStatus(order.getStatus().name());
         response.setCreatedAt(order.getCreatedAt());
         response.setUpdatedAt(order.getUpdatedAt());
+        response.setSubtotal(order.getSubtotal());
+        response.setTax(order.getTax());
         response.setTotal(order.getTotal());
+        response.setVatPercentage(order.getVat() == null ? null : order.getVat().toInteger());
 
         response.setItems(order.getItems().stream()
             .map(item -> {

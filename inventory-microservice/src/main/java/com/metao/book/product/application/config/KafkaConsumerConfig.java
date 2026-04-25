@@ -5,10 +5,10 @@ import com.metao.book.shared.ProductUpdatedEvent;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
 import java.util.HashMap;
-import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
@@ -22,15 +22,24 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.transaction.KafkaAwareTransactionManager;
 import org.springframework.util.backoff.FixedBackOff;
 
 @EnableKafka
 @Configuration
-@RequiredArgsConstructor
 @ConditionalOnProperty(value = "kafka.enabled", havingValue = "true", matchIfMissing = true)
 public class KafkaConsumerConfig {
 
     private final KafkaProperties kafkaProperties;
+    private final ObjectProvider<KafkaAwareTransactionManager<Object, Object>> kafkaTransactionManagerProvider;
+
+    public KafkaConsumerConfig(
+        KafkaProperties kafkaProperties,
+        ObjectProvider<KafkaAwareTransactionManager<Object, Object>> kafkaTransactionManagerProvider
+    ) {
+        this.kafkaProperties = kafkaProperties;
+        this.kafkaTransactionManagerProvider = kafkaTransactionManagerProvider;
+    }
 
     @Value("${kafka.consumer.concurrency:1}")
     private int consumerConcurrency;
@@ -87,6 +96,10 @@ public class KafkaConsumerConfig {
         factory.setConsumerFactory(consumerFactory);
         factory.setConcurrency(consumerConcurrency);
         factory.getContainerProperties().setObservationEnabled(true);
+        if(kafkaTransactionManagerProvider.getIfAvailable() != null) {
+            factory.getContainerProperties().setKafkaAwareTransactionManager(kafkaTransactionManagerProvider.getIfAvailable());
+        }
+        factory.getContainerProperties().setEosMode(ContainerProperties.EOSMode.V2);
         factory.setCommonErrorHandler(errorHandler);
         return factory;
     }

@@ -1,0 +1,321 @@
+/**
+ * Order Details Modal Styles
+ * Matches the OrdersPage minimalist aesthetic (white surfaces,
+ * neutral grays, black accents) and reuses the same status-badge palette.
+ */
+
+.order-details-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 1000;
+  animation: order-details-fade-in 0.15s ease-out;
+}
+
+.order-details-dialog {
+  background: #ffffff;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 720px;
+  max-height: calc(100vh - 3rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  animation: order-details-slide-up 0.2s ease-out;
+}
+
+.order-details-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem 1.5rem 1rem 1.5rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.order-details-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.order-details-eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.6875rem;
+  color: #666666;
+  font-weight: 600;
+}
+
+.order-details-heading h2 {
+  margin: 0;
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: #000000;
+  word-break: break-all;
+}
+
+.order-details-subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #666666;
+}
+
+.order-details-close {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #e0e0e0;
+  background: #ffffff;
+  color: #333333;
+  font-size: 1.375rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.order-details-close:hover {
+  background: #f5f5f5;
+  border-color: #cccccc;
+  color: #000000;
+}
+
+.order-details-close:focus-visible {
+  outline: 2px solid #000000;
+  outline-offset: 2px;
+}
+
+.order-details-body {
+  padding: 1.25rem 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.order-details-section + .order-details-section {
+  border-top: 1px solid #f0f0f0;
+  padding-top: 1.5rem;
+}
+
+.order-details-section-title {
+  margin: 0 0 0.875rem 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #000000;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.order-details-grid {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.order-details-grid-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.order-details-grid-row dt {
+  color: #666666;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+.order-details-grid-row dd {
+  margin: 0;
+  color: #000000;
+  font-size: 0.9375rem;
+  text-align: right;
+  word-break: break-word;
+}
+
+.order-details-total {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.order-details-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  color: #ffffff;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-radius: 12px;
+}
+
+.order-details-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.order-details-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  background: #fafafa;
+}
+
+.order-details-item-image {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+  background: #ffffff;
+  flex-shrink: 0;
+}
+
+.order-details-item-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.order-details-item-title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #000000;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.order-details-item-meta {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #666666;
+}
+
+.order-details-item-price {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #000000;
+  white-space: nowrap;
+}
+
+.order-details-failure {
+  color: #b03030;
+}
+
+.order-details-empty {
+  margin: 0;
+  padding: 1rem;
+  border: 1px dashed #e0e0e0;
+  border-radius: 6px;
+  color: #666666;
+  font-size: 0.875rem;
+  background: #fafafa;
+}
+
+.order-details-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e0e0e0;
+  background: #fafafa;
+}
+
+.order-details-footer-btn {
+  padding: 0.625rem 1.25rem;
+  background: #000000;
+  color: #ffffff;
+  border: 1px solid #000000;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.order-details-footer-btn:hover {
+  background: #333333;
+  border-color: #333333;
+}
+
+.order-details-footer-btn:focus-visible {
+  outline: 2px solid #000000;
+  outline-offset: 2px;
+}
+
+@keyframes order-details-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes order-details-slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+  .order-details-backdrop {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .order-details-dialog {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .order-details-header {
+    padding: 1.25rem 1rem 0.875rem 1rem;
+  }
+
+  .order-details-body {
+    padding: 1rem;
+    gap: 1.25rem;
+  }
+
+  .order-details-footer {
+    padding: 0.875rem 1rem;
+  }
+
+  .order-details-grid-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .order-details-grid-row dd {
+    text-align: left;
+  }
+
+  .order-details-item {
+    padding: 0.625rem;
+  }
+
+  .order-details-item-image {
+    width: 48px;
+    height: 48px;
+  }
+}

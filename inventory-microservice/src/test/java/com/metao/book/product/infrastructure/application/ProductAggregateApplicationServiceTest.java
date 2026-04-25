@@ -86,7 +86,7 @@ class ProductAggregateApplicationServiceTest {
     void testGetProductsByCategory() {
         var generatedProducts = ProductDtoGeneratorUtils.buildMultipleProducts(50)
             .stream()
-            .map(ProductApplicationMapper::validateAndSetDefault)
+            .map(ProductApplicationMapper::toDomain)
             .toList();
 
         when(productRepository.findByCategory(CATEGORY, 0, 50))
@@ -111,7 +111,7 @@ class ProductAggregateApplicationServiceTest {
             "description",
             CATEGORY
         );
-        var product = ProductApplicationMapper.validateAndSetDefault(pe);
+        var product = ProductApplicationMapper.toDomain(pe);
 
         when(productRepository.findBySku(SKU))
             .thenReturn(Optional.of(product));
@@ -181,7 +181,7 @@ class ProductAggregateApplicationServiceTest {
     void updateProduct_whenProductExists_shouldUpdateProduct() {
         // GIVEN
         CreateProductDto originalProductDto = ProductDtoGeneratorUtils.buildOneProduct();
-        var existingProduct = ProductApplicationMapper.validateAndSetDefault(originalProductDto);
+        var existingProduct = ProductApplicationMapper.toDomain(originalProductDto);
         when(productRepository.findBySku(SKU)).thenReturn(Optional.of(existingProduct));
 
         CreateProductDto updatedProductDto = ProductDtoGeneratorUtils.buildOneProduct(
@@ -341,7 +341,7 @@ class ProductAggregateApplicationServiceTest {
         void updateProduct_onlyPrice_shouldUpdateSuccessfully() {
             // GIVEN
             CreateProductDto originalDto = ProductDtoGeneratorUtils.buildOneProduct();
-            ProductAggregate existingProduct = ProductApplicationMapper.validateAndSetDefault(originalDto);
+            ProductAggregate existingProduct = ProductApplicationMapper.toDomain(originalDto);
 
             when(productRepository.findBySku(SKU)).thenReturn(Optional.of(existingProduct));
 
@@ -379,7 +379,7 @@ class ProductAggregateApplicationServiceTest {
             String keyword = "book";
             List<ProductAggregate> expectedProducts = ProductDtoGeneratorUtils.buildMultipleProducts(5)
                 .stream()
-                .map(ProductApplicationMapper::validateAndSetDefault)
+                .map(ProductApplicationMapper::toDomain)
                 .toList();
 
             when(productRepository.searchByKeyword(keyword, 0, 10))
@@ -402,7 +402,7 @@ class ProductAggregateApplicationServiceTest {
             // WHEN
             List<ProductAggregate> results = productService.searchProducts(null, 0, 10);
 
-            // THEN
+            // THEN®
             assertThat(results).isEmpty();
             verify(productRepository, never()).searchByKeyword(any(), any(Integer.class), any(Integer.class));
         }
@@ -413,7 +413,7 @@ class ProductAggregateApplicationServiceTest {
             // GIVEN
             List<ProductAggregate> expectedProducts = ProductDtoGeneratorUtils.buildMultipleProducts(20)
                 .stream()
-                .map(ProductApplicationMapper::validateAndSetDefault)
+                .map(ProductApplicationMapper::toDomain)
                 .toList();
 
             when(productRepository.findByCategory(CATEGORY, 10, 10))
@@ -444,11 +444,11 @@ class ProductAggregateApplicationServiceTest {
             // GIVEN
             List<ProductAggregate> relatedProducts = ProductDtoGeneratorUtils.buildMultipleProducts(5)
                 .stream()
-                .map(ProductApplicationMapper::validateAndSetDefault)
+                .map(ProductApplicationMapper::toDomain)
                 .toList();
 
             // Stub repository lookup path used by real service
-            var baseProduct = ProductApplicationMapper.validateAndSetDefault(ProductDtoGeneratorUtils.buildOneProduct(
+            var baseProduct = ProductApplicationMapper.toDomain(ProductDtoGeneratorUtils.buildOneProduct(
                 SKU, "title", "description", CATEGORY));
             when(productRepository.findBySku(SKU)).thenReturn(Optional.of(baseProduct));
             when(productRepository.findByCategories(anyList(), anyInt(), anyInt()))
@@ -490,7 +490,7 @@ class ProductAggregateApplicationServiceTest {
                 "description",
                 CATEGORY
             );
-            var product = ProductApplicationMapper.validateAndSetDefault(pe);
+            var product = ProductApplicationMapper.toDomain(pe);
 
             var testCategory = ProductCategory.of(CategoryId.of(UUID.randomUUID().toString()), CATEGORY);
 
@@ -538,7 +538,7 @@ class ProductAggregateApplicationServiceTest {
         void reduceProductVolume_withValidInputs_shouldReduceSuccessfully() {
             // GIVEN
             CreateProductDto productDto = ProductDtoGeneratorUtils.buildOneProduct();
-            ProductAggregate existingProduct = ProductApplicationMapper.validateAndSetDefault(productDto);
+            ProductAggregate existingProduct = ProductApplicationMapper.toDomain(productDto);
 
             when(productRepository.findBySku(SKU))
                 .thenReturn(Optional.of(existingProduct));
@@ -595,7 +595,7 @@ class ProductAggregateApplicationServiceTest {
         void increaseProductVolume_withValidInputs_shouldIncreaseSuccessfully() {
             // GIVEN
             CreateProductDto productDto = ProductDtoGeneratorUtils.buildOneProduct();
-            ProductAggregate existingProduct = ProductApplicationMapper.validateAndSetDefault(productDto);
+            ProductAggregate existingProduct = ProductApplicationMapper.toDomain(productDto);
 
             when(productRepository.findBySku(SKU))
                 .thenReturn(Optional.of(existingProduct));

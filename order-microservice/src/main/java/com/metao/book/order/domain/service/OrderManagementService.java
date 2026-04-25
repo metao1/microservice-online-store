@@ -12,6 +12,7 @@ import com.metao.book.order.domain.repository.OrderRepository;
 import com.metao.book.shared.config.KafkaDomainEventPublisher;
 import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.domain.financial.Money;
+import com.metao.book.shared.domain.financial.VAT;
 import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.book.shared.domain.product.Quantity;
@@ -22,14 +23,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-
-@Service
 @RequiredArgsConstructor
 public class OrderManagementService {
 
     private final OrderRepository orderRepository;
     private final KafkaDomainEventPublisher eventPublisher;
     private final ShoppingCartService shoppingCartService;
+    private final VAT vat;
 
     @Transactional
     public OrderId createOrder(UserId userId) {
@@ -38,7 +38,7 @@ public class OrderManagementService {
             throw new ShoppingCartIsEmptyException();
         }
 
-        var order = new OrderAggregate(OrderId.generate(), userId);
+        var order = new OrderAggregate(OrderId.generate(), userId, vat);
         cart.shoppingCartItems().forEach(item -> {
             var cartItem = new ShoppingCart(
                 userId.value(),

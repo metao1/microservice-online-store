@@ -9,6 +9,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -42,7 +43,8 @@ public class OrderGenerator {
             .build();
 
         var topic = eventHandler.getKafkaTopic(orderEvent.getClass());
-        kafkaTemplate.send(topic, orderEvent.getUserId(), orderEvent);
+        var record = new ProducerRecord<String, Message>(topic, orderEvent.getUserId(), orderEvent);
+        kafkaTemplate.send(record);
     }
 
 }

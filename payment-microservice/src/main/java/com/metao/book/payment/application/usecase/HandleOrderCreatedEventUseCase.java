@@ -2,6 +2,7 @@ package com.metao.book.payment.application.usecase;
 
 import com.metao.book.payment.application.port.ProcessedOrderCreatedEventPort;
 import com.metao.book.payment.application.service.PaymentApplicationService;
+import io.micrometer.core.annotation.Timed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ public class HandleOrderCreatedEventUseCase {
     private final ProcessedOrderCreatedEventPort processedOrderCreatedEventPort;
 
     @Transactional
+    @Timed(value = "payment.application.handle-order-created-event")
     public void handle(HandleOrderCreatedEventCommand command) {
         log.info("Received aggregated OrderCreatedEvent for order: {}", command.orderId());
 

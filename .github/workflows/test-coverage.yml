@@ -86,5 +86,5 @@ jobs:
               issue_number: issueNumber,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `📊 **Test Coverage Report**\n\n✓ All tests passed\n📈 Coverage: ${coverage}%\n\n> See [plan-strengthenInventoryMicroserviceTestCoverage.prompt.md](../../plan-strengthenInventoryMicroserviceTestCoverage.prompt.md) for coverage improvement goals.`
+              body: `📊 **Test Coverage Report**\n\n✓ All tests passed\n📈 Coverage: ${coverage}%\n\n>`
             });

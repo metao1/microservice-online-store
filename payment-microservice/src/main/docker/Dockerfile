@@ -3,6 +3,7 @@
 FROM gradle:9-jdk21 AS build
 
 WORKDIR /workspace
+ENV GRADLE_USER_HOME=/home/gradle/.gradle
 
 # Copy Gradle root files and required modules only
 COPY settings.gradle build.gradle gradle.properties /workspace/
@@ -14,9 +15,9 @@ COPY payment-microservice/build.gradle /workspace/payment-microservice/build.gra
 COPY payment-microservice/src/main /workspace/payment-microservice/src/main
 
 # Build layered fat jar (skip tests; they should run in CI)
-RUN --mount=type=cache,id=payment-gradle-user-home,target=/home/gradle/.gradle \
-    --mount=type=cache,id=payment-gradle-project-cache,target=/workspace/.gradle \
-    gradle :payment-microservice:bootJar -x test --no-daemon --configuration-cache --build-cache --parallel
+RUN --mount=type=cache,id=bookstore-gradle-user-home,target=/home/gradle/.gradle,sharing=locked \
+    --mount=type=cache,id=bookstore-payment-gradle-project-cache,target=/workspace/.gradle,sharing=shared \
+    gradle :payment-microservice:bootJar -x test --no-daemon --configuration-cache --build-cache --max-workers=2 --console=plain
 # Extract layers for slimmer runtime image
 RUN java -Djarmode=layertools -jar payment-microservice/build/libs/payment-microservice.jar extract --destination /workspace/layers
 

@@ -3,12 +3,15 @@ package com.metao.book.product.infrastructure.persistence.repository;
 import com.metao.book.product.domain.model.entity.ProductCategory;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.product.domain.repository.CategoryRepository;
+import com.metao.book.product.infrastructure.persistence.entity.CategoryEntity;
 import com.metao.book.product.infrastructure.persistence.mapper.CategoryEntityMapper;
 import io.micrometer.observation.annotation.Observed;
+import jakarta.persistence.EntityManager;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Session;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -21,6 +24,7 @@ import org.springframework.stereotype.Repository;
 @Observed(name = "product.persistence.category-repository", contextualName = "category-repository")
 public class CategoryRepositoryImpl implements CategoryRepository {
 
+    private final EntityManager entityManager;
     private final JpaCategoryRepository jpaCategoryRepository;
     private final CategoryEntityMapper categoryEntityMapper;
 
@@ -35,7 +39,7 @@ public class CategoryRepositoryImpl implements CategoryRepository {
 
     @Override
     public Optional<ProductCategory> findByName(CategoryName categoryName) {
-        return jpaCategoryRepository.findByCategory(categoryName.value())
+        return findByNaturalId(categoryName.value())
             .map(categoryEntityMapper::toDomain);
     }
 
@@ -46,7 +50,13 @@ public class CategoryRepositoryImpl implements CategoryRepository {
 
     @Override
     public void delete(ProductCategory category) {
-        jpaCategoryRepository.findByCategory(category.getName().value())
+        findByNaturalId(category.getName().value())
             .ifPresent(jpaCategoryRepository::delete);
+    }
+
+    private Optional<CategoryEntity> findByNaturalId(String categoryName) {
+        Session session = entityManager.unwrap(Session.class);
+        return session.bySimpleNaturalId(CategoryEntity.class)
+            .loadOptional(categoryName);
     }
 }

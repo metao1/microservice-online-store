@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -20,6 +21,7 @@ import com.metao.book.product.domain.model.valueobject.ProductDescription;
 import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.book.product.domain.repository.CategoryRepository;
 import com.metao.book.product.domain.repository.ProductRepository;
+import com.metao.book.product.infrastructure.persistence.repository.ProductCreateIdempotencyRepository;
 import com.metao.book.shared.domain.base.DomainEventPublisher;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.product.ProductSku;
@@ -52,6 +54,9 @@ class ProductAggregateDomainServiceTest {
 
     @Mock
     private CategoryRepository categoryRepository;
+
+    @Mock
+    private ProductCreateIdempotencyRepository productCreateIdempotencyRepository;
 
     @Mock
     DomainEventPublisher eventPublisher;
@@ -301,6 +306,49 @@ class ProductAggregateDomainServiceTest {
 
         // THEN
         verify(productRepository).findByCategories(any(), any(Integer.class), any(Integer.class));
+    }
+
+    @Test
+    @DisplayName("getProductsByCategory - repeated same page should use cache")
+    void getProductsByCategory_whenRepeatedSamePage_shouldUseCache() {
+        // GIVEN
+        CategoryName category = CategoryName.of("books");
+        List<ProductAggregate> products = List.of(createTestProduct(ProductSku.of("BOOKS00001"), Set.of()));
+        when(productRepository.findByCategory(category, 0, 16)).thenReturn(products);
+
+        // WHEN
+        List<ProductAggregate> first = productDomainService.getProductsByCategory(category, 0, 16);
+        List<ProductAggregate> second = productDomainService.getProductsByCategory(category, 0, 16);
+
+        // THEN
+        assertThat(first).containsExactlyElementsOf(products);
+        assertThat(second).containsExactlyElementsOf(products);
+        verify(productRepository, times(1)).findByCategory(category, 0, 16);
+    }
+
+    @Test
+    @DisplayName("getProductsByCategory - write operation should invalidate cache")
+    void getProductsByCategory_whenWriteOccurs_shouldInvalidateCache() {
+        // GIVEN
+        CategoryName category = CategoryName.of("books");
+        ProductSku sku = ProductSku.of("BOOKS00002");
+        List<ProductAggregate> products = List.of(createTestProduct(sku, Set.of()));
+        when(productRepository.findByCategory(category, 0, 16)).thenReturn(products);
+        when(productRepository.findBySku(sku)).thenReturn(Optional.of(createTestProduct(sku, Set.of())));
+
+        // WHEN
+        productDomainService.getProductsByCategory(category, 0, 16);
+        productDomainService.updateProduct(new com.metao.book.product.application.dto.UpdateProductCommand(
+            sku.value(),
+            "Updated title",
+            "Updated description",
+            BigDecimal.valueOf(19.99),
+            Currency.getInstance("EUR")
+        ));
+        productDomainService.getProductsByCategory(category, 0, 16);
+
+        // THEN
+        verify(productRepository, times(2)).findByCategory(category, 0, 16);
     }
 
     // ========== Helper Methods ==========
