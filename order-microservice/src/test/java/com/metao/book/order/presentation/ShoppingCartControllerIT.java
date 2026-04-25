@@ -55,7 +55,7 @@ class ShoppingCartControllerIT extends KafkaContainer {
 
         shoppingCartRepository.deleteAll(); // Clean up before each test
 
-        currency = Currency.getInstance("USD");
+        currency = Currency.getInstance("EUR");
 
         // Initial item for user1
         // Constructor: public ShoppingCart(String userId, String sku, BigDecimal buyPrice, BigDecimal sellPrice, BigDecimal quantity, Currency currency)

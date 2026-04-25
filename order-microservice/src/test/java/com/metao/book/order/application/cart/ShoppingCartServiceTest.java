@@ -47,7 +47,7 @@ class ShoppingCartServiceTest {
         userId = "testUser";
         sku = "B00TESTSKU";
         productTitle = "product-123";
-        currency = Currency.getInstance("USD");
+        currency = Currency.getInstance("EUR");
         // Constructor: public ShoppingCart(String userId, String sku, BigDecimal buyPrice, BigDecimal sellPrice, BigDecimal quantity, Currency currency)
         BigDecimal buyPrice = BigDecimal.valueOf(10.00);
         BigDecimal sellPrice = BigDecimal.valueOf(10.00);

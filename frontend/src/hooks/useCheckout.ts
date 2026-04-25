@@ -42,7 +42,7 @@ export const useCheckout = (): UseCheckoutResult => {
       const currency =
         options?.payment?.currency ||
         cart.items[0]?.currency ||
-        'USD';
+        'EUR';
 
       const amount = Number(
         options?.payment?.amount ??

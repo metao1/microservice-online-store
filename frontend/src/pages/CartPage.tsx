@@ -7,51 +7,13 @@ import { PaymentMethodType } from '@types';
 import './CartPage.css';
 
 const CartPage: FC = () => {
-  const recommendedProducts = [
-    {
-      title: 'Club Pant - Tracksuit bottoms - black',
-      brand: 'Nike Sportswear',
-      price: 54.95,
-      image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80'
-    },
-    {
-      title: 'Set Bermuda Shorts and T-shirt - sand',
-      brand: 'PULL&BEAR',
-      price: 24.99,
-      image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=600&q=80'
-    },
-    {
-      title: 'Baggy Tracksuit bottoms - light grey',
-      brand: 'PULL&BEAR',
-      price: 27.99,
-      image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80'
-    },
-    {
-      title: 'Wide Smart Trousers - black',
-      brand: 'PULL&BEAR',
-      price: 35.99,
-      image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80'
-    },
-    {
-      title: 'Rucksack - black/white',
-      brand: 'Nike Sportswear',
-      price: 37.95,
-      image: 'https://images.unsplash.com/photo-1503342452485-86b7f54527dd?auto=format&fit=crop&w=600&q=80'
-    },
-    {
-      title: 'Chuck Taylor All Star HI - black',
-      brand: 'Converse',
-      price: 74.95,
-      image: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=600&q=80'
-    }
-  ];
-
   const { cart, removeFromCart, updateCartItem, getCartTotal } = useCartContext();
   const { user } = useAuthContext();
   const { isProcessing, processCheckout } = useCheckout();
   const navigate = useNavigate();
   const [promoCode, setPromoCode] = useState('');
   const [isPromoExpanded, setIsPromoExpanded] = useState(false);
+  const vatRate = 0.21;
 
   const paymentMethod: PaymentMethodType = 'CREDIT_CARD';
   const paymentDetails = '**** **** **** 4242';
@@ -81,9 +43,17 @@ const CartPage: FC = () => {
     }
   };
 
+  const handleQuantityStep = async (sku: string, current: number, delta: number, maxAllowed: number) => {
+    const next = Math.max(1, Math.min(maxAllowed, current + delta));
+    if (next !== current) {
+      await handleQuantityChange(sku, next);
+    }
+  };
+
   const subtotal = getCartTotal() || 0;
+  const vatAmount = subtotal * vatRate;
   const delivery: number = 0; // Free delivery
-  const total = subtotal + delivery;
+  const total = subtotal + vatAmount + delivery;
   const totalItems = cart.items.reduce((acc, item) => acc + item.cartQuantity, 0);
   const currency = cart.items.length > 0 ? cart.items[0].currency : 'EUR';
 
@@ -142,6 +112,8 @@ const CartPage: FC = () => {
               {cart.items.map((item) => {
                 const originalPrice = item.price * 1.25; // assume 20% off for visual parity
                 const discountPercentage = Math.round(((originalPrice - item.price) / originalPrice) * 100);
+                const maxAllowed = Math.max(1, item.quantity || 99);
+                const lineTotal = item.price * item.cartQuantity;
 
                 return (
                   <div key={item.sku} className="cart-item">
@@ -157,22 +129,42 @@ const CartPage: FC = () => {
                           <span className="original-price">{originalPrice.toFixed(2)} {item.currency}</span>
                           <span className="discount">-{discountPercentage}%</span>
                         </div>
+                        <div className="item-line-total">
+                          <span className="line-total-label">Line total</span>
+                          <span className="line-total-value">{lineTotal.toFixed(2)} {item.currency}</span>
+                        </div>
                         <div className="item-meta">
                           <span>Colour: black</span>
                           <span>Size: 38</span>
                         </div>
+                        <div className="item-quantity-summary" aria-label={`Quantity in cart: ${item.cartQuantity}`}>
+                          <span className="item-quantity-label">In cart</span>
+                          <span className="item-quantity-value">{item.cartQuantity}</span>
+                        </div>
                         <button className="wishlist-btn">Move to wish list</button>
                       </div>
                       <div className="item-actions">
-                        <select
-                          className="quantity-select"
-                          value={item.cartQuantity}
-                          onChange={(e) => handleQuantityChange(item.sku, Number(e.target.value))}
-                        >
-                          {[1, 2, 3, 4, 5].map((val) => (
-                            <option key={val} value={val}>{val}</option>
-                          ))}
-                        </select>
+                        <div className="quantity-stepper" aria-label={`Quantity controls for ${item.title}`}>
+                          <button
+                            type="button"
+                            className="quantity-step-btn"
+                            aria-label={`Decrease quantity for ${item.title}`}
+                            disabled={item.cartQuantity <= 1}
+                            onClick={() => handleQuantityStep(item.sku, item.cartQuantity, -1, maxAllowed)}
+                          >
+                            -
+                          </button>
+                          <span className="quantity-current" aria-live="polite">{item.cartQuantity}</span>
+                          <button
+                            type="button"
+                            className="quantity-step-btn"
+                            aria-label={`Increase quantity for ${item.title}`}
+                            disabled={item.cartQuantity >= maxAllowed}
+                            onClick={() => handleQuantityStep(item.sku, item.cartQuantity, 1, maxAllowed)}
+                          >
+                            +
+                          </button>
+                        </div>
                         <button
                           className="remove-btn"
                           aria-label="Remove item"
@@ -237,8 +229,12 @@ const CartPage: FC = () => {
 
               <div className="price-breakdown">
                 <div className="price-row">
-                  <span>Subtotal</span>
-                  <span>{total.toFixed(2)} {currency}</span>
+                  <span>Subtotal (excl. VAT)</span>
+                  <span>{subtotal.toFixed(2)} {currency}</span>
+                </div>
+                <div className="price-row">
+                  <span>VAT ({Math.round(vatRate * 100)}%)</span>
+                  <span>{vatAmount.toFixed(2)} {currency}</span>
                 </div>
                 <div className="price-row">
                   <span>Delivery</span>
@@ -258,42 +254,10 @@ const CartPage: FC = () => {
               >
                 {isProcessing ? 'Processing...' : 'Go to checkout'}
               </button>
-
-              <div className="payment-methods">
-                <span className="payment-label">We accept</span>
-                <div className="payment-icons">
-                  <div className="payment-icon maestro"></div>
-                  <div className="payment-icon visa"></div>
-                  <div className="payment-icon amex"></div>
-                  <div className="payment-icon paypal"></div>
-                  <div className="payment-icon applepay"></div>
-                  <div className="payment-icon klarna"></div>
-                  <div className="payment-icon discover"></div>
-                </div>
-              </div>
             </div>
           </aside>
         </div>
 
-        {/* Recommendations */}
-        <section className="recommendations">
-          <div className="recommendations-header">
-            <p className="recommendations-title">We think you'll like these</p>
-            <p className="recommendations-subtitle">Recommended for you</p>
-          </div>
-          <div className="recommendations-list">
-            {recommendedProducts.map((product, idx) => (
-              <div key={idx} className="recommendation-card">
-                <div className="rec-image">
-                  <img src={product.image} alt={product.title} />
-                </div>
-                <p className="rec-brand">{product.brand}</p>
-                <p className="rec-title">{product.title}</p>
-                <p className="rec-price">€{product.price.toFixed(2)}</p>
-              </div>
-            ))}
-          </div>
-        </section>
       </div>
     </div>
   );

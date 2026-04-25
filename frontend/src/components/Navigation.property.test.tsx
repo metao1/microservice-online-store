@@ -37,7 +37,7 @@ const createMockCartItem = (sku: string, quantity: number): CartItem => ({
   sku,
   title: `Product ${sku}`,
   price: 10.99,
-  currency: 'USD',
+  currency: 'EUR',
   imageUrl: `https://example.com/image-${sku}.jpg`,
   description: `Description for product ${sku}`,
   inStock: true,

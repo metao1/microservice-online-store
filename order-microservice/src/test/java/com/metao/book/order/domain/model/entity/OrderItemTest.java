@@ -15,8 +15,8 @@ import org.junit.jupiter.api.Test;
 @DisplayName("OrderItem Entity Tests")
 class OrderItemTest {
 
-    private static final Currency USD = Currency.getInstance("USD");
     private static final Currency EUR = Currency.getInstance("EUR");
+    private static final Currency USD = Currency.getInstance("USD");
 
     // ========== OrderItem Creation Tests ==========
 

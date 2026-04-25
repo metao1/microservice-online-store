@@ -136,8 +136,7 @@ app:
   order:
     vat:
       # Integer VAT rate applied when computing order totals (e.g. 21 for 21 %).
-      # Defaults to 0 so unconfigured environments keep net-priced totals.
-      percentage: ${VAT_PERCENTAGE:0}
+      percentage: ${VAT_PERCENTAGE:19}
 
 kafka:
   enabled: ${KAFKA_ENABLED:true}

@@ -43,7 +43,7 @@ class OrderManagementServiceTest {
             orderRepository,
             eventPublisher,
             shoppingCartService,
-            new VAT(0)
+            new VAT(19)
         );
     }
 

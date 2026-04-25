@@ -25,7 +25,7 @@ const coerceMoneyCurrency = (value: unknown, fallback: string): string => {
     const currency = String((value as { currency?: unknown }).currency || fallback);
     return currency.toUpperCase();
   }
-  return String(fallback || 'USD').toUpperCase();
+  return String(fallback || 'EUR').toUpperCase();
 };
 
 const resolveOrderId = (value: unknown): string | undefined => {
@@ -69,7 +69,7 @@ class RemoteApiClient extends BaseApiClient implements ApiClientContract {
         try {
           const productDetails = await this.getProductById(item.sku);
           const priceAmount = coerceMoneyAmount(item.price ?? item.unitPrice);
-          const priceCurrency = coerceMoneyCurrency(item.price ?? item.unitPrice, item.currency || 'USD');
+          const priceCurrency = coerceMoneyCurrency(item.price ?? item.unitPrice, item.currency || 'EUR');
           return {
             sku: item.sku,
             title: productDetails.title || item.productTitle || item.name || `Product ${item.sku}`,
@@ -85,7 +85,7 @@ class RemoteApiClient extends BaseApiClient implements ApiClientContract {
           };
         } catch {
           const priceAmount = coerceMoneyAmount(item.price ?? item.unitPrice);
-          const priceCurrency = coerceMoneyCurrency(item.price ?? item.unitPrice, item.currency || 'USD');
+          const priceCurrency = coerceMoneyCurrency(item.price ?? item.unitPrice, item.currency || 'EUR');
           return {
             sku: item.sku,
             title: item.productTitle || item.name || `Product ${item.sku}`,
@@ -129,7 +129,7 @@ class RemoteApiClient extends BaseApiClient implements ApiClientContract {
     const products = response.data;
     return products.map((product, index) => {
       const normalizedPrice = coerceMoneyAmount(product.price);
-      const normalizedCurrency = coerceMoneyCurrency(product.price, product.currency || 'USD');
+      const normalizedCurrency = coerceMoneyCurrency(product.price, product.currency || 'EUR');
       const mockData = this.generateMockVariants(product, index);
       return {
         ...product,
@@ -177,7 +177,7 @@ class RemoteApiClient extends BaseApiClient implements ApiClientContract {
     const response = await this.productsClient.get<ApiResponse<Product>>(`/products/${sku}`);
     const productData = response.data.data || response.data;
     const normalizedPrice = coerceMoneyAmount(productData.price);
-    const normalizedCurrency = coerceMoneyCurrency(productData.price, productData.currency || 'USD');
+    const normalizedCurrency = coerceMoneyCurrency(productData.price, productData.currency || 'EUR');
     return {
       ...productData,
       price: normalizedPrice,
@@ -201,7 +201,7 @@ class RemoteApiClient extends BaseApiClient implements ApiClientContract {
     return new Map(
       products.map((product) => {
         const normalizedPrice = coerceMoneyAmount(product.price);
-        const normalizedCurrency = coerceMoneyCurrency(product.price, product.currency || 'USD');
+        const normalizedCurrency = coerceMoneyCurrency(product.price, product.currency || 'EUR');
         return [
           product.sku,
           {
@@ -220,7 +220,7 @@ class RemoteApiClient extends BaseApiClient implements ApiClientContract {
     });
     return response.data.map((product, index) => {
       const normalizedPrice = coerceMoneyAmount(product.price);
-      const normalizedCurrency = coerceMoneyCurrency(product.price, product.currency || 'USD');
+      const normalizedCurrency = coerceMoneyCurrency(product.price, product.currency || 'EUR');
       const mockData = this.generateMockVariants(product, index);
       return {
         ...product,
@@ -249,10 +249,18 @@ class RemoteApiClient extends BaseApiClient implements ApiClientContract {
     const backendCart = response.data;
     const cartItems: any[] = backendCart.shopping_cart_items || [];
     const skus: string[] = Array.from(new Set(cartItems.map((item) => String(item.sku))));
-    const productsBySku = await this.getProductsBySkus(skus);
+    let productsBySku = new Map<string, Product>();
+    if (skus.length > 0) {
+      try {
+        productsBySku = await this.getProductsBySkus(skus);
+      } catch {
+        // Keep cart usable even when product enrichment endpoint is unavailable.
+        productsBySku = new Map<string, Product>();
+      }
+    }
     const enrichedItems = cartItems.map((item: any) => {
       const priceAmount = coerceMoneyAmount(item.price);
-      const priceCurrency = coerceMoneyCurrency(item.price, item.currency || 'USD');
+      const priceCurrency = coerceMoneyCurrency(item.price, item.currency || 'EUR');
       const productDetails = productsBySku.get(item.sku);
       if (!productDetails) {
         return {
@@ -320,11 +328,34 @@ class RemoteApiClient extends BaseApiClient implements ApiClientContract {
       user_id: userId,
       items: [{sku: sku, quantity, price, currency: currency.toUpperCase()}],
     };
-    const response = await this.cartClient.put<ApiResponse<Cart>>(`/cart`, requestBody);
-    if (typeof response.data === 'number' || !response.data || !('items' in response.data)) {
-      return this.getCart(userId);
+    try {
+      const response = await this.cartClient.put<ApiResponse<Cart>>(`/cart`, requestBody);
+      if (typeof response.data === 'number' || !response.data || !('items' in response.data)) {
+        return this.getCart(userId);
+      }
+      return response.data.data || response.data;
+    } catch (error) {
+      const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+
+      // Some cart backends do not support PUT /cart and return 405.
+      // Fallback to remove + add so quantity changes still work.
+      if (status === 404 || status === 405) {
+        try {
+          await this.cartClient.delete(`/cart/${userId}/${sku}`);
+        } catch {
+          // Ignore delete failures (item may not exist yet).
+        }
+
+        const fallbackBody = {
+          user_id: userId,
+          items: [{sku, productTitle: sku, quantity, price, currency: currency.toUpperCase()}],
+        };
+        await this.cartClient.post(`/cart`, fallbackBody);
+        return this.getCart(userId);
+      }
+
+      throw error;
     }
-    return response.data.data || response.data;
   }
 
   async createOrder(userId: string): Promise<Order> {
@@ -341,7 +372,7 @@ class RemoteApiClient extends BaseApiClient implements ApiClientContract {
           try {
             const productDetails = await this.getProductById(item.sku);
             const priceAmount = coerceMoneyAmount(item.price);
-            const priceCurrency = coerceMoneyCurrency(item.price, item.currency || 'USD');
+            const priceCurrency = coerceMoneyCurrency(item.price, item.currency || 'EUR');
             return {
               sku: item.sku,
               title: productDetails.title || item.name || `Product ${item.sku}`,
@@ -357,7 +388,7 @@ class RemoteApiClient extends BaseApiClient implements ApiClientContract {
             };
           } catch {
             const priceAmount = coerceMoneyAmount(item.price);
-            const priceCurrency = coerceMoneyCurrency(item.price, item.currency || 'USD');
+            const priceCurrency = coerceMoneyCurrency(item.price, item.currency || 'EUR');
             return {
               sku: item.sku,
               title: item.name || `Product ${item.sku}`,

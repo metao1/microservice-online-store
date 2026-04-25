@@ -44,7 +44,7 @@ class OrderCreatedEventTranslatorTest {
             subtotal,
             Money.of(Currency.getInstance("EUR"), BigDecimal.ZERO),
             subtotal,
-            new VAT(0),
+            new VAT(19),
             Instant.parse("2026-03-29T10:15:30Z")
         );
 

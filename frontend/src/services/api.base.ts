@@ -161,7 +161,7 @@ export abstract class BaseApiClient {
     const currency =
       typeof dto.currency === 'string'
         ? dto.currency
-        : dto.currency?.currencyCode || dto.currency?.currency || dto.currency?.code || 'USD';
+        : dto.currency?.currencyCode || dto.currency?.currency || dto.currency?.code || 'EUR';
     const status = (dto.status || '').toUpperCase();
     return {
       paymentId: dto.paymentId || dto.id,

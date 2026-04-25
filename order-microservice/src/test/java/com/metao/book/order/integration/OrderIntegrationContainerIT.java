@@ -37,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 @TestPropertySource(properties = "kafka.enabled=true")
 class OrderIntegrationContainerIT extends KafkaContainer {
 
-    private static final Currency USD = Currency.getInstance("USD");
+    private static final Currency EUR = Currency.getInstance("EUR");
     private static final BigDecimal ONE = BigDecimal.ONE;
 
     @Autowired
@@ -71,7 +71,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
     ) {
         return createOrderWithCartItems(
             userId,
-            Set.of(new ShoppingCartItem(productSku, title, quantity, price, USD))
+            Set.of(new ShoppingCartItem(productSku, title, quantity, price, EUR))
         );
     }
 
@@ -142,14 +142,14 @@ class OrderIntegrationContainerIT extends KafkaContainer {
             OrderId orderId = createOrderWithCartItems(
                 userId,
                 Set.of(
-                    new ShoppingCartItem("product-1", "Book 1", BigDecimal.TWO, BigDecimal.valueOf(10), USD),
-                    new ShoppingCartItem("product-2", "Book 2", BigDecimal.ONE, BigDecimal.valueOf(15), USD)
+                    new ShoppingCartItem("product-1", "Book 1", BigDecimal.TWO, BigDecimal.valueOf(10), EUR),
+                    new ShoppingCartItem("product-2", "Book 2", BigDecimal.ONE, BigDecimal.valueOf(15), EUR)
                 )
             );
 
             var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
             assertThat(order.getItems()).hasSize(2);
-            assertThat(order.getTotal().fixedPointAmount()).isEqualByComparingTo(BigDecimal.valueOf(35));
+            assertThat(order.getTotal().fixedPointAmount()).isEqualByComparingTo(BigDecimal.valueOf(42));
         }
     }
 
@@ -292,9 +292,9 @@ class OrderIntegrationContainerIT extends KafkaContainer {
             createOrderWithCartItems(
                 userId,
                 Set.of(
-                    new ShoppingCartItem("product-0", "Book 0", BigDecimal.ONE, BigDecimal.valueOf(5), USD),
-                    new ShoppingCartItem("product-1", "Book 1", BigDecimal.valueOf(2), BigDecimal.valueOf(10), USD),
-                    new ShoppingCartItem("product-2", "Book 2", BigDecimal.ONE, BigDecimal.valueOf(15), USD)
+                    new ShoppingCartItem("product-0", "Book 0", BigDecimal.ONE, BigDecimal.valueOf(5), EUR),
+                    new ShoppingCartItem("product-1", "Book 1", BigDecimal.valueOf(2), BigDecimal.valueOf(10), EUR),
+                    new ShoppingCartItem("product-2", "Book 2", BigDecimal.ONE, BigDecimal.valueOf(15), EUR)
                 )
             );
 
@@ -303,7 +303,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
                 .toList();
 
             assertThat(orders).hasSize(1);
-            assertThat(orders.getFirst().getTotal().fixedPointAmount()).isEqualByComparingTo(BigDecimal.valueOf(40));
+            assertThat(orders.getFirst().getTotal().fixedPointAmount()).isEqualByComparingTo(BigDecimal.valueOf(48));
         }
 
         @Test
@@ -344,8 +344,8 @@ class OrderIntegrationContainerIT extends KafkaContainer {
             OrderId orderId = createOrderWithCartItems(
                 userId,
                 Set.of(
-                    new ShoppingCartItem("product-0", "Book 0", BigDecimal.ONE, BigDecimal.valueOf(5), USD),
-                    new ShoppingCartItem("product-1", "Book 1", BigDecimal.valueOf(2), BigDecimal.valueOf(10), USD)
+                    new ShoppingCartItem("product-0", "Book 0", BigDecimal.ONE, BigDecimal.valueOf(5), EUR),
+                    new ShoppingCartItem("product-1", "Book 1", BigDecimal.valueOf(2), BigDecimal.valueOf(10), EUR)
                 )
             );
 
@@ -354,7 +354,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
             var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
             assertThat(order.getItems()).hasSize(2);
             assertThat(order.getStatus()).isEqualTo(OrderStatus.PAID);
-            assertThat(order.getTotal().fixedPointAmount()).isEqualByComparingTo(BigDecimal.valueOf(25));
+            assertThat(order.getTotal().fixedPointAmount()).isEqualByComparingTo(BigDecimal.valueOf(30));
         }
     }
 
@@ -374,7 +374,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
             );
 
             var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
-            assertThat(order.getTotal().fixedPointAmount()).isEqualByComparingTo(BigDecimal.valueOf(10000));
+            assertThat(order.getTotal().fixedPointAmount()).isEqualByComparingTo(BigDecimal.valueOf(11900));
         }
 
         @Test

@@ -201,7 +201,7 @@ const DEFAULT_LANGUAGES: Language[] = [
     flag: '🇺🇸',
     rtl: false,
     enabled: true,
-    currency: 'USD',
+    currency: 'EUR',
   },
   {
     code: 'de',

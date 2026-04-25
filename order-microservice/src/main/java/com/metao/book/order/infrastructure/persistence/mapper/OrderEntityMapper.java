@@ -38,7 +38,7 @@ public class OrderEntityMapper {
      * reflects the currently configured VAT rate.
      */
     public static OrderAggregate toDomain(OrderJpaEntity entity) {
-        return toDomain(entity, OrderAggregate.ZERO_VAT);
+        return toDomain(entity, OrderAggregate.VAT);
     }
 
     public static OrderAggregate toDomain(OrderJpaEntity entity, VAT vat) {

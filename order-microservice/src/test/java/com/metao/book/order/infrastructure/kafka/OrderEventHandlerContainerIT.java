@@ -78,7 +78,7 @@ class OrderEventHandlerContainerIT extends KafkaContainer {
                 .setProductTitle("Product Title")
                 .setQuantity(100d)
                 .setPrice(100d)
-                .setCurrency("USD")
+                .setCurrency("EUR")
                 .build())
             .build();
 
@@ -101,7 +101,7 @@ class OrderEventHandlerContainerIT extends KafkaContainer {
                 .setProductTitle("Product Title")
                 .setQuantity(100d)
                 .setPrice(100d)
-                .setCurrency("USD")
+                .setCurrency("EUR")
                 .build())
             .build();
 
@@ -109,7 +109,7 @@ class OrderEventHandlerContainerIT extends KafkaContainer {
             .setId(OrderUpdatedEvent.UUID.getDefaultInstance().toString())
             .setQuantity(100d)
             .setPrice(100d)
-            .setCurrency("USD")
+            .setCurrency("EUR")
             .setStatus(Status.PAID)
             .build();
 

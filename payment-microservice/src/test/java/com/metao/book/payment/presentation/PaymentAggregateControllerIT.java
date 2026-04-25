@@ -42,7 +42,7 @@ class PaymentAggregateControllerIT extends KafkaContainer {
             {
                 "orderId": "order-123",
                 "amount": 100.00,
-                "currency": "USD",
+                "currency": "EUR",
                 "paymentMethodType": "PAYPAL",
                 "paymentMethodDetails": "****-5678"
             }
@@ -59,7 +59,7 @@ class PaymentAggregateControllerIT extends KafkaContainer {
             .body("paymentId", notNullValue())
             .body("orderId", equalTo("order-123"))
             .body("amount", equalTo(100.00f))
-            .body("currency", equalTo("USD"))
+            .body("currency", equalTo("EUR"))
             .body("status", equalTo("PENDING"));
     }
 
@@ -70,7 +70,7 @@ class PaymentAggregateControllerIT extends KafkaContainer {
             {
                 "orderId": "order-456",
                 "amount": 100.00,
-                "currency": "USD",
+                "currency": "EUR",
                 "paymentMethodType": "PAYPAL",
                 "paymentMethodDetails": "****-5678"
             }

@@ -257,6 +257,38 @@
   min-height: 2.75rem;
 }
 
+.cart-presence {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0 0 0.55rem;
+  padding: 0.2rem 0.45rem;
+  border: 1px solid #111111;
+  background: #f7f7f7;
+  width: fit-content;
+}
+
+.cart-presence-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #2f2f2f;
+  text-transform: uppercase;
+}
+
+.cart-presence-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.1rem;
+  padding: 0 0.28rem;
+  background: #111111;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
 /* Rating Section - Clean Design */
 .rating-section {
   display: flex;
@@ -530,6 +562,10 @@
   .product-title {
     font-size: var(--font-size-sm, 0.875rem);
     min-height: 2.5rem;
+  }
+
+  .cart-presence {
+    margin-bottom: 0.5rem;
   }
   
   .current-price {

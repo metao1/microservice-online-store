@@ -141,6 +141,7 @@ services:
       OTEL_TRACES_SAMPLER: parentbased_traceidratio
       OTEL_TRACES_SAMPLER_ARG: "1.0"
       CORS_ENABLED: "true"
+      VAT_PERCENTAGE: 19
       CORS_ALLOWED_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000"
       BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:9092
       DATABASE_USER: bookstore

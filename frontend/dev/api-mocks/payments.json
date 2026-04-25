@@ -3,7 +3,7 @@
     "paymentId": "PAY-9001",
     "orderId": "ORDER-1001",
     "amount": 54.99,
-    "currency": "USD",
+    "currency": "EUR",
     "paymentMethodType": "CREDIT_CARD",
     "paymentMethodDetails": "**** **** **** 4242",
     "status": "COMPLETED",
