@@ -156,7 +156,9 @@ tasks.register('publishLocalDependencies') {
 
 tasks.named('build') {
   dependsOn ':buildDependencies'
-  dependsOn ':generateOpenApiDocs'
+  if (providers.gradleProperty('includeOpenApiDocsInBuild').map { it.toBoolean() }.orElse(false).get()) {
+    dependsOn ':generateOpenApiDocs'
+  }
 }
 
 def openApiTargets = [
@@ -169,31 +171,29 @@ tasks.register('generateOpenApiDocs') {
   group = 'documentation'
   description = 'Fetches OpenAPI JSON from running services into docs/api'
 
-tasks.register('generateOpenApiDocs') {
-  group = 'documentation'
-  description = 'Fetches OpenAPI JSON from running services into docs/api'
-  group = 'documentation'
-  description = 'Fetches OpenAPI JSON from running services into docs/api'
-
   def docsDir = layout.projectDirectory.dir("docs/api")
   outputs.dir(docsDir)
-  tasks.register('generateOpenApiDocs') {
-    group = 'documentation'
-    description = 'Generates OpenAPI documentation for all microservices'
-    // Consider using the springdoc-openapi-gradle-plugin for build-time generation
-  }
+  def strictOpenApiDocs = providers.gradleProperty('strictOpenApiDocs').map { it.toBoolean() }.orElse(false).get()
+
   doLast {
     def outputDir = docsDir.get().asFile
     outputDir.mkdirs()
     openApiTargets.each { target ->
-      def connection = new URL(target.url).openConnection()
-      connection.connectTimeout = 10000
-      connection.readTimeout = 30000
-      def body = connection.inputStream.getText('UTF-8')
-      def parsed = new JsonSlurper().parseText(body)
-      def outFile = new File(outputDir, target.file)
-      outFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(parsed)) + "\n"
-      logger.lifecycle("Generated OpenAPI spec for ${target.name}: ${outFile}")
+      try {
+        def connection = new URL(target.url).openConnection()
+        connection.connectTimeout = 10000
+        connection.readTimeout = 30000
+        def body = connection.inputStream.getText('UTF-8')
+        def parsed = new JsonSlurper().parseText(body)
+        def outFile = new File(outputDir, target.file)
+        outFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(parsed)) + "\n"
+        logger.lifecycle("Generated OpenAPI spec for ${target.name}: ${outFile}")
+      } catch (Exception ex) {
+        if (strictOpenApiDocs) {
+          throw new GradleException("Failed to fetch OpenAPI spec from ${target.url}", ex)
+        }
+        logger.warn("Skipping OpenAPI spec for ${target.name} (${target.url}): ${ex.message}")
+      }
     }
   }
 }
@@ -202,5 +202,4 @@ subprojects {
   tasks.matching { it.name == 'generateOpenApiDocs' }.configureEach {
     enabled = false
   }
-}
 }
