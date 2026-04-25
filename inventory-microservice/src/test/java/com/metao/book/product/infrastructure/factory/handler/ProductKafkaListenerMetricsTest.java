@@ -30,7 +30,7 @@ class ProductKafkaListenerMetricsTest {
             .setDescription("Desc")
             .setImageUrl("https://example.com/img.jpg")
             .setPrice(10.0)
-            .setCurrency("USD")
+            .setCurrency("EUR")
             .setVolume(1.0)
             .setCreateTime(com.google.protobuf.Timestamp.newBuilder()
                 .setSeconds(Instant.now().getEpochSecond())

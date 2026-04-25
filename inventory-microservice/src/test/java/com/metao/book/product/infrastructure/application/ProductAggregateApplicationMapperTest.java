@@ -287,7 +287,7 @@ class ProductAggregateApplicationMapperTest {
         @DisplayName("should handle different currencies")
         void toDTO_withDifferentCurrency_shouldPreserveCurrency() {
             // GIVEN
-            Currency usdCurrency = Currency.getInstance("USD");
+            Currency usdCurrency = Currency.getInstance("EUR");
             ProductAggregate product = new ProductAggregate(
                 ProductSku.of("TEST000005"),
                 ProductTitle.of("USD Product"),

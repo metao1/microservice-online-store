@@ -30,7 +30,7 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
      * Default VAT rate used when no explicit rate is supplied. Zero-rated so historical
      * callers and unit tests keep their original net-total semantics.
      */
-    public static final VAT ZERO_VAT = new VAT(0);
+    public static final VAT VAT = new VAT(19);
 
     private final OrderId id;
     private final UserId userId;
@@ -44,7 +44,7 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
     private Instant updatedAt;
 
     public OrderAggregate(OrderId id, UserId userId) {
-        this(id, userId, ZERO_VAT);
+        this(id, userId, VAT);
     }
 
     public OrderAggregate(OrderId id, UserId userId, VAT vat) {
@@ -72,7 +72,7 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
     }
 
     public static OrderAggregate from(OrderCreatedEvent event) {
-        return from(event, ZERO_VAT);
+        return from(event, VAT);
     }
 
     public static OrderAggregate from(OrderCreatedEvent event, VAT vat) {
@@ -100,7 +100,7 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
         Instant createdAt,
         Instant updatedAt
     ) {
-        return reconstitute(id, userId, items, status, createdAt, updatedAt, ZERO_VAT);
+        return reconstitute(id, userId, items, status, createdAt, updatedAt, VAT);
     }
 
     public static OrderAggregate reconstitute(

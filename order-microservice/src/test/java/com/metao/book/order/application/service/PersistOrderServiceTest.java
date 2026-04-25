@@ -1,5 +1,6 @@
 package com.metao.book.order.application.service;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -25,7 +26,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -58,7 +58,7 @@ class PersistOrderServiceTest {
         persistOrderService.persistOrder(event);
 
         verify(orderRepository, never()).findById(event.orderId());
-        verify(orderRepository, never()).save(org.mockito.ArgumentMatchers.any(OrderAggregate.class));
+        verify(orderRepository, never()).save(any(OrderAggregate.class));
     }
 
     @Test
@@ -70,7 +70,7 @@ class PersistOrderServiceTest {
 
         persistOrderService.persistOrder(event);
 
-        verify(orderRepository).save(ArgumentMatchers.any(OrderAggregate.class));
+        verify(orderRepository).save(any(OrderAggregate.class));
     }
 
     private OrderCreatedEvent buildEvent(String orderId) {

@@ -65,7 +65,7 @@ class PaymentAggregateApplicationServiceTest {
         CreatePaymentCommand command = new CreatePaymentCommand(
             "order-123",
             BigDecimal.valueOf(100.00),
-            "USD",
+            "EUR",
             PaymentMethod.Type.CREDIT_CARD,
             "****-1234"
         );
@@ -93,7 +93,7 @@ class PaymentAggregateApplicationServiceTest {
         CreatePaymentCommand command = new CreatePaymentCommand(
             "order-123",
             BigDecimal.valueOf(100.00),
-            "USD",
+            "EUR",
             PaymentMethod.Type.CREDIT_CARD,
             "****-1234"
         );
@@ -116,7 +116,7 @@ class PaymentAggregateApplicationServiceTest {
         CreatePaymentCommand command = new CreatePaymentCommand(
             "order-123",
             BigDecimal.valueOf(100.00),
-            "USD",
+            "EUR",
             PaymentMethod.Type.CREDIT_CARD,
             "****-1234"
         );
@@ -145,7 +145,7 @@ class PaymentAggregateApplicationServiceTest {
         CreatePaymentCommand command = new CreatePaymentCommand(
             "order-123",
             BigDecimal.valueOf(100.00),
-            "USD",
+            "EUR",
             PaymentMethod.Type.CREDIT_CARD,
             "****-1234"
         );
@@ -302,7 +302,7 @@ class PaymentAggregateApplicationServiceTest {
         // Given
         String orderId = "order-123";
         BigDecimal amount = BigDecimal.valueOf(100.00);
-        String currency = "USD";
+        String currency = "EUR";
 
         PaymentAggregate createdPayment = createPaymentAggregate(PaymentStatus.PENDING, null);
         PaymentAggregate processedPayment = createPaymentAggregate(PaymentStatus.SUCCESSFUL, null);
@@ -327,7 +327,7 @@ class PaymentAggregateApplicationServiceTest {
         // Given
         String orderId = "order-123";
         BigDecimal amount = BigDecimal.valueOf(100.00);
-        String currency = "USD";
+        String currency = "EUR";
 
         PaymentAggregate successfulPayment = createPaymentAggregate(PaymentStatus.SUCCESSFUL, null);
         when(paymentRepository.findByOrderId(any(OrderId.class))).thenReturn(Optional.of(successfulPayment));
@@ -344,7 +344,7 @@ class PaymentAggregateApplicationServiceTest {
         PaymentAggregate payment = PaymentAggregate.reconstruct(
             PaymentId.of("payment-123"),
             OrderId.of("order-123"),
-            Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(100.00)),
+            Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(100.00)),
             PaymentMethod.creditCard("****-1234"),
             status,
             failureReason,

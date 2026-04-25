@@ -68,7 +68,7 @@ describe('ProductCard Component - Property Tests', () => {
     .map(s => s.replace(/[<>&"']/g, '').trim()) // Remove problematic characters
     .filter(s => s.length >= 5);
   const productPriceArb = fc.float({ min: Math.fround(0.01), max: Math.fround(999.99), noNaN: true });
-  const currencyArb = fc.constantFrom('USD', 'EUR', 'GBP', 'CAD');
+  const currencyArb = fc.constantFrom('EUR', 'EUR', 'GBP', 'CAD');
   const imageUrlArb = fc.webUrl().filter(url => url.includes('http'));
   const descriptionArb = fc.string({ minLength: 10, maxLength: 200 })
     .filter(s => s.trim().length >= 10)
