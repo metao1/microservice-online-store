@@ -25,7 +25,6 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -51,6 +50,8 @@ public class PaymentApplicationService {
         log.info("Creating payment for order: {}", command.orderId());
 
         OrderId orderId = OrderId.of(command.orderId());
+        paymentRepository.lockOrderForCreation(orderId);
+
         Optional<PaymentAggregate> existingPayment = paymentRepository.findByOrderId(orderId);
         if (existingPayment.isPresent()) {
             PaymentAggregate existing = existingPayment.get();
@@ -71,25 +72,16 @@ public class PaymentApplicationService {
             throw new IllegalArgumentException("Payment method not valid for this amount");
         }
 
-        PaymentAggregate payment = paymentDomainService.createPayment(orderId, amount, paymentMethod);
+        PaymentAggregate payment;
         try {
-            paymentRepository.save(payment);
-        } catch (DataIntegrityViolationException e) {
-            if (isDuplicateOrderPaymentViolation(e)) {
-                return paymentRepository.findByOrderId(orderId)
-                    .map(existing -> {
-                        log.info(
-                            "Detected duplicate insert race for order {}. Returning existing payment {} with status {}",
-                            orderId,
-                            existing.getId(),
-                            existing.getStatus()
-                        );
-                        return PaymentApplicationMapper.toDTO(existing);
-                    })
-                    .orElseThrow(() -> new DuplicatePaymentException("Payment already exists for order: " + orderId));
-            }
-            throw e;
+            payment = paymentDomainService.createPayment(orderId, amount, paymentMethod);
+        } catch (DuplicatePaymentException e) {
+            return paymentRepository.findByOrderId(orderId)
+                .map(PaymentApplicationMapper::toDTO)
+                .orElseThrow(() -> e);
         }
+
+        paymentRepository.saveAndFlush(payment);
 
         log.info("Payment created successfully for order: {} with status: {}", orderId, payment.getStatus());
         return PaymentApplicationMapper.toDTO(payment);
@@ -274,17 +266,4 @@ public class PaymentApplicationService {
         payment.clearDomainEvents();
     }
 
-    private boolean isDuplicateOrderPaymentViolation(Throwable throwable) {
-        Throwable current = throwable;
-        while (current != null) {
-            String message = current.getMessage();
-            if (message != null && (message.contains("uk_payment_order_id") ||
-                message.contains("payment_order_id_key") ||
-                message.contains("duplicate key value violates unique constraint"))) {
-                return true;
-            }
-            current = current.getCause();
-        }
-        return false;
-    }
 }

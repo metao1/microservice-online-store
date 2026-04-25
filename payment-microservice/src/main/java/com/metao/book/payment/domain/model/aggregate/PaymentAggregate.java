@@ -27,6 +27,7 @@ public class PaymentAggregate extends AggregateRoot<PaymentId> {
     private String failureReason;
     private Instant processedAt;
     private Instant createdAt;
+    private Long version;
 
     // For reconstruction from persistence
     protected PaymentAggregate() {
@@ -70,6 +71,34 @@ public class PaymentAggregate extends AggregateRoot<PaymentId> {
         payment.failureReason = failureReason;
         payment.processedAt = processedAt;
         payment.createdAt = createdAt;
+        payment.version = null;
+        return payment;
+    }
+
+    /**
+     * For reconstruction from persistence, including optimistic-lock version.
+     */
+    public static PaymentAggregate reconstruct(
+        PaymentId paymentId,
+        OrderId orderId,
+        Money amount,
+        PaymentMethod paymentMethod,
+        PaymentStatus status,
+        String failureReason,
+        Instant processedAt,
+        Instant createdAt,
+        Long version
+    ) {
+        PaymentAggregate payment = new PaymentAggregate();
+        payment.setId(paymentId);
+        payment.orderId = orderId;
+        payment.amount = amount;
+        payment.paymentMethod = paymentMethod;
+        payment.status = status;
+        payment.failureReason = failureReason;
+        payment.processedAt = processedAt;
+        payment.createdAt = createdAt;
+        payment.version = version;
         return payment;
     }
 

@@ -35,6 +35,19 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     }
 
     @Override
+    public PaymentAggregate saveAndFlush(PaymentAggregate payment) {
+        PaymentEntity entity = paymentEntityMapper.toEntity(payment);
+        jpaPaymentRepository.saveAndFlush(entity);
+        // Domain events are in-memory concerns on the aggregate instance; do not reconstruct here.
+        return payment;
+    }
+
+    @Override
+    public void lockOrderForCreation(OrderId orderId) {
+        jpaPaymentRepository.lockOrderForCreation(orderId.value());
+    }
+
+    @Override
     public Optional<PaymentAggregate> findById(PaymentId paymentId) {
         return jpaPaymentRepository.findById(paymentId)
             .map(paymentEntityMapper::toDomain);

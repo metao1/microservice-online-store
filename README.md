@@ -8,6 +8,8 @@ Event-driven e-commerce platform with DDD, Kafka messaging, and choreography-bas
 - **Frontend:** React + Vite + TypeScript
 - **Observability:** OpenTelemetry, Jaeger
 
+[![video]]()](https://youtu.be/-p2X7TLY8EU)
+
 ## Services
 
 | Service | Port | Description |
