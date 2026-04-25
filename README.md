@@ -7,6 +7,8 @@ Event-driven e-commerce platform with DDD, Kafka messaging, and choreography-bas
 - **Backend:** Java 17+, Spring Boot, Kafka, PostgreSQL
 - **Frontend:** React + Vite + TypeScript
 - **Observability:** OpenTelemetry, Jaeger
+---
+[![video](https://img.youtube.com/vi/-p2X7TLY8EU/maxresdefault.jpg)](https://youtu.be/-p2X7TLY8EU)
 
 ## Services
 
