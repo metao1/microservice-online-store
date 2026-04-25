@@ -3,141 +3,39 @@ import {useLocation, useSearchParams} from 'react-router-dom';
 import {useProducts} from '@hooks/useProducts';
 import ProductGrid from '../components/ProductGrid';
 import {Product, ProductVariant} from '@types';
+import { apiClient } from '../services/api';
+import { FILTER_GROUPS, createDefaultSelectedFilters } from './products/products.config';
+import { ProductSortBy, ProductSortOrder } from './products/products.types';
+import {
+  applySegmentFilter,
+  buildCategoryTabs,
+  buildSegmentTabsForCategory,
+  filterProducts,
+  formatCategoryLabel,
+  getProductSearchText,
+  sortProducts,
+} from './products/products.utils';
 import './ProductsPage.css';
 
 interface ProductsPageProps {
   category?: string;
 }
 
-const PRIMARY_TABS = [
-  { id: 'women', name: 'Women' },
-  { id: 'men', name: 'Men' },
-  { id: 'kids', name: 'Kids' }
-];
-
-const FILTER_GROUPS = [
-  {
-    id: 'brand',
-    label: 'Brand',
-    options: [
-      { value: '', label: 'All Brands' },
-      { value: 'nike', label: 'Nike' },
-      { value: 'adidas', label: 'Adidas' },
-      { value: 'puma', label: 'Puma' }
-    ]
-  },
-  {
-    id: 'size',
-    label: 'Size',
-    options: [
-      { value: '', label: 'All Sizes' },
-      { value: '36', label: '36' },
-      { value: '37', label: '37' },
-      { value: '38', label: '38' },
-      { value: '39', label: '39' }
-    ]
-  },
-  {
-    id: 'color',
-    label: 'Colour',
-    options: [
-      { value: '', label: 'All Colours' },
-      { value: 'black', label: 'Black' },
-      { value: 'white', label: 'White' },
-      { value: 'blue', label: 'Blue' },
-      { value: 'red', label: 'Red' }
-    ]
-  },
-  {
-    id: 'qualities',
-    label: 'Qualities',
-    options: [
-      { value: '', label: 'All Qualities' },
-      { value: 'premium', label: 'Premium' },
-      { value: 'sustainable', label: 'Sustainable' }
-    ]
-  },
-  {
-    id: 'price',
-    label: 'Price',
-    options: [
-      { value: '', label: 'All Prices' },
-      { value: '0-50', label: '€0 - €50' },
-      { value: '50-100', label: '€50 - €100' },
-      { value: '100+', label: '€100+' }
-    ]
-  },
-  {
-    id: 'collection',
-    label: 'Collection',
-    options: [
-      { value: '', label: 'All Collections' },
-      { value: 'new', label: 'New in' },
-      { value: 'sale', label: 'Sale' }
-    ]
-  },
-  {
-    id: 'material',
-    label: 'Material',
-    options: [
-      { value: '', label: 'All Materials' },
-      { value: 'leather', label: 'Leather' },
-      { value: 'canvas', label: 'Canvas' },
-      { value: 'synthetic', label: 'Synthetic' }
-    ]
-  },
-  {
-    id: 'heel',
-    label: 'Type of heel',
-    options: [
-      { value: '', label: 'All Heel Types' },
-      { value: 'flat', label: 'Flat' },
-      { value: 'block', label: 'Block' }
-    ]
-  },
-  {
-    id: 'shoeWidth',
-    label: 'Shoe width',
-    options: [
-      { value: '', label: 'All Widths' },
-      { value: 'narrow', label: 'Narrow' },
-      { value: 'regular', label: 'Regular' },
-      { value: 'wide', label: 'Wide' }
-    ]
-  },
-  {
-    id: 'toe',
-    label: 'Toe',
-    options: [
-      { value: '', label: 'All Toes' },
-      { value: 'round', label: 'Round' },
-      { value: 'pointed', label: 'Pointed' }
-    ]
-  }
-];
-
 const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
   const { products, loading, error, fetchProducts, searchProducts } = useProducts();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const [activeCategory, setActiveCategory] = useState<string>('books');
-  const [activeSegment, setActiveSegment] = useState<string>('women');
+  const [activeSegment, setActiveSegment] = useState<string>('');
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortBy, setSortBy] = useState<'name' | 'price' | 'rating'>('name');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [sortBy, setSortBy] = useState<ProductSortBy>('name');
+  const [sortOrder, setSortOrder] = useState<ProductSortOrder>('asc');
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
-  const [selectedFilters, setSelectedFilters] = useState({
-    size: '',
-    brand: '',
-    price: '',
-    color: '',
-    qualities: '',
-    collection: '',
-    material: '',
-    heel: '',
-    shoeWidth: '',
-    toe: ''
-  });
+  const [isAllFiltersOpen, setIsAllFiltersOpen] = useState(false);
+  const [canScrollFiltersLeft, setCanScrollFiltersLeft] = useState(false);
+  const [canScrollFiltersRight, setCanScrollFiltersRight] = useState(false);
+  const [selectedFilters, setSelectedFilters] = useState(createDefaultSelectedFilters());
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -145,9 +43,17 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
   const requestKeyRef = useRef<string>('');
   const loadingMoreStartedAtRef = useRef<number>(0);
   const loadingMoreTimerRef = useRef<number | null>(null);
+  const filterButtonsRef = useRef<HTMLDivElement>(null);
   const limit = 16;
   const filtersKey = useMemo(() => `products-filters:${location.pathname}`, [location.pathname]);
   const hasHydratedFilters = useRef(false);
+
+  const segmentTabs = useMemo(() => buildSegmentTabsForCategory(activeCategory), [activeCategory]);
+
+  const categoryTabs = useMemo(
+    () => buildCategoryTabs(availableCategories, activeCategory),
+    [availableCategories, activeCategory]
+  );
 
   useEffect(() => {
     if (hasHydratedFilters.current) return;
@@ -171,6 +77,29 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
   }, [filtersKey]);
 
   useEffect(() => {
+    let cancelled = false;
+    const loadCategories = async () => {
+      try {
+        const categories = await apiClient.getCategories(50, 0);
+        if (cancelled) return;
+        const normalized = categories
+          .map((item) => item.category || item.name || '')
+          .map((value) => value.trim().toLowerCase())
+          .filter(Boolean);
+        if (normalized.length > 0) {
+          setAvailableCategories(Array.from(new Set(normalized)));
+        }
+      } catch {
+        // Ignore category lookup errors; the page still has sensible fallbacks.
+      }
+    };
+    loadCategories();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     if (!hasHydratedFilters.current) return;
     const payload = {
       sortBy,
@@ -187,11 +116,15 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
 
     if (urlCategory) {
       setActiveCategory(urlCategory);
-      if (PRIMARY_TABS.some(tab => tab.id === urlCategory)) {
-        setActiveSegment(urlCategory);
-      }
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!segmentTabs.length) return;
+    if (!segmentTabs.some((tab) => tab.id === activeSegment)) {
+      setActiveSegment(segmentTabs[0].id);
+    }
+  }, [segmentTabs, activeSegment]);
 
   // Close filter dropdown when clicking outside
   useEffect(() => {
@@ -248,6 +181,12 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
 
   const handleSegmentClick = (segmentId: string) => {
     setActiveSegment(segmentId);
+  };
+
+  const handleCategoryClick = (categoryId: string) => {
+    if (categoryId === activeCategory) return;
+    setActiveCategory(categoryId);
+    setCurrentPage(1);
   };
 
   // Update aggregated list after each fetch completes.
@@ -319,7 +258,7 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
   }, []);
 
   const handleSortChange = (value: string) => {
-    const [newSortBy, newSortOrder] = value.split('-') as ['name' | 'price' | 'rating', 'asc' | 'desc'];
+    const [newSortBy, newSortOrder] = value.split('-') as [ProductSortBy, ProductSortOrder];
     setSortBy(newSortBy);
     setSortOrder(newSortOrder);
     setActiveFilter(null);
@@ -337,120 +276,75 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
     setActiveFilter(activeFilter === filterType ? null : filterType);
   };
 
-  const sortedProducts = useMemo(() => {
-    return [...allProducts].sort((a, b) => {
-      let aValue: string | number = '';
-      let bValue: string | number = '';
+  const openAllFilters = () => {
+    setIsAllFiltersOpen(true);
+  };
 
-      switch (sortBy) {
-        case 'name':
-          aValue = a.title.toLowerCase();
-          bValue = b.title.toLowerCase();
-          break;
-        case 'price':
-          aValue = a.price;
-          bValue = b.price;
-          break;
-        case 'rating':
-          aValue = a.rating || 0;
-          bValue = b.rating || 0;
-          break;
-      }
+  const closeAllFilters = () => {
+    setIsAllFiltersOpen(false);
+  };
 
-      if (sortOrder === 'asc') {
-        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-      }
-      return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+  const resetAllFilters = () => {
+    setSelectedFilters(createDefaultSelectedFilters());
+    setSortBy('name');
+    setSortOrder('asc');
+  };
+
+  const updateFilterScrollState = useCallback(() => {
+    const strip = filterButtonsRef.current;
+    if (!strip) return;
+    const maxScrollLeft = strip.scrollWidth - strip.clientWidth;
+    setCanScrollFiltersLeft(strip.scrollLeft > 1);
+    setCanScrollFiltersRight(maxScrollLeft - strip.scrollLeft > 1);
+  }, []);
+
+  const scrollFilters = (direction: 'left' | 'right') => {
+    const strip = filterButtonsRef.current;
+    if (!strip) return;
+    const delta = Math.max(140, Math.floor(strip.clientWidth * 0.7));
+    strip.scrollBy({
+      left: direction === 'left' ? -delta : delta,
+      behavior: 'smooth'
     });
-  }, [allProducts, sortBy, sortOrder]);
+  };
 
-  const filteredProducts = useMemo(() => {
-    const hashSku = (sku: string) => {
-      let h = 0;
-      for (let i = 0; i < sku.length; i += 1) {
-        h = (h * 31 + sku.charCodeAt(i)) >>> 0;
-      }
-      return h;
+  useEffect(() => {
+    updateFilterScrollState();
+    window.addEventListener('resize', updateFilterScrollState);
+    return () => {
+      window.removeEventListener('resize', updateFilterScrollState);
     };
+  }, [updateFilterScrollState, activeFilter, allProducts.length]);
 
-    const getFacet = (p: Product) => {
-      const seed = hashSku(p.sku);
-      const material = ['leather', 'canvas', 'synthetic'][seed % 3];
-      const heel = ['flat', 'block'][seed % 2];
-      const shoeWidth = ['narrow', 'regular', 'wide'][seed % 3];
-      const toe = ['round', 'pointed'][seed % 2];
-      const sustainable = seed % 7 === 0;
-      const premium = (p.isFeatured ?? false) || p.price >= 100 || seed % 5 === 0;
-
-      return { material, heel, shoeWidth, toe, sustainable, premium };
+  useEffect(() => {
+    if (!isAllFiltersOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
     };
+  }, [isAllFiltersOpen]);
 
-    const parsePriceRange = (value: string) => {
-      if (!value) return null;
-      if (value.endsWith('+')) {
-        const min = Number(value.slice(0, -1));
-        return { min, max: null as number | null };
-      }
-      const [minStr, maxStr] = value.split('-');
-      const min = Number(minStr);
-      const max = Number(maxStr);
-      if (Number.isFinite(min) && Number.isFinite(max)) return { min, max };
-      return null;
-    };
+  const sortedProducts = useMemo(
+    () => sortProducts(allProducts, sortBy, sortOrder),
+    [allProducts, sortBy, sortOrder]
+  );
 
-    const matches = (p: Product) => {
-      const f = selectedFilters;
-      const facet = getFacet(p);
+  const filteredProducts = useMemo(
+    () => filterProducts(sortedProducts, selectedFilters),
+    [sortedProducts, selectedFilters]
+  );
 
-      if (f.brand) {
-        const brand = (p.brand || '').toLowerCase();
-        if (brand !== f.brand.toLowerCase()) return false;
-      }
-
-      if (f.size) {
-        const hasSize = (p.variants || []).some(v => v.type === 'size' && v.value === f.size);
-        if (!hasSize) return false;
-      }
-
-      if (f.color) {
-        const wanted = f.color.toLowerCase();
-        const aliases = wanted === 'blue' ? new Set(['blue', 'navy']) : new Set([wanted]);
-        const hasColor = (p.variants || []).some(v => v.type === 'color' && aliases.has(v.name.toLowerCase()));
-        if (!hasColor) return false;
-      }
-
-      if (f.price) {
-        const range = parsePriceRange(f.price);
-        if (range) {
-          if (p.price < range.min) return false;
-          if (range.max != null && p.price > range.max) return false;
-        }
-      }
-
-      if (f.collection) {
-        if (f.collection === 'new' && !p.isNew) return false;
-        if (f.collection === 'sale' && !p.isSale) return false;
-      }
-
-      if (f.material && facet.material !== f.material) return false;
-      if (f.heel && facet.heel !== f.heel) return false;
-      if (f.shoeWidth && facet.shoeWidth !== f.shoeWidth) return false;
-      if (f.toe && facet.toe !== f.toe) return false;
-
-      if (f.qualities) {
-        if (f.qualities === 'premium' && !facet.premium) return false;
-        if (f.qualities === 'sustainable' && !facet.sustainable) return false;
-      }
-
-      return true;
-    };
-
-    return sortedProducts.filter(matches);
-  }, [sortedProducts, selectedFilters]);
+  const segmentedProducts = useMemo(
+    () => applySegmentFilter(filteredProducts, segmentTabs, activeSegment, getProductSearchText),
+    [filteredProducts, segmentTabs, activeSegment]
+  );
 
   const activeCategoryName = useMemo(() => {
-    const match = PRIMARY_TABS.find(tab => tab.id === activeCategory);
-    return match?.name || activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1);
+    if (!activeCategory) {
+      return 'Products';
+    }
+    return formatCategoryLabel(activeCategory);
   }, [activeCategory]);
 
   return (
@@ -469,8 +363,21 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
           }
         </h1>
 
+        <div className="mobile-category-tabs" aria-label="Categories">
+          {categoryTabs.map((category) => (
+            <button
+              type="button"
+              key={category.id}
+              className={`mobile-category-tab ${activeCategory === category.id ? 'active' : ''}`}
+              onClick={() => handleCategoryClick(category.id)}
+            >
+              {category.label}
+            </button>
+          ))}
+        </div>
+
         <div className="segment-tabs">
-          {PRIMARY_TABS.map(tab => (
+          {segmentTabs.map(tab => (
             <button
               key={tab.id}
               className={`segment-tab ${activeSegment === tab.id ? 'active' : ''}`}
@@ -486,8 +393,23 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
         <main className="products-main">
           <div className="filter-bar">
             <div className="filter-area">
-              <div className="filter-buttons" aria-label="Filters">
-                <div className="filter-dropdown">
+              <div className="filter-strip">
+                <button
+                  type="button"
+                  className="filter-scroll-btn"
+                  aria-label="Scroll filters left"
+                  onClick={() => scrollFilters('left')}
+                  disabled={!canScrollFiltersLeft}
+                >
+                  ‹
+                </button>
+                <div
+                  className="filter-buttons"
+                  aria-label="Filters"
+                  ref={filterButtonsRef}
+                  onScroll={updateFilterScrollState}
+                >
+                  <div className="filter-dropdown">
                   <button
                       className={`filter-btn ${activeFilter === 'sort' ? 'active' : ''}`}
                       onClick={() => toggleFilterDropdown('sort')}
@@ -551,10 +473,20 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
                       )}
                     </div>
                 ))}
+                </div>
+                <button
+                  type="button"
+                  className="filter-scroll-btn"
+                  aria-label="Scroll filters right"
+                  onClick={() => scrollFilters('right')}
+                  disabled={!canScrollFiltersRight}
+                >
+                  ›
+                </button>
               </div>
 
               <div className="filter-actions">
-                <button className="filter-show-all" type="button">
+                <button className="filter-show-all" type="button" onClick={openAllFilters}>
                   <span className="filter-icon" aria-hidden="true">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <line x1="4" y1="21" x2="4" y2="14"></line>
@@ -574,8 +506,52 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
             </div>
           </div>
 
+          {isAllFiltersOpen && (
+            <>
+              <button
+                type="button"
+                className="all-filters-backdrop"
+                aria-label="Close all filters"
+                onClick={closeAllFilters}
+              />
+              <section className="all-filters-drawer" role="dialog" aria-modal="true" aria-label="All filters">
+                <header className="all-filters-header">
+                  <h2>All filters</h2>
+                  <button type="button" onClick={closeAllFilters} className="all-filters-close">Close</button>
+                </header>
+                <div className="all-filters-groups">
+                  {FILTER_GROUPS.map((filter) => (
+                    <div className="all-filters-group" key={`drawer-${filter.id}`}>
+                      <h3>{filter.label}</h3>
+                      <div className="all-filters-options">
+                        {filter.options.map((option) => (
+                          <button
+                            type="button"
+                            key={`drawer-${filter.id}-${option.value || 'all'}`}
+                            className={selectedFilters[filter.id as keyof typeof selectedFilters] === option.value ? 'selected' : ''}
+                            onClick={() => handleFilterChange(filter.id as keyof typeof selectedFilters, option.value)}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <footer className="all-filters-footer">
+                  <button type="button" className="all-filters-reset" onClick={resetAllFilters}>
+                    Reset
+                  </button>
+                  <button type="button" className="all-filters-apply" onClick={closeAllFilters}>
+                    Apply
+                  </button>
+                </footer>
+              </section>
+            </>
+          )}
+
           <div className="product-count">
-            <span>{filteredProducts.length.toLocaleString()} items</span>
+            <span>{segmentedProducts.length.toLocaleString()} items</span>
             <span className="info-icon">i</span>
           </div>
 
@@ -586,7 +562,7 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
               </div>
             ) : (
               <ProductGrid
-                products={filteredProducts}
+                products={segmentedProducts}
                 loading={loading && currentPage === 1}
                 loadingMore={loadingMore}
                 hasMore={hasMore}

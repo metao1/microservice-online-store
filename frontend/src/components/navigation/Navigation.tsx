@@ -13,7 +13,6 @@ import './Navigation.css';
 import {
   BackIcon,
   ChevronDownIcon,
-  GlobeIcon,
   HeartIcon,
   MenuIcon,
   SearchIcon,
@@ -315,10 +314,6 @@ const Navigation: FC<NavigationProps> = ({
 
             <div className="nav-right">
               <div className="nav-icons">
-                <button className="lang-toggle" type="button">EN</button>
-                <button className="icon-button" type="button" aria-label="Change region">
-                  <GlobeIcon/>
-                </button>
                 <Link
                     to="/account"
                     className={`icon-link ${isActive('/account') ? 'active' : ''}`}
