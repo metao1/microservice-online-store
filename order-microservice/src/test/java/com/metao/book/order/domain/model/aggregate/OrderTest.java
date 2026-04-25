@@ -85,7 +85,7 @@ class OrderTest {
             ProductSku productSku = ProductSku.of("product123");
             ProductTitle productTitle = new ProductTitle("product123");
             Quantity quantity = Quantity.of(BigDecimal.valueOf(2.0));
-            Money unitPrice = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10.0));
+            Money unitPrice = Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(10.0));
 
             // When
             order.addItem(productSku, productTitle, quantity, unitPrice);
@@ -110,7 +110,7 @@ class OrderTest {
             DomainOrderCreatedEvent orderCreatedEvent = (DomainOrderCreatedEvent) events.getFirst();
             assertThat(orderCreatedEvent.getOrderId()).isNotNull();
             assertThat(orderCreatedEvent.getTotal()).isEqualTo(
-                Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(20.0)));
+                Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(20.0)));
             assertThat(orderCreatedEvent.getUserId()).extracting(UserId::toString).isEqualTo("user123");
         }
 
@@ -120,7 +120,7 @@ class OrderTest {
             assertThatThrownBy(() -> order.addItem(null,
                 ProductTitle.of("product-123"),
                 Quantity.of(BigDecimal.ONE),
-                Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10.0))))
+                Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(10.0))))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("productSku can't be null");
         }
@@ -254,12 +254,12 @@ class OrderTest {
                     ProductSku.of(item.productSku()),
                     ProductTitle.of("product-123"),
                     Quantity.of(item.quantity()),
-                    Money.of(Currency.getInstance("USD"), item.unitPrice())
+                    Money.of(Currency.getInstance("EUR"), item.unitPrice())
                 );
             }
 
             // Then
-            Money expectedMoney = Money.of(Currency.getInstance("USD"), expectedTotal);
+            Money expectedMoney = Money.of(Currency.getInstance("EUR"), expectedTotal);
             assertThat(order.getTotal()).isEqualTo(expectedMoney);
         }
 
@@ -280,7 +280,7 @@ class OrderTest {
             // Given
             OrderAggregate order = new OrderAggregate(OrderId.generate(), UserId.of("user123"));
             order.addItem(ProductSku.of("product1"), ProductTitle.of("product-123"),
-                Quantity.of(BigDecimal.ONE), Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10.0)));
+                Quantity.of(BigDecimal.ONE), Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(10.0)));
             order.raiseOrderCreatedEvents();
             order.updateStatus(OrderStatus.PAID);
 
@@ -306,7 +306,7 @@ class OrderTest {
         void shouldAccumulateEventsForMultipleOperations() {
             OrderAggregate order = new OrderAggregate(OrderId.generate(), UserId.of("user123"));
             order.addItem(ProductSku.of("product1"), ProductTitle.of("product-123"),
-                Quantity.of(BigDecimal.ONE), Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10.0)));
+                Quantity.of(BigDecimal.ONE), Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(10.0)));
             order.raiseOrderCreatedEvents();
             order.updateStatus(OrderStatus.PAID);
 
@@ -324,13 +324,13 @@ class OrderTest {
                 ProductSku.of("product1"),
                 ProductTitle.of("product-123"),
                 Quantity.of(BigDecimal.ONE),
-                Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(10.0))
+                Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(10.0))
             );
             order.addItem(
                 ProductSku.of("product2"),
                 ProductTitle.of("product-456"),
                 Quantity.of(BigDecimal.TWO),
-                Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(15.0))
+                Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(15.0))
             );
 
             order.raiseOrderCreatedEvents();

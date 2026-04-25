@@ -26,7 +26,7 @@ class PaymentAggregateTest {
         // Given
         PaymentId paymentId = PaymentId.generate();
         OrderId orderId = OrderId.of("order-123");
-        Money amount = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(100.00));
+        Money amount = Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(100.00));
         PaymentMethod paymentMethod = PaymentMethod.creditCard("****-1234");
 
         // When
@@ -83,7 +83,7 @@ class PaymentAggregateTest {
         // Given
         PaymentId paymentId = PaymentId.generate();
         OrderId orderId = OrderId.of("order-123");
-        Money zeroAmount = Money.of(Currency.getInstance("USD"), BigDecimal.ZERO);
+        Money zeroAmount = Money.of(Currency.getInstance("EUR"), BigDecimal.ZERO);
         PaymentMethod paymentMethod = PaymentMethod.creditCard("****-1234");
         PaymentAggregate payment = new PaymentAggregate(paymentId, orderId, zeroAmount, paymentMethod);
 
@@ -99,7 +99,7 @@ class PaymentAggregateTest {
         var failedPayment = PaymentAggregate.reconstruct(
             PaymentId.generate(),
             OrderId.of("order-123"),
-            Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(100.00)),
+            Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(100.00)),
             PaymentMethod.creditCard("****-1234"),
             PaymentStatus.FAILED,
             "gateway error",
@@ -186,7 +186,7 @@ class PaymentAggregateTest {
     private PaymentAggregate createValidPayment() {
         PaymentId paymentId = PaymentId.generate();
         OrderId orderId = OrderId.of("order-123");
-        Money amount = Money.of(Currency.getInstance("USD"), BigDecimal.valueOf(100.00));
+        Money amount = Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(100.00));
         PaymentMethod paymentMethod = PaymentMethod.creditCard("****-1234");
         return new PaymentAggregate(paymentId, orderId, amount, paymentMethod);
     }

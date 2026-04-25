@@ -27,7 +27,7 @@ const ProductCard: FC<ProductCardProps> = ({
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
   const [selectedColorVariant, setSelectedColorVariant] = useState<ProductVariant | null>(null);
-  const { addToCart } = useCartContext();
+  const { addToCart, cart } = useCartContext();
   const navigate = useNavigate();
   
   // Enhanced product data with proper variant handling
@@ -62,6 +62,11 @@ const ProductCard: FC<ProductCardProps> = ({
       isSale
     };
   }, [product]);
+
+  const quantityInCart = useMemo(() => {
+    const cartItem = (cart.items || []).find((item) => item.sku === product.sku);
+    return cartItem?.cartQuantity ?? 0;
+  }, [cart.items, product.sku]);
 
   // Fallback placeholder image
   const getPlaceholderImage = () => {
@@ -236,7 +241,7 @@ const ProductCard: FC<ProductCardProps> = ({
               data-testid={`add-button-${product.sku}`}
               aria-label="Quick add to cart"
             >
-              {isLoading ? 'Adding...' : product.inStock ? 'Quick Add' : 'Sold Out'}
+              {isLoading ? 'Adding...' : product.inStock ? (quantityInCart > 0 ? `Add More (${quantityInCart})` : 'Quick Add') : 'Sold Out'}
             </button>
           </div>
         )}
@@ -249,6 +254,13 @@ const ProductCard: FC<ProductCardProps> = ({
         
         {/* Product Title */}
         <h3 className="product-title">{product.title}</h3>
+
+        {quantityInCart > 0 && (
+          <div className="cart-presence" aria-label={`${quantityInCart} item${quantityInCart === 1 ? '' : 's'} of this product in cart`}>
+            <span className="cart-presence-label">In cart</span>
+            <span className="cart-presence-value">{quantityInCart}</span>
+          </div>
+        )}
         
         {/* Rating */}
         {product.rating && (

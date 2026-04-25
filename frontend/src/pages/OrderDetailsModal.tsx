@@ -16,7 +16,7 @@ interface OrderDetailsModalProps {
 }
 
 const formatCurrency = (amount: number, currency: string): string => {
-  const code = (currency || 'USD').toUpperCase();
+  const code = (currency || 'EUR').toUpperCase();
   try {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -120,7 +120,7 @@ const OrderDetailsModal: FC<OrderDetailsModalProps> = ({ order, payment, onClose
     }
   };
 
-  const currency = order.items[0]?.currency || payment?.currency || 'USD';
+  const currency = order.items[0]?.currency || payment?.currency || 'EUR';
   const itemCount = order.items.reduce((sum, item) => sum + item.cartQuantity, 0);
   const computedSubtotal = order.items.reduce(
     (sum, item) => sum + item.price * item.cartQuantity,

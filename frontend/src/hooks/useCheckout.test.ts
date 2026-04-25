@@ -29,7 +29,7 @@ const hoisted = vi.hoisted(() => {
     paymentId: 'PAY-1',
     orderId: 'ORDER-1',
     amount: 120,
-    currency: 'USD',
+    currency: 'EUR',
     paymentMethodType: 'CREDIT_CARD',
     status: 'CREATED',
   });
@@ -38,7 +38,7 @@ const hoisted = vi.hoisted(() => {
     paymentId: 'PAY-1',
     orderId: 'ORDER-1',
     amount: 120,
-    currency: 'USD',
+    currency: 'EUR',
     paymentMethodType: 'CREDIT_CARD',
     status: 'COMPLETED',
     isSuccessful: true,
@@ -65,7 +65,7 @@ vi.mock('@context/CartContext', () => ({
           sku: 'SKU-1',
           title: 'Item',
           price: 120,
-          currency: 'USD',
+          currency: 'EUR',
           cartQuantity: 1,
         },
       ],
@@ -102,7 +102,7 @@ describe('useCheckout', () => {
     expect(hoisted.createPayment).toHaveBeenCalledWith({
       orderId: 'ORDER-1',
       amount: 120,
-      currency: 'USD',
+      currency: 'EUR',
       paymentMethodType: 'CREDIT_CARD',
       paymentMethodDetails: '****4242',
     });

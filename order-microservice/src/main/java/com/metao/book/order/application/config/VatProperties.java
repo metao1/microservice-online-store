@@ -22,6 +22,6 @@ public record VatProperties(@Min(0) @DefaultValue("0") int percentage) {
      * Materialise the configured percentage into the shared-kernel value object.
      */
     public VAT toVat() {
-        return new VAT(percentage);
+        return VAT.valueOf(percentage);
     }
 }

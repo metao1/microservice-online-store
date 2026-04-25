@@ -134,7 +134,7 @@ class KafkaIntegrationIT extends KafkaContainer {
                             .setProductSku("prod-" + i)
                             .setPrice(10.0 + i)
                             .setQuantity(1.0)
-                            .setCurrency("USD")
+                            .setCurrency("EUR")
                             .setStatus(CreatedEventTest.Status.NEW)
                             .build();
                     kafkaTemplate.send(kafkaTopic, orderIdPrefix, event);
@@ -204,7 +204,7 @@ class KafkaIntegrationIT extends KafkaContainer {
                         .setProductSku("prod-" + producerIndex + "-" + i)
                         .setPrice(20.0 + i)
                         .setQuantity(1.0)
-                        .setCurrency("USD")
+                        .setCurrency("EUR")
                         .setStatus(CreatedEventTest.Status.NEW)
                         .build();
                     kafkaTemplate.send(kafkaTopic, orderIdPrefix, event);

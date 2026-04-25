@@ -22,8 +22,8 @@ public class VAT implements ValueObject {
      */
     @JsonCreator
     public VAT(int percentage) {
-        if (percentage < 0) {
-            throw new IllegalArgumentException("VAT cannot be negative");
+        if (percentage <= 0) {
+            throw new IllegalArgumentException("VAT should be positive");
         }
         this.percentage = percentage;
     }

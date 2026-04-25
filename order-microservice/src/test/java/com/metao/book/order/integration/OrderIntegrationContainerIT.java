@@ -37,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 @TestPropertySource(properties = "kafka.enabled=true")
 class OrderIntegrationContainerIT extends KafkaContainer {
 
-    private static final Currency USD = Currency.getInstance("USD");
+    private static final Currency USD = Currency.getInstance("EUR");
     private static final BigDecimal ONE = BigDecimal.ONE;
 
     @Autowired
