@@ -277,11 +277,11 @@ public class ProductDomainService {
     /**
      * Reduce product volume with a single atomic SQL update.
      */
-    public void reduceProductVolumeAtomically(String sku, BigDecimal quantity) {
+    public boolean reduceProductVolumeAtomically(String sku, BigDecimal quantity) {
         if (sku == null || quantity == null) {
-            return;
+            return false;
         }
-        log.info("Reducing volume atomically for product {} by {}", sku, quantity);
+        log.debug("Reducing volume atomically for product {} by {}", sku, quantity);
 
         ProductSku productSku = ProductSku.of(sku);
         Quantity.of(quantity);
@@ -291,10 +291,12 @@ public class ProductDomainService {
             if (!productRepository.existsById(productSku)) {
                 throw new ProductNotFoundException(productSku);
             }
-            throw new IllegalStateException("Insufficient product volume for SKU " + sku);
+            log.debug("Skipping atomic volume reduction for {} due to insufficient volume", sku);
+            return false;
         }
         invalidateReadCaches();
-        log.info("Product volume reduced atomically for {}", sku);
+        log.debug("Product volume reduced atomically for {}", sku);
+        return true;
     }
 
     /**

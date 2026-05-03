@@ -34,6 +34,7 @@ public class ProductEntityMapper {
             product.getCreatedTime(),
             product.getUpdatedTime()
         );
+        entity.setVersion(product.getVersion());
 
         // Map categories
         product.getCategories().stream()
@@ -65,7 +66,8 @@ public class ProductEntityMapper {
             entity.getCreatedTime(),
             entity.getUpdateTime(),
             entity.getImageUrl(),
-            categories
+            categories,
+            entity.getVersion()
         );
     }
 

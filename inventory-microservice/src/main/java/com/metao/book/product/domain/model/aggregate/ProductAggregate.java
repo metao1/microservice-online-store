@@ -36,6 +36,7 @@ public class ProductAggregate extends AggregateRoot<ProductSku> {
     private ImageUrl imageUrl;
     @NotNull
     private Set<ProductCategory> categories;
+    private final Long version;
     @NotNull
     private final Instant createdTime;
     private Instant updatedTime;
@@ -52,6 +53,21 @@ public class ProductAggregate extends AggregateRoot<ProductSku> {
         @NotNull ImageUrl imageUrl,
         Set<ProductCategory> categories
     ) {
+        this(productSku, title, description, volume, money, createdTime, updatedTime, imageUrl, categories, null);
+    }
+
+    public ProductAggregate(
+        @NotNull ProductSku productSku,
+        @NotNull ProductTitle title,
+        @NotNull ProductDescription description,
+        @NotNull Quantity volume,
+        @NotNull Money money,
+        @NotNull Instant createdTime,
+        @NotNull Instant updatedTime,
+        @NotNull ImageUrl imageUrl,
+        Set<ProductCategory> categories,
+        Long version
+    ) {
         super(productSku);
         this.title = title;
         this.description = description;
@@ -61,6 +77,7 @@ public class ProductAggregate extends AggregateRoot<ProductSku> {
         this.createdTime = createdTime;
         this.updatedTime = updatedTime != null ? updatedTime : createdTime;
         this.categories = categories != null ? new HashSet<>(categories) : new HashSet<>();
+        this.version = version;
 
         // Raise domain event
         addDomainEvent(new DomainProductCreatedEvent(

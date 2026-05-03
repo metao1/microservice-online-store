@@ -35,7 +35,15 @@ public class HandleProductUpdatedEventUseCase {
             return;
         }
 
-        productService.reduceProductVolumeAtomically(command.sku(), command.volume());
+        boolean reduced = productService.reduceProductVolumeAtomically(command.sku(), command.volume());
+        if (!reduced) {
+            log.debug(
+                "Skipping inventory reduction for sku {} because stock is insufficient (event {}).",
+                command.sku(),
+                command.eventId()
+            );
+            return;
+        }
 
         log.info("Inventory reduced for sku {} by {} (event {}).",
             command.sku(), command.volume(), command.eventId());

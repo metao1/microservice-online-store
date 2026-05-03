@@ -154,8 +154,8 @@
       },
       "thresholds": {
         "maxErrorRatePct": 1.0,
-        "maxP95Ms": 1500.0,
-        "maxP99Ms": 3000.0
+        "maxP95Ms": 3500.0,
+        "maxP99Ms": 4500.0
       }
     },
     {

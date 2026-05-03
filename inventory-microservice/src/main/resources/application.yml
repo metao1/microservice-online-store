@@ -78,7 +78,7 @@ spring:
       group-id: ${spring.application.name}-group
       properties:
         session.timeout.ms: 30000
-        max.poll.interval.ms: 300
+        max.poll.interval.ms: 300000
         heartbeat.interval.ms: 1000
         auto.offset.reset: earliest
         allow.auto.create.topics: 'true'
