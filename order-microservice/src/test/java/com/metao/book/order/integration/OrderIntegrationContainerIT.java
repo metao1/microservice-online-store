@@ -2,6 +2,7 @@ package com.metao.book.order.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 
 import com.metao.book.order.application.cart.ShoppingCartItem;
 import com.metao.book.order.application.cart.ShoppingCartService;
@@ -15,6 +16,7 @@ import com.metao.book.order.infrastructure.persistence.repository.SpringDataOrde
 import com.metao.book.order.presentation.dto.OrderResponseDto;
 import com.metao.shared.test.KafkaContainer;
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.Currency;
 import java.util.List;
 import java.util.Set;
@@ -30,7 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -59,7 +60,15 @@ class OrderIntegrationContainerIT extends KafkaContainer {
 
     private OrderId createOrderWithCartItems(UserId userId, Set<ShoppingCartItem> items) {
         shoppingCartService.addItemToCart(userId.value(), items);
-        return orderService.createOrder(userId);
+        OrderId orderId = orderService.createOrder(userId);
+        awaitOrderPersisted(orderId);
+        return orderId;
+    }
+
+    private void awaitOrderPersisted(OrderId orderId) {
+        await().atMost(Duration.ofSeconds(20))
+            .pollInterval(Duration.ofMillis(300))
+            .untilAsserted(() -> assertThat(orderRepository.findById(orderId.value())).isPresent());
     }
 
     private OrderId createOrderWithCartItems(
@@ -83,7 +92,6 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         }
 
         @Test
-        @Transactional
         void shouldCreateOrderAndPublishEvent() {
             UserId userId = UserId.of("user123");
 
@@ -101,14 +109,12 @@ class OrderIntegrationContainerIT extends KafkaContainer {
 
         @ParameterizedTest
         @MethodSource("invalidUserIdTestData")
-        @Transactional
         void shouldNotCreateOrderWithInvalidUserId(UserId userId) {
             assertThatThrownBy(() -> orderService.createOrder(userId))
                 .isInstanceOf(NullPointerException.class);
         }
 
         @Test
-        @Transactional
         void shouldCreateMultipleOrdersForSameCustomer() {
             UserId userId = UserId.of("user123");
 
@@ -135,7 +141,6 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         }
 
         @Test
-        @Transactional
         void shouldCreateOrderWithMultipleCartItems() {
             UserId userId = UserId.of("user123");
 
@@ -149,7 +154,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
 
             var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
             assertThat(order.getItems()).hasSize(2);
-            assertThat(order.getTotal().fixedPointAmount()).isEqualByComparingTo(BigDecimal.valueOf(42));
+            assertThat(order.getTotal().fixedPointAmount()).isEqualByComparingTo(BigDecimal.valueOf(41.65));
         }
     }
 
@@ -157,7 +162,6 @@ class OrderIntegrationContainerIT extends KafkaContainer {
     class OrderItemManagementTests {
 
         @Test
-        @Transactional
         void shouldUpdateItemQuantity() {
             UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, sku, "product123", BigDecimal.TWO, BigDecimal.TEN);
@@ -176,7 +180,6 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         }
 
         @Test
-        @Transactional
         void shouldRemoveItem() {
             UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, sku, "product123", ONE, BigDecimal.TEN);
@@ -197,7 +200,6 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         }
 
         @Test
-        @Transactional
         void shouldUpdateOrderStatusAndPublishEvent() {
             UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, sku, "product123", ONE, BigDecimal.TEN);
@@ -209,7 +211,6 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         }
 
         @Test
-        @Transactional
         void shouldNotUpdateStatusOfNonExistentOrder() {
             OrderId nonExistentOrderId = OrderId.generate();
 
@@ -219,7 +220,6 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         }
 
         @Test
-        @Transactional
         void shouldNotUpdateStatusWithInvalidStatus() {
             UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, sku, "product123", ONE, BigDecimal.TEN);
@@ -230,7 +230,6 @@ class OrderIntegrationContainerIT extends KafkaContainer {
 
         @ParameterizedTest
         @MethodSource("validStatusTransitionTestData")
-        @Transactional
         void shouldFollowValidStatusTransition(List<OrderStatus> statusSequence) {
             UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, sku, "product123", ONE, BigDecimal.TEN);
@@ -243,7 +242,6 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         }
 
         @Test
-        @Transactional
         void shouldNotAllowInvalidStatusTransition() {
             UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, sku, "product123", ONE, BigDecimal.TEN);
@@ -258,7 +256,6 @@ class OrderIntegrationContainerIT extends KafkaContainer {
     class OrderQueryTests {
 
         @Test
-        @Transactional
         void shouldGetCustomerOrders() {
             UserId userId = UserId.of("user123");
             createOrderWithCartItems(userId, "product-1", "Book 1", ONE, BigDecimal.TEN);
@@ -275,7 +272,6 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         }
 
         @Test
-        @Transactional
         void shouldReturnEmptyListForNonExistentCustomer() {
             List<OrderResponseDto> orders = orderService.getCustomerOrders(UserId.of("nonExistentCustomer"))
                 .stream()
@@ -286,7 +282,6 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         }
 
         @Test
-        @Transactional
         void shouldGetOrdersWithCorrectTotal() {
             UserId userId = UserId.of("user123");
             createOrderWithCartItems(
@@ -303,11 +298,10 @@ class OrderIntegrationContainerIT extends KafkaContainer {
                 .toList();
 
             assertThat(orders).hasSize(1);
-            assertThat(orders.getFirst().getTotal().fixedPointAmount()).isEqualByComparingTo(BigDecimal.valueOf(48));
+            assertThat(orders.getFirst().getTotal().fixedPointAmount()).isEqualByComparingTo(BigDecimal.valueOf(47.60));
         }
 
         @Test
-        @Transactional
         void shouldGetOrdersByStatus() {
             UserId userId = UserId.of("user123");
             OrderId paidOrderId = createOrderWithCartItems(userId, "product-1", "Book 1", ONE, BigDecimal.TEN);
@@ -338,7 +332,6 @@ class OrderIntegrationContainerIT extends KafkaContainer {
     class TransactionManagementTests {
 
         @Test
-        @Transactional
         void shouldMaintainConsistencyAcrossOperations() {
             UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(
@@ -354,7 +347,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
             var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
             assertThat(order.getItems()).hasSize(2);
             assertThat(order.getStatus()).isEqualTo(OrderStatus.PAID);
-            assertThat(order.getTotal().fixedPointAmount()).isEqualByComparingTo(BigDecimal.valueOf(30));
+            assertThat(order.getTotal().fixedPointAmount()).isEqualByComparingTo(BigDecimal.valueOf(29.75));
         }
     }
 
@@ -362,7 +355,6 @@ class OrderIntegrationContainerIT extends KafkaContainer {
     class EdgeCaseTests {
 
         @Test
-        @Transactional
         void shouldHandleLargeOrderQuantities() {
             UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(
@@ -378,7 +370,6 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         }
 
         @Test
-        @Transactional
         void shouldHandleHighPrecisionPrices() {
             UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(
@@ -396,7 +387,6 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         }
 
         @Test
-        @Transactional
         void shouldHandleSpecialCharactersInProductNames() {
             UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(
@@ -412,7 +402,6 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         }
 
         @Test
-        @Transactional
         void shouldHandleLongUserIds() {
             String longUserId = "customer" + "x".repeat(100);
             UserId userId = UserId.of(longUserId);

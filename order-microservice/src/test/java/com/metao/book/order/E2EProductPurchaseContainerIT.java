@@ -47,9 +47,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
 @Slf4j
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @ActiveProfiles("test")
 @TestPropertySource(properties = "kafka.enabled=true")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class E2EProductPurchaseContainerIT extends KafkaContainer {
 
@@ -100,8 +100,7 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
     @Test
     void shouldCompletePurchaseFlowAndPublishInventoryReductionEvent() {
         AddItemRequestDto addItemDTO = new AddItemRequestDto(
-            userId,
-                Set.of(new ShoppingCartItem(sku1, productTitle, quantity1, price1, currency))
+            userId, Set.of(new ShoppingCartItem(sku1, productTitle, quantity1, price1, currency))
         );
 
         given()
@@ -123,6 +122,8 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
             .statusCode(HttpStatus.CREATED.value())
             .extract()
             .as(OrderId.class);
+
+        awaitOrderCreated(orderId);
 
         assertThat(shoppingCartRepository.findByUserId(userId)).hasSize(1);
 
@@ -182,6 +183,8 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
             .extract()
             .as(OrderId.class);
 
+        awaitOrderCreated(orderId);
+
         String paymentId = UUID.randomUUID().toString();
         OrderPaymentUpdatedEvent firstPaymentEvent = OrderPaymentUpdatedEvent.newBuilder()
             .setOrderId(orderId.value())
@@ -235,5 +238,16 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
             .filter(record -> sku.equals(record.value().getSku()))
             .filter(record -> INVENTORY_REDUCTION_MARKER.equals(record.value().getDescription()))
             .count();
+    }
+
+    private void awaitOrderCreated(OrderId orderId) {
+        await().atMost(Duration.ofSeconds(20))
+            .pollInterval(Duration.ofMillis(300))
+            .untilAsserted(() -> {
+                var maybeOrder = orderRepository.findById(orderId);
+                assertThat(maybeOrder).isPresent();
+                OrderAggregate order = maybeOrder.orElseThrow();
+                assertThat(order.getStatus()).isEqualTo(OrderStatus.CREATED);
+            });
     }
 }
