@@ -61,5 +61,4 @@ public interface ProductRepository {
 
     boolean reduceVolumeAtomically(ProductSku sku, BigDecimal quantity);
 
-    void flush();
 }

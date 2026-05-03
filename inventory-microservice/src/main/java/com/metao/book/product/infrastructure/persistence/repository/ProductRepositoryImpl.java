@@ -158,11 +158,6 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
-    public void flush() {
-        jpaProductRepository.flush();
-    }
-
-    @Override
     public boolean reduceVolumeAtomically(ProductSku sku, BigDecimal quantity) {
         return jpaProductRepository.decrementVolumeIfEnough(sku.value(), quantity) > 0;
     }
