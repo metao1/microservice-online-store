@@ -59,7 +59,6 @@ public class OrderManagementService {
         });
 
         order.raiseOrderCreatedEvents();
-        orderRepository.save(order);
         publishEvents(order);
         return order.getId();
     }

@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
 
 /**
@@ -39,6 +40,7 @@ public class ProductEntity implements Serializable {
     @AttributeOverride(name = "value", column = @Column(name = "sku", nullable = false, unique = true, length = 10))
     private ProductSku sku;
 
+    @Setter
     @Version
     @Column(name = "version")
     private Long version;
@@ -108,4 +110,18 @@ public class ProductEntity implements Serializable {
     public void removeCategory(CategoryEntity categoryEntity) {
         categories.remove(categoryEntity);
     }
+
+    public void updateFrom(ProductEntity source) {
+        this.volume = source.getVolume();
+        this.title = source.getTitle();
+        this.description = source.getDescription();
+        this.imageUrl = source.getImageUrl();
+        this.price = source.getPrice();
+        this.createdTime = source.getCreatedTime();
+        this.updateTime = source.getUpdateTime();
+
+        this.categories.clear();
+        source.getCategories().forEach(this::addCategory);
+    }
+
 }

@@ -1,6 +1,7 @@
 package com.metao.book.order.domain.service;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -64,7 +65,7 @@ class OrderManagementServiceTest {
 
         orderManagementService.createOrder(userId);
 
-        verify(orderRepository).save(any());
+        verify(orderRepository, never()).save(any());
         verify(eventPublisher, times(1)).publish(any());
     }
 }

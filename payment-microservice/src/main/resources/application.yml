@@ -77,7 +77,7 @@ spring:
       enable-auto-commit: false
       properties:
         session.timeout.ms: 30000
-        max.poll.interval.ms: 300
+        max.poll.interval.ms: 300000
         max.idle.time.ms: 60000
         heartbeat.interval.ms: 1000
         auto.offset.reset: earliest

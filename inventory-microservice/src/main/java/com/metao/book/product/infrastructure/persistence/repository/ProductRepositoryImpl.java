@@ -14,6 +14,7 @@ import com.metao.book.shared.domain.product.ProductSku;
 import io.micrometer.observation.annotation.Observed;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.Duration;
@@ -65,8 +66,13 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public void save(ProductAggregate product) {
-        ProductEntity entity = productEntityMapper.toEntity(product);
-        jpaProductRepository.save(entity);
+        ProductEntity source = productEntityMapper.toEntity(product);
+        ProductEntity managed = entityManager.find(ProductEntity.class, product.getId(), LockModeType.PESSIMISTIC_WRITE);
+        if (managed == null) {
+            entityManager.persist(source);
+        } else {
+            managed.updateFrom(source);
+        }
         invalidateCategoryCacheEntries(product.getCategories());
     }
 
