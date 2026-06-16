@@ -1,11 +1,11 @@
 plugins {
   id 'java-library'
   id 'maven-publish'
-  id "com.google.protobuf" version "0.9.4"
+  id "com.google.protobuf" version "0.10.0"
 }
 
 ext {
-  springBootDependenciesVersion = "4.0.3"
+  springBootDependenciesVersion = "4.1.0"
 }
 
 def commitRefName = System.getenv("CI_COMMIT_REF_NAME") ?: "1.0"
