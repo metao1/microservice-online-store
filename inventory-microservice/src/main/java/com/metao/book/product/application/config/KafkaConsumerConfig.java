@@ -1,7 +1,8 @@
-package com.metao.book.product.application.config;
+package com.metao.book.product.infrastructure.config;
 
 import com.metao.book.product.ProductCreatedEvent;
 import com.metao.book.shared.ProductUpdatedEvent;
+import com.metao.book.shared.InventoryReductionRequestedEvent;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
 import java.util.HashMap;
@@ -69,6 +70,11 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
+    public ConsumerFactory<String, InventoryReductionRequestedEvent> inventoryReductionRequestedEventConsumerFactory() {
+        return createConsumerFactory(InventoryReductionRequestedEvent.class);
+    }
+
+    @Bean
     public ConcurrentKafkaListenerContainerFactory<String, ProductCreatedEvent> productCreatedEventKafkaListenerContainerFactory(
         ConsumerFactory<String, ProductCreatedEvent> productCreatedEventConsumerFactory,
         DefaultErrorHandler productErrorHandler
@@ -84,6 +90,16 @@ public class KafkaConsumerConfig {
         DefaultErrorHandler productErrorHandler
     ) {
         var factory = createListenerContainerFactory(productUpdatedEventConsumerFactory, productErrorHandler);
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
+        return factory;
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, InventoryReductionRequestedEvent> inventoryReductionRequestedEventKafkaListenerContainerFactory(
+        ConsumerFactory<String, InventoryReductionRequestedEvent> inventoryReductionRequestedEventConsumerFactory,
+        DefaultErrorHandler productErrorHandler
+    ) {
+        var factory = createListenerContainerFactory(inventoryReductionRequestedEventConsumerFactory, productErrorHandler);
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
         return factory;
     }

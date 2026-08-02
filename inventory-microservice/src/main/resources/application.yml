@@ -171,6 +171,11 @@ kafka:
       name: "product-updated"
       group-id: "product-updated-group"
       class-path: "com.metao.book.shared.ProductUpdatedEvent"
+    inventory-reduction-requested:
+      id: "inventory-reduction-requested-id"
+      name: "inventory-reduction-requested"
+      group-id: "inventory-reduction-requested-group"
+      class-path: "com.metao.book.shared.InventoryReductionRequestedEvent"
 
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%t]){yellow} %clr([trace=%X{traceId:-},span=%X{spanId:-}]){magenta} %clr(:){red} %clr(%m){faint}%n"

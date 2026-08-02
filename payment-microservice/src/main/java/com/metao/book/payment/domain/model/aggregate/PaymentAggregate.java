@@ -6,6 +6,7 @@ import com.metao.book.payment.domain.model.valueobject.OrderId;
 import com.metao.book.payment.domain.model.valueobject.PaymentId;
 import com.metao.book.payment.domain.model.valueobject.PaymentMethod;
 import com.metao.book.payment.domain.model.valueobject.PaymentStatus;
+import com.metao.book.payment.domain.exception.PaymentStateTransitionNotAllowed;
 import com.metao.book.shared.domain.base.AggregateRoot;
 import com.metao.book.shared.domain.financial.Money;
 import java.math.BigDecimal;
@@ -106,21 +107,23 @@ public class PaymentAggregate extends AggregateRoot<PaymentId> {
      * Process the payment - core business logic
      */
     public void processPayment() {
-        if (!status.equals(PaymentStatus.PENDING)) {
-            throw new IllegalStateException("Payment can only be processed when in PENDING status");
+        processPayment(true, null);
+    }
+
+    public void processPayment(boolean processingSuccessful, String failureReason) {
+        PaymentStatus targetStatus = processingSuccessful ? PaymentStatus.SUCCESSFUL : PaymentStatus.FAILED;
+        if (!status.canTransitionTo(targetStatus)) {
+            throw new PaymentStateTransitionNotAllowed(status, targetStatus);
         }
 
         if (!isAmountValid()) {
             throw new IllegalArgumentException("Payment amount must be positive");
         }
 
-        // Simulate payment processing logic
-        boolean processingSuccessful = simulatePaymentProcessing();
-
         if (processingSuccessful) {
             markAsSuccessful();
         } else {
-            markAsFailed("Insufficient funds or payment gateway error");
+            markAsFailed(failureReason != null ? failureReason : "Payment gateway authorization failed");
         }
     }
 
@@ -128,7 +131,7 @@ public class PaymentAggregate extends AggregateRoot<PaymentId> {
      * Mark payment as successful
      */
     private void markAsSuccessful() {
-        this.status = PaymentStatus.SUCCESSFUL;
+        transitionTo(PaymentStatus.SUCCESSFUL);
         this.processedAt = Instant.now();
         this.failureReason = null;
 
@@ -145,7 +148,7 @@ public class PaymentAggregate extends AggregateRoot<PaymentId> {
      * Mark payment as failed
      */
     private void markAsFailed(String reason) {
-        this.status = PaymentStatus.FAILED;
+        transitionTo(PaymentStatus.FAILED);
         this.processedAt = Instant.now();
         this.failureReason = reason;
 
@@ -162,11 +165,7 @@ public class PaymentAggregate extends AggregateRoot<PaymentId> {
      * Retry failed payment
      */
     public void retry() {
-        if (!status.canBeRetried()) {
-            throw new IllegalStateException("Can only retry failed payments");
-        }
-
-        this.status = PaymentStatus.PENDING;
+        transitionTo(PaymentStatus.PENDING);
         this.failureReason = null;
         this.processedAt = null;
 
@@ -178,11 +177,7 @@ public class PaymentAggregate extends AggregateRoot<PaymentId> {
      * Cancel pending payment
      */
     public void cancel() {
-        if (!status.canBeCancelled()) {
-            throw new IllegalStateException("Can only cancel pending payments");
-        }
-
-        this.status = PaymentStatus.CANCELLED;
+        transitionTo(PaymentStatus.CANCELLED);
         this.processedAt = Instant.now();
     }
 
@@ -194,12 +189,11 @@ public class PaymentAggregate extends AggregateRoot<PaymentId> {
             amount.fixedPointAmount().compareTo(BigDecimal.ZERO) > 0;
     }
 
-    /**
-     * Simulate payment processing (replace with real payment gateway integration)
-     */
-    private boolean simulatePaymentProcessing() {
-        // Current domain behavior remains deterministic until a real gateway adapter is integrated.
-        return true;
+    private void transitionTo(PaymentStatus target) {
+        if (!status.canTransitionTo(target)) {
+            throw new PaymentStateTransitionNotAllowed(status, target);
+        }
+        this.status = target;
     }
 
     /**

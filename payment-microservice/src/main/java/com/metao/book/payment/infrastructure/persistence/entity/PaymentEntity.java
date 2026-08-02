@@ -1,7 +1,5 @@
 package com.metao.book.payment.infrastructure.persistence.entity;
 
-import com.metao.book.payment.domain.model.valueobject.PaymentId;
-import com.metao.book.shared.domain.base.AbstractEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -23,7 +21,11 @@ import lombok.Setter;
 @Entity
 @NoArgsConstructor
 @Table(name = "payment")
-public class PaymentEntity extends AbstractEntity<PaymentId> {
+public class PaymentEntity {
+
+    @jakarta.persistence.Id
+    @Column(name = "id", unique = true, nullable = false)
+    private String id;
 
     @Column(name = "order_id", nullable = false)
     private String orderId;
@@ -68,7 +70,7 @@ public class PaymentEntity extends AbstractEntity<PaymentId> {
         PaymentStatusEntity status,
         Instant createdAt
     ) {
-        this.id = PaymentId.of(paymentId);
+        this.id = paymentId;
         this.orderId = orderId;
         this.amount = amount;
         this.currency = currency;
@@ -95,7 +97,7 @@ public class PaymentEntity extends AbstractEntity<PaymentId> {
 
     @Override
     public int hashCode() {
-        return id.hashCode();
+        return id == null ? 0 : id.hashCode();
     }
 
     @Override
@@ -107,6 +109,6 @@ public class PaymentEntity extends AbstractEntity<PaymentId> {
             return false;
         }
         PaymentEntity that = (PaymentEntity) obj;
-        return id.equals(that.id);
+        return id != null && id.equals(that.id);
     }
 }

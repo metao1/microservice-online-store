@@ -9,6 +9,7 @@ enum Status {
   PENDING = 0;
   SUCCESSFUL = 1;
   FAILED = 2;
+  CANCELLED = 3;
 };
 
 message UUID {

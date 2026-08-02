@@ -28,7 +28,7 @@ import com.metao.book.product.domain.repository.CategoryRepository;
 import com.metao.book.product.domain.repository.ProductRepository;
 import com.metao.book.product.infrastructure.persistence.repository.ProductCreateIdempotencyRepository;
 import com.metao.book.product.infrastructure.persistence.repository.ProductCreateIdempotencyRepository.ClaimResult;
-import com.metao.book.shared.domain.base.DomainEventPublisher;
+import com.metao.book.shared.application.messaging.DomainEventPublisher;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.product.Quantity;
 import java.math.BigDecimal;

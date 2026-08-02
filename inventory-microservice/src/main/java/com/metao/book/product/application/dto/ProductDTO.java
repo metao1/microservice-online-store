@@ -2,7 +2,7 @@ package com.metao.book.product.application.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.metao.book.product.application.config.CurrencyDeserializer;
+import com.metao.book.product.infrastructure.serialization.CurrencyDeserializer;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Currency;

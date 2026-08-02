@@ -10,6 +10,7 @@ openApi {
 
 dependencies {
   implementation project(':shared-kernel')
+  implementation project(':outbox-messaging')
   implementation project(':kafka-lib')
   // Make shared proto files available to protoc (Category.proto, etc.)
   protobuf project(':shared-kernel')
@@ -56,6 +57,18 @@ protobuf {
       artifact = 'com.google.protobuf:protoc:4.31.1:osx-x86_64'
     } else {
       artifact = 'com.google.protobuf:protoc:4.31.1'
+    }
+  }
+
+  plugins {
+    grpc {
+      artifact = 'io.grpc:protoc-gen-grpc-java:1.70.0'
+    }
+  }
+
+  generateProtoTasks {
+    all()*.plugins {
+      grpc {}
     }
   }
 }

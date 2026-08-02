@@ -5,13 +5,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.metao.book.payment.application.dto.PaymentDTO;
-import com.metao.book.payment.application.port.ProcessedOrderCreatedEventPort;
+import com.metao.book.payment.application.port.ConsumedMessagePort;
+import com.metao.book.payment.application.service.HandleOrderCreatedEventService;
 import com.metao.book.payment.application.service.PaymentApplicationService;
 import java.math.BigDecimal;
 import java.util.Currency;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -22,10 +22,17 @@ class HandleOrderCreatedEventUseCaseTest {
     private PaymentApplicationService paymentApplicationService;
 
     @Mock
-    private ProcessedOrderCreatedEventPort processedOrderCreatedEventPort;
+    private ConsumedMessagePort consumedMessagePort;
 
-    @InjectMocks
     private HandleOrderCreatedEventUseCase useCase;
+
+    @org.junit.jupiter.api.BeforeEach
+    void setUp() {
+        useCase = new HandleOrderCreatedEventService(
+            paymentApplicationService,
+            consumedMessagePort
+        );
+    }
 
     @Test
     void handleProcessesFirstOrderCreatedEvent() {
@@ -46,7 +53,7 @@ class HandleOrderCreatedEventUseCaseTest {
             .isSuccessful(true)
             .build();
 
-        when(processedOrderCreatedEventPort.markProcessed("order-1")).thenReturn(true);
+        when(consumedMessagePort.claim("payment.order-created", "order-1")).thenReturn(true);
         when(paymentApplicationService.processOrderCreatedEvent("order-1", BigDecimal.valueOf(10.0), "EUR"))
             .thenReturn(paymentDTO);
 
@@ -64,7 +71,7 @@ class HandleOrderCreatedEventUseCaseTest {
             "EUR"
         );
 
-        when(processedOrderCreatedEventPort.markProcessed("order-1")).thenReturn(false);
+        when(consumedMessagePort.claim("payment.order-created", "order-1")).thenReturn(false);
 
         useCase.handle(command);
 

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.metao.book.product.application.dto.CreateProductCommand;
 import com.metao.book.product.application.dto.ProductDTO;
 import com.metao.book.product.application.service.CreateProductResult;
-import com.metao.book.product.application.service.ProductDomainService;
+import com.metao.book.product.application.usecase.ProductUseCase;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import java.io.BufferedReader;
@@ -34,7 +34,7 @@ public class ProductGenerator {
     @Value("classpath:data/products.txt")
     Resource resource;
 
-    private final ProductDomainService productDomainService;
+    private final ProductUseCase productUseCase;
     private final ObjectMapper dtoMapper;
     private final EntityManager entityManager;
 
@@ -75,7 +75,7 @@ public class ProductGenerator {
         int processed = 0;
         for (CreateProductCommand product : products) {
             try {
-                var createProductResult = productDomainService.createProduct(product);
+                var createProductResult = productUseCase.createProduct(product);
                 if (createProductResult.equals(CreateProductResult.ALREADY_EXISTS)) {
                     skippedDuplicateCount++;
                 } else {

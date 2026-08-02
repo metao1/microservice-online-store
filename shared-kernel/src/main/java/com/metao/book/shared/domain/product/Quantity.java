@@ -5,6 +5,7 @@ import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.Objects;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 /**
@@ -12,17 +13,24 @@ import lombok.NonNull;
  * Allows zero but disallows negative amounts.
  */
 @Embeddable
-public record Quantity(BigDecimal value) implements ValueObject {
+@NoArgsConstructor
+public class Quantity implements ValueObject {
+
+    private BigDecimal value;
 
     public Quantity(@NonNull BigDecimal value) {
         if (value.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Quantity must be positive");
+            throw new IllegalArgumentException("Quantity must not be negative");
         }
         this.value = value;
     }
 
     public static Quantity of(BigDecimal value) {
         return new Quantity(value);
+    }
+
+    public BigDecimal value() {
+        return value;
     }
 
     public Quantity add(@NonNull Quantity other) {

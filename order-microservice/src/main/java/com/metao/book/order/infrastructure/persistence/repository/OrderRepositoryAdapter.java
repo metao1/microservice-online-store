@@ -1,5 +1,6 @@
 package com.metao.book.order.infrastructure.persistence.repository;
 
+import com.metao.book.order.application.port.OrderPort;
 import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.UserId;
@@ -7,7 +8,7 @@ import com.metao.book.order.domain.repository.OrderRepository;
 import com.metao.book.order.infrastructure.persistence.entity.OrderItemEntity;
 import com.metao.book.order.infrastructure.persistence.entity.OrderJpaEntity;
 import com.metao.book.order.infrastructure.persistence.mapper.OrderEntityMapper;
-import com.metao.book.shared.application.persistence.OffsetBasedPageRequest;
+import com.metao.book.shared.spring.persistence.OffsetBasedPageRequest;
 import com.metao.book.shared.domain.financial.VAT;
 import io.micrometer.observation.annotation.Observed;
 import java.util.Comparator;
@@ -22,7 +23,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 @RequiredArgsConstructor
 @Observed(name = "order.persistence.repository", contextualName = "order-repository")
-public class OrderRepositoryAdapter implements OrderRepository {
+public class OrderRepositoryAdapter implements OrderRepository, OrderPort {
 
     private final SpringDataOrderRepository springDataOrderRepository;
     private final VAT vat;

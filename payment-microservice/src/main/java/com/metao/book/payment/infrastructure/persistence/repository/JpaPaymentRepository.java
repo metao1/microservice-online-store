@@ -1,6 +1,5 @@
 package com.metao.book.payment.infrastructure.persistence.repository;
 
-import com.metao.book.payment.domain.model.valueobject.PaymentId;
 import com.metao.book.payment.infrastructure.persistence.entity.PaymentEntity;
 import io.micrometer.core.annotation.Timed;
 import jakarta.persistence.LockModeType;
@@ -17,12 +16,12 @@ import org.springframework.stereotype.Repository;
  * JPA repository for PaymentEntity
  */
 @Repository
-public interface JpaPaymentRepository extends JpaRepository<PaymentEntity, PaymentId> {
+public interface JpaPaymentRepository extends JpaRepository<PaymentEntity, String> {
 
     @Timed(value = "payment.db.find-by-id-for-update")
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM PaymentEntity p WHERE p.id = :paymentId")
-    Optional<PaymentEntity> findByIdForUpdate(@Param("paymentId") PaymentId paymentId);
+    Optional<PaymentEntity> findByIdForUpdate(@Param("paymentId") String paymentId);
 
     @Timed(value = "payment.db.find-by-order-id")
     Optional<PaymentEntity> findByOrderId(String orderId);

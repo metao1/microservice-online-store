@@ -3,10 +3,7 @@ package com.metao.book.order.application.cart;
 import com.metao.book.order.domain.exception.ShoppingCartNotFoundException;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import java.time.OffsetDateTime;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,19 +13,13 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ShoppingCartService {
 
-    private final ShoppingCartRepository shoppingCartRepository;
+    private final ShoppingCartPort shoppingCartPort;
 
-    public ShoppingCartDto getCartForUser(String userId) {
-        var items = shoppingCartRepository.findByUserId(userId);
+    public ShoppingCartView getCartForUser(String userId) {
+        var items = shoppingCartPort.findByUserId(userId);
         var cartItems = items.stream()
-            .map(item -> new ShoppingCartItem(
-                item.getSku(),
-                item.getProductTitle(),
-                item.getQuantity(),
-                item.getSellPrice(), // Assuming sellPrice is the price to display
-                item.getCurrency()
-            )).toList();
-        return new ShoppingCartDto(
+            .toList();
+        return new ShoppingCartView(
             userId,
             Set.copyOf(cartItems)
         );
@@ -43,65 +34,53 @@ public class ShoppingCartService {
             return 0;
         }
 
-        long now = OffsetDateTime.now().toInstant().toEpochMilli();
         Set<String> skus = shoppingCartItems.stream()
             .map(ShoppingCartItem::sku)
             .collect(Collectors.toSet());
-        Map<String, ShoppingCart> existingBySku = shoppingCartRepository.findByUserIdAndSkuIn(userId, skus).stream()
-            .collect(Collectors.toMap(ShoppingCart::getSku, Function.identity()));
+        Set<String> existingSkus = shoppingCartPort.findByUserIdAndSkuIn(userId, skus).stream()
+            .map(ShoppingCartItem::sku)
+            .collect(Collectors.toSet());
 
         var items = shoppingCartItems.stream()
             .map(item -> {
-                ShoppingCart existingItem = existingBySku.get(item.sku());
-                if (existingItem != null) {
-                    existingItem.setQuantity(existingItem.getQuantity().add(item.quantity()));
-                    existingItem.setUpdatedOn(now);
-                    return existingItem;
+                if (existingSkus.contains(item.sku())) {
+                    return shoppingCartPort.findByUserIdAndSku(userId, item.sku())
+                        .map(existing -> new ShoppingCartItem(
+                            existing.sku(), existing.productTitle(), existing.quantity().add(item.quantity()), existing.price(), existing.currency()))
+                        .orElse(item);
                 }
-
-                var newItem = new ShoppingCart(
-                    userId,
-                    item.sku(),
-                    item.productTitle(),
-                    item.price(),
-                    item.price(),
-                    item.quantity(),
-                    item.currency()
-                );
-                newItem.setUpdatedOn(now);
-                return newItem;
+                return item;
             })
             .toList();
 
-        shoppingCartRepository.saveAll(items);
+        shoppingCartPort.saveAll(userId, items);
         return items.size();
     }
 
     @Transactional
-    public ShoppingCart updateItemQuantity(String userId, String sku, BigDecimal newQuantity) {
-        ShoppingCart item = shoppingCartRepository.findByUserIdAndSku(userId, sku)
+    public ShoppingCartItem updateItemQuantity(String userId, String sku, BigDecimal newQuantity) {
+        ShoppingCartItem item = shoppingCartPort.findByUserIdAndSku(userId, sku)
             .orElseThrow(() -> new ShoppingCartNotFoundException(String.format("user %s and sku %s", userId, sku)));
 
         if (newQuantity.compareTo(BigDecimal.ZERO) <= 0) {
-            shoppingCartRepository.deleteByUserIdAndSku(userId, sku);
+            shoppingCartPort.deleteByUserIdAndSku(userId, sku);
             return null;
         } else {
-            item.setQuantity(newQuantity);
-            item.setUpdatedOn(OffsetDateTime.now().toInstant().toEpochMilli()); // Corrected timestamp
-            return shoppingCartRepository.save(item);
+            return shoppingCartPort.save(userId, new ShoppingCartItem(
+                item.sku(), item.productTitle(), newQuantity, item.price(), item.currency()));
         }
     }
 
     @Transactional
     public void removeItemFromCart(String userId, String sku) {
         // Ensure item exists before attempting to delete to provide a clear exception if not.
-        shoppingCartRepository.findByUserIdAndSku(userId, sku)
+        shoppingCartPort.findByUserIdAndSku(userId, sku)
             .orElseThrow(() -> new ShoppingCartNotFoundException(String.format("user %s and sku %s", userId, sku)));
-        shoppingCartRepository.deleteByUserIdAndSku(userId, sku);
+        shoppingCartPort.deleteByUserIdAndSku(userId, sku);
     }
 
     @Transactional
     public void clearCart(String userId) {
-        shoppingCartRepository.deleteByUserId(userId);
+        shoppingCartPort.deleteByUserId(userId);
     }
 }

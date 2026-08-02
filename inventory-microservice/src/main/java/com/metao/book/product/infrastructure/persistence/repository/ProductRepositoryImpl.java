@@ -9,7 +9,7 @@ import com.metao.book.product.domain.repository.ProductRepository;
 import com.metao.book.product.infrastructure.persistence.entity.CategoryEntity;
 import com.metao.book.product.infrastructure.persistence.entity.ProductEntity;
 import com.metao.book.product.infrastructure.persistence.mapper.ProductEntityMapper;
-import com.metao.book.shared.application.persistence.OffsetBasedPageRequest;
+import com.metao.book.shared.spring.persistence.OffsetBasedPageRequest;
 import com.metao.book.shared.domain.product.ProductSku;
 import io.micrometer.observation.annotation.Observed;
 import jakarta.annotation.PostConstruct;
