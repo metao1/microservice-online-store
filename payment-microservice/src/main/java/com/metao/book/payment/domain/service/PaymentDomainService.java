@@ -8,17 +8,16 @@ import com.metao.book.payment.domain.model.valueobject.PaymentId;
 import com.metao.book.payment.domain.model.valueobject.PaymentMethod;
 import com.metao.book.payment.domain.model.valueobject.PaymentStatus;
 import com.metao.book.payment.domain.repository.PaymentRepository;
+import com.metao.book.payment.domain.port.PaymentGatewayPort;
 import com.metao.book.shared.domain.financial.Money;
 import java.math.BigDecimal;
 import java.util.List;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
 /**
  * Domain service for complex business operations involving payments
  */
-@Service
 @RequiredArgsConstructor
 public class PaymentDomainService {
 
@@ -62,15 +61,21 @@ public class PaymentDomainService {
      * Process payment with business rules
      */
     public PaymentAggregate processPayment(@NonNull PaymentId paymentId) {
-        PaymentAggregate payment = paymentRepository.findByIdForUpdate(paymentId)
+        PaymentAggregate payment = paymentRepository.findById(paymentId)
             .orElseThrow(() -> new PaymentNotFoundException(paymentId));
+        return processPayment(payment, PaymentGatewayPort.PaymentAuthorizationResult.success());
+    }
 
+    public PaymentAggregate processPayment(
+        @NonNull PaymentAggregate payment,
+        @NonNull PaymentGatewayPort.PaymentAuthorizationResult authorizationResult
+    ) {
         // Business rule: Check if payment can be processed
-        if (!payment.getStatus().equals(PaymentStatus.PENDING)) {
+        if (payment.getStatus() != PaymentStatus.PENDING) {
             throw new IllegalStateException("Payment must be in PENDING status to be processed");
         }
 
-        payment.processPayment();
+        payment.processPayment(authorizationResult.successful(), authorizationResult.failureReason());
         paymentRepository.save(payment);
         return payment;
     }

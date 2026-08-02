@@ -15,6 +15,7 @@ import java.util.Currency;
 import java.util.List;
 
 public record OrderCreatedEventMessage(
+    String eventId,
     String orderId,
     String userId,
     List<OrderCreatedEventItemMessage> items,
@@ -32,6 +33,7 @@ public record OrderCreatedEventMessage(
             : createdAt;
 
         return new OrderCreatedEventMessage(
+            event.getEventId(),
             event.getId(),
             event.getUserId(),
             mapItems(event),
@@ -43,6 +45,7 @@ public record OrderCreatedEventMessage(
 
     public OrderCreatedEvent toDomainEvent() {
         return new OrderCreatedEvent(
+            eventId,
             OrderId.of(orderId),
             UserId.of(userId),
             items.stream().map(OrderCreatedEventItemMessage::toDomain).toList(),

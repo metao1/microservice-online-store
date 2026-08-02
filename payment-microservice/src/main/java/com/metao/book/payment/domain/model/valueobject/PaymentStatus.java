@@ -33,4 +33,12 @@ public enum PaymentStatus {
     public boolean canBeCancelled() {
         return this == PENDING;
     }
+
+    public boolean canTransitionTo(PaymentStatus target) {
+        return switch (this) {
+            case PENDING -> target == SUCCESSFUL || target == FAILED || target == CANCELLED;
+            case FAILED -> target == PENDING;
+            case SUCCESSFUL, CANCELLED -> false;
+        };
+    }
 }

@@ -1,4 +1,4 @@
-package com.metao.book.product.application.config;
+package com.metao.book.product.infrastructure.serialization;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;

@@ -2,50 +2,33 @@ package com.metao.book.product.application.usecase;
 
 import com.metao.book.product.application.port.ProcessedInventoryEventPort;
 import com.metao.book.product.application.service.ProductDomainService;
-import lombok.RequiredArgsConstructor;
+import com.metao.book.shared.architecture.ApplicationUseCase;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
+@ApplicationUseCase
 public class HandleProductUpdatedEventUseCase {
 
-    private static final String INVENTORY_REDUCTION_MARKER = "INVENTORY_REDUCTION";
-
     private final ProductDomainService productService;
-    private final ProcessedInventoryEventPort processedInventoryEventPort;
+
+    @Autowired
+    public HandleProductUpdatedEventUseCase(ProductDomainService productService) {
+        this.productService = productService;
+    }
+
+    public HandleProductUpdatedEventUseCase(
+        ProductDomainService productService,
+        ProcessedInventoryEventPort ignoredProcessedInventoryEventPort
+    ) {
+        this.productService = productService;
+    }
 
     @Transactional
     public void handle(HandleProductUpdatedEventCommand command) {
-        if (command.eventId() == null || command.eventId().isBlank()) {
-            log.warn("Skipping ProductUpdatedEvent without idempotency key for sku {}", command.sku());
-            return;
-        }
-
-        if (!INVENTORY_REDUCTION_MARKER.equals(command.description())) {
-            log.info("Product updated event received for SKU: {}", command.sku());
-            return;
-        }
-
-        boolean firstProcessing = processedInventoryEventPort.markProcessed(command.eventId());
-        if (!firstProcessing) {
-            log.info("Inventory reduction event {} already processed, skipping.", command.eventId());
-            return;
-        }
-
-        boolean reduced = productService.reduceProductVolumeAtomically(command.sku(), command.volume());
-        if (!reduced) {
-            log.debug(
-                "Skipping inventory reduction for sku {} because stock is insufficient (event {}).",
-                command.sku(),
-                command.eventId()
-            );
-            return;
-        }
-
-        log.info("Inventory reduced for sku {} by {} (event {}).",
-            command.sku(), command.volume(), command.eventId());
+        log.info("Product updated event received for SKU: {}", command.sku());
     }
 }

@@ -25,21 +25,9 @@ public interface PaymentRepository {
     }
 
     /**
-     * Acquire a DB-backed lock for payment creation on a specific order ID.
-     */
-    default void lockOrderForCreation(OrderId orderId) {
-        // Default no-op for non-database-backed implementations.
-    }
-
-    /**
      * Find payment by ID
      */
     Optional<PaymentAggregate> findById(PaymentId paymentId);
-
-    /**
-     * Find payment by ID with row lock for write operations.
-     */
-    Optional<PaymentAggregate> findByIdForUpdate(PaymentId paymentId);
 
     /**
      * Find payment by order ID

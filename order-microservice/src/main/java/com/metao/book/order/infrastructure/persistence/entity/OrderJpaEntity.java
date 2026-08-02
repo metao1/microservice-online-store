@@ -17,6 +17,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
@@ -52,6 +53,21 @@ public class OrderJpaEntity {
     @Column(name = "updated_at")
     private Instant updatedAt;
 
+    @Column(name = "subtotal_amount")
+    private BigDecimal subtotalAmount;
+
+    @Column(name = "tax_amount")
+    private BigDecimal taxAmount;
+
+    @Column(name = "total_amount")
+    private BigDecimal totalAmount;
+
+    @Column(name = "financial_currency", length = 3)
+    private String financialCurrency;
+
+    @Column(name = "vat_rate")
+    private Integer vatRate;
+
     @Version
     @Column(name = "version", nullable = false)
     private Long version;
@@ -63,6 +79,13 @@ public class OrderJpaEntity {
         entity.setStatus(order.getStatus());
         entity.setCreatedAt(order.getCreatedAt());
         entity.setUpdatedAt(order.getUpdatedAt());
+        if (order.getSubtotal() != null) {
+            entity.setSubtotalAmount(order.getSubtotal().fixedPointAmount());
+            entity.setTaxAmount(order.getTax().fixedPointAmount());
+            entity.setTotalAmount(order.getTotal().fixedPointAmount());
+            entity.setFinancialCurrency(order.getSubtotal().currency().getCurrencyCode());
+        }
+        entity.setVatRate(order.getVat().toInteger());
         return entity;
     }
 }

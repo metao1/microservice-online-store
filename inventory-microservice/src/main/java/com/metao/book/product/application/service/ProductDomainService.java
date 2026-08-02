@@ -4,6 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.metao.book.product.application.dto.CreateProductCommand;
 import com.metao.book.product.application.dto.UpdateProductCommand;
+import com.metao.book.product.application.usecase.ProductUseCase;
 import com.metao.book.product.domain.exception.CategoryNotFoundException;
 import com.metao.book.product.domain.exception.IdempotencyKeyConflictException;
 import com.metao.book.product.domain.exception.ProductNotFoundException;
@@ -17,7 +18,7 @@ import com.metao.book.product.domain.repository.CategoryRepository;
 import com.metao.book.product.domain.repository.ProductRepository;
 import com.metao.book.product.infrastructure.persistence.repository.ProductCreateIdempotencyRepository;
 import com.metao.book.shared.domain.base.DomainEvent;
-import com.metao.book.shared.domain.base.DomainEventPublisher;
+import com.metao.book.shared.application.messaging.DomainEventPublisher;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.domain.product.Quantity;
@@ -45,7 +46,7 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @Transactional
 @RequiredArgsConstructor
-public class ProductDomainService {
+public class ProductDomainService implements ProductUseCase {
 
     private static final int CATEGORY_PAGE_CACHE_MAXIMUM_SIZE = 1_024;
 
@@ -325,7 +326,7 @@ public class ProductDomainService {
     private void publishEvents(ProductAggregate product) {
         List<DomainEvent> events = product.getDomainEvents();
         events.forEach(eventPublisher::publish);
-        //product.clearDomainEvents();
+        product.clearDomainEvents();
     }
 
     private void invalidateReadCaches() {

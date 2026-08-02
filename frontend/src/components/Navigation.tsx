@@ -664,20 +664,45 @@ const Navigation: FC<NavigationProps> = ({
           >
             <div className="mobile-menu-content">
               <span id="mobile-menu-title" className="sr-only">Menu</span>
-              <nav className="mobile-nav-categories" role="navigation" aria-label="Mobile navigation">
-                {(categories || []).map((category) => {
-                  const label = category.category || category.name || '';
-                  return (
-                      <button
-                          key={label}
-                          onClick={() => handleCategoryClick(category)}
-                          className={`mobile-nav-category ${isActive(`/products?category=${encodeURIComponent(label)}`) ? 'mobile-nav-category-active' : ''}`}
-                          data-testid={`mobile-category-${encodeURIComponent(label)}`}
-                      >
-                        {label}
-                      </button>
-                  );
-                })}
+              <nav className="mobile-nav-pages" role="navigation" aria-label="Mobile navigation">
+                <Link
+                    to="/"
+                    className={`mobile-nav-page-link ${isActive('/') ? 'mobile-nav-page-link-active' : ''}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Home
+                </Link>
+                <Link
+                    to="/products"
+                    className={`mobile-nav-page-link ${isActive('/products') ? 'mobile-nav-page-link-active' : ''}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Products
+                </Link>
+                <Link
+                    to="/orders"
+                    className={`mobile-nav-page-link ${isActive('/orders') ? 'mobile-nav-page-link-active' : ''}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Orders
+                </Link>
+              </nav>
+
+              <nav className="mobile-nav-categories" role="navigation" aria-label="Category navigation">
+                <span className="mobile-nav-section-title">Categories</span>
+                {megaCategories.map((category) => (
+                    <button
+                        key={category}
+                        onClick={() => {
+                          navigate(`/products?category=${encodeURIComponent(category)}`);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="mobile-nav-category"
+                        data-testid={`mobile-category-${encodeURIComponent(category)}`}
+                    >
+                      {category}
+                    </button>
+                ))}
               </nav>
 
               <div className="mobile-user-actions">

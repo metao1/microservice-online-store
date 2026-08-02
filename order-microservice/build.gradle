@@ -10,6 +10,7 @@ openApi {
 
 dependencies {
   implementation project(':shared-kernel')
+  implementation project(':outbox-messaging')
   implementation project(':kafka-lib')
   // Make shared proto files available to protoc
   protobuf project(':shared-kernel')

@@ -1,9 +1,10 @@
-package com.metao.book.order.application.config;
+package com.metao.book.order.infrastructure.config;
 
 import com.metao.book.shared.OrderCreatedEvent;
 import com.metao.book.shared.OrderPaymentUpdatedEvent;
 import com.metao.book.shared.OrderUpdatedEvent;
 import com.metao.book.order.domain.exception.OrderNotFoundException;
+import com.metao.book.order.domain.exception.InvalidPaymentEventException;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
 import java.util.HashMap;
@@ -48,7 +49,8 @@ public class KafkaConsumerConfig {
     @Bean
     DefaultErrorHandler orderErrorHandler(DeadLetterPublishingRecoverer recoverer) {
         var handler = new DefaultErrorHandler(recoverer, new FixedBackOff(500L, 3));
-        handler.addNotRetryableExceptions(IllegalArgumentException.class, OrderNotFoundException.class);
+        handler.addNotRetryableExceptions(IllegalArgumentException.class, OrderNotFoundException.class,
+            InvalidPaymentEventException.class);
         return handler;
     }
 

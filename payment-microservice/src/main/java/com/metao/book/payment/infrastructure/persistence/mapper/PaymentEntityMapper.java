@@ -3,6 +3,7 @@ package com.metao.book.payment.infrastructure.persistence.mapper;
 import com.metao.book.payment.domain.model.aggregate.PaymentAggregate;
 import com.metao.book.payment.domain.model.valueobject.OrderId;
 import com.metao.book.payment.domain.model.valueobject.PaymentMethod;
+import com.metao.book.payment.domain.model.valueobject.PaymentId;
 import com.metao.book.payment.domain.model.valueobject.PaymentStatus;
 import com.metao.book.payment.infrastructure.persistence.entity.PaymentEntity;
 import com.metao.book.shared.domain.financial.Money;
@@ -45,7 +46,7 @@ public class PaymentEntityMapper {
         PaymentStatus status = mapPaymentStatus(payment.getStatus());
 
         return PaymentAggregate.reconstruct(
-            payment.id(),
+            PaymentId.of(payment.getId()),
             orderId,
             amount,
             paymentMethod,

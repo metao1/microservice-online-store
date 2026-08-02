@@ -142,7 +142,7 @@ class PaymentAggregateDomainServiceTest {
         PaymentId paymentId = PaymentId.of("payment-123");
         PaymentAggregate payment = createMockPayment(paymentId, PaymentStatus.PENDING);
 
-        when(paymentRepository.findByIdForUpdate(paymentId)).thenReturn(Optional.of(payment));
+        when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
         when(paymentRepository.save(payment)).thenReturn(payment);
 
         // When
@@ -150,7 +150,7 @@ class PaymentAggregateDomainServiceTest {
 
         // Then
         assertThat(result).isSameAs(payment);
-        verify(payment).processPayment();
+        verify(payment).processPayment(true, null);
         verify(paymentRepository).save(payment);
     }
 
@@ -158,7 +158,7 @@ class PaymentAggregateDomainServiceTest {
     void processPayment_withNonExistentPayment_shouldThrowException() {
         // Given
         PaymentId paymentId = PaymentId.of("payment-123");
-        when(paymentRepository.findByIdForUpdate(paymentId)).thenReturn(Optional.empty());
+        when(paymentRepository.findById(paymentId)).thenReturn(Optional.empty());
 
         // When/Then
         assertThatThrownBy(() -> paymentDomainService.processPayment(paymentId))
@@ -179,7 +179,6 @@ class PaymentAggregateDomainServiceTest {
 
         // Then
         verify(paymentRepository).findById(paymentId);
-        verify(paymentRepository, never()).findByIdForUpdate(paymentId);
         verify(payment).retry();
         verify(paymentRepository).save(payment);
     }
@@ -194,7 +193,6 @@ class PaymentAggregateDomainServiceTest {
         assertThatThrownBy(() -> paymentDomainService.retryPayment(paymentId))
             .isInstanceOf(PaymentNotFoundException.class)
             .hasMessageContaining("Payment id payment-123 not found");
-        verify(paymentRepository, never()).findByIdForUpdate(paymentId);
     }
 
     @Test
@@ -210,7 +208,6 @@ class PaymentAggregateDomainServiceTest {
 
         // Then
         verify(paymentRepository).findById(paymentId);
-        verify(paymentRepository, never()).findByIdForUpdate(paymentId);
         verify(payment).cancel();
         verify(paymentRepository).save(payment);
     }
@@ -225,7 +222,6 @@ class PaymentAggregateDomainServiceTest {
         assertThatThrownBy(() -> paymentDomainService.cancelPayment(paymentId))
             .isInstanceOf(PaymentNotFoundException.class)
             .hasMessageContaining("Payment id payment-123 not found");
-        verify(paymentRepository, never()).findByIdForUpdate(paymentId);
     }
 
     @Test

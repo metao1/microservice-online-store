@@ -1,10 +1,11 @@
-package com.metao.book.order.infrastructure.listener;
+package com.metao.book.order.infrastructure.messaging.kafka.consumer;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 
-import com.google.protobuf.Timestamp;
 import com.metao.book.order.application.usecase.HandleOrderPaymentEventCommand;
 import com.metao.book.order.application.usecase.HandleOrderPaymentEventUseCase;
+import com.metao.book.order.domain.exception.InvalidPaymentEventException;
 import com.metao.book.shared.OrderPaymentUpdatedEvent;
 import com.metao.book.shared.Status;
 import org.junit.jupiter.api.DisplayName;
@@ -34,38 +35,34 @@ class PaymentEventListenerTest {
     class EventMapping {
 
         @Test
-        @DisplayName("Should delegate to use case using payment id as event id")
+        @DisplayName("Should delegate to use case using immutable event id")
         void shouldDelegateUsingPaymentIdAsEventId() {
             OrderPaymentUpdatedEvent paymentEvent = OrderPaymentUpdatedEvent.newBuilder()
                 .setOrderId("order123")
                 .setPaymentId("payment-1")
+                .setEventId("event-1")
                 .setStatus(Status.SUCCESSFUL)
                 .build();
 
             paymentEventListener.handlePaymentEvent(paymentEvent, acknowledgment);
 
             verify(handleOrderPaymentEventUseCase).handle(
-                new HandleOrderPaymentEventCommand("payment-1", "order123", "SUCCESSFUL")
+                new HandleOrderPaymentEventCommand("event-1", "order123", "SUCCESSFUL")
             );
             verify(acknowledgment).acknowledge();
         }
 
         @Test
-        @DisplayName("Should fall back to derived event id when payment id is blank")
-        void shouldFallbackToDerivedEventIdWhenPaymentIdIsBlank() {
+        @DisplayName("Should reject events without an immutable event id")
+        void shouldRejectEventWithoutImmutableEventId() {
             OrderPaymentUpdatedEvent paymentEvent = OrderPaymentUpdatedEvent.newBuilder()
                 .setOrderId("order123")
                 .setPaymentId("")
                 .setStatus(Status.FAILED)
-                .setUpdatedTime(Timestamp.newBuilder().setSeconds(123L).setNanos(456).build())
                 .build();
 
-            paymentEventListener.handlePaymentEvent(paymentEvent, acknowledgment);
-
-            verify(handleOrderPaymentEventUseCase).handle(
-                new HandleOrderPaymentEventCommand("order123:FAILED:123:456", "order123", "FAILED")
-            );
-            verify(acknowledgment).acknowledge();
+            assertThrows(InvalidPaymentEventException.class,
+                () -> paymentEventListener.handlePaymentEvent(paymentEvent, acknowledgment));
         }
     }
 }

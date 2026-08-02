@@ -30,6 +30,7 @@ if (includeIfDirExists(':order-microservice', 'order-microservice')) {
 }
 
 includeIfDirExists(':shared-kernel', 'shared-kernel')
+includeIfDirExists(':outbox-messaging', 'outbox-messaging')
 includeIfDirExists(':shared-test', 'shared-test')
 includeIfDirExists(':kafka-lib', 'kafka-lib')
 includeIfDirExists(':performance-loadtest', 'performance-loadtest')

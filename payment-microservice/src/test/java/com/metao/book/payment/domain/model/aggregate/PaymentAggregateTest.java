@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.metao.book.payment.domain.model.event.PaymentFailedEvent;
 import com.metao.book.payment.domain.model.event.PaymentProcessedEvent;
+import com.metao.book.payment.domain.exception.PaymentStateTransitionNotAllowed;
 import com.metao.book.payment.domain.model.valueobject.OrderId;
 import com.metao.book.payment.domain.model.valueobject.PaymentId;
 import com.metao.book.payment.domain.model.valueobject.PaymentMethod;
@@ -74,8 +75,8 @@ class PaymentAggregateTest {
 
         // When/Then
         assertThatThrownBy(payment::processPayment)
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("Payment can only be processed when in PENDING status");
+            .isInstanceOf(PaymentStateTransitionNotAllowed.class)
+            .hasMessageContaining("Cannot transition");
     }
 
     @Test
@@ -124,8 +125,8 @@ class PaymentAggregateTest {
 
         // When/Then
         assertThatThrownBy(payment::retry)
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("Can only retry failed payments");
+            .isInstanceOf(PaymentStateTransitionNotAllowed.class)
+            .hasMessageContaining("Cannot transition");
     }
 
     @Test
@@ -149,8 +150,8 @@ class PaymentAggregateTest {
 
         // When/Then
         assertThatThrownBy(payment::cancel)
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("Can only cancel pending payments");
+            .isInstanceOf(PaymentStateTransitionNotAllowed.class)
+            .hasMessageContaining("Cannot transition");
     }
 
     @Test

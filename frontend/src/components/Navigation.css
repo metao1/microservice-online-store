@@ -489,12 +489,70 @@
 
 .mobile-menu-content {
   padding: 1.5rem;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.mobile-nav-pages {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e6e6e6;
+  /* Override Materialize CSS nav defaults */
+  height: auto;
+  line-height: 1.5;
+  background-color: transparent;
+  color: inherit;
+}
+
+.mobile-nav-page-link {
+  display: block;
+  padding: 0.5rem 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #111111;
+  text-decoration: none;
+}
+
+.mobile-nav-page-link:hover,
+.mobile-nav-page-link:focus {
+  color: #a300c4;
+  text-decoration: none;
+}
+
+.mobile-nav-page-link:visited {
+  color: #111111;
+}
+
+.mobile-nav-page-link-active,
+.mobile-nav-page-link-active:visited {
+  color: #a300c4;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+.mobile-nav-section-title {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #888888;
+  margin-bottom: 0.5rem;
 }
 
 .mobile-nav-categories {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.25rem;
+  /* Override Materialize CSS nav defaults */
+  height: auto;
+  line-height: 1.5;
+  background-color: transparent;
+  color: inherit;
 }
 
 .mobile-nav-category {

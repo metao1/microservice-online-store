@@ -4,14 +4,17 @@ import com.metao.book.shared.domain.base.ValueObject;
 import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 /**
  * Product identifier value object
  */
 @Embeddable
-public record ProductSku(String value) implements ValueObject {
+@NoArgsConstructor
+public class ProductSku implements ValueObject {
 
+    private String value;
     public ProductSku(@NonNull String value) {
         if (value.trim().isEmpty()) {
             throw new IllegalArgumentException("sku cannot be null or empty");
@@ -26,6 +29,10 @@ public record ProductSku(String value) implements ValueObject {
 
     public static ProductSku of(String value) {
         return new ProductSku(value);
+    }
+
+    public String value() {
+        return value;
     }
 
     @NotNull

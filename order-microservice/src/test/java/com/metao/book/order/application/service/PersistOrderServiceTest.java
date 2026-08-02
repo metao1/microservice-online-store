@@ -5,7 +5,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.metao.book.order.application.port.ProcessedOrderCreatedEventPort;
+import com.metao.book.order.application.port.ConsumedMessagePort;
 import com.metao.book.order.domain.event.OrderCreatedEvent;
 import com.metao.book.order.domain.event.OrderCreatedEventItem;
 import com.metao.book.order.domain.model.aggregate.OrderAggregate;
@@ -36,7 +36,7 @@ class PersistOrderServiceTest {
     private OrderRepository orderRepository;
 
     @Mock
-    private ProcessedOrderCreatedEventPort processedOrderCreatedEventPort;
+    private ConsumedMessagePort consumedMessagePort;
 
     private PersistOrderService persistOrderService;
 
@@ -44,7 +44,7 @@ class PersistOrderServiceTest {
     void setUp() {
         persistOrderService = new PersistOrderService(
             orderRepository,
-            processedOrderCreatedEventPort,
+            consumedMessagePort,
             new VAT(0)
         );
     }
@@ -53,7 +53,7 @@ class PersistOrderServiceTest {
     void persistOrderSkipsDuplicateProcessedEvent() {
         OrderCreatedEvent event = buildEvent("order-1");
 
-        when(processedOrderCreatedEventPort.markProcessed("order-1")).thenReturn(false);
+        when(consumedMessagePort.claim("order.created", "order-1")).thenReturn(false);
 
         persistOrderService.persistOrder(event);
 
@@ -65,7 +65,7 @@ class PersistOrderServiceTest {
     void persistOrderSavesNewOrderWhenProcessedForTheFirstTime() {
         OrderCreatedEvent event = buildEvent("order-1");
 
-        when(processedOrderCreatedEventPort.markProcessed("order-1")).thenReturn(true);
+        when(consumedMessagePort.claim("order.created", "order-1")).thenReturn(true);
         when(orderRepository.findById(event.orderId())).thenReturn(Optional.empty());
 
         persistOrderService.persistOrder(event);

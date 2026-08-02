@@ -6,12 +6,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.metao.book.order.application.cart.ShoppingCartDto;
+import com.metao.book.order.application.cart.ShoppingCartView;
 import com.metao.book.order.application.cart.ShoppingCartItem;
 import com.metao.book.order.application.cart.ShoppingCartService;
+import com.metao.book.order.application.service.OrderManagementApplicationService;
 import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.domain.repository.OrderRepository;
-import com.metao.book.shared.config.KafkaDomainEventPublisher;
+import com.metao.book.shared.application.messaging.DomainEventPublisher;
 import com.metao.book.shared.domain.financial.VAT;
 import java.math.BigDecimal;
 import java.util.Currency;
@@ -30,17 +31,17 @@ class OrderManagementServiceTest {
     private OrderRepository orderRepository;
 
     @Mock
-    private KafkaDomainEventPublisher eventPublisher;
+    private DomainEventPublisher eventPublisher;
 
     @Mock
     private ShoppingCartService shoppingCartService;
 
     @InjectMocks
-    private OrderManagementService orderManagementService;
+    private OrderManagementApplicationService orderManagementService;
 
     @BeforeEach
     void setUp() {
-        orderManagementService = new OrderManagementService(
+        orderManagementService = new OrderManagementApplicationService(
             orderRepository,
             eventPublisher,
             shoppingCartService,
@@ -51,7 +52,7 @@ class OrderManagementServiceTest {
     @Test
     void createOrderPublishesSingleCreatedEventWithAllCartItems() {
         UserId userId = UserId.of("user123");
-        ShoppingCartDto shoppingCart = new ShoppingCartDto(
+        ShoppingCartView shoppingCart = new ShoppingCartView(
             userId.value(),
             Set.of(
                 new ShoppingCartItem("SKU-1", "Book 1", BigDecimal.ONE, BigDecimal.valueOf(10.0),
