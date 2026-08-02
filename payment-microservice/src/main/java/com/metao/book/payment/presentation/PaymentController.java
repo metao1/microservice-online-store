@@ -2,8 +2,9 @@ package com.metao.book.payment.presentation;
 
 import com.metao.book.payment.application.dto.CreatePaymentCommand;
 import com.metao.book.payment.application.dto.PaymentDTO;
-import com.metao.book.payment.application.service.PaymentApplicationService;
+import com.metao.book.payment.application.usecase.PaymentUseCase;
 import com.metao.book.payment.domain.service.PaymentDomainService;
+import com.metao.book.shared.architecture.InboundAdapter;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import java.util.List;
@@ -26,12 +27,13 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Slf4j
 @RestController
+@InboundAdapter(InboundAdapter.Kind.HTTP)
 @RequiredArgsConstructor
 @RequestMapping("/payments")
 @Observed(name = "payment.api.controller", contextualName = "payment-controller")
 public class PaymentController {
 
-    private final PaymentApplicationService paymentApplicationService;
+    private final PaymentUseCase paymentUseCase;
 
     /**
      * Create a new payment
@@ -41,7 +43,7 @@ public class PaymentController {
     @ResponseStatus(HttpStatus.CREATED)
     public PaymentDTO createPayment(@RequestBody CreatePaymentCommand command) {
         log.info("Creating payment for order: {}", command.orderId());
-        return paymentApplicationService.createPayment(command);
+        return paymentUseCase.createPayment(command);
     }
 
     /**
@@ -51,7 +53,7 @@ public class PaymentController {
     @PostMapping("/{paymentId}/process")
     public PaymentDTO processPayment(@PathVariable String paymentId) {
         log.info("Processing payment: {}", paymentId);
-        return paymentApplicationService.processPayment(paymentId);
+        return paymentUseCase.processPayment(paymentId);
     }
 
     /**
@@ -60,7 +62,7 @@ public class PaymentController {
     @PostMapping("/{paymentId}/retry")
     public PaymentDTO retryPayment(@PathVariable String paymentId) {
         log.info("Retrying payment: {}", paymentId);
-        return paymentApplicationService.retryPayment(paymentId);
+        return paymentUseCase.retryPayment(paymentId);
     }
 
     /**
@@ -70,7 +72,7 @@ public class PaymentController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void cancelPayment(@PathVariable String paymentId) {
         log.info("Cancelling payment: {}", paymentId);
-        paymentApplicationService.cancelPayment(paymentId);
+        paymentUseCase.cancelPayment(paymentId);
     }
 
     /**
@@ -79,7 +81,7 @@ public class PaymentController {
     @GetMapping("/{paymentId}")
     public ResponseEntity<PaymentDTO> getPayment(@PathVariable String paymentId) {
         log.debug("Getting payment: {}", paymentId);
-        Optional<PaymentDTO> payment = paymentApplicationService.getPaymentById(paymentId);
+        Optional<PaymentDTO> payment = paymentUseCase.getPaymentById(paymentId);
         return payment.map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }
@@ -91,7 +93,7 @@ public class PaymentController {
     @Timed(value = "payment.api.get-by-order-id")
     public ResponseEntity<PaymentDTO> getPaymentInfoByOrderId(@PathVariable String orderId) {
         log.debug("Getting payment for order: {}", orderId);
-        Optional<PaymentDTO> payment = paymentApplicationService.getPaymentByOrderId(orderId);
+        Optional<PaymentDTO> payment = paymentUseCase.getPaymentByOrderId(orderId);
         return payment.map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }
@@ -106,7 +108,7 @@ public class PaymentController {
         @RequestParam(value = "limit", defaultValue = "10") int limit
     ) {
         log.debug("Getting payments by status: {}", status);
-        return paymentApplicationService.getPaymentsByStatus(status, offset, limit);
+        return paymentUseCase.getPaymentsByStatus(status, offset, limit);
     }
 
     /**
@@ -115,6 +117,6 @@ public class PaymentController {
     @GetMapping("/statistics")
     public PaymentDomainService.PaymentStatistics getPaymentStatistics() {
         log.debug("Getting payment statistics");
-        return paymentApplicationService.getPaymentStatistics();
+        return paymentUseCase.getPaymentStatistics();
     }
 }

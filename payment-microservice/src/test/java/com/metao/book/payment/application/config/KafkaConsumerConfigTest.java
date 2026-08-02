@@ -1,4 +1,4 @@
-package com.metao.book.payment.application.config;
+package com.metao.book.payment.infrastructure.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

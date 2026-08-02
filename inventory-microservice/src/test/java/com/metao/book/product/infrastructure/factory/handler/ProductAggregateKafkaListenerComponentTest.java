@@ -1,4 +1,4 @@
-package com.metao.book.product.infrastructure.factory.handler;
+package com.metao.book.product.infrastructure.messaging.kafka.consumer;
 
 import static org.mockito.Mockito.verify;
 
@@ -7,6 +7,9 @@ import com.metao.book.product.application.usecase.HandleProductCreatedEventComma
 import com.metao.book.product.application.usecase.HandleProductCreatedEventUseCase;
 import com.metao.book.product.application.usecase.HandleProductUpdatedEventCommand;
 import com.metao.book.product.application.usecase.HandleProductUpdatedEventUseCase;
+import com.metao.book.product.application.usecase.HandleInventoryReductionRequestedEventCommand;
+import com.metao.book.product.application.usecase.HandleInventoryReductionRequestedEventUseCase;
+import com.metao.book.shared.InventoryReductionRequestedEvent;
 import com.metao.book.shared.ProductUpdatedEvent;
 import java.math.BigDecimal;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -28,6 +31,9 @@ class ProductAggregateKafkaListenerComponentTest {
 
     @Mock
     private HandleProductUpdatedEventUseCase handleProductUpdatedEventUseCase;
+
+    @Mock
+    private HandleInventoryReductionRequestedEventUseCase handleInventoryReductionRequestedEventUseCase;
 
     @Mock
     private Acknowledgment acknowledgment;
@@ -80,5 +86,25 @@ class ProductAggregateKafkaListenerComponentTest {
             ));
             verify(acknowledgment).acknowledge();
         }
+    }
+
+    @Test
+    @DisplayName("should map typed inventory reduction event to use case command")
+    void shouldMapInventoryReductionEventToUseCaseCommand() {
+        InventoryReductionRequestedEvent event = InventoryReductionRequestedEvent.newBuilder()
+            .setEventId("event-1")
+            .setOrderId("order-1")
+            .setSku("SKU-1")
+            .setQuantity(3.0)
+            .build();
+        ConsumerRecord<String, InventoryReductionRequestedEvent> record = new ConsumerRecord<>(
+            "inventory-reduction-requested", 0, 0L, "order-1", event);
+
+        listener.onInventoryReductionRequestedEvent(record, acknowledgment);
+
+        verify(handleInventoryReductionRequestedEventUseCase).handle(
+            new HandleInventoryReductionRequestedEventCommand(
+                "event-1", "order-1", "SKU-1", BigDecimal.valueOf(3.0)));
+        verify(acknowledgment).acknowledge();
     }
 }

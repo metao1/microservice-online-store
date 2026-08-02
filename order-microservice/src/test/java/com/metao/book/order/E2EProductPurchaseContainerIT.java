@@ -6,7 +6,7 @@ import static org.awaitility.Awaitility.await;
 
 import com.google.protobuf.Timestamp;
 import com.metao.book.order.application.cart.ShoppingCartItem;
-import com.metao.book.order.application.cart.ShoppingCartRepository;
+import com.metao.book.order.infrastructure.persistence.cart.SpringDataShoppingCartRepository;
 import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
@@ -69,7 +69,7 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
     private Integer orderMicroservicePort;
 
     @Autowired
-    private ShoppingCartRepository shoppingCartRepository;
+    private SpringDataShoppingCartRepository shoppingCartRepository;
 
     @Autowired
     private OrderRepository orderRepository;

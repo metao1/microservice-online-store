@@ -1,4 +1,4 @@
-package com.metao.book.order.infrastructure.listener;
+package com.metao.book.order.infrastructure.messaging.kafka.consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;

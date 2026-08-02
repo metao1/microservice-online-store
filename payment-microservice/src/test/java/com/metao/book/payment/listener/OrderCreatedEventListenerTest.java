@@ -1,4 +1,4 @@
-package com.metao.book.payment.listener;
+package com.metao.book.payment.infrastructure.messaging.kafka.consumer;
 
 import static org.mockito.Mockito.verify;
 

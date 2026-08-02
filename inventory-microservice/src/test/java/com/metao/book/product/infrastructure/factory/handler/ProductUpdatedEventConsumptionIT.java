@@ -1,4 +1,4 @@
-package com.metao.book.product.infrastructure.factory.handler;
+package com.metao.book.product.infrastructure.messaging.kafka.consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;

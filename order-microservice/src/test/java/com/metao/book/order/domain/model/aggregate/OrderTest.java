@@ -53,7 +53,7 @@ class OrderTest {
             assertThat(order.getId()).isEqualTo(orderId);
             assertThat(order.getUserId()).isEqualTo(userId);
             assertThat(order.getItems()).isEmpty();
-            assertThat(order.getStatus()).isEqualTo(OrderStatus.CREATED);
+            assertThat(order.getStatus()).isEqualTo(OrderStatus.PENDING_PAYMENT);
             assertThat(order.getCreatedAt()).isNotNull();
             assertThat(order.getUpdatedAt()).isNotNull();
 
@@ -130,7 +130,7 @@ class OrderTest {
         void shouldThrowExceptionForNegativeQuantity() {
             assertThatThrownBy(() -> Quantity.of(BigDecimal.valueOf(-1)))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Quantity must be positive");
+                .hasMessage("Quantity must not be negative");
         }
 
         // Note: Shared Money class doesn't validate negative amounts in constructor
@@ -141,10 +141,10 @@ class OrderTest {
 
         static Stream<Arguments> invalidStatusTransitions() {
             return Stream.of(
-                Arguments.of(OrderStatus.CREATED, OrderStatus.PENDING_PAYMENT,
-                    "Transition error: Cannot transition from CREATED to PENDING_PAYMENT"),
-                Arguments.of(OrderStatus.CREATED, OrderStatus.PROCESSING,
-                    "Transition error: Cannot transition from CREATED to PROCESSING")
+                Arguments.of(OrderStatus.PENDING_PAYMENT, OrderStatus.PENDING_PAYMENT,
+                    "Transition error: Cannot transition from PENDING_PAYMENT to PENDING_PAYMENT"),
+                Arguments.of(OrderStatus.PENDING_PAYMENT, OrderStatus.PROCESSING,
+                    "Transition error: Cannot transition from PENDING_PAYMENT to PROCESSING")
             );
         }
 
@@ -168,7 +168,7 @@ class OrderTest {
             assertThat(events.getFirst()).isInstanceOf(DomainOrderStatusChangedEvent.class);
 
             DomainOrderStatusChangedEvent statusEvent = (DomainOrderStatusChangedEvent) events.getFirst();
-            assertThat(statusEvent.getOldStatus()).isEqualTo(OrderStatus.CREATED);
+            assertThat(statusEvent.getOldStatus()).isEqualTo(OrderStatus.PENDING_PAYMENT);
             assertThat(statusEvent.getNewStatus()).isEqualTo(newStatus);
         }
 
@@ -181,8 +181,8 @@ class OrderTest {
         }
 
         @ParameterizedTest
-        @EnumSource(value = OrderStatus.class, names = {"PAID", "CANCELLED"})
-        void shouldAllowValidStatusTransitionsFromCreated(OrderStatus targetStatus) {
+        @EnumSource(value = OrderStatus.class, names = {"PAID", "PAYMENT_FAILED", "CANCELLED"})
+        void shouldAllowValidStatusTransitionsFromPendingPayment(OrderStatus targetStatus) {
             OrderAggregate order = new OrderAggregate(OrderId.generate(), UserId.of("user123"));
 
             order.updateStatus(targetStatus);
@@ -197,11 +197,6 @@ class OrderTest {
             String expectedMessage
         ) {
             OrderAggregate order = new OrderAggregate(OrderId.generate(), UserId.of("user123"));
-
-            // Set initial status if not CREATED
-            if (oldStatus != OrderStatus.CREATED) {
-                order.updateStatus(oldStatus);
-            }
 
             assertThatThrownBy(() -> order.updateStatus(newStatus))
                 .isInstanceOf(OrderStateTransitionNotAllowed.class)

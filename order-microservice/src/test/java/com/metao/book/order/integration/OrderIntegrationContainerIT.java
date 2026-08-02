@@ -10,7 +10,7 @@ import com.metao.book.order.domain.exception.OrderNotFoundException;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.domain.model.valueobject.UserId;
-import com.metao.book.order.domain.service.OrderManagementService;
+import com.metao.book.order.application.service.OrderManagementApplicationService;
 import com.metao.book.order.infrastructure.persistence.mapper.OrderEntityMapper;
 import com.metao.book.order.infrastructure.persistence.repository.SpringDataOrderRepository;
 import com.metao.book.order.presentation.dto.OrderResponseDto;
@@ -42,7 +42,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
     private static final BigDecimal ONE = BigDecimal.ONE;
 
     @Autowired
-    private OrderManagementService orderService;
+    private OrderManagementApplicationService orderService;
 
     @Autowired
     private SpringDataOrderRepository orderRepository;
@@ -162,21 +162,18 @@ class OrderIntegrationContainerIT extends KafkaContainer {
     class OrderItemManagementTests {
 
         @Test
-        void shouldUpdateItemQuantity() {
+        void shouldRequestInventoryReductionForPaidOrder() {
             UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, sku, "product123", BigDecimal.TWO, BigDecimal.TEN);
             var beforeUpdate = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
-            var initialQuantity = beforeUpdate.getItems().getFirst().getQuantity().value();
-            var unitPrice = beforeUpdate.getItems().getFirst().getUnitPrice().fixedPointAmount();
             var initialTotal = beforeUpdate.getTotal().fixedPointAmount();
+            orderService.updateOrderStatus(orderId, OrderStatus.PAID);
 
-            orderService.updateItemQuantity(orderId);
+            orderService.requestInventoryReduction(orderId);
 
             var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
-            assertThat(order.getItems().getFirst().getQuantity().value())
-                .isGreaterThanOrEqualTo(initialQuantity);
-            assertThat(order.getTotal().fixedPointAmount())
-                .isGreaterThanOrEqualTo(initialTotal);
+            assertThat(order.getStatus()).isEqualTo(OrderStatus.PAID);
+            assertThat(order.getTotal().fixedPointAmount()).isEqualByComparingTo(initialTotal);
         }
 
         @Test
@@ -204,7 +201,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
             UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, sku, "product123", ONE, BigDecimal.TEN);
 
-            orderService.updateOrderStatus(orderId, OrderStatus.PAID.name());
+            orderService.updateOrderStatus(orderId, OrderStatus.PAID);
 
             var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
             assertThat(order.getStatus()).isEqualTo(OrderStatus.PAID);
@@ -214,7 +211,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         void shouldNotUpdateStatusOfNonExistentOrder() {
             OrderId nonExistentOrderId = OrderId.generate();
 
-            assertThatThrownBy(() -> orderService.updateOrderStatus(nonExistentOrderId, OrderStatus.PAID.name()))
+            assertThatThrownBy(() -> orderService.updateOrderStatus(nonExistentOrderId, OrderStatus.PAID))
                 .isInstanceOf(OrderNotFoundException.class)
                 .hasMessage("order not found with id: %s".formatted(nonExistentOrderId.value()));
         }
@@ -224,7 +221,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
             UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, sku, "product123", ONE, BigDecimal.TEN);
 
-            assertThatThrownBy(() -> orderService.updateOrderStatus(orderId, "INVALID_STATUS"))
+            assertThatThrownBy(() -> OrderStatus.valueOf("INVALID_STATUS"))
                 .isInstanceOf(IllegalArgumentException.class);
         }
 
@@ -235,7 +232,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
             OrderId orderId = createOrderWithCartItems(userId, sku, "product123", ONE, BigDecimal.TEN);
 
             for (OrderStatus status : statusSequence) {
-                orderService.updateOrderStatus(orderId, status.name());
+                orderService.updateOrderStatus(orderId, status);
                 var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
                 assertThat(order.getStatus()).isEqualTo(status);
             }
@@ -245,9 +242,9 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         void shouldNotAllowInvalidStatusTransition() {
             UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(userId, sku, "product123", ONE, BigDecimal.TEN);
-            orderService.updateOrderStatus(orderId, OrderStatus.PAID.name());
+            orderService.updateOrderStatus(orderId, OrderStatus.PAID);
 
-            assertThatThrownBy(() -> orderService.updateOrderStatus(orderId, OrderStatus.CREATED.name()))
+            assertThatThrownBy(() -> orderService.updateOrderStatus(orderId, OrderStatus.CREATED))
                 .isInstanceOf(Exception.class);
         }
     }
@@ -309,7 +306,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
             shoppingCartService.clearCart(userId.value());
             createOrderWithCartItems(userId, "product-2", "Book 2", ONE, BigDecimal.valueOf(15));
 
-            orderService.updateOrderStatus(paidOrderId, OrderStatus.PAID.name());
+            orderService.updateOrderStatus(paidOrderId, OrderStatus.PAID);
 
             List<OrderResponseDto> allOrders = orderService.getCustomerOrders(userId).stream()
                 .map(OrderResponseDto::fromDomain)
@@ -342,7 +339,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
                 )
             );
 
-            orderService.updateOrderStatus(orderId, OrderStatus.PAID.name());
+            orderService.updateOrderStatus(orderId, OrderStatus.PAID);
 
             var order = OrderEntityMapper.toDomain(orderRepository.findById(orderId.value()).orElseThrow());
             assertThat(order.getItems()).hasSize(2);

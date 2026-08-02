@@ -1,4 +1,4 @@
-package com.metao.book.order.application.config;
+package com.metao.book.order.infrastructure.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

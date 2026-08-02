@@ -1,23 +1,14 @@
 package com.metao.book.shared.domain.base;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.Column;
-import jakarta.persistence.Id;
-import jakarta.persistence.MappedSuperclass;
 import java.util.Objects;
-import org.springframework.lang.NonNull;
 
 /**
  * Base class for entities.
  *
  * @param <T> the entity T type.
  */
-@MappedSuperclass
 public abstract class AbstractEntity<T extends ValueObject> implements IdentifiableDomainObject<T> {
 
-    @Id
-    @JsonProperty("id")
-    @Column(name = "id", unique = true, nullable = false)
     protected T id;
 
     /**
@@ -45,12 +36,10 @@ public abstract class AbstractEntity<T extends ValueObject> implements Identifia
     }
 
     @Override
-    @NonNull
     public T id() {
         return id;
     }
 
-    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass") // We do this with a Spring function
     @Override
     public boolean equals(Object obj) {
         if (obj == this) {

@@ -3,6 +3,11 @@ package com.metao.book.payment.application.service;
 import com.metao.book.payment.application.dto.CreatePaymentCommand;
 import com.metao.book.payment.application.dto.PaymentDTO;
 import com.metao.book.payment.application.mapper.PaymentApplicationMapper;
+import com.metao.book.payment.application.port.PaymentCreationLockPort;
+import com.metao.book.payment.application.port.PaymentUpdateLockPort;
+import com.metao.book.payment.application.usecase.PaymentUseCase;
+import com.metao.book.payment.domain.port.PaymentGatewayPort;
+import org.springframework.beans.factory.annotation.Autowired;
 import com.metao.book.payment.domain.exception.DuplicatePaymentException;
 import com.metao.book.payment.domain.exception.PaymentNotFoundException;
 import com.metao.book.payment.domain.model.aggregate.PaymentAggregate;
@@ -12,8 +17,8 @@ import com.metao.book.payment.domain.model.valueobject.PaymentMethod;
 import com.metao.book.payment.domain.model.valueobject.PaymentStatus;
 import com.metao.book.payment.domain.repository.PaymentRepository;
 import com.metao.book.payment.domain.service.PaymentDomainService;
-import com.metao.book.shared.config.KafkaDomainEventPublisher;
 import com.metao.book.shared.domain.financial.Money;
+import com.metao.book.shared.application.messaging.DomainEventPublisher;
 import io.micrometer.core.annotation.Timed;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -23,7 +28,6 @@ import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,12 +40,47 @@ import org.springframework.validation.annotation.Validated;
 @Service
 @Validated
 @Transactional
-@RequiredArgsConstructor
-public class PaymentApplicationService {
+public class PaymentApplicationService implements PaymentUseCase {
 
     private final PaymentRepository paymentRepository;
     private final PaymentDomainService paymentDomainService;
-    private final KafkaDomainEventPublisher eventPublisher;
+    private final DomainEventPublisher eventPublisher;
+    private final PaymentCreationLockPort paymentCreationLockPort;
+    private final PaymentGatewayPort paymentGatewayPort;
+    private final PaymentUpdateLockPort paymentUpdateLockPort;
+
+    @Autowired
+    public PaymentApplicationService(
+        PaymentRepository paymentRepository,
+        PaymentDomainService paymentDomainService,
+        DomainEventPublisher eventPublisher,
+        PaymentCreationLockPort paymentCreationLockPort,
+        PaymentGatewayPort paymentGatewayPort,
+        PaymentUpdateLockPort paymentUpdateLockPort
+    ) {
+        this.paymentRepository = paymentRepository;
+        this.paymentDomainService = paymentDomainService;
+        this.eventPublisher = eventPublisher;
+        this.paymentCreationLockPort = paymentCreationLockPort;
+        this.paymentGatewayPort = paymentGatewayPort;
+        this.paymentUpdateLockPort = paymentUpdateLockPort;
+    }
+
+    /** Compatibility constructor for application-level tests and non-locking adapters. */
+    public PaymentApplicationService(
+        PaymentRepository paymentRepository,
+        PaymentDomainService paymentDomainService,
+        DomainEventPublisher eventPublisher
+    ) {
+        this(
+            paymentRepository,
+            paymentDomainService,
+            eventPublisher,
+            orderId -> { },
+            payment -> PaymentGatewayPort.PaymentAuthorizationResult.success(),
+            paymentRepository::findById
+        );
+    }
 
     /**
      * Create a new payment and save it into database
@@ -50,7 +89,7 @@ public class PaymentApplicationService {
         log.info("Creating payment for order: {}", command.orderId());
 
         OrderId orderId = OrderId.of(command.orderId());
-        paymentRepository.lockOrderForCreation(orderId);
+        paymentCreationLockPort.lock(orderId);
 
         Optional<PaymentAggregate> existingPayment = paymentRepository.findByOrderId(orderId);
         if (existingPayment.isPresent()) {
@@ -202,7 +241,7 @@ public class PaymentApplicationService {
         long startedAtNanos = System.nanoTime();
 
         PaymentId paymentId = PaymentId.of(id);
-        Optional<PaymentAggregate> currentState = paymentRepository.findById(paymentId);
+        Optional<PaymentAggregate> currentState = paymentUpdateLockPort.findByIdForUpdate(paymentId);
         if (currentState.isPresent() && currentState.get().getStatus() == PaymentStatus.SUCCESSFUL) {
             log.info("Payment {} is already SUCCESSFUL; returning existing state without re-processing", id);
             return PaymentApplicationMapper.toDTO(currentState.get());
@@ -210,7 +249,10 @@ public class PaymentApplicationService {
 
         PaymentAggregate payment;
         try {
-            payment = paymentDomainService.processPayment(paymentId);
+            payment = paymentDomainService.processPayment(
+                currentState.orElseThrow(() -> new PaymentNotFoundException(paymentId)),
+                paymentGatewayPort.authorize(currentState.orElseThrow(() -> new PaymentNotFoundException(paymentId)))
+            );
         } catch (IllegalStateException ex) {
             Optional<PaymentAggregate> latestState = paymentRepository.findById(paymentId);
             if (latestState.isPresent() && latestState.get().getStatus() == PaymentStatus.SUCCESSFUL) {
@@ -252,14 +294,8 @@ public class PaymentApplicationService {
         }
 
         domainEvents.forEach(event -> {
-            try {
-                // Use KafkaEventHandler to publish domain events
-                eventPublisher.publish(event);
-                log.info("Published domain event: {} for payment: {}", event.getEventType(), event);
-            } catch (Exception e) {
-                log.error("Failed to publish domain event: {} for payment: {}", event.getEventType(), event, e);
-                // Don't rethrow - we don't want to break the main business flow
-            }
+            eventPublisher.publish(event);
+            log.info("Stored domain event {} in the outbox for payment {}", event.getEventType(), payment.getId());
         });
 
         // Clear events after publishing

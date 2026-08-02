@@ -20,10 +20,10 @@ import org.junit.jupiter.api.Test;
 
 class OrderCreatedEventTranslatorTest {
 
-    private final OrderCreatedEventTranslator translator = new OrderCreatedEventTranslator();
+    private final OrderCreatedEventEventTranslator translator = new OrderCreatedEventEventTranslator();
 
     @Test
-    void translateMapsAggregatedOrderItemPayload() {
+    void translateMapsAggregatedOrderItemPayload() throws Exception {
         OrderItem firstOrderItem = new OrderItem(
             ProductSku.of("SKU-1"),
             ProductTitle.of("Book 1"),
@@ -48,8 +48,14 @@ class OrderCreatedEventTranslatorTest {
             Instant.parse("2026-03-29T10:15:30Z")
         );
 
-        OrderCreatedEvent translated = (OrderCreatedEvent) translator.translate(event);
+        var translation = translator.translate(event);
+        OrderCreatedEvent translated = OrderCreatedEvent.parseFrom(translation.payload());
 
+        assertThat(translation.aggregateType()).isEqualTo("order");
+        assertThat(translation.aggregateId()).isEqualTo("order-1");
+        assertThat(translation.eventType()).isEqualTo("order.created");
+        assertThat(translation.schemaVersion()).isEqualTo(1);
+        assertThat(translation.partitionKey()).isEqualTo("order-1");
         assertThat(translated.getId()).isEqualTo("order-1");
         assertThat(translated.getUserId()).isEqualTo("user-1");
         assertThat(translated.getItemsCount()).isEqualTo(2);
@@ -59,6 +65,6 @@ class OrderCreatedEventTranslatorTest {
         assertThat(translated.getItems(0).getQuantity()).isEqualTo(2.0d);
         assertThat(translated.getItems(0).getPrice()).isEqualTo(12.99d);
         assertThat(translated.getItems(0).getCurrency()).isEqualTo("EUR");
-        assertThat(translated.getStatus()).isEqualTo(OrderCreatedEvent.Status.CREATED);
+        assertThat(translated.getStatus()).isEqualTo(OrderCreatedEvent.Status.PENDING_PAYMENT);
     }
 }

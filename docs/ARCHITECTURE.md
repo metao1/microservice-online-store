@@ -34,7 +34,7 @@ graph LR
 
 Notes:
 - Controller delegates to `ProductDomainService` via mapper; idempotency support persists to `product_create_request`.
-- `ProductKafkaListenerComponent` consumes `product-updated` events with `INVENTORY_REDUCTION` markers to adjust stock.
+- `ProductKafkaListenerComponent` consumes dedicated inventory-reduction events to adjust stock; ordinary product updates remain separate.
 - Categories are natural-ID cached (`CategoryEntityMapper` uses Hibernate simple natural ID).
 
 ### Order Service (port 8080)
@@ -52,13 +52,13 @@ graph LR
     Kafka -->|order-payment-events| PaymentListener(PaymentEventListener)
     PaymentListener --> OrderSvc
     OrderAgg -.-> InventoryMarker(DomainInventoryReductionRequestedEvent)
-    InventoryMarker --> ProductUpdatedTranslator(ProductUpdatedEventTranslator)
-    ProductUpdatedTranslator -->|product-updated| Kafka
+    InventoryMarker --> InventoryReductionTranslator(InventoryReductionRequestedEventTranslator)
+    InventoryReductionTranslator -->|inventory-reduction-requested| Kafka
 ```
 
 Notes:
 - Adding the same SKU merges quantities instead of erroring.
-- `updateItemQuantity` emits inventory-reduction markers via `product-updated` topic for inventory service to consume.
+- `requestInventoryReduction` emits typed inventory-reduction requests via the `inventory-reduction-requested` topic for inventory service to consume.
 
 ### Payment Service (port 8084)
 
@@ -104,7 +104,7 @@ sequenceDiagram
 
         Kafka->>Order: OrderPaymentEvent(SUCCESSFUL)
         Note over Order: Emit one inventory<br/>reduction per item
-        Order->>Kafka: ProductUpdatedEvent<br/>(description: INVENTORY_REDUCTION,<br/>topic: product-updated)
+        Order->>Kafka: InventoryReductionRequestedEvent<br/>(topic: inventory-reduction-requested)
 
         Kafka->>Inventory: ProductUpdatedEvent
         Note over Inventory: Decrement stock atomically<br/>(idempotent per event id)
@@ -128,7 +128,7 @@ sequenceDiagram
 |-------|--------------|-------------|-------|
 | `OrderCreatedEvent` | Order | Payment | `order-created-events` |
 | `OrderPaymentEvent` (SUCCESSFUL / FAILED) | Payment | Order | `order-payment-events` |
-| `ProductUpdatedEvent` (INVENTORY_REDUCTION) | Order | Inventory | `product-updated` |
+| `InventoryReductionRequestedEvent` | Order | Inventory | `inventory-reduction-requested` |
 | `OrderStatusChangedEvent` | Order | — | `order-updated` |
 
 Compensation is implicit: inventory is only decremented **after** payment succeeds, so a failed payment requires no reverse stock operation. Each consumer is idempotent, so Kafka retries and replays are safe.
@@ -550,7 +550,7 @@ Order (Aggregate Root)
 Business Rules:
 - Status transitions are validated (CREATED → PAID → SHIPPED → DELIVERED)
 - Cannot add items after order is PAID
-- Quantity must be positive
+- Quantity must not be negative
 - Total amount auto-calculated from items
 ```
 
@@ -617,8 +617,8 @@ The `shared` module provides common domain building blocks:
 - `VAT` - Value-added tax calculations
 
 **Event Infrastructure:**
-- `DomainEventPublisher` - Publishing interface
-- `ProtobufDomainTranslator` - Domain events → Protobuf
+- `OutboxDomainEventPublisher` - Publishing interface
+- `ProtobufDomainEventTranslator` - Domain events → Protobuf
 - `DelegatingDomainEventTranslator` - Translator registry
 
 ## Kafka Infrastructure
@@ -640,7 +640,7 @@ Services:
 | Topic Name | Publisher | Consumers | Event Type | Purpose |
 |------------|-----------|-----------|------------|---------|
 | `product-created` | Inventory MS | Inventory MS | `ProductCreatedEvent` | Product lifecycle — audit / cache warming. |
-| `product-updated` | Inventory MS, **Order MS** | Inventory MS | `ProductUpdatedEvent` | Two semantics distinguished by the `description` field: plain product edits, or `"INVENTORY_REDUCTION"` markers emitted by Order MS as part of the purchase saga. |
+| `inventory-reduction-requested` | Order MS | Inventory MS | `InventoryReductionRequestedEvent` | Typed stock-reduction command emitted by the order workflow. |
 | `order-created-events` | Order MS | Payment MS | `OrderCreatedEvent` | Triggers payment processing for a newly created order. |
 | `order-updated` | Order MS | — | `OrderStatusChangedEvent` | Publishes order status transitions (e.g. `CREATED → PAID`). |
 | `order-payment-events` | Payment MS | Order MS | `OrderPaymentUpdatedEvent` | Result of payment processing — drives order state machine and inventory reduction. |
@@ -746,9 +746,9 @@ Three microservices participate in the purchase saga — **Order**, **Payment**,
 2. `OrderCreatedEvent` published to `order-created-events`.
 3. **Payment MS** consumes the event, creates a Payment aggregate, and processes it (80% success).
 4. `OrderPaymentEvent(status=SUCCESSFUL)` published to `order-payment-events`.
-5. **Order MS** consumes the payment event (`HandleOrderPaymentEventUseCase`, idempotent via `ProcessedPaymentEventPort`) and, **before** flipping the order to `PAID`, calls `OrderAggregate.updateItemQuantity()` which raises one `DomainInventoryReductionRequestedEvent` per order item.
-6. `ProductUpdatedEventTranslator` translates each domain event into a `ProductUpdatedEvent` with `description="INVENTORY_REDUCTION"`, key `"orderId:sku"`, and publishes to `product-updated`.
-7. **Inventory MS** consumes `product-updated` (`ProductKafkaListenerComponent` → `HandleProductUpdatedEventUseCase`). Events without the `INVENTORY_REDUCTION` marker are ignored, and duplicates are filtered via `ProcessedInventoryEventPort` (`processed_inventory_event` table). Stock is decremented through `ProductDomainService.reduceProductVolumeAtomically(sku, volume)` under a row-level lock.
+5. **Order MS** consumes the payment event (`HandleOrderPaymentEventUseCase`, idempotent via the consumed-message inbox) and, **before** flipping the order to `PAID`, calls `OrderAggregate.requestInventoryReduction()` which raises one `DomainInventoryReductionRequestedEvent` per order item.
+6. `InventoryReductionRequestedEventEventTranslator` translates each domain event into a typed `InventoryReductionRequestedEvent` with event ID, order ID, SKU, quantity, occurrence, correlation, and causation IDs, and publishes to `inventory-reduction-requested`.
+7. **Inventory MS** consumes `inventory-reduction-requested` (`ProductKafkaListenerComponent` → `HandleInventoryReductionRequestedEventUseCase`). Duplicates are filtered via `ProcessedInventoryEventPort` (`processed_inventory_event` table). Stock is decremented through `ProductDomainService.reduceProductVolumeAtomically(sku, quantity)` under a row-level lock.
 8. Order MS then transitions the order `CREATED → PAID`, publishes `OrderStatusChangedEvent` to `order-updated`, and clears the user's shopping cart.
 9. Order can subsequently progress `PAID → SHIPPED → DELIVERED`.
 

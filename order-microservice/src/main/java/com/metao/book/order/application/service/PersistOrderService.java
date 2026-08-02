@@ -1,6 +1,6 @@
 package com.metao.book.order.application.service;
 
-import com.metao.book.order.application.port.ProcessedOrderCreatedEventPort;
+import com.metao.book.order.application.port.ConsumedMessagePort;
 import com.metao.book.order.application.usecase.PersistOrderUseCase;
 import com.metao.book.order.domain.event.OrderCreatedEvent;
 import com.metao.book.order.domain.event.OrderCreatedEventItem;
@@ -18,14 +18,17 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PersistOrderService implements PersistOrderUseCase {
     private final OrderRepository orderRepository;
-    private final ProcessedOrderCreatedEventPort processedOrderCreatedEventPort;
+    private final ConsumedMessagePort consumedMessagePort;
     private final VAT vat;
 
     @Override
     @Transactional
     public void persistOrder(OrderCreatedEvent event) {
         String eventId = toProcessedEventId(event);
-        if (!processedOrderCreatedEventPort.markProcessed(eventId)) {
+        if (eventId == null || eventId.isBlank()) {
+            throw new IllegalArgumentException("Order-created event ID must not be blank");
+        }
+        if (!consumedMessagePort.claim("order.created", eventId)) {
             log.info("OrderCreatedEvent {} already processed; skipping duplicate.", eventId);
             return;
         }
@@ -54,6 +57,6 @@ public class PersistOrderService implements PersistOrderUseCase {
     }
 
     private String toProcessedEventId(OrderCreatedEvent event) {
-        return event.orderId().value();
+        return event.eventId();
     }
 }
