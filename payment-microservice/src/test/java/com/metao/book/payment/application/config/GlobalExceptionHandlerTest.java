@@ -1,7 +1,8 @@
-package com.metao.book.payment.presentation.error;
+package com.metao.book.payment.application.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.metao.book.payment.presentation.error.GlobalExceptionHandler;
 import com.metao.book.shared.spring.web.ApiError;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.OptimisticLockingFailureException;

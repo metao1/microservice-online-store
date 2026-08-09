@@ -25,7 +25,7 @@ public class OutboxMessagingAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnBean(KafkaTemplate.class)
+    
     OutboxKafkaPublisher outboxKafkaPublisher(
         OutboxStore outboxStore,
         ProtobufMessageCodecRegistry codecRegistry,

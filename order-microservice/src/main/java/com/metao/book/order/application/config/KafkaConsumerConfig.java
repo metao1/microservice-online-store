@@ -1,10 +1,10 @@
-package com.metao.book.order.infrastructure.config;
+package com.metao.book.order.application.config;
 
+import com.metao.book.order.domain.exception.InvalidPaymentEventException;
+import com.metao.book.order.domain.exception.OrderNotFoundException;
 import com.metao.book.shared.OrderCreatedEvent;
 import com.metao.book.shared.OrderPaymentUpdatedEvent;
 import com.metao.book.shared.OrderUpdatedEvent;
-import com.metao.book.order.domain.exception.OrderNotFoundException;
-import com.metao.book.order.domain.exception.InvalidPaymentEventException;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
 import java.util.HashMap;

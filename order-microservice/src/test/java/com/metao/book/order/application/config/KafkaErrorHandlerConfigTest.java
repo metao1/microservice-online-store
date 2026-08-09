@@ -1,4 +1,4 @@
-package com.metao.book.order.infrastructure.config;
+package com.metao.book.order.application.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -10,8 +10,8 @@ import org.mockito.Mockito;
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.transaction.KafkaAwareTransactionManager;
 import org.springframework.test.util.ReflectionTestUtils;
 
