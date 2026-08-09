@@ -178,7 +178,7 @@ implementation "org.springframework.boot:spring-boot-starter-data-redis"
 ```gradle
 java {
   toolchain {
-    languageVersion = JavaLanguageVersion.of(17)
+    languageVersion = JavaLanguageVersion.of(25)
   }
 }
 ```
