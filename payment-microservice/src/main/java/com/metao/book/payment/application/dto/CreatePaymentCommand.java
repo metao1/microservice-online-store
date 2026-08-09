@@ -11,6 +11,10 @@ import java.math.BigDecimal;
  */
 public record CreatePaymentCommand(
     @NotNull
+    @JsonProperty("userId")
+    String userId,
+
+    @NotNull
     @JsonProperty("orderId")
     String orderId,
 

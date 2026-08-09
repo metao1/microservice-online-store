@@ -24,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -63,6 +64,7 @@ public class ProductController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF') or hasAuthority('SCOPE_products:write')")
     public ResponseEntity<String> createProduct(
         @Valid @RequestBody CreateProductDto dto,
         @RequestHeader(name = "Idempotency-Key", required = false) String idempotencyKey
@@ -100,6 +102,7 @@ public class ProductController {
 
     @PutMapping("/{sku}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF') or hasAuthority('SCOPE_products:write')")
     public ProductDTO updateProduct(
         @PathVariable String sku,
         @Valid @RequestBody UpdateProductCommand command
@@ -164,6 +167,7 @@ public class ProductController {
 
     @PostMapping("/{sku}/categories/{categoryName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF') or hasAuthority('SCOPE_products:write')")
     public void assignProductToCategory(
         @PathVariable String sku,
         @PathVariable String categoryName
@@ -174,6 +178,7 @@ public class ProductController {
 
     @PostMapping("/{sku}/volume/reduce")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF') or hasAuthority('SCOPE_products:write')")
     public void reduceProductVolume(
         @PathVariable String sku,
         @RequestParam BigDecimal quantity
@@ -184,6 +189,7 @@ public class ProductController {
 
     @PostMapping("/{sku}/volume/increase")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF') or hasAuthority('SCOPE_products:write')")
     public void increaseProductVolume(
         @PathVariable String sku,
         @RequestParam BigDecimal quantity

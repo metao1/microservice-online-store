@@ -1,7 +1,6 @@
 package com.metao.book.order.presentation.controller;
 
 import com.metao.book.order.domain.model.valueobject.OrderId;
-import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.application.usecase.CreateOrderUseCase;
 import com.metao.book.order.application.usecase.GetCustomerOrdersUseCase;
 import com.metao.book.order.application.usecase.UpdateOrderStatusUseCase;
@@ -10,11 +9,13 @@ import com.metao.book.order.presentation.dto.OrderPageResponseDto;
 import com.metao.book.order.presentation.dto.OrderResponseDto;
 import com.metao.book.order.presentation.dto.UpdateStatusRequestDto;
 import com.metao.book.shared.architecture.InboundAdapter;
+import com.metao.book.shared.security.CurrentUser;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -41,12 +42,16 @@ public class OrderManagementController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('CUSTOMER') or hasAuthority('SCOPE_orders:write')")
     public OrderId createOrder(@RequestBody CreateOrderRequestDTO request) { // TODO update this DTO to have all order info
-        return createOrderUseCase.createOrder(UserId.of(request.userId()));
+        // Use authenticated user's subject instead of client-provided userId
+        String userId = CurrentUser.subject();
+        return createOrderUseCase.createOrder(com.metao.book.order.domain.model.valueobject.UserId.of(userId));
     }
 
     @PatchMapping("/{orderId}/status")
     @ResponseStatus(HttpStatus.ACCEPTED)
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF') or hasAuthority('SCOPE_orders:write')")
     public void updateStatus(
         @PathVariable String orderId,
         @RequestBody UpdateStatusRequestDto request
@@ -54,20 +59,25 @@ public class OrderManagementController {
         updateOrderStatusUseCase.updateOrderStatus(OrderId.of(orderId), request.statusEnum());
     }
 
-    @GetMapping("/customer/{userId}")
-    public List<OrderResponseDto> getCustomerOrders(@PathVariable String userId) {
-        return getCustomerOrdersUseCase.getCustomerOrders(UserId.of(userId)).stream()
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('CUSTOMER') or hasAuthority('SCOPE_orders:read')")
+    public List<OrderResponseDto> getCustomerOrders() {
+        // Use authenticated user's subject instead of path variable userId
+        String userId = CurrentUser.subject();
+        return getCustomerOrdersUseCase.getCustomerOrders(com.metao.book.order.domain.model.valueobject.UserId.of(userId)).stream()
             .map(OrderResponseDto::fromDomain)
             .toList();
     }
 
-    @GetMapping("/customer/{userId}/paged")
+    @GetMapping("/me/paged")
+    @PreAuthorize("hasRole('CUSTOMER') or hasAuthority('SCOPE_orders:read')")
     public OrderPageResponseDto getCustomerOrdersPaged(
-        @PathVariable String userId,
         @RequestParam(defaultValue = "0") int offset,
         @RequestParam(defaultValue = "10") int limit
     ) {
-        var ordersPage = getCustomerOrdersUseCase.getCustomerOrders(UserId.of(userId), offset, limit)
+        // Use authenticated user's subject instead of path variable userId
+        String userId = CurrentUser.subject();
+        var ordersPage = getCustomerOrdersUseCase.getCustomerOrders(com.metao.book.order.domain.model.valueobject.UserId.of(userId), offset, limit)
             .map(OrderResponseDto::fromDomain);
         return OrderPageResponseDto.from(ordersPage, offset, limit);
     }
