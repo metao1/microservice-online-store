@@ -51,6 +51,7 @@ jobs:
         uses: google-github-actions/run-gemini-cli@v0
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_CLI_TRUST_WORKSPACE: ${{ GEMINI_CLI_TRUST_WORKSPACE }}
           GITHUB_TOKEN: ${{ steps.mint_identity_token.outputs.token || github.token }}
           ISSUE_TITLE: ${{ github.event.pull_request.title || github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.pull_request.body || github.event.issue.body }}
