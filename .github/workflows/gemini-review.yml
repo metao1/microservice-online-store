@@ -60,6 +60,7 @@ jobs:
         with:
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
           gemini_cli_version: ${{ vars.GEMINI_CLI_VERSION || 'latest' }}
+          gemini_cli_trust_workplace: ${{ GEMINI_CLI_TRUST_WORKSPACE || 'true' }}
           gemini_debug: ${{ fromJSON(vars.GEMINI_DEBUG || 'false') }}
           gemini_model: ${{ vars.GEMINI_MODEL }}
           workflow_name: gemini-review
