@@ -87,7 +87,8 @@ jobs:
                     "pull_request_review_write"
                   ],
                   "env": {
-                    "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+                    "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}",
+                    GEMINI_CLI_TRUST_WORKSPACE: "{GEMINI_CLI_TRUST_WORKSPACE}"
                   }
                 }
               },
