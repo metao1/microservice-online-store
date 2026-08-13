@@ -11,6 +11,7 @@ import com.metao.book.product.infrastructure.persistence.entity.ProductEntity;
 import com.metao.book.product.infrastructure.persistence.mapper.ProductEntityMapper;
 import com.metao.book.shared.spring.persistence.OffsetBasedPageRequest;
 import com.metao.book.shared.domain.product.ProductSku;
+import com.metao.book.shared.architecture.OutboundAdapter;
 import io.micrometer.observation.annotation.Observed;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
@@ -39,6 +40,7 @@ import org.springframework.stereotype.Repository;
  * Infrastructure implementation of ProductRepository
  */
 @Repository
+@OutboundAdapter
 @Transactional
 @Slf4j
 @RequiredArgsConstructor

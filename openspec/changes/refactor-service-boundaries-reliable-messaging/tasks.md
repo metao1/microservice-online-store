@@ -8,7 +8,7 @@
 - [ ] 2.2 Add annotation-driven ArchUnit tests that presentation and infrastructure depend on annotated use-case interfaces, not application service implementations.
 - [ ] 2.3 Add ArchUnit tests that JPA entities and Spring Data repositories exist only under infrastructure persistence packages.
 - [ ] 2.4 Add temporary architecture exceptions only where needed to keep the suite compiling during the staged refactor.
-- [ ] 2.5 Add technology-neutral layer marker annotations to Spring-managed inbound adapters, use-case ports, application services, domain components, and outbound adapters in scope.
+- [ ] 2.5 Add technology-neutral layer marker annotations to Spring-managed inbound adapters, use-case ports, application services, domain components, and outbound adapters in scope. (Partial: application services and outbound adapters are annotated; domain component markers remain.)
 
 ## 3. Inbound Ports
 - [x] 3.1 Create order inbound interfaces for create order, update status, fetch customer orders, and order item/inventory operations.
@@ -24,10 +24,10 @@
 - [x] 4.4 Move infrastructure-dependent category orchestration out of the domain service package; keep application services as Spring beans.
 
 ## 5. Cart Refactor
-- [ ] 5.1 Move cart JPA model to infrastructure persistence entities and repositories.
+- [x] 5.1 Move cart JPA model to infrastructure persistence entities and repositories.
 - [x] 5.2 Add cart application ports and use-case interfaces for cart queries, commands, and clearing.
 - [x] 5.3 Implement cart ports with JPA adapters.
-- [ ] 5.4 Move cart HTTP DTOs and validation to presentation DTO packages. (Partial: controller no longer returns the entity.)
+- [x] 5.4 Move cart HTTP DTOs and validation to presentation DTO packages.
 - [x] 5.5 Ensure cart REST endpoints never return JPA entities.
 
 ## 6. Event Correctness
@@ -47,9 +47,9 @@
 - [x] 7.4 Add inbox/consumed-message schema with unique `(consumer_name, event_id)`.
 - [x] 7.5 Treat duplicate unique-key claims as already processed and keep idempotency state changes in the same local transaction as business updates.
 - [x] 7.6 Update consumers to acknowledge only after use-case completion and rely on retry/DLT for unexpected failures.
-- [ ] 7.7 Create the `outbox-messaging` Gradle module and move outbox contracts, publishers, codecs, and Spring auto-configuration from `shared-kernel`.
-- [ ] 7.8 Register transaction after-commit dispatch after durable service-local outbox persistence; retain scheduled retries for publish failures.
-- [ ] 7.9 Update all microservices to use the new module while retaining service-local JPA outbox entities and repositories.
+- [x] 7.7 Create the `outbox-messaging` Gradle module and move outbox contracts, publishers, codecs, and Spring auto-configuration from `shared-kernel`.
+- [x] 7.8 Register transaction after-commit dispatch after durable service-local outbox persistence; retain scheduled retries for publish failures.
+- [x] 7.9 Update all microservices to use the new module while retaining service-local JPA outbox entities and repositories.
 
 ## 8. Persistence Isolation
 - [x] 8.1 Remove JPA/Jackson/Spring annotations from shared domain base classes.

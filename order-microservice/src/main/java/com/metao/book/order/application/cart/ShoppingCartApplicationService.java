@@ -4,10 +4,12 @@ import java.math.BigDecimal;
 import java.util.List;
 import com.metao.book.order.application.service.ShoppingCartService;
 import com.metao.book.order.application.usecase.ShoppingCartUseCase;
+import com.metao.book.shared.architecture.ApplicationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@ApplicationService
 @RequiredArgsConstructor
 public class ShoppingCartApplicationService implements ShoppingCartUseCase {
 

@@ -19,6 +19,7 @@ import com.metao.book.payment.domain.repository.PaymentRepository;
 import com.metao.book.payment.domain.service.PaymentDomainService;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.application.messaging.DomainEventPublisherPort;
+import com.metao.book.shared.architecture.ApplicationService;
 import io.micrometer.core.annotation.Timed;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -38,6 +39,7 @@ import org.springframework.validation.annotation.Validated;
  */
 @Slf4j
 @Service
+@ApplicationService
 @Validated
 @Transactional
 public class PaymentApplicationService implements PaymentUseCase {

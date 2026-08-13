@@ -10,6 +10,7 @@ import com.metao.book.order.infrastructure.persistence.entity.OrderJpaEntity;
 import com.metao.book.order.infrastructure.persistence.mapper.OrderEntityMapper;
 import com.metao.book.shared.spring.persistence.OffsetBasedPageRequest;
 import com.metao.book.shared.domain.financial.VAT;
+import com.metao.book.shared.architecture.OutboundAdapter;
 import io.micrometer.observation.annotation.Observed;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -22,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@OutboundAdapter
 @RequiredArgsConstructor
 @Observed(name = "order.persistence.repository", contextualName = "order-repository")
 public class OrderRepositoryAdapter implements OrderRepository, OrderPort {

@@ -5,6 +5,7 @@ import com.metao.book.order.application.cart.ShoppingCartView;
 import com.metao.book.order.application.port.ShoppingCartCommandPort;
 import com.metao.book.order.application.port.ShoppingCartPort;
 import com.metao.book.order.domain.exception.ShoppingCartNotFoundException;
+import com.metao.book.shared.architecture.ApplicationService;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.List;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@ApplicationService
 @RequiredArgsConstructor
 public class ShoppingCartService implements ShoppingCartCommandPort {
 

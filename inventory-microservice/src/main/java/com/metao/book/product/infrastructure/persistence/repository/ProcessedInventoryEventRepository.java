@@ -1,11 +1,13 @@
 package com.metao.book.product.infrastructure.persistence.repository;
 
 import com.metao.book.product.application.port.ProcessedInventoryEventPort;
+import com.metao.book.shared.architecture.OutboundAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@OutboundAdapter
 @RequiredArgsConstructor
 public class ProcessedInventoryEventRepository implements ProcessedInventoryEventPort {
 

@@ -8,9 +8,13 @@ import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.metao.book.shared.architecture.ApplicationUseCase;
+import com.metao.book.shared.architecture.ApplicationService;
 import com.metao.book.shared.architecture.InboundAdapter;
+import com.metao.book.shared.architecture.OutboundAdapter;
 import jakarta.persistence.Entity;
 import org.junit.jupiter.api.Test;
+import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -70,6 +74,22 @@ class ArchitectureRulesTest {
     void jpaTypesRemainInInfrastructurePersistence() {
         classes().that().areAnnotatedWith(Entity.class)
             .should().resideInAnyPackage("..infrastructure.persistence..")
+            .check(classes);
+    }
+
+    @Test
+    void applicationServicesDeclareTheirArchitectureRole() {
+        classes().that().areAnnotatedWith(Service.class)
+            .and().resideInAnyPackage("..application..")
+            .should().beAnnotatedWith(ApplicationService.class)
+            .check(classes);
+    }
+
+    @Test
+    void repositoryAdaptersDeclareTheirArchitectureRole() {
+        classes().that().areAnnotatedWith(Repository.class)
+            .and().resideInAnyPackage("..infrastructure..")
+            .should().beAnnotatedWith(OutboundAdapter.class)
             .check(classes);
     }
 }

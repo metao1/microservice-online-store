@@ -2,6 +2,7 @@ package com.metao.book.product.infrastructure.persistence.repository;
 
 import com.metao.book.product.infrastructure.persistence.entity.ProductEntity;
 import com.metao.book.shared.domain.product.ProductSku;
+import com.metao.book.shared.architecture.OutboundAdapter;
 import io.micrometer.core.annotation.Timed;
 import java.math.BigDecimal;
 import java.util.List;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Repository;
  * JPA repository for ProductEntity
  */
 @Repository
+@OutboundAdapter
 public interface JpaProductRepository extends JpaRepository<ProductEntity, ProductSku> {
 
     interface ProductCategoryRow {

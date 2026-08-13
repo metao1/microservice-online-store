@@ -4,6 +4,7 @@ import com.metao.book.product.infrastructure.persistence.entity.ProductOutboxJpa
 import com.metao.book.outbox.application.OutboxMessage;
 import com.metao.book.outbox.application.OutboxStore;
 import com.metao.book.outbox.application.OutboxStatus;
+import com.metao.book.shared.architecture.OutboundAdapter;
 import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Repository
+@OutboundAdapter
 @RequiredArgsConstructor
 public class ProductOutboxStore implements OutboxStore {
 

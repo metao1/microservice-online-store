@@ -7,6 +7,7 @@ import com.metao.book.order.domain.event.OrderCreatedEventItem;
 import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.repository.OrderRepository;
 import com.metao.book.shared.domain.financial.VAT;
+import com.metao.book.shared.architecture.ApplicationService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
+@ApplicationService
 @RequiredArgsConstructor
 public class PersistOrderService implements PersistOrderUseCase {
     private final OrderRepository orderRepository;

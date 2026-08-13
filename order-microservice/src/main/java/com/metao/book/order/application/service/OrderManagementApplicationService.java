@@ -14,6 +14,7 @@ import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.domain.repository.OrderRepository;
 import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.application.messaging.DomainEventPublisherPort;
+import com.metao.book.shared.architecture.ApplicationService;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.financial.VAT;
 import com.metao.book.shared.domain.product.ProductSku;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@ApplicationService
 public class OrderManagementApplicationService implements CreateOrderUseCase, UpdateOrderStatusUseCase,
     GetCustomerOrdersUseCase {
 

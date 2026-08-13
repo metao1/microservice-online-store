@@ -19,6 +19,7 @@ import com.metao.book.product.domain.repository.ProductRepository;
 import com.metao.book.product.infrastructure.persistence.repository.ProductCreateIdempotencyRepository;
 import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.application.messaging.DomainEventPublisherPort;
+import com.metao.book.shared.architecture.ApplicationService;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.domain.product.Quantity;
@@ -43,6 +44,7 @@ import org.springframework.validation.annotation.Validated;
  */
 @Slf4j
 @Service
+@ApplicationService
 @Validated
 @Transactional
 @RequiredArgsConstructor
