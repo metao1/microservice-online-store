@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface SpringDataShoppingCartRepository extends JpaRepository<ShoppingCartJpaEntity, ShoppingCartJpaKey> {
+public interface ShoppingCartRepository extends JpaRepository<ShoppingCartJpaEntity, ShoppingCartJpaKey> {
 
     Optional<ShoppingCartJpaEntity> findByUserIdAndSku(String userId, String sku);
 

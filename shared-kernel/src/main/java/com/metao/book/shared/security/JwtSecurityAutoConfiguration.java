@@ -20,6 +20,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
@@ -40,7 +42,8 @@ public class JwtSecurityAutoConfiguration {
     public SecurityFilterChain resourceServerSecurityFilterChain(
         HttpSecurity http,
         JwtSecurityProperties properties,
-        Converter<Jwt, Collection<GrantedAuthority>> jwtAuthoritiesConverter
+        Converter<Jwt, Collection<GrantedAuthority>> jwtAuthoritiesConverter,
+        JwtDecoder jwtDecoder
     ) {
         http
             .csrf(AbstractHttpConfigurer::disable)
@@ -56,7 +59,7 @@ public class JwtSecurityAutoConfiguration {
             )
             .oauth2ResourceServer(oauth2 -> oauth2
                 .jwt(jwt -> jwt
-                    .jwkSetUri(properties.getIssuerUri() + "/protocol/openid-connect/certs")
+                    .decoder(jwtDecoder)
                     .jwtAuthenticationConverter(jwtAuthenticationConverter(properties, jwtAuthoritiesConverter))
                 )
             );
@@ -67,7 +70,21 @@ public class JwtSecurityAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public Converter<Jwt, Collection<GrantedAuthority>> jwtAuthoritiesConverter() {
-        return jwt -> {
+        return new JwtAuthoritiesConverter();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "app.security.jwt", name = "enabled", havingValue = "true", matchIfMissing = true)
+    public JwtDecoder jwtDecoder(JwtSecurityProperties properties) {
+        return NimbusJwtDecoder.withJwkSetUri(properties.getIssuerUri() + "/protocol/openid-connect/certs")
+            .build();
+    }
+
+    private static final class JwtAuthoritiesConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
+
+        @Override
+        public Collection<GrantedAuthority> convert(Jwt jwt) {
             List<String> roles = Optional.ofNullable((List<String>) jwt.getClaim("roles"))
                 .orElse(List.of());
 
@@ -84,7 +101,7 @@ public class JwtSecurityAutoConfiguration {
 
             roleAuthorities.addAll(scopeAuthorities);
             return roleAuthorities;
-        };
+        }
     }
 
     private Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter(

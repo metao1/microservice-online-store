@@ -7,7 +7,7 @@ import com.metao.book.shared.OrderCreatedEvent;
 import com.metao.book.shared.OrderUpdatedEvent;
 import com.metao.book.shared.OrderUpdatedEvent.Status;
 import com.metao.kafka.KafkaEventHandler;
-import com.metao.shared.test.KafkaContainer;
+import com.metao.shared.test.KafkaContainerBase;
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -35,7 +35,7 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 @TestInstance(Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)
-class OrderEventHandlerContainerIT extends KafkaContainer {
+class OrderEventHandlerContainerBaseIT extends KafkaContainerBase {
 
     private CountDownLatch latch1;
     private CountDownLatch latch2;

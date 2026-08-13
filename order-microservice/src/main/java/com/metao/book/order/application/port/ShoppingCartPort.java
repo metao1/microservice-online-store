@@ -1,4 +1,6 @@
-package com.metao.book.order.application.cart;
+package com.metao.book.order.application.port;
+
+import com.metao.book.order.application.cart.ShoppingCartItem;
 
 import java.util.Collection;
 import java.util.List;

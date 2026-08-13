@@ -1,0 +1,109 @@
+{
+  "scenario" : {
+    "label" : "inventory-category-page",
+    "source" : "performance-loadtest/scenarios/bookstore-scenarios.json#inventory-category-page",
+    "variables" : { },
+    "request" : {
+      "headers" : {
+        "Accept" : "application/json"
+      },
+      "url" : "http://localhost:8083/products/category/books?offset=0&limit=16",
+      "bodyPresent" : false,
+      "method" : "GET",
+      "bodySource" : "none"
+    },
+    "steps" : [ {
+      "name" : "request",
+      "url" : "http://localhost:8083/products/category/books?offset=0&limit=16",
+      "method" : "GET",
+      "headers" : {
+        "Accept" : "application/json"
+      },
+      "bodyPresent" : false,
+      "bodySource" : "none",
+      "expectedStatus" : null,
+      "maxAttempts" : 1,
+      "retryDelayMs" : 0,
+      "extract" : { },
+      "assertions" : [ ]
+    } ],
+    "load" : {
+      "virtualUsers" : 50,
+      "targetRps" : null,
+      "durationSec" : 60,
+      "warmupSec" : 10,
+      "requestTimeoutSec" : 5,
+      "thinkTimeMs" : 5,
+      "stages" : [ {
+        "durationSec" : 60,
+        "users" : 50,
+        "targetRps" : null
+      } ],
+      "peakVirtualUsers" : 50,
+      "totalStageDurationSec" : 60
+    }
+  },
+  "result" : {
+    "start" : "2026-04-24T22:12:59.057183Z",
+    "end" : "2026-04-24T22:13:59.737987Z",
+    "durationMs" : 60680,
+    "totalWorkflows" : 4473,
+    "totalRequests" : 4473,
+    "success" : 4473,
+    "failures" : 0,
+    "errorRatePct" : 0.0,
+    "workflowThroughputRps" : 73.71456822676335,
+    "throughputRps" : 73.71456822676335,
+    "latencyMs" : {
+      "min" : 39.372,
+      "p50" : 596.478,
+      "p95" : 1866.75,
+      "p99" : 2371.582,
+      "p999" : 2703.358,
+      "p9999" : 3115.006,
+      "max" : 3113.76
+    },
+    "stepLatencyMs" : {
+      "request" : {
+        "samples" : 4473,
+        "successes" : 4473,
+        "failures" : 0,
+        "retries" : 0,
+        "minMs" : 39.15,
+        "p50Ms" : 596.478,
+        "p95Ms" : 1866.75,
+        "p99Ms" : 2371.582,
+        "p999Ms" : 2703.358,
+        "maxMs" : 3113.667,
+        "statusCodeCounts" : {
+          "200" : 4473
+        }
+      }
+    },
+    "responseBytes" : 36356544,
+    "paceMissCount" : 0,
+    "errors" : { }
+  },
+  "thresholds" : {
+    "configured" : true,
+    "passed" : false,
+    "limits" : {
+      "maxErrorRatePct" : 1.0,
+      "minThroughputRps" : null,
+      "maxP95Ms" : 200.0,
+      "maxP99Ms" : 500.0
+    },
+    "failures" : [ {
+      "metric" : "p95Ms",
+      "expected" : "<= 200.000",
+      "actual" : "1866.750"
+    }, {
+      "metric" : "p99Ms",
+      "expected" : "<= 500.000",
+      "actual" : "2371.582"
+    } ]
+  },
+  "baselineComparison" : {
+    "configured" : false
+  }
+}

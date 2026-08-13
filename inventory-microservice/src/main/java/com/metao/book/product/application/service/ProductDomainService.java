@@ -18,7 +18,7 @@ import com.metao.book.product.domain.repository.CategoryRepository;
 import com.metao.book.product.domain.repository.ProductRepository;
 import com.metao.book.product.infrastructure.persistence.repository.ProductCreateIdempotencyRepository;
 import com.metao.book.shared.domain.base.DomainEvent;
-import com.metao.book.shared.application.messaging.DomainEventPublisher;
+import com.metao.book.shared.application.messaging.DomainEventPublisherPort;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.domain.product.Quantity;
@@ -53,7 +53,7 @@ public class ProductDomainService implements ProductUseCase {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductCreateIdempotencyRepository productCreateIdempotencyRepository;
-    private final DomainEventPublisher eventPublisher;
+    private final DomainEventPublisherPort eventPublisher;
     private final Cache<CategoryPageKey, List<ProductAggregate>> categoryPageCache = Caffeine.newBuilder()
         .maximumSize(CATEGORY_PAGE_CACHE_MAXIMUM_SIZE)
         .expireAfterWrite(Duration.ofSeconds(15))

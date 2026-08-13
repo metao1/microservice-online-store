@@ -71,9 +71,9 @@ subprojects {
     testImplementation "com.tngtech.archunit:archunit-junit5:1.4.1"
 
     // Lombok
-    implementation "org.projectlombok:lombok:1.18.36"
-    annotationProcessor "org.projectlombok:lombok:1.18.36"
-    testAnnotationProcessor "org.projectlombok:lombok:1.18.36"
+    implementation "org.projectlombok:lombok:1.18.46"
+    annotationProcessor "org.projectlombok:lombok:1.18.46"
+    testAnnotationProcessor "org.projectlombok:lombok:1.18.46"
 
     testImplementation "org.testcontainers:testcontainers-junit-jupiter:${testcontainersVersion}"
     testImplementation "org.testcontainers:testcontainers-postgresql:${testcontainersVersion}"

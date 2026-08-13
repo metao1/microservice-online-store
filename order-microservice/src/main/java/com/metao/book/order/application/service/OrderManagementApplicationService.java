@@ -1,7 +1,7 @@
 package com.metao.book.order.application.service;
 
-import com.metao.book.order.application.cart.ShoppingCartService;
 import com.metao.book.order.application.port.OrderPort;
+import com.metao.book.order.application.port.ShoppingCartCommandPort;
 import com.metao.book.order.application.usecase.CreateOrderUseCase;
 import com.metao.book.order.application.usecase.GetCustomerOrdersUseCase;
 import com.metao.book.order.application.usecase.UpdateOrderStatusUseCase;
@@ -13,7 +13,7 @@ import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.domain.repository.OrderRepository;
 import com.metao.book.shared.domain.base.DomainEvent;
-import com.metao.book.shared.application.messaging.DomainEventPublisher;
+import com.metao.book.shared.application.messaging.DomainEventPublisherPort;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.financial.VAT;
 import com.metao.book.shared.domain.product.ProductSku;
@@ -30,22 +30,22 @@ public class OrderManagementApplicationService implements CreateOrderUseCase, Up
     GetCustomerOrdersUseCase {
 
     private final OrderRepository orderRepository;
-    private final DomainEventPublisher eventPublisher;
-    private final ShoppingCartService shoppingCartService;
+    private final DomainEventPublisherPort eventPublisher;
+    private final ShoppingCartCommandPort shoppinCartCommand;
     private final VAT vat;
     private final OrderPort orderPort;
 
     @Autowired
     public OrderManagementApplicationService(
         OrderRepository orderRepository,
-        DomainEventPublisher eventPublisher,
-        ShoppingCartService shoppingCartService,
+        DomainEventPublisherPort eventPublisher,
+        ShoppingCartService shoppinCartCommand,
         VAT vat,
         OrderPort orderPort
     ) {
         this.orderRepository = orderRepository;
         this.eventPublisher = eventPublisher;
-        this.shoppingCartService = shoppingCartService;
+        this.shoppinCartCommand = shoppinCartCommand;
         this.vat = vat;
         this.orderPort = orderPort;
     }
@@ -53,17 +53,17 @@ public class OrderManagementApplicationService implements CreateOrderUseCase, Up
     /** Compatibility constructor for application-level tests without a locking adapter. */
     public OrderManagementApplicationService(
         OrderRepository orderRepository,
-        DomainEventPublisher eventPublisher,
-        ShoppingCartService shoppingCartService,
+        DomainEventPublisherPort eventPublisher,
+        ShoppingCartService shoppinCartCommand,
         VAT vat
     ) {
-        this(orderRepository, eventPublisher, shoppingCartService, vat, orderRepository::findById);
+        this(orderRepository, eventPublisher, shoppinCartCommand, vat, orderRepository::findById);
     }
 
     @Override
     @Transactional
     public OrderId createOrder(UserId userId) {
-        var cart = shoppingCartService.getCartForUser(userId.value());
+        var cart = shoppinCartCommand.getCartForUser(userId.value());
         if (cart.shoppingCartItems().isEmpty()) {
             throw new ShoppingCartIsEmptyException();
         }

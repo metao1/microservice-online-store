@@ -6,7 +6,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.matchesPattern;
 
 import com.metao.book.order.application.cart.ShoppingCartItem;
-import com.metao.book.order.application.cart.ShoppingCartService;
+import com.metao.book.order.application.service.ShoppingCartService;
 import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.UserId;
@@ -14,12 +14,12 @@ import com.metao.book.order.domain.repository.OrderRepository;
 import com.metao.book.order.infrastructure.persistence.repository.SpringDataOrderRepository;
 import com.metao.book.order.presentation.dto.CreateOrderRequestDTO;
 import com.metao.book.order.presentation.dto.UpdateStatusRequestDto;
-import com.metao.book.shared.test.KafkaContainer;
+import com.metao.shared.test.KafkaContainerBase;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import java.math.BigDecimal;
 import java.util.Currency;
-import java.util.Set;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -28,13 +28,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class OrderManagementControllerIT extends KafkaContainer {
+class OrderManagementControllerIT extends KafkaContainerBase {
 
     private static final String USER_ID = "user123";
     private static final String USER_TOKEN = "mock-jwt-token-user";
@@ -75,13 +75,13 @@ class OrderManagementControllerIT extends KafkaContainer {
         void shouldCreateOrderSuccessfully() {
             shoppingCartService.addItemToCart(
                 USER_ID,
-                Set.of(new ShoppingCartItem(SKU, PRODUCT_TITLE, BigDecimal.ONE, UNIT_PRICE, CURRENCY))
+                    List.of(new ShoppingCartItem(SKU, PRODUCT_TITLE, BigDecimal.ONE, UNIT_PRICE, CURRENCY))
             );
 
             given()
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + USER_TOKEN)
-                .body(new CreateOrderRequestDTO())
+                .body(new CreateOrderRequestDTO("USER_ID"))
                 .post("/api/order")
                 .then()
                 .statusCode(HttpStatus.CREATED.value())
@@ -167,7 +167,7 @@ class OrderManagementControllerIT extends KafkaContainer {
         void shouldReturnUnauthorizedWithoutAuth() {
             given()
                 .contentType(ContentType.JSON)
-                .body(new CreateOrderRequestDTO())
+                .body(new CreateOrderRequestDTO("USER_ID"))
                 .post("/api/order")
                 .then()
                 .statusCode(HttpStatus.UNAUTHORIZED.value());

@@ -4,7 +4,7 @@ import com.metao.book.product.domain.model.entity.ProductCategory;
 import com.metao.book.product.domain.model.valueobject.CategoryId;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.product.infrastructure.persistence.entity.CategoryEntity;
-import com.metao.shared.test.KafkaContainer;
+import com.metao.shared.test.KafkaContainerBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-class CategoryEntityMapperIT extends KafkaContainer {
+class CategoryEntityMapperIT extends KafkaContainerBase {
 
     @Autowired
     private CategoryEntityMapper categoryEntityMapper;

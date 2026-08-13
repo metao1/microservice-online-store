@@ -1,6 +1,6 @@
 package com.metao.book.order.application.cart;
 
-import java.util.Set;
+import java.util.List;
 
-public record ShoppingCartView(String userId, Set<ShoppingCartItem> shoppingCartItems) {
+public record ShoppingCartView(String userId, List<ShoppingCartItem> shoppingCartItems) {
 }

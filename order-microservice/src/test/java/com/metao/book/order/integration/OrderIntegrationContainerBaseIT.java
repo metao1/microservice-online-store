@@ -5,21 +5,20 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 
 import com.metao.book.order.application.cart.ShoppingCartItem;
-import com.metao.book.order.application.cart.ShoppingCartService;
+import com.metao.book.order.application.service.ShoppingCartService;
+import com.metao.book.order.application.service.OrderManagementApplicationService;
 import com.metao.book.order.domain.exception.OrderNotFoundException;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.domain.model.valueobject.UserId;
-import com.metao.book.order.application.service.OrderManagementApplicationService;
 import com.metao.book.order.infrastructure.persistence.mapper.OrderEntityMapper;
 import com.metao.book.order.infrastructure.persistence.repository.SpringDataOrderRepository;
 import com.metao.book.order.presentation.dto.OrderResponseDto;
-import com.metao.shared.test.KafkaContainer;
+import com.metao.shared.test.KafkaContainerBase;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.Currency;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +35,7 @@ import org.springframework.test.context.TestPropertySource;
 @SpringBootTest
 @ActiveProfiles("test")
 @TestPropertySource(properties = "kafka.enabled=true")
-class OrderIntegrationContainerIT extends KafkaContainer {
+class OrderIntegrationContainerBaseIT extends KafkaContainerBase {
 
     private static final Currency EUR = Currency.getInstance("EUR");
     private static final BigDecimal ONE = BigDecimal.ONE;
@@ -58,7 +57,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
         shoppingCartService.clearCart("user123");
     }
 
-    private OrderId createOrderWithCartItems(UserId userId, Set<ShoppingCartItem> items) {
+    private OrderId createOrderWithCartItems(UserId userId, List<ShoppingCartItem> items) {
         shoppingCartService.addItemToCart(userId.value(), items);
         OrderId orderId = orderService.createOrder(userId);
         awaitOrderPersisted(orderId);
@@ -80,7 +79,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
     ) {
         return createOrderWithCartItems(
             userId,
-            Set.of(new ShoppingCartItem(productSku, title, quantity, price, EUR))
+            List.of(new ShoppingCartItem(productSku, title, quantity, price, EUR))
         );
     }
 
@@ -146,7 +145,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
 
             OrderId orderId = createOrderWithCartItems(
                 userId,
-                Set.of(
+                List.of(
                     new ShoppingCartItem("product-1", "Book 1", BigDecimal.TWO, BigDecimal.valueOf(10), EUR),
                     new ShoppingCartItem("product-2", "Book 2", BigDecimal.ONE, BigDecimal.valueOf(15), EUR)
                 )
@@ -283,7 +282,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
             UserId userId = UserId.of("user123");
             createOrderWithCartItems(
                 userId,
-                Set.of(
+                List.of(
                     new ShoppingCartItem("product-0", "Book 0", BigDecimal.ONE, BigDecimal.valueOf(5), EUR),
                     new ShoppingCartItem("product-1", "Book 1", BigDecimal.valueOf(2), BigDecimal.valueOf(10), EUR),
                     new ShoppingCartItem("product-2", "Book 2", BigDecimal.ONE, BigDecimal.valueOf(15), EUR)
@@ -333,7 +332,7 @@ class OrderIntegrationContainerIT extends KafkaContainer {
             UserId userId = UserId.of("user123");
             OrderId orderId = createOrderWithCartItems(
                 userId,
-                Set.of(
+                List.of(
                     new ShoppingCartItem("product-0", "Book 0", BigDecimal.ONE, BigDecimal.valueOf(5), EUR),
                     new ShoppingCartItem("product-1", "Book 1", BigDecimal.valueOf(2), BigDecimal.valueOf(10), EUR)
                 )

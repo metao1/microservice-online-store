@@ -1,8 +1,13 @@
-package com.metao.book.order.application.cart;
+package com.metao.book.order.application.service;
 
+import com.metao.book.order.application.cart.ShoppingCartItem;
+import com.metao.book.order.application.cart.ShoppingCartView;
+import com.metao.book.order.application.port.ShoppingCartCommandPort;
+import com.metao.book.order.application.port.ShoppingCartPort;
 import com.metao.book.order.domain.exception.ShoppingCartNotFoundException;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class ShoppingCartService {
+public class ShoppingCartService implements ShoppingCartCommandPort {
 
     private final ShoppingCartPort shoppingCartPort;
 
@@ -21,14 +26,14 @@ public class ShoppingCartService {
             .toList();
         return new ShoppingCartView(
             userId,
-            Set.copyOf(cartItems)
+            List.copyOf(cartItems)
         );
     }
 
     @Transactional
     public int addItemToCart(
         String userId,
-        @NotNull Set<ShoppingCartItem> shoppingCartItems
+        @NotNull List<ShoppingCartItem> shoppingCartItems
     ) {
         if (shoppingCartItems.isEmpty()) {
             return 0;
@@ -42,16 +47,12 @@ public class ShoppingCartService {
             .collect(Collectors.toSet());
 
         var items = shoppingCartItems.stream()
-            .map(item -> {
-                if (existingSkus.contains(item.sku())) {
-                    return shoppingCartPort.findByUserIdAndSku(userId, item.sku())
-                        .map(existing -> new ShoppingCartItem(
-                            existing.sku(), existing.productTitle(), existing.quantity().add(item.quantity()), existing.price(), existing.currency()))
-                        .orElse(item);
+            .<ShoppingCartItem>mapMulti((item, consumer) -> {
+                if (!existingSkus.contains(item.sku())) {
+                    var productItem = shoppingCartPort.findByUserIdAndSku(userId, item.sku()).orElse(item);
+                    consumer.accept(productItem);
                 }
-                return item;
-            })
-            .toList();
+            }).collect(Collectors.toSet());
 
         shoppingCartPort.saveAll(userId, items);
         return items.size();

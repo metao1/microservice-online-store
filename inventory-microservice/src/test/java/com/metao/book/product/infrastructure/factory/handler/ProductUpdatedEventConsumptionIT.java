@@ -10,7 +10,7 @@ import com.metao.book.product.infrastructure.persistence.entity.ProductEntity;
 import com.metao.book.product.infrastructure.persistence.repository.JpaProductRepository;
 import com.metao.book.shared.ProductUpdatedEvent;
 import com.metao.kafka.KafkaEventHandler;
-import com.metao.shared.test.KafkaContainer;
+import com.metao.shared.test.KafkaContainerBase;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.domain.product.ProductTitle;
@@ -33,7 +33,7 @@ import org.springframework.test.context.TestPropertySource;
 @ActiveProfiles("test")
 @TestPropertySource(properties = "kafka.enabled=true")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-class ProductUpdatedEventConsumptionIT extends KafkaContainer {
+class ProductUpdatedEventConsumptionIT extends KafkaContainerBase {
 
     private static final String INVENTORY_REDUCTION_MARKER = "INVENTORY_REDUCTION";
 

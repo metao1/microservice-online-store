@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.metao.book.payment.domain.model.valueobject.PaymentId;
 import com.metao.book.payment.domain.repository.PaymentRepository;
-import com.metao.shared.test.KafkaContainer;
+import com.metao.shared.test.KafkaContainerBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +22,7 @@ import io.restassured.http.ContentType;
 
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class PaymentAggregateControllerIT extends KafkaContainer {
+class PaymentAggregateControllerIT extends KafkaContainerBase {
 
     @Autowired
     private PaymentRepository paymentRepository;

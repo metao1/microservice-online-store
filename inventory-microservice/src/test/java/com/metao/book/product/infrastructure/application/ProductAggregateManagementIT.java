@@ -10,7 +10,7 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 
-import com.metao.shared.test.KafkaContainer;
+import com.metao.shared.test.KafkaContainerBase;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import jakarta.persistence.EntityManagerFactory;
@@ -36,7 +36,7 @@ import java.util.UUID;
 @TestPropertySource(properties = "kafka.enabled=true")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DisplayName("Product Management Integration Tests")
-public class ProductAggregateManagementIT extends KafkaContainer {
+public class ProductAggregateManagementIT extends KafkaContainerBase {
 
     @LocalServerPort
     private Integer port;

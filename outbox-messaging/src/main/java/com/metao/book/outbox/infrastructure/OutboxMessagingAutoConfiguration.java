@@ -2,7 +2,7 @@ package com.metao.book.outbox.infrastructure;
 
 import com.google.protobuf.Message;
 import com.metao.book.outbox.application.OutboxStore;
-import com.metao.book.shared.application.messaging.DomainEventPublisher;
+import com.metao.book.shared.application.messaging.DomainEventPublisherPort;
 import com.metao.book.shared.infrastructure.messaging.protobuf.DelegatingDomainEventTranslator;
 import com.metao.book.shared.infrastructure.messaging.protobuf.ProtobufMessageCodec;
 import com.metao.book.shared.infrastructure.messaging.protobuf.ProtobufMessageCodecRegistry;
@@ -25,7 +25,6 @@ public class OutboxMessagingAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnBean(KafkaTemplate.class)
     OutboxKafkaPublisher outboxKafkaPublisher(
         OutboxStore outboxStore,
         ProtobufMessageCodecRegistry codecRegistry,
@@ -42,11 +41,11 @@ public class OutboxMessagingAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    DomainEventPublisher domainEventPublisher(
+    DomainEventPublisherPort domainEventPublisher(
         DelegatingDomainEventTranslator translator,
         OutboxStore outboxStore,
         AfterCommitOutboxDispatcher dispatcher
     ) {
-        return new TransactionalOutboxDomainEventPublisher(translator, outboxStore, dispatcher);
+        return new TransactionalOutboxDomainEventPublisherPort(translator, outboxStore, dispatcher);
     }
 }

@@ -7,16 +7,20 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
+import com.metao.book.order.application.cart.ShoppingCartItem;
 import com.metao.book.order.infrastructure.persistence.cart.ShoppingCartJpaEntity;
-import com.metao.book.order.infrastructure.persistence.cart.SpringDataShoppingCartRepository;
+import com.metao.book.order.infrastructure.persistence.cart.ShoppingCartRepository;
 import com.metao.book.order.presentation.dto.AddItemRequestDto;
 import com.metao.book.order.presentation.dto.UpdateCartItemQtyDto;
-import com.metao.book.shared.test.KafkaContainer;
+import com.metao.book.outbox.infrastructure.OutboxKafkaPublisher;
+import com.metao.shared.test.KafkaContainerBase;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Currency;
 import java.util.List;
+import org.mockito.Mockito;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,24 +28,30 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 @ActiveProfiles("test")
 @TestPropertySource(properties = "kafka.enabled=true")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class ShoppingCartControllerIT extends KafkaContainer {
+class ShoppingCartControllerIT extends KafkaContainerBase {
+
+    private static final String USER_ID = "user_secure_123";
 
     @LocalServerPort
     private Integer port;
 
     @Autowired
-    private SpringDataShoppingCartRepository shoppingCartRepository;
+    private ShoppingCartRepository shoppingCartRepository;
 
     @MockitoBean
     private JwtDecoder jwtDecoder;
+
+    @MockitoBean
+    private OutboxKafkaPublisher outboxKafkaPublisher;
 
     private final String userId1 = "user123";
     private final String userToken = "mock-jwt-token-user";
@@ -49,15 +59,24 @@ class ShoppingCartControllerIT extends KafkaContainer {
     private final String sku1 = "SKU001";
     private final String sku2 = "SKU002";
     private final String productTitle = "product123";
-
-    private Currency currency;
+    private final BigDecimal quantity = BigDecimal.ONE;
+    private final BigDecimal price = BigDecimal.valueOf(12.99);
+    private final Currency currency = Currency.getInstance("EUR");
 
     @BeforeEach
     void setUp() {
         RestAssured.port = port;
+        Mockito.when(jwtDecoder.decode(userToken)).thenReturn(
+            Jwt.withTokenValue(userToken)
+                .header("alg", "none")
+                .subject(userId1)
+                .audience(List.of("account"))
+                .claim("roles", List.of("CUSTOMER"))
+                .issuedAt(Instant.now())
+                .expiresAt(Instant.now().plusSeconds(3600))
+                .build()
+        );
         shoppingCartRepository.deleteAll();
-        currency = Currency.getInstance("EUR");
-
         ShoppingCartJpaEntity cartItem1User1 = new ShoppingCartJpaEntity(userId1, sku1, productTitle, BigDecimal.TEN, BigDecimal.TEN,
             BigDecimal.ONE, currency);
         shoppingCartRepository.save(cartItem1User1);
@@ -85,6 +104,7 @@ class ShoppingCartControllerIT extends KafkaContainer {
 
     @Test
     void getCart_whenCartDoesNotExist_returnsEmptyCart() {
+        shoppingCartRepository.deleteAll();
         given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer " + userToken)
@@ -98,7 +118,7 @@ class ShoppingCartControllerIT extends KafkaContainer {
     @Test
     void addItemToCart_newItem_returnsCreatedItem() {
         var newItemDto = List.of(
-            new AddItemRequestDto.Item(sku2, productTitle, BigDecimal.TWO, BigDecimal.valueOf(20.0), currency)
+            new ShoppingCartItem(sku2, productTitle, BigDecimal.TWO, BigDecimal.valueOf(20.0), currency)
         );
 
         given()
@@ -119,7 +139,7 @@ class ShoppingCartControllerIT extends KafkaContainer {
     @Test
     void addItemToCart_existingItem_updatesQuantity() {
         var existingItemDto = List.of(
-            new AddItemRequestDto.Item(sku1, productTitle, BigDecimal.TWO, BigDecimal.TEN, currency)
+            new ShoppingCartItem(sku1, productTitle, BigDecimal.TWO, BigDecimal.TEN, currency)
         );
 
         given()
@@ -226,13 +246,14 @@ class ShoppingCartControllerIT extends KafkaContainer {
 
     @Test
     void addItemToCart_withoutAuth_returnsUnauthorized() {
-        var newItemDto = List.of(
-            new AddItemRequestDto.Item(sku2, productTitle, BigDecimal.TWO, BigDecimal.valueOf(20.0), currency)
+        AddItemRequestDto addItemDTO = new AddItemRequestDto(
+            USER_ID, List.of(new ShoppingCartItem(sku1, productTitle, quantity, price, currency))
         );
+
 
         given()
             .contentType(ContentType.JSON)
-            .body(newItemDto)
+            .body(addItemDTO)
             .when()
             .post("/cart/items")
             .then()

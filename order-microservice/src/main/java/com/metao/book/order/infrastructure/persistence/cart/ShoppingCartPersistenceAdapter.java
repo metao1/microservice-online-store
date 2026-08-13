@@ -1,7 +1,7 @@
 package com.metao.book.order.infrastructure.persistence.cart;
 
 import com.metao.book.order.application.cart.ShoppingCartItem;
-import com.metao.book.order.application.cart.ShoppingCartPort;
+import com.metao.book.order.application.port.ShoppingCartPort;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ShoppingCartPersistenceAdapter implements ShoppingCartPort {
 
-    private final SpringDataShoppingCartRepository repository;
+    private final ShoppingCartRepository repository;
 
     @Override
     @Transactional(readOnly = true)

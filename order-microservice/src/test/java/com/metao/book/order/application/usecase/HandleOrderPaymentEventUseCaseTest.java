@@ -15,7 +15,7 @@ import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.domain.repository.OrderRepository;
-import com.metao.book.shared.application.messaging.DomainEventPublisher;
+import com.metao.book.shared.application.messaging.DomainEventPublisherPort;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +36,7 @@ class HandleOrderPaymentEventUseCaseTest {
     @Mock
     private ShoppingCartCommandPort shoppingCartCommandPort;
     @Mock
-    private DomainEventPublisher domainEventPublisher;
+    private DomainEventPublisherPort domainEventPublisherPort;
     @Mock
     private OrderAggregate order;
 
@@ -49,7 +49,7 @@ class HandleOrderPaymentEventUseCaseTest {
             orderPort,
             consumedMessagePort,
             shoppingCartCommandPort,
-            domainEventPublisher
+            domainEventPublisherPort
         );
     }
 

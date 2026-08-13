@@ -1,7 +1,7 @@
 package com.metao.book.order.presentation;
 
-import com.metao.book.order.application.cart.ShoppingCartUseCase;
-import com.metao.book.order.presentation.dto.AddItemRequestDto;
+import com.metao.book.order.application.cart.ShoppingCartItem;
+import com.metao.book.order.application.usecase.ShoppingCartUseCase;
 import com.metao.book.order.presentation.dto.ShoppingCartResponseDto;
 import com.metao.book.order.presentation.dto.UpdateCartItemQtyDto;
 import com.metao.book.shared.architecture.InboundAdapter;
@@ -47,7 +47,7 @@ public class ShoppingCartController {
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('CUSTOMER') or hasAuthority('SCOPE_cart:write')")
     public int addItemToCart(
-        @Valid @RequestBody List<AddItemRequestDto.Item> items
+        @Valid @RequestBody List<ShoppingCartItem> items
     ) {
         String userId = CurrentUser.subject();
         return shoppingCartUseCase.addItemToCart(userId, items);

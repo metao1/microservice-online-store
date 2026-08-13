@@ -2,25 +2,24 @@ package com.metao.book.order.integration;
 
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.matchesPattern;
 
 import com.metao.book.order.application.cart.ShoppingCartItem;
-import com.metao.book.order.application.cart.ShoppingCartService;
+import com.metao.book.order.application.service.ShoppingCartService;
 import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.domain.repository.OrderRepository;
 import com.metao.book.order.infrastructure.persistence.repository.SpringDataOrderRepository;
-import com.metao.book.order.presentation.dto.CreateOrderRequestDTO;
-import com.metao.book.shared.test.KafkaContainer;
 import com.metao.book.order.presentation.dto.AddItemRequestDto;
+import com.metao.book.order.presentation.dto.CreateOrderRequestDTO;
+import com.metao.shared.test.KafkaContainerBase;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import java.math.BigDecimal;
 import java.util.Currency;
-import java.util.Set;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,14 +27,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DisplayName("Secure Order Flow Integration Tests")
-class SecureOrderFlowIT extends KafkaContainer {
+class SecureOrderFlowIT extends KafkaContainerBase {
 
     private static final String USER_ID = "user_secure_123";
     private static final String USER_TOKEN = "mock-jwt-token-secure-user";
@@ -73,14 +72,14 @@ class SecureOrderFlowIT extends KafkaContainer {
         // Add item to cart
         shoppingCartService.addItemToCart(
             USER_ID,
-            Set.of(new ShoppingCartItem(SKU, PRODUCT_TITLE, BigDecimal.ONE, UNIT_PRICE, CURRENCY))
+            List.of(new ShoppingCartItem(SKU, PRODUCT_TITLE, BigDecimal.ONE, UNIT_PRICE, CURRENCY))
         );
 
         // Create order with authentication
         String orderId = given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer " + USER_TOKEN)
-            .body(new CreateOrderRequestDTO())
+            .body(new CreateOrderRequestDTO(USER_ID))
             .post("/api/order")
             .then()
             .statusCode(HttpStatus.CREATED.value())
@@ -105,12 +104,12 @@ class SecureOrderFlowIT extends KafkaContainer {
     void orderCreationWithoutAuth_shouldFail() {
         shoppingCartService.addItemToCart(
             USER_ID,
-            Set.of(new ShoppingCartItem(SKU, PRODUCT_TITLE, BigDecimal.ONE, UNIT_PRICE, CURRENCY))
+            List.of(new ShoppingCartItem(SKU, PRODUCT_TITLE, BigDecimal.ONE, UNIT_PRICE, CURRENCY))
         );
 
         given()
             .contentType(ContentType.JSON)
-            .body(new CreateOrderRequestDTO())
+            .body(new CreateOrderRequestDTO(USER_ID))
             .post("/api/order")
             .then()
             .statusCode(HttpStatus.UNAUTHORIZED.value());
@@ -143,7 +142,7 @@ class SecureOrderFlowIT extends KafkaContainer {
         // POST to cart without auth
         given()
             .contentType(ContentType.JSON)
-            .body(Set.of(new ShoppingCartItem(SKU, PRODUCT_TITLE, BigDecimal.ONE, UNIT_PRICE, CURRENCY)))
+            .body(List.of(new ShoppingCartItem(SKU, PRODUCT_TITLE, BigDecimal.ONE, UNIT_PRICE, CURRENCY)))
             .when()
             .post("/cart/items")
             .then()
@@ -162,7 +161,8 @@ class SecureOrderFlowIT extends KafkaContainer {
     @DisplayName("Cart operations work with valid authentication")
     void cartOperations_withValidAuth_shouldSucceed() {
         // Add item to cart
-        var item = Set.of(new AddItemRequestDto.Item(SKU, PRODUCT_TITLE, BigDecimal.ONE, UNIT_PRICE, CURRENCY));
+        var item = List.of(new AddItemRequestDto(USER_ID,
+            List.of(new ShoppingCartItem(SKU, PRODUCT_TITLE, BigDecimal.ONE, UNIT_PRICE, CURRENCY))));
         
         given()
             .contentType(ContentType.JSON)

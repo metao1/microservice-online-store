@@ -8,12 +8,13 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.metao.book.order.application.port.ShoppingCartPort;
+import com.metao.book.order.application.service.ShoppingCartService;
 import com.metao.book.order.domain.exception.ShoppingCartNotFoundException;
 import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -49,7 +50,7 @@ class ShoppingCartServiceTest {
     void addItemToCart_savesNewItems() {
         when(shoppingCartPort.findByUserIdAndSkuIn(eq(USER_ID), any())).thenReturn(List.of());
 
-        int result = shoppingCartService.addItemToCart(USER_ID, Set.of(ITEM));
+        int result = shoppingCartService.addItemToCart(USER_ID, List.of(ITEM));
 
         assertThat(result).isEqualTo(1);
         verify(shoppingCartPort).saveAll(USER_ID, List.of(ITEM));
@@ -62,7 +63,7 @@ class ShoppingCartServiceTest {
         when(shoppingCartPort.findByUserIdAndSkuIn(eq(USER_ID), any())).thenReturn(List.of(existing));
         when(shoppingCartPort.findByUserIdAndSku(USER_ID, SKU)).thenReturn(Optional.of(existing));
 
-        shoppingCartService.addItemToCart(USER_ID, Set.of(ITEM));
+        shoppingCartService.addItemToCart(USER_ID, List.of(ITEM));
 
         verify(shoppingCartPort).saveAll(USER_ID, List.of(new ShoppingCartItem(
             SKU, ITEM.productTitle(), BigDecimal.TWO, ITEM.price(), CURRENCY)));

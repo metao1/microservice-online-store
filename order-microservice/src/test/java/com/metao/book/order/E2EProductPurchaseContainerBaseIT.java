@@ -6,26 +6,26 @@ import static org.awaitility.Awaitility.await;
 
 import com.google.protobuf.Timestamp;
 import com.metao.book.order.application.cart.ShoppingCartItem;
-import com.metao.book.order.infrastructure.persistence.cart.SpringDataShoppingCartRepository;
+import com.metao.book.order.application.port.ShoppingCartCommandPort;
 import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.domain.repository.OrderRepository;
+import com.metao.book.order.infrastructure.persistence.cart.ShoppingCartRepository;
 import com.metao.book.order.infrastructure.persistence.repository.SpringDataOrderRepository;
-import com.metao.book.order.presentation.dto.AddItemRequestDto;
 import com.metao.book.order.presentation.dto.CreateOrderRequestDTO;
+import com.metao.book.shared.InventoryReductionRequestedEvent;
 import com.metao.book.shared.OrderPaymentUpdatedEvent;
-import com.metao.book.shared.ProductUpdatedEvent;
 import com.metao.book.shared.Status;
 import com.metao.kafka.KafkaEventHandler;
-import com.metao.shared.test.KafkaContainer;
+import com.metao.shared.test.KafkaContainerBase;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Currency;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
@@ -45,15 +45,17 @@ import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.mockito.Mockito;
 
 @Slf4j
 @ActiveProfiles("test")
 @TestPropertySource(properties = "kafka.enabled=true")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class E2EProductPurchaseContainerIT extends KafkaContainer {
-
-    private static final String INVENTORY_REDUCTION_MARKER = "INVENTORY_REDUCTION";
+class E2EProductPurchaseContainerBaseIT extends KafkaContainerBase {
 
     private final String userId = "e2eUser";
     private final String sku1 = "SKU_E2E_001";
@@ -61,15 +63,19 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
     private final BigDecimal quantity1 = BigDecimal.ONE;
     private final BigDecimal price1 = BigDecimal.valueOf(12.99);
     private final Currency currency = Currency.getInstance("EUR");
+    private final String userToken = "e2e-mock-jwt-token";
 
-    private final ConcurrentLinkedQueue<ConsumerRecord<String, ProductUpdatedEvent>> productUpdatedEvents =
+    private final ConcurrentLinkedQueue<ConsumerRecord<String, InventoryReductionRequestedEvent>> inventoryReductionEvents =
         new ConcurrentLinkedQueue<>();
 
     @LocalServerPort
     private Integer orderMicroservicePort;
 
     @Autowired
-    private SpringDataShoppingCartRepository shoppingCartRepository;
+    private ShoppingCartRepository shoppingCartRepository;
+
+    @Autowired
+    private ShoppingCartCommandPort shoppingCartCommandPort;
 
     @Autowired
     private OrderRepository orderRepository;
@@ -86,12 +92,25 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
     @Autowired
     private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
 
+    @MockitoBean
+    private JwtDecoder jwtDecoder;
+
     @BeforeEach
     void setUp() {
         jpaOrderRepository.deleteAll();
         shoppingCartRepository.deleteAll();
-        productUpdatedEvents.clear();
+        inventoryReductionEvents.clear();
         RestAssured.port = orderMicroservicePort;
+        Mockito.when(jwtDecoder.decode(userToken)).thenReturn(
+            Jwt.withTokenValue(userToken)
+                .header("alg", "none")
+                .subject(userId)
+                .audience(List.of("account"))
+                .claim("roles", List.of("CUSTOMER"))
+                .issuedAt(Instant.now())
+                .expiresAt(Instant.now().plusSeconds(3600))
+                .build()
+        );
         for (MessageListenerContainer container : kafkaListenerEndpointRegistry.getListenerContainers()) {
             ContainerTestUtils.waitForAssignment(container, 1);
         }
@@ -99,22 +118,17 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
 
     @Test
     void shouldCompletePurchaseFlowAndPublishInventoryReductionEvent() {
-        AddItemRequestDto addItemDTO = new AddItemRequestDto(
-            userId, Set.of(new ShoppingCartItem(sku1, productTitle, quantity1, price1, currency))
+        List<ShoppingCartItem> addItemDTO = List.of(
+            new ShoppingCartItem(sku1, productTitle, quantity1, price1, currency)
         );
 
-        given()
-            .contentType(ContentType.JSON)
-            .body(addItemDTO)
-            .when()
-            .post("/cart")
-            .then()
-            .statusCode(HttpStatus.CREATED.value());
+        assertThat(shoppingCartCommandPort.addItemToCart(userId, addItemDTO)).isEqualTo(1);
 
         assertThat(shoppingCartRepository.findByUserIdAndSku(userId, sku1)).isPresent();
 
         OrderId orderId = given()
             .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer " + userToken)
             .body(new CreateOrderRequestDTO(userId))
             .when()
             .post("/api/order")
@@ -128,6 +142,7 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
         assertThat(shoppingCartRepository.findByUserId(userId)).hasSize(1);
 
         OrderPaymentUpdatedEvent paymentEvent = OrderPaymentUpdatedEvent.newBuilder()
+            .setEventId(UUID.randomUUID().toString())
             .setOrderId(orderId.value())
             .setStatus(Status.SUCCESSFUL)
             .setPaymentId(UUID.randomUUID().toString())
@@ -160,21 +175,15 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
 
     @Test
     void shouldNotPublishDuplicateInventoryReductionEventForDuplicateSuccessfulPayment() {
-        AddItemRequestDto addItemDTO = new AddItemRequestDto(
-            userId,
-                Set.of(new ShoppingCartItem(sku1, productTitle, quantity1, price1, currency))
+        List<ShoppingCartItem> addItemDTO = List.of(
+            new ShoppingCartItem(sku1, productTitle, quantity1, price1, currency)
         );
 
-        given()
-            .contentType(ContentType.JSON)
-            .body(addItemDTO)
-            .when()
-            .post("/cart")
-            .then()
-            .statusCode(HttpStatus.CREATED.value());
+        assertThat(shoppingCartCommandPort.addItemToCart(userId, addItemDTO)).isEqualTo(1);
 
         OrderId orderId = given()
             .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer " + userToken)
             .body(new CreateOrderRequestDTO(userId))
             .when()
             .post("/api/order")
@@ -187,6 +196,7 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
 
         String paymentId = UUID.randomUUID().toString();
         OrderPaymentUpdatedEvent firstPaymentEvent = OrderPaymentUpdatedEvent.newBuilder()
+            .setEventId(UUID.randomUUID().toString())
             .setOrderId(orderId.value())
             .setStatus(Status.SUCCESSFUL)
             .setPaymentId(paymentId)
@@ -205,6 +215,7 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
         );
 
         OrderPaymentUpdatedEvent duplicatePaymentEvent = OrderPaymentUpdatedEvent.newBuilder()
+            .setEventId(UUID.randomUUID().toString())
             .setOrderId(orderId.value())
             .setStatus(Status.SUCCESSFUL)
             .setPaymentId(paymentId)
@@ -222,21 +233,20 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
     }
 
     @KafkaListener(
-        id = "e2e-product-updated-listener-${random.uuid}",
-        topics = "${kafka.topic.product-updated.name}",
-        groupId = "e2e-product-updated-group",
+        id = "e2e-inventory-reduction-listener-${random.uuid}",
+        topics = "${kafka.topic.inventory-reduction-requested.name}",
+        groupId = "e2e-inventory-reduction-group",
         properties = {
-            "specific.protobuf.value.type=com.metao.book.shared.ProductUpdatedEvent"
+            "specific.protobuf.value.type=com.metao.book.shared.InventoryReductionRequestedEvent"
         }
     )
-    void onProductUpdatedEvent(ConsumerRecord<String, ProductUpdatedEvent> event) {
-        productUpdatedEvents.add(event);
+    void onInventoryReductionRequestedEvent(ConsumerRecord<String, InventoryReductionRequestedEvent> event) {
+        inventoryReductionEvents.add(event);
     }
 
     private long countInventoryReductionEvents(String sku) {
-        return productUpdatedEvents.stream()
+        return inventoryReductionEvents.stream()
             .filter(record -> sku.equals(record.value().getSku()))
-            .filter(record -> INVENTORY_REDUCTION_MARKER.equals(record.value().getDescription()))
             .count();
     }
 
@@ -247,7 +257,7 @@ class E2EProductPurchaseContainerIT extends KafkaContainer {
                 var maybeOrder = orderRepository.findById(orderId);
                 assertThat(maybeOrder).isPresent();
                 OrderAggregate order = maybeOrder.orElseThrow();
-                assertThat(order.getStatus()).isEqualTo(OrderStatus.CREATED);
+                assertThat(order.getStatus()).isEqualTo(OrderStatus.PENDING_PAYMENT);
             });
     }
 }

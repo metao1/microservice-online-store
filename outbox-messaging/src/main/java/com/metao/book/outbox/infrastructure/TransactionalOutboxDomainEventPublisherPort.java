@@ -2,14 +2,14 @@ package com.metao.book.outbox.infrastructure;
 
 import com.metao.book.outbox.application.OutboxMessage;
 import com.metao.book.outbox.application.OutboxStore;
-import com.metao.book.shared.application.messaging.DomainEventPublisher;
+import com.metao.book.shared.application.messaging.DomainEventPublisherPort;
 import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.infrastructure.messaging.protobuf.DelegatingDomainEventTranslator;
 import lombok.RequiredArgsConstructor;
 
 /** Stores the event with the business write, then requests post-commit dispatch. */
 @RequiredArgsConstructor
-public final class TransactionalOutboxDomainEventPublisher implements DomainEventPublisher {
+public final class TransactionalOutboxDomainEventPublisherPort implements DomainEventPublisherPort {
 
     private final DelegatingDomainEventTranslator translator;
     private final OutboxStore outboxStore;
