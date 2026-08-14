@@ -29,7 +29,14 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import com.metao.book.product.infrastructure.persistence.entity.CategoryEntity;
+import io.restassured.builder.RequestSpecBuilder;
+import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
+import org.mockito.Mockito;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @Slf4j
 @ActiveProfiles("test")
@@ -50,6 +57,9 @@ public class ProductAggregateManagementIT extends KafkaContainerBase {
     @Autowired
     private EntityManagerFactory entityManagerFactory;
 
+    @MockitoBean
+    private JwtDecoder jwtDecoder;
+
     @BeforeEach
     void setUp() {
         new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
@@ -66,6 +76,20 @@ public class ProductAggregateManagementIT extends KafkaContainerBase {
 
         RestAssured.port = port;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+        String token = "mock-jwt-token-admin";
+        Mockito.when(jwtDecoder.decode(token)).thenReturn(
+            Jwt.withTokenValue(token)
+                .header("alg", "none")
+                .subject("admin-user")
+                .audience(List.of("account"))
+                .claim("roles", List.of("ADMIN"))
+                .issuedAt(Instant.now())
+                .expiresAt(Instant.now().plusSeconds(3600))
+                .build()
+        );
+        RestAssured.requestSpecification = new RequestSpecBuilder()
+            .addHeader("Authorization", "Bearer " + token)
+            .build();
     }
 
     @Test

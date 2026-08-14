@@ -34,7 +34,10 @@ import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@TestPropertySource(properties = "kafka.enabled=true")
+@TestPropertySource(properties = {
+    "kafka.enabled=true",
+    "spring.kafka.listener.auto-startup=false"
+})
 class OrderIntegrationContainerBaseIT extends KafkaContainerBase {
 
     private static final Currency EUR = Currency.getInstance("EUR");
@@ -315,7 +318,7 @@ class OrderIntegrationContainerBaseIT extends KafkaContainerBase {
                 .filter(order -> OrderStatus.PAID.name().equals(order.getStatus()))
                 .toList();
             List<OrderResponseDto> createdOrders = allOrders.stream()
-                .filter(order -> OrderStatus.CREATED.name().equals(order.getStatus()))
+                .filter(order -> OrderStatus.PENDING_PAYMENT.name().equals(order.getStatus()))
                 .toList();
 
             assertThat(allOrders).hasSize(2);

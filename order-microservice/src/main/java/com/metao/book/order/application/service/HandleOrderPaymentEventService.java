@@ -11,7 +11,7 @@ import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.domain.model.valueobject.PaymentStatus;
-import com.metao.book.order.domain.repository.OrderRepository;
+import com.metao.book.order.application.port.OrderRepository;
 import com.metao.book.shared.application.messaging.DomainEventPublisherPort;
 import com.metao.book.shared.architecture.ApplicationService;
 import java.util.Objects;

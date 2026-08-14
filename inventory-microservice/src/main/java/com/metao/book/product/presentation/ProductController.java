@@ -7,7 +7,7 @@ import com.metao.book.product.application.dto.UpdateProductCommand;
 import com.metao.book.product.application.mapper.ProductApplicationMapper;
 import com.metao.book.product.application.service.CreateProductResult;
 import com.metao.book.product.application.usecase.ProductUseCase;
-import com.metao.book.product.domain.category.dto.CategoryDTO;
+import com.metao.book.product.presentation.dto.CategoryResponseDto;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.domain.product.Quantity;
@@ -143,13 +143,13 @@ public class ProductController {
     }
 
     @GetMapping("/categories")
-    public List<CategoryDTO> getCategories(
+    public List<CategoryResponseDto> getCategories(
         @RequestParam(value = "offset", defaultValue = "0") int offset,
         @RequestParam(value = "limit", defaultValue = "10") int limit
     ) {
         var categories = productUseCase.getCategories(offset, limit);
         return categories.stream()
-            .map(category-> new CategoryDTO(category.getName().value()))
+            .map(category -> new CategoryResponseDto(category.getName().value()))
             .toList();
     }
 

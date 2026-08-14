@@ -269,32 +269,32 @@ public class ProductRepositoryImpl implements ProductRepository {
         ProductReadModel readModel = loadProductReadModel(skus);
 
         return skus.stream()
-            .map(readModel.productsBySku()::get)
+            .map(sku -> readModel.productsBySku().get(sku.value()))
             .filter(Objects::nonNull)
             .map(entity -> productEntityMapper.toDomain(
                 entity,
-                readModel.categoriesBySku().getOrDefault(entity.getSku(), Set.of())
+                readModel.categoriesBySku().getOrDefault(entity.getSku().value(), Set.of())
             ))
             .toList();
     }
 
     private ProductReadModel loadProductReadModel(List<ProductSku> skus) {
-        Map<ProductSku, ProductEntity> productsBySku = new LinkedHashMap<>();
+        Map<String, ProductEntity> productsBySku = new LinkedHashMap<>();
         jpaProductRepository.findAllById(skus)
-            .forEach(entity -> productsBySku.put(entity.getSku(), entity));
+            .forEach(entity -> productsBySku.put(entity.getSku().value(), entity));
 
-        Map<ProductSku, Set<ProductCategory>> categoriesBySku = new HashMap<>();
+        Map<String, Set<ProductCategory>> categoriesBySku = new HashMap<>();
         jpaProductRepository.findCategoryRowsBySkuIn(skus)
             .forEach(row -> categoriesBySku
-                .computeIfAbsent(row.getSku(), ignored -> new LinkedHashSet<>())
+                .computeIfAbsent(row.getSku().value(), ignored -> new LinkedHashSet<>())
                 .add(productEntityMapper.toDomain(row.getCategoryId(), row.getCategoryName())));
 
         return new ProductReadModel(productsBySku, categoriesBySku);
     }
 
     private record ProductReadModel(
-        Map<ProductSku, ProductEntity> productsBySku,
-        Map<ProductSku, Set<ProductCategory>> categoriesBySku
+        Map<String, ProductEntity> productsBySku,
+        Map<String, Set<ProductCategory>> categoriesBySku
     ) {
     }
 

@@ -21,7 +21,6 @@ import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.application.messaging.DomainEventPublisherPort;
 import com.metao.book.shared.architecture.ApplicationService;
 import io.micrometer.core.annotation.Timed;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -87,7 +86,7 @@ public class PaymentApplicationService implements PaymentUseCase {
     /**
      * Create a new payment and save it into database
      */
-    public PaymentDTO createPayment(@Valid CreatePaymentCommand command) {
+    public PaymentDTO createPayment(CreatePaymentCommand command) {
         log.info("Creating payment for order: {}", command.orderId());
 
         OrderId orderId = OrderId.of(command.orderId());

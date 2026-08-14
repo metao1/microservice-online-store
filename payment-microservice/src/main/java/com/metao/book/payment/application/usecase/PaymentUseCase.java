@@ -7,11 +7,12 @@ import com.metao.book.payment.domain.service.PaymentDomainService;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import jakarta.validation.Valid;
 
 @ApplicationUseCase
 public interface PaymentUseCase {
 
-    PaymentDTO createPayment(CreatePaymentCommand command);
+    PaymentDTO createPayment(@Valid CreatePaymentCommand command);
 
     PaymentDTO processPayment(String paymentId);
 

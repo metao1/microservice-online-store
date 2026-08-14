@@ -63,11 +63,11 @@ public class ProductDomainService implements ProductUseCase {
     /**
      * Create a new product
      */
-    public CreateProductResult createProduct(@Valid CreateProductCommand command) {
+    public CreateProductResult createProduct(CreateProductCommand command) {
         return createProduct(command, UUID.randomUUID().toString());
     }
 
-    public CreateProductResult createProduct(@Valid CreateProductCommand command, String idempotencyKey) {
+    public CreateProductResult createProduct(CreateProductCommand command, String idempotencyKey) {
         log.info("Creating product with SKU: {}", command.sku());
 
         String normalizedIdempotencyKey = normalizeIdempotencyKey(idempotencyKey);
@@ -141,7 +141,7 @@ public class ProductDomainService implements ProductUseCase {
     /**
      * Update an existing product
      */
-    public ProductAggregate updateProduct(@Valid UpdateProductCommand command) {
+    public ProductAggregate updateProduct(UpdateProductCommand command) {
         var productSku = ProductSku.of(command.sku());
         var product = productRepository.findBySku(productSku)
             .orElseThrow(() -> new ProductNotFoundException(productSku));
@@ -163,7 +163,7 @@ public class ProductDomainService implements ProductUseCase {
      * Get product by SKU
      */
     @Transactional(readOnly = true)
-    public ProductAggregate getProductBySku(@NotNull String sku) {
+    public ProductAggregate getProductBySku(String sku) {
         log.debug("Getting product by SKU: {}", sku);
         return productRepository.findBySku(ProductSku.of(sku))
             .orElseThrow(() -> new ProductNotFoundException(ProductSku.of(sku)));

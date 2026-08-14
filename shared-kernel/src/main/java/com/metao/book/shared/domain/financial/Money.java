@@ -185,13 +185,6 @@ public class Money implements ValueObject {
 
     @Override
     public String toString() {
-        String amountString;
-        if (Objects.equals(amount, BigDecimal.ZERO)) {
-            amountString = "000";
-        } else {
-            amountString = amount.toString();
-        }
-        return String.format("%s %s.%s", currency, amountString.substring(0, amountString.length() - 2),
-            amountString.substring(amountString.length() - 2));
+        return String.format("%s %s", currency, amount.setScale(2, RoundingMode.HALF_UP).toPlainString());
     }
 }

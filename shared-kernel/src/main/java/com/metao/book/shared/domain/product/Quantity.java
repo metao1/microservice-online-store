@@ -45,6 +45,22 @@ public class Quantity implements ValueObject {
         return Quantity.of(newValue);
     }
 
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof Quantity that)) {
+            return false;
+        }
+        return value.compareTo(that.value) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return value.stripTrailingZeros().hashCode();
+    }
+
     @NotNull
     @Override
     public String toString() {

@@ -4,11 +4,11 @@
 - [x] 1.3 Identify stale classes and generated/dev code that fail the intended dependency direction.
 
 ## 2. Architecture Contracts
-- [ ] 2.1 Add ArchUnit tests that domain packages do not depend on Spring, JPA, Kafka, Jackson, HTTP, presentation, or infrastructure packages.
-- [ ] 2.2 Add annotation-driven ArchUnit tests that presentation and infrastructure depend on annotated use-case interfaces, not application service implementations.
-- [ ] 2.3 Add ArchUnit tests that JPA entities and Spring Data repositories exist only under infrastructure persistence packages.
+- [x] 2.1 Add ArchUnit tests that domain packages do not depend on Spring, JPA, Kafka, Jackson, HTTP, presentation, or infrastructure packages.
+- [x] 2.2 Add annotation-driven ArchUnit tests that presentation and infrastructure depend on annotated use-case interfaces, not application service implementations.
+- [x] 2.3 Add ArchUnit tests that JPA entities and Spring Data repositories exist only under infrastructure persistence packages.
 - [ ] 2.4 Add temporary architecture exceptions only where needed to keep the suite compiling during the staged refactor.
-- [ ] 2.5 Add technology-neutral layer marker annotations to Spring-managed inbound adapters, use-case ports, application services, domain components, and outbound adapters in scope. (Partial: application services and outbound adapters are annotated; domain component markers remain.)
+- [x] 2.5 Add technology-neutral layer marker annotations to Spring-managed inbound adapters, use-case ports, application services, domain components, and outbound adapters in scope.
 
 ## 3. Inbound Ports
 - [x] 3.1 Create order inbound interfaces for create order, update status, fetch customer orders, and order item/inventory operations.
@@ -18,7 +18,7 @@
 - [x] 3.5 Update controllers and Kafka listeners to inject use-case interfaces only.
 
 ## 4. Domain Cleanup
-- [ ] 4.1 Remove Spring, transaction, repository, component, JPA, Jackson, HTTP, and Spring nullability annotations from all domain packages. (Partial: service, exceptions, and inventory event cleaned; shared base/value objects remain.)
+- [x] 4.1 Remove Spring, transaction, repository, component, JPA, Jackson, HTTP, and Spring nullability annotations from all domain packages.
 - [x] 4.2 Move HTTP exception mapping to presentation `@RestControllerAdvice`.
 - [x] 4.3 Move database locking semantics out of domain repository interfaces into application ports or infrastructure adapters.
 - [x] 4.4 Move infrastructure-dependent category orchestration out of the domain service package; keep application services as Spring beans.
@@ -67,8 +67,8 @@
 ## 10. Verification
 - [x] 10.1 Add listener delegation tests for mapped command data.
 - [x] 10.2 Add idempotency duplicate-delivery tests proving no duplicate business side effect.
-- [ ] 10.3 Add order/payment transition tests for allowed and forbidden transitions.
-- [ ] 10.4 Add integration tests for outbox write/publish/retry behavior.
-- [ ] 10.5 Add integration tests for duplicate Kafka delivery and failed payment state changes.
+- [x] 10.3 Add order/payment transition tests for allowed and forbidden transitions.
+- [x] 10.4 Add integration tests for outbox write/publish/retry behavior.
+- [x] 10.5 Add integration tests for duplicate Kafka delivery and failed payment state changes.
 - [x] 10.6 Add tests proving VAT changes after order creation do not alter historical totals.
 - [ ] 10.7 Run module-level and full project tests after each stage.

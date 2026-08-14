@@ -53,7 +53,7 @@ public interface JpaProductRepository extends JpaRepository<ProductEntity, Produ
         where p.volume.value > 0
           and (
             lower(p.title.value) like lower(concat('%', :keyword, '%'))
-            or lower(p.description.value) like lower(concat('%', :keyword, '%'))
+            or lower(p.description) like lower(concat('%', :keyword, '%'))
           )
         """)
     List<ProductSku> searchSkusByKeyword(@Param("keyword") String keyword, Pageable pageable);

@@ -1,6 +1,7 @@
 package com.metao.book.payment.domain.model.valueobject;
 
 import com.metao.book.shared.domain.base.ValueObject;
+import com.metao.book.shared.architecture.DomainComponent;
 import jakarta.annotation.Nonnull;
 import java.util.UUID;
 import lombok.NonNull;
@@ -8,6 +9,7 @@ import lombok.NonNull;
 /**
  * Payment identifier value object
  */
+@DomainComponent
 public record PaymentId(String value) implements ValueObject {
 
     public PaymentId(@NonNull String value) {

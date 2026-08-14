@@ -9,6 +9,7 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.metao.book.shared.architecture.ApplicationUseCase;
 import com.metao.book.shared.architecture.ApplicationService;
+import com.metao.book.shared.architecture.DomainComponent;
 import com.metao.book.shared.architecture.InboundAdapter;
 import com.metao.book.shared.architecture.OutboundAdapter;
 import jakarta.persistence.Entity;
@@ -27,10 +28,7 @@ class ArchitectureRulesTest {
     @Test
     void coreDomainDoesNotDependOnFrameworksOrAdapters() {
         noClasses().that().resideInAnyPackage(
-                "..domain.model.aggregate..",
-                "..domain.model.entity..",
-                "..domain.model.event..",
-                "..domain.exception.."
+                "..domain.."
             )
             .should().dependOnClassesThat().resideInAnyPackage(
                 "org.springframework..",
@@ -62,12 +60,11 @@ class ArchitectureRulesTest {
     }
 
     @Test
-    void messagingInboundAdaptersInjectOnlyAnnotatedUseCases() {
+    void inboundAdaptersInjectOnlyAnnotatedUseCases() {
         classes.stream()
             .filter(type -> type.isAnnotatedWith(InboundAdapter.class))
-            .filter(type -> type.getAnnotationOfType(InboundAdapter.class).value() == InboundAdapter.Kind.MESSAGING)
             .flatMap(type -> type.getFields().stream())
-            .filter(field -> field.getRawType().getFullName().contains(".application."))
+            .filter(field -> field.getRawType().getFullName().contains(".application.usecase."))
             .forEach(this::assertUseCasePort);
     }
 
@@ -97,6 +94,24 @@ class ArchitectureRulesTest {
         classes().that().areAnnotatedWith(Repository.class)
             .and().resideInAnyPackage("..infrastructure..")
             .should().beAnnotatedWith(OutboundAdapter.class)
+            .check(classes);
+    }
+
+    @Test
+    void springDataRepositoriesRemainInInfrastructurePersistence() {
+        classes().that().areAssignableTo(org.springframework.data.repository.Repository.class)
+            .should().resideInAnyPackage("..infrastructure.persistence..")
+            .check(classes);
+    }
+
+    @Test
+    void domainComponentsDeclareTheirArchitectureRole() {
+        classes().that().resideInAnyPackage(
+                "..domain.model.aggregate..",
+                "..domain.model.entity..",
+                "..domain.model.valueobject.."
+            )
+            .should().beAnnotatedWith(DomainComponent.class)
             .check(classes);
     }
 }

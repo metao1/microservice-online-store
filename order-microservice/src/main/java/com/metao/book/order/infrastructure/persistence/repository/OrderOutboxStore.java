@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 
 @Repository
 @OutboundAdapter
@@ -26,7 +27,7 @@ public class OrderOutboxStore implements OutboxStore {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public List<OutboxMessage> claimPending(
         String workerId,
         int limit,
@@ -51,7 +52,7 @@ public class OrderOutboxStore implements OutboxStore {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void markPublished(String eventId, String workerId, Instant publishedAt) {
         repository.findById(eventId)
             .filter(entity -> workerId.equals(entity.getLeaseOwner()))
@@ -65,7 +66,7 @@ public class OrderOutboxStore implements OutboxStore {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void rescheduleFailure(
         String eventId,
         String workerId,

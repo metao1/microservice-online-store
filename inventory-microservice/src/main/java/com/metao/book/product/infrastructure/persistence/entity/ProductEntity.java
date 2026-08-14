@@ -2,6 +2,8 @@ package com.metao.book.product.infrastructure.persistence.entity;
 
 import com.metao.book.product.domain.model.valueobject.ImageUrl;
 import com.metao.book.product.domain.model.valueobject.ProductDescription;
+import com.metao.book.product.infrastructure.persistence.converter.ImageUrlAttributeConverter;
+import com.metao.book.product.infrastructure.persistence.converter.ProductDescriptionAttributeConverter;
 import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.book.shared.domain.product.Quantity;
@@ -10,6 +12,7 @@ import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
@@ -53,12 +56,12 @@ public class ProductEntity implements Serializable {
     @AttributeOverride(name = "value", column = @Column(name = "title", nullable = false))
     private ProductTitle title;
 
-    @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "description", columnDefinition = "TEXT"))
+    @Convert(converter = ProductDescriptionAttributeConverter.class)
+    @Column(name = "description", columnDefinition = "TEXT")
     private ProductDescription description;
 
-    @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "image_url", nullable = false))
+    @Convert(converter = ImageUrlAttributeConverter.class)
+    @Column(name = "image_url", nullable = false)
     private ImageUrl imageUrl;
 
     @Embedded

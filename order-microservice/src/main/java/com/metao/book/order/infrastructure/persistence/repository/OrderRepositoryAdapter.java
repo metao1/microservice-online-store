@@ -4,7 +4,7 @@ import com.metao.book.order.application.port.OrderPort;
 import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.UserId;
-import com.metao.book.order.domain.repository.OrderRepository;
+import com.metao.book.order.application.port.OrderRepository;
 import com.metao.book.order.infrastructure.persistence.entity.OrderItemEntity;
 import com.metao.book.order.infrastructure.persistence.entity.OrderJpaEntity;
 import com.metao.book.order.infrastructure.persistence.mapper.OrderEntityMapper;

@@ -8,7 +8,9 @@ import com.metao.book.order.domain.exception.ShoppingCartNotFoundException;
 import com.metao.book.shared.architecture.ApplicationService;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -44,18 +46,27 @@ public class ShoppingCartService implements ShoppingCartCommandPort {
         Set<String> skus = shoppingCartItems.stream()
             .map(ShoppingCartItem::sku)
             .collect(Collectors.toSet());
-        Set<String> existingSkus = shoppingCartPort.findByUserIdAndSkuIn(userId, skus).stream()
-            .map(ShoppingCartItem::sku)
-            .collect(Collectors.toSet());
+        Map<String, ShoppingCartItem> existingItems = shoppingCartPort.findByUserIdAndSkuIn(userId, skus).stream()
+            .collect(Collectors.toMap(ShoppingCartItem::sku, item -> item));
+        Map<String, ShoppingCartItem> itemsBySku = new LinkedHashMap<>();
 
-        var items = shoppingCartItems.stream()
-            .<ShoppingCartItem>mapMulti((item, consumer) -> {
-                if (!existingSkus.contains(item.sku())) {
-                    var productItem = shoppingCartPort.findByUserIdAndSku(userId, item.sku()).orElse(item);
-                    consumer.accept(productItem);
-                }
-            }).collect(Collectors.toSet());
+        for (ShoppingCartItem item : shoppingCartItems) {
+            ShoppingCartItem existing = itemsBySku.getOrDefault(item.sku(), existingItems.get(item.sku()));
+            if (existing == null) {
+                itemsBySku.put(item.sku(), item);
+                continue;
+            }
 
+            itemsBySku.put(item.sku(), new ShoppingCartItem(
+                existing.sku(),
+                existing.productTitle(),
+                existing.quantity().add(item.quantity()),
+                existing.price(),
+                existing.currency()
+            ));
+        }
+
+        List<ShoppingCartItem> items = List.copyOf(itemsBySku.values());
         shoppingCartPort.saveAll(userId, items);
         return items.size();
     }

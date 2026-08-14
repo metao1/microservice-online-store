@@ -3,6 +3,7 @@ package com.metao.book.shared.domain.product;
 import com.metao.book.shared.domain.base.ValueObject;
 import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.NotNull;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -33,6 +34,22 @@ public class ProductSku implements ValueObject {
 
     public String value() {
         return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof ProductSku that)) {
+            return false;
+        }
+        return Objects.equals(value, that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(value);
     }
 
     @NotNull

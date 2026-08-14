@@ -12,7 +12,7 @@ import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.domain.model.valueobject.UserId;
-import com.metao.book.order.domain.repository.OrderRepository;
+import com.metao.book.order.application.port.OrderRepository;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.financial.VAT;
 import com.metao.book.shared.domain.product.ProductSku;

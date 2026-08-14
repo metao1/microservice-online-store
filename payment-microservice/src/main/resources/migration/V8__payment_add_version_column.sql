@@ -1,0 +1,9 @@
+ALTER TABLE payment
+    ALTER COLUMN id TYPE VARCHAR(255)
+    USING encode(id, 'hex');
+
+ALTER TABLE payment
+    ADD COLUMN IF NOT EXISTS version BIGINT NOT NULL DEFAULT 0;
+
+ALTER TABLE domain_event_outbox
+    ADD COLUMN IF NOT EXISTS version BIGINT NOT NULL DEFAULT 0;

@@ -1,6 +1,7 @@
 package com.metao.book.order.application.service;
 
 import com.metao.book.order.application.port.OrderPort;
+import com.metao.book.order.application.port.OrderRepository;
 import com.metao.book.order.application.port.ShoppingCartCommandPort;
 import com.metao.book.order.application.usecase.CreateOrderUseCase;
 import com.metao.book.order.application.usecase.GetCustomerOrdersUseCase;
@@ -11,7 +12,6 @@ import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.domain.model.valueobject.UserId;
-import com.metao.book.order.domain.repository.OrderRepository;
 import com.metao.book.shared.domain.base.DomainEvent;
 import com.metao.book.shared.application.messaging.DomainEventPublisherPort;
 import com.metao.book.shared.architecture.ApplicationService;
@@ -93,6 +93,7 @@ public class OrderManagementApplicationService implements CreateOrderUseCase, Up
         publishEvents(order);
     }
 
+    @Transactional
     public void removeItem(OrderId orderId, ProductSku sku) {
         OrderAggregate order = findOrder(orderId);
         order.removeItem(sku);
@@ -117,6 +118,7 @@ public class OrderManagementApplicationService implements CreateOrderUseCase, Up
             .orElseThrow(() -> new OrderNotFoundException(orderId));
     }
 
+    @Transactional
     public void requestInventoryReduction(OrderId orderId) {
         OrderAggregate order = findOrder(orderId);
         order.requestInventoryReduction();

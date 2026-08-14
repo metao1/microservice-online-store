@@ -10,7 +10,7 @@ import com.metao.book.order.application.port.ShoppingCartCommandPort;
 import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
-import com.metao.book.order.domain.repository.OrderRepository;
+import com.metao.book.order.application.port.OrderRepository;
 import com.metao.book.order.infrastructure.persistence.cart.ShoppingCartRepository;
 import com.metao.book.order.infrastructure.persistence.repository.SpringDataOrderRepository;
 import com.metao.book.order.presentation.dto.CreateOrderRequestDTO;

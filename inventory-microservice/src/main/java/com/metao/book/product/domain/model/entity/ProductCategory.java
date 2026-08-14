@@ -3,6 +3,7 @@ package com.metao.book.product.domain.model.entity;
 import com.metao.book.product.domain.model.valueobject.CategoryId;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.shared.domain.base.Entity;
+import com.metao.book.shared.architecture.DomainComponent;
 import java.util.UUID;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -12,6 +13,7 @@ import lombok.Getter;
  */
 @Getter
 @EqualsAndHashCode(callSuper = true)
+@DomainComponent
 public class ProductCategory extends Entity<CategoryId> {
 
     private CategoryName name;

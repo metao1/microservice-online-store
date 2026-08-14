@@ -10,7 +10,7 @@ import com.metao.book.order.application.service.ShoppingCartService;
 import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.UserId;
-import com.metao.book.order.domain.repository.OrderRepository;
+import com.metao.book.order.application.port.OrderRepository;
 import com.metao.book.order.infrastructure.persistence.repository.SpringDataOrderRepository;
 import com.metao.book.order.presentation.dto.CreateOrderRequestDTO;
 import com.metao.book.order.presentation.dto.UpdateStatusRequestDto;
@@ -18,8 +18,10 @@ import com.metao.shared.test.KafkaContainerBase;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Currency;
 import java.util.List;
+import org.mockito.Mockito;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -29,6 +31,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
@@ -62,6 +65,16 @@ class OrderManagementControllerIT extends KafkaContainerBase {
     void setUp() {
         RestAssured.port = port;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+        Mockito.when(jwtDecoder.decode(USER_TOKEN)).thenReturn(
+            Jwt.withTokenValue(USER_TOKEN)
+                .header("alg", "none")
+                .subject(USER_ID)
+                .audience(List.of("account"))
+                .claim("roles", List.of("CUSTOMER", "ADMIN"))
+                .issuedAt(Instant.now())
+                .expiresAt(Instant.now().plusSeconds(3600))
+                .build()
+        );
         springDataOrderRepository.deleteAll();
         shoppingCartService.clearCart(USER_ID);
     }
@@ -129,7 +142,7 @@ class OrderManagementControllerIT extends KafkaContainerBase {
             given()
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + USER_TOKEN)
-                .get("/api/order/customer")
+                .get("/api/order/me")
                 .then()
                 .statusCode(HttpStatus.OK.value())
                 .body("$", hasSize(1));
@@ -146,7 +159,7 @@ class OrderManagementControllerIT extends KafkaContainerBase {
                 .header("Authorization", "Bearer " + USER_TOKEN)
                 .queryParam("offset", 0)
                 .queryParam("limit", 1)
-                .get("/api/order/customer/paged")
+                .get("/api/order/me/paged")
                 .then()
                 .statusCode(HttpStatus.OK.value())
                 .body("items", hasSize(1))
@@ -178,7 +191,7 @@ class OrderManagementControllerIT extends KafkaContainerBase {
         void shouldReturnUnauthorizedForQueriesWithoutAuth() {
             given()
                 .contentType(ContentType.JSON)
-                .get("/api/order/customer")
+                .get("/api/order/me")
                 .then()
                 .statusCode(HttpStatus.UNAUTHORIZED.value());
         }

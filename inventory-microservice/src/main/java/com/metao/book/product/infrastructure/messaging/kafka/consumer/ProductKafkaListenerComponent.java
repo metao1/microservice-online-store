@@ -14,6 +14,7 @@ import io.micrometer.core.annotation.Timed;
 import java.math.BigDecimal;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.annotation.DltHandler;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -37,6 +38,7 @@ public class ProductKafkaListenerComponent {
         this(created, updated, null);
     }
 
+    @Autowired
     public ProductKafkaListenerComponent(
         HandleProductCreatedEventUseCase created,
         HandleProductUpdatedEventUseCase updated,

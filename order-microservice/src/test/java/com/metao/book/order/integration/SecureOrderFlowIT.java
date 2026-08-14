@@ -10,14 +10,14 @@ import com.metao.book.order.application.service.ShoppingCartService;
 import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.UserId;
-import com.metao.book.order.domain.repository.OrderRepository;
+import com.metao.book.order.application.port.OrderRepository;
 import com.metao.book.order.infrastructure.persistence.repository.SpringDataOrderRepository;
-import com.metao.book.order.presentation.dto.AddItemRequestDto;
 import com.metao.book.order.presentation.dto.CreateOrderRequestDTO;
 import com.metao.shared.test.KafkaContainerBase;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Currency;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -62,6 +63,16 @@ class SecureOrderFlowIT extends KafkaContainerBase {
     void setUp() {
         RestAssured.port = port;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+        org.mockito.Mockito.when(jwtDecoder.decode(USER_TOKEN)).thenReturn(
+            Jwt.withTokenValue(USER_TOKEN)
+                .header("alg", "none")
+                .subject(USER_ID)
+                .audience(List.of("account"))
+                .claim("roles", List.of("CUSTOMER", "ADMIN"))
+                .issuedAt(Instant.now())
+                .expiresAt(Instant.now().plusSeconds(3600))
+                .build()
+        );
         springDataOrderRepository.deleteAll();
         shoppingCartService.clearCart(USER_ID);
     }
@@ -93,7 +104,7 @@ class SecureOrderFlowIT extends KafkaContainerBase {
         given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer " + USER_TOKEN)
-            .get("/api/order/customer")
+            .get("/api/order/me")
             .then()
             .statusCode(HttpStatus.OK.value())
             .body("$", hasSize(1));
@@ -118,7 +129,7 @@ class SecureOrderFlowIT extends KafkaContainerBase {
         var orders = given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer " + USER_TOKEN)
-            .get("/api/order/customer")
+            .get("/api/order/me")
             .then()
             .statusCode(HttpStatus.OK.value())
             .extract()
@@ -161,8 +172,7 @@ class SecureOrderFlowIT extends KafkaContainerBase {
     @DisplayName("Cart operations work with valid authentication")
     void cartOperations_withValidAuth_shouldSucceed() {
         // Add item to cart
-        var item = List.of(new AddItemRequestDto(USER_ID,
-            List.of(new ShoppingCartItem(SKU, PRODUCT_TITLE, BigDecimal.ONE, UNIT_PRICE, CURRENCY))));
+        var item = List.of(new ShoppingCartItem(SKU, PRODUCT_TITLE, BigDecimal.ONE, UNIT_PRICE, CURRENCY));
         
         given()
             .contentType(ContentType.JSON)
@@ -214,7 +224,7 @@ class SecureOrderFlowIT extends KafkaContainerBase {
         var orders = given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer " + USER_TOKEN)
-            .get("/api/order/customer")
+            .get("/api/order/me")
             .then()
             .statusCode(HttpStatus.OK.value())
             .extract()

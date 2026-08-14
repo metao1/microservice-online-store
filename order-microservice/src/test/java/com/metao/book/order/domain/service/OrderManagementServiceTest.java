@@ -11,7 +11,7 @@ import com.metao.book.order.application.service.ShoppingCartService;
 import com.metao.book.order.application.cart.ShoppingCartView;
 import com.metao.book.order.application.service.OrderManagementApplicationService;
 import com.metao.book.order.domain.model.valueobject.UserId;
-import com.metao.book.order.domain.repository.OrderRepository;
+import com.metao.book.order.application.port.OrderRepository;
 import com.metao.book.shared.application.messaging.DomainEventPublisherPort;
 import com.metao.book.shared.domain.financial.VAT;
 import java.math.BigDecimal;
@@ -66,7 +66,7 @@ class OrderManagementServiceTest {
 
         orderManagementService.createOrder(userId);
 
-        verify(orderRepository, never()).save(any());
+        verify(orderRepository).save(any());
         verify(eventPublisher, times(1)).publish(any());
     }
 }

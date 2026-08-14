@@ -1,7 +1,9 @@
 package com.metao.book.order.domain.model.valueobject;
 
+import com.metao.book.shared.architecture.DomainComponent;
 import java.util.List;
 
+@DomainComponent
 public enum OrderStatus {
     CREATED,
     PENDING_PAYMENT,

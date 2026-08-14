@@ -61,7 +61,6 @@ class ShoppingCartServiceTest {
         ShoppingCartItem existing = new ShoppingCartItem(
             SKU, ITEM.productTitle(), BigDecimal.ONE, ITEM.price(), CURRENCY);
         when(shoppingCartPort.findByUserIdAndSkuIn(eq(USER_ID), any())).thenReturn(List.of(existing));
-        when(shoppingCartPort.findByUserIdAndSku(USER_ID, SKU)).thenReturn(Optional.of(existing));
 
         shoppingCartService.addItemToCart(USER_ID, List.of(ITEM));
 
