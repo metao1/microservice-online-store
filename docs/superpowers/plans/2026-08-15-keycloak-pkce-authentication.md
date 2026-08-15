@@ -153,7 +153,7 @@ keycloak:
     retries: 30
 ```
 
-Set order/payment `JWT_ISSUER_URI` to `http://keycloak:8080/realms/bookstore` and `JWT_AUDIENCE` to `bookstore-api`; add `keycloak` health dependencies. Add Vite variables `VITE_KEYCLOAK_URL`, `VITE_KEYCLOAK_REALM`, and `VITE_KEYCLOAK_CLIENT_ID` to `.env.example`.
+Set order/payment `JWT_ISSUER_URI` to the browser-visible `http://localhost:8080/realms/bookstore`, `JWT_JWK_SET_URI` to the container-reachable `http://keycloak:8080/realms/bookstore/protocol/openid-connect/certs`, and `JWT_AUDIENCE` to `bookstore-api`; add `keycloak` health dependencies. Add Vite variables `VITE_KEYCLOAK_URL`, `VITE_KEYCLOAK_REALM`, and `VITE_KEYCLOAK_CLIENT_ID` to `.env.example`.
 
 - [ ] **Step 5: Run structural and Compose validation**
 
@@ -255,12 +255,15 @@ git commit -m "feat: theme Keycloak authentication pages"
 - Create: `shared-kernel/src/test/java/com/metao/book/shared/security/AudienceValidatorTest.java`
 - Create: `shared-kernel/src/test/java/com/metao/book/shared/security/KeycloakJwtAuthoritiesConverterTest.java`
 - Modify: `shared-kernel/src/main/java/com/metao/book/shared/security/JwtSecurityAutoConfiguration.java`
+- Modify: `shared-kernel/src/main/java/com/metao/book/shared/security/JwtSecurityProperties.java`
+- Modify: `order-microservice/src/main/resources/application.yml`
+- Modify: `payment-microservice/src/main/resources/application.yml`
 - Test: `order-microservice/src/test/java/com/metao/book/order/integration/SecureOrderFlowIT.java`
 - Test: `payment-microservice/src/test/java/com/metao/book/payment/presentation/PaymentAggregateControllerIT.java`
 
 **Interfaces:**
 - Produces: `AudienceValidator implements OAuth2TokenValidator<Jwt>` and `KeycloakJwtAuthoritiesConverter implements Converter<Jwt, Collection<GrantedAuthority>>`.
-- Consumes: `JwtSecurityProperties.issuerUri` and `.audience`.
+- Consumes: `JwtSecurityProperties.issuerUri`, optional `.jwkSetUri`, and `.audience`.
 
 - [ ] **Step 1: Write failing audience and authority tests**
 
@@ -303,9 +306,9 @@ public OAuth2TokenValidatorResult validate(Jwt jwt) {
 
 Extract role names from `realm_access.roles`, merge compatible top-level `roles`, split the standard `scope` string on whitespace, deduplicate, and prefix roles/scopes with `ROLE_`/`SCOPE_`. Treat missing or incorrectly typed claims as empty collections.
 
-- [ ] **Step 5: Configure issuer and audience validators in the decoder**
+- [ ] **Step 5: Configure public issuer validation and optional internal JWK retrieval**
 
-Build with `JwtDecoders.fromIssuerLocation(properties.getIssuerUri())`, then set a `DelegatingOAuth2TokenValidator` combining `JwtValidators.createDefaultWithIssuer(...)` and `AudienceValidator`. Remove the manual audience exception from the authentication converter so invalid tokens fail at authentication with 401.
+Add `app.security.jwt.jwk-set-uri` to `JwtSecurityProperties`. When it is blank, build with `JwtDecoders.fromIssuerLocation(properties.getIssuerUri())`. When it is set, build with `NimbusJwtDecoder.withJwkSetUri(properties.getJwkSetUri()).build()`. In both cases set a `DelegatingOAuth2TokenValidator` combining `JwtValidators.createDefaultWithIssuer(properties.getIssuerUri())` and `AudienceValidator`. Remove the manual audience exception from the authentication converter so invalid tokens fail at authentication with 401. Map `JWT_JWK_SET_URI` in order/payment configuration without changing the public issuer value.
 
 - [ ] **Step 6: Run shared and service security tests**
 

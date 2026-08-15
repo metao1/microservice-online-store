@@ -49,7 +49,7 @@ Frontend API contracts will stop accepting `userId` for cart and order operation
 
 ### Resource-server validation
 
-The shared security auto-configuration will use issuer-based decoder construction and OAuth2 token validators so invalid issuer, signature, expiry, or audience is rejected as authentication failure with HTTP 401. Keycloak realm roles will be read from `realm_access.roles`; scopes will be read from the standard space-delimited `scope` claim. The existing top-level role claim may remain as a compatibility input during migration.
+The shared security auto-configuration will validate the public issuer that appears in browser-issued tokens. Local Compose uses `http://localhost:8080/realms/bookstore` as that issuer, while backend containers fetch signing keys from the separately configured internal URL `http://keycloak:8080/realms/bookstore/protocol/openid-connect/certs`. Environments that can reach the issuer directly may omit the internal JWK Set URI and use issuer discovery. OAuth2 token validators ensure invalid issuer, signature, expiry, or audience is rejected as authentication failure with HTTP 401. Keycloak realm roles will be read from `realm_access.roles`; scopes will be read from the standard space-delimited `scope` claim. The existing top-level role claim may remain as a compatibility input during migration.
 
 Business endpoints require authentication and their declared authorities. Health endpoints remain public. Product catalog reads remain public. Customer tokens cannot invoke administrator-only operations.
 
@@ -115,4 +115,3 @@ Playwright will run serially against the Compose stack and actual themed Keycloa
 6. Update local setup and rollout documentation.
 
 Rollback can disable JWT enforcement through the existing configuration flag for local recovery, but customer-owned legacy endpoints must not be restored in a form that trusts caller-supplied user IDs.
-
