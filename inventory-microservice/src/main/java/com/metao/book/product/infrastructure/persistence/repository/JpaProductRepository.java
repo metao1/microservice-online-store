@@ -1,7 +1,6 @@
 package com.metao.book.product.infrastructure.persistence.repository;
 
 import com.metao.book.product.infrastructure.persistence.entity.ProductEntity;
-import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.architecture.OutboundAdapter;
 import io.micrometer.core.annotation.Timed;
 import java.math.BigDecimal;
@@ -18,10 +17,10 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 @OutboundAdapter
-public interface JpaProductRepository extends JpaRepository<ProductEntity, ProductSku> {
+public interface JpaProductRepository extends JpaRepository<ProductEntity, String> {
 
     interface ProductCategoryRow {
-        ProductSku getSku();
+        String getSku();
         String getCategoryId();
         String getCategoryName();
     }
@@ -31,35 +30,35 @@ public interface JpaProductRepository extends JpaRepository<ProductEntity, Produ
         select p.sku
         from product p
         join p.categories c
-        where p.volume.value > 0
+        where p.volume > 0
           and c.id = :categoryId
         """)
-    List<ProductSku> findSkusByCategoryId(@Param("categoryId") String categoryId, Pageable pageable);
+    List<String> findSkusByCategoryId(@Param("categoryId") String categoryId, Pageable pageable);
 
     @Timed(value = "inventory.db.product.find-skus-by-category-ids")
     @Query("""
         select distinct p.sku
         from product p
         join p.categories c
-        where p.volume.value > 0
+        where p.volume > 0
           and c.id in :categoryIds
         """)
-    List<ProductSku> findSkusByCategoryIds(@Param("categoryIds") List<String> categoryIds, Pageable pageable);
+    List<String> findSkusByCategoryIds(@Param("categoryIds") List<String> categoryIds, Pageable pageable);
 
     @Timed(value = "inventory.db.product.search-skus-by-keyword")
     @Query("""
         select p.sku
         from product p
-        where p.volume.value > 0
+        where p.volume > 0
           and (
-            lower(p.title.value) like lower(concat('%', :keyword, '%'))
+            lower(p.title) like lower(concat('%', :keyword, '%'))
             or lower(p.description) like lower(concat('%', :keyword, '%'))
           )
         """)
-    List<ProductSku> searchSkusByKeyword(@Param("keyword") String keyword, Pageable pageable);
+    List<String> searchSkusByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
     @Timed(value = "inventory.db.product.find-all-by-id")
-    List<ProductEntity> findAllById(Iterable<ProductSku> skus);
+    List<ProductEntity> findAllById(Iterable<String> skus);
 
     @Timed(value = "inventory.db.product.find-all-with-categories-by-sku-in")
     @Query("""
@@ -68,7 +67,7 @@ public interface JpaProductRepository extends JpaRepository<ProductEntity, Produ
         left join fetch p.categories
         where p.sku in :skus
         """)
-    List<ProductEntity> findAllWithCategoriesBySkuIn(@Param("skus") List<ProductSku> skus);
+    List<ProductEntity> findAllWithCategoriesBySkuIn(@Param("skus") List<String> skus);
 
     @Timed(value = "inventory.db.product.find-category-rows-by-sku-in")
     @Query("""
@@ -77,7 +76,7 @@ public interface JpaProductRepository extends JpaRepository<ProductEntity, Produ
         join p.categories c
         where p.sku in :skus
         """)
-    List<ProductCategoryRow> findCategoryRowsBySkuIn(@Param("skus") List<ProductSku> skus);
+    List<ProductCategoryRow> findCategoryRowsBySkuIn(@Param("skus") List<String> skus);
 
     @Timed(value = "inventory.db.product.insert-if-absent")
     @Modifying
@@ -86,14 +85,14 @@ public interface JpaProductRepository extends JpaRepository<ProductEntity, Produ
             INSERT INTO product_table
                 (sku, version, volume, title, description, image_url, price_value, price_currency, created_time, updated_time)
             VALUES
-                (:#{#product.sku.value},
+                (:#{#product.sku},
                  0,
                  :#{#product.volume.value},
                  :#{#product.title.value},
                  :#{#product.description.value},
                  :#{#product.imageUrl.value},
-                 :#{#product.price.fixedPointAmount()},
-                 :#{#product.price.currency().currencyCode},
+                 :#{#product.price.amount},
+                 :#{#product.price.currency.currencyCode},
                  :#{#product.createdTime},
                  :#{#product.updateTime})
             ON CONFLICT (sku) DO NOTHING
@@ -106,16 +105,17 @@ public interface JpaProductRepository extends JpaRepository<ProductEntity, Produ
     @Modifying
     @Query(
         value = """
-            update product p
-               set p.volume.value = p.volume.value - :quantity,
-                   p.version = p.version + 1,
-                   p.updateTime = current_timestamp
-             where p.sku.value = :sku
-               and p.volume.value >= :quantity
-            """
+            UPDATE product_table
+               SET volume = volume - :quantity,
+                   version = version + 1,
+                   updated_time = CURRENT_TIMESTAMP
+             WHERE sku = :sku
+               AND volume >= :quantity
+            """,
+        nativeQuery = true
     )
     int decrementVolumeIfEnough(@Param("sku") String sku, @Param("quantity") BigDecimal quantity);
 
     @Timed(value = "inventory.db.product.exists-by-sku")
-    boolean existsBySku(ProductSku sku);
+    boolean existsBySku(String sku);
 }

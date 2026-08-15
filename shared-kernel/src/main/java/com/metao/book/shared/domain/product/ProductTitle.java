@@ -1,8 +1,6 @@
 package com.metao.book.shared.domain.product;
 
 import com.metao.book.shared.domain.base.ValueObject;
-import jakarta.persistence.Embeddable;
-import jakarta.validation.constraints.NotNull;
 import java.util.Objects;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -10,7 +8,6 @@ import lombok.NonNull;
 /**
  * Product title value object
  */
-@Embeddable
 @NoArgsConstructor
 public class ProductTitle implements ValueObject {
 
@@ -47,7 +44,6 @@ public class ProductTitle implements ValueObject {
         return Objects.hashCode(value);
     }
 
-    @NotNull
     @Override
     public String toString() {
         return value;

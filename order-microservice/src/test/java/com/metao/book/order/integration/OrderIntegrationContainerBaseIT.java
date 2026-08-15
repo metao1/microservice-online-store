@@ -256,7 +256,7 @@ class OrderIntegrationContainerBaseIT extends KafkaContainerBase {
 
         @Test
         void shouldGetCustomerOrders() {
-            UserId userId = UserId.of("user123");
+            UserId userId = UserId.of("query-user-" + UUID.randomUUID());
             createOrderWithCartItems(userId, "product-1", "Book 1", ONE, BigDecimal.TEN);
 
             shoppingCartService.clearCart(userId.value());

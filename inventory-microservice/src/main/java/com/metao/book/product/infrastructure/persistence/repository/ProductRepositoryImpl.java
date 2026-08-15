@@ -69,7 +69,11 @@ public class ProductRepositoryImpl implements ProductRepository {
     @Override
     public void save(ProductAggregate product) {
         ProductEntity source = productEntityMapper.toEntity(product);
-        ProductEntity managed = entityManager.find(ProductEntity.class, product.getId(), LockModeType.PESSIMISTIC_WRITE);
+        ProductEntity managed = entityManager.find(
+            ProductEntity.class,
+            product.getId().value(),
+            LockModeType.PESSIMISTIC_WRITE
+        );
         if (managed == null) {
             entityManager.persist(source);
         } else {
@@ -91,7 +95,7 @@ public class ProductRepositoryImpl implements ProductRepository {
             return true;
         }
 
-        ProductEntity persisted = jpaProductRepository.getReferenceById(product.getId());
+        ProductEntity persisted = jpaProductRepository.getReferenceById(product.getId().value());
         product.getCategories().stream()
             .map(this::resolveCategoryEntity)
             .forEach(persisted::addCategory);
@@ -101,7 +105,7 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public Optional<ProductAggregate> findBySku(ProductSku productSku) {
-        return jpaProductRepository.findById(productSku)
+        return jpaProductRepository.findById(productSku.value())
             .map(productEntityMapper::toDomain);
     }
 
@@ -110,7 +114,7 @@ public class ProductRepositoryImpl implements ProductRepository {
         if (productSkus == null || productSkus.isEmpty()) {
             return List.of();
         }
-        return jpaProductRepository.findAllById(productSkus)
+        return jpaProductRepository.findAllById(productSkus.stream().map(ProductSku::value).toList())
             .stream()
             .map(productEntityMapper::toDomain)
             .toList();
@@ -123,7 +127,7 @@ public class ProductRepositoryImpl implements ProductRepository {
         if (categoryId.isEmpty()) {
             return List.of();
         }
-        List<ProductSku> skus = jpaProductRepository.findSkusByCategoryId(categoryId.get(), pageable);
+        List<String> skus = jpaProductRepository.findSkusByCategoryId(categoryId.get(), pageable);
         return loadProductsWithCategoriesInOrder(skus);
     }
 
@@ -138,20 +142,20 @@ public class ProductRepositoryImpl implements ProductRepository {
         if (categoryIds.isEmpty()) {
             return List.of();
         }
-        List<ProductSku> skus = jpaProductRepository.findSkusByCategoryIds(categoryIds, pageable);
+        List<String> skus = jpaProductRepository.findSkusByCategoryIds(categoryIds, pageable);
         return loadProductsWithCategoriesInOrder(skus);
     }
 
     @Override
     public List<ProductAggregate> searchByKeyword(String keyword, int offset, int limit) {
         Pageable pageable = new OffsetBasedPageRequest(offset, limit);
-        List<ProductSku> skus = jpaProductRepository.searchSkusByKeyword(keyword, pageable);
+        List<String> skus = jpaProductRepository.searchSkusByKeyword(keyword, pageable);
         return loadProductsWithCategoriesInOrder(skus);
     }
 
     @Override
     public boolean existsById(ProductSku productSku) {
-        return jpaProductRepository.existsBySku(productSku);
+        return jpaProductRepository.existsBySku(productSku.value());
     }
 
     @Override
@@ -261,7 +265,7 @@ public class ProductRepositoryImpl implements ProductRepository {
             .loadOptional(categoryName);
     }
 
-    private List<ProductAggregate> loadProductsWithCategoriesInOrder(List<ProductSku> skus) {
+    private List<ProductAggregate> loadProductsWithCategoriesInOrder(List<String> skus) {
         if (skus == null || skus.isEmpty()) {
             return List.of();
         }
@@ -269,24 +273,24 @@ public class ProductRepositoryImpl implements ProductRepository {
         ProductReadModel readModel = loadProductReadModel(skus);
 
         return skus.stream()
-            .map(sku -> readModel.productsBySku().get(sku.value()))
+            .map(readModel.productsBySku()::get)
             .filter(Objects::nonNull)
             .map(entity -> productEntityMapper.toDomain(
                 entity,
-                readModel.categoriesBySku().getOrDefault(entity.getSku().value(), Set.of())
+                readModel.categoriesBySku().getOrDefault(entity.getSku(), Set.of())
             ))
             .toList();
     }
 
-    private ProductReadModel loadProductReadModel(List<ProductSku> skus) {
+    private ProductReadModel loadProductReadModel(List<String> skus) {
         Map<String, ProductEntity> productsBySku = new LinkedHashMap<>();
         jpaProductRepository.findAllById(skus)
-            .forEach(entity -> productsBySku.put(entity.getSku().value(), entity));
+            .forEach(entity -> productsBySku.put(entity.getSku(), entity));
 
         Map<String, Set<ProductCategory>> categoriesBySku = new HashMap<>();
         jpaProductRepository.findCategoryRowsBySkuIn(skus)
             .forEach(row -> categoriesBySku
-                .computeIfAbsent(row.getSku().value(), ignored -> new LinkedHashSet<>())
+                .computeIfAbsent(row.getSku(), ignored -> new LinkedHashSet<>())
                 .add(productEntityMapper.toDomain(row.getCategoryId(), row.getCategoryName())));
 
         return new ProductReadModel(productsBySku, categoriesBySku);
