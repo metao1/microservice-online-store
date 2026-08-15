@@ -10,8 +10,12 @@ test('theme inherits supported Keycloak markup and loads storefront styles', () 
   assert.match(properties, /^styles=css\/styles\.css css\/login\.css$/m);
   assert.match(css, /#kc-login/);
   assert.match(css, /#keycloak-bg/);
-  assert.match(css, /\.pf-v5-c-login__container/);
-  assert.match(css, /\.pf-v5-c-login__main/);
+  assert.match(css, /^#keycloak-bg \.pf-v5-c-login__container \{$/m);
+  const mainSelector = /^#keycloak-bg \.pf-v5-c-login__main \{$/m;
+  assert.match(css, mainSelector);
+  assert.doesNotMatch('#keycloak-bg .pf-v5-c-login__main-body {', mainSelector);
+  assert.match(css, /^#keycloak-bg \.pf-v5-c-login__main-body \{$/m);
+  assert.match(css, /^#keycloak-bg \.pf-v5-c-alert\.pf-m-danger \{$/m);
   assert.match(css, /#kc-register-form #kc-form-buttons input\[type='submit'\]/);
   assert.match(css, /:focus-visible/);
   assert.match(css, /@media/);
