@@ -1,4 +1,4 @@
-package com.metao.book.payment.infrastructure.config;
+package com.metao.book.payment.application.config;
 
 import com.metao.book.shared.OrderCreatedEvent;
 import com.metao.book.shared.OrderPaymentUpdatedEvent;
