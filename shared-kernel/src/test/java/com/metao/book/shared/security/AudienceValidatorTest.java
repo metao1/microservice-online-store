@@ -41,7 +41,7 @@ class AudienceValidatorTest {
 
         assertThat(result.hasErrors()).isTrue();
         assertThat(result.getErrors())
-            .extracting(error -> error.getErrorCode())
+            .extracting(OAuth2Error::getErrorCode)
             .containsExactly("invalid_token");
     }
 
