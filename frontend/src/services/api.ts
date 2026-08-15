@@ -3,6 +3,7 @@ import {ApiResponse, Cart, Category, Order, PaginatedResult, Payment, PaymentSta
 import {ApiClientContract, PaymentCommand} from './api.types';
 import {BaseApiClient} from './api.base';
 import {MockApiClient} from './api.mock';
+import {createAuthenticatedAxios} from './authenticatedAxios';
 
 const PRODUCTS_API_BASE_URL = import.meta.env.VITE_PRODUCTS_API_URL || 'http://localhost:8083';
 const CART_API_BASE_URL = import.meta.env.VITE_CART_API_URL || 'http://localhost:8086';
@@ -51,19 +52,19 @@ class RemoteApiClient extends BaseApiClient implements ApiClientContract {
       timeout: 10000,
       headers: { 'Content-Type': 'application/json' },
     });
-    this.cartClient = axios.create({
+    this.cartClient = createAuthenticatedAxios({
       baseURL: CART_API_BASE_URL,
       timeout: 3000,
       headers: { 'Content-Type': 'application/json' },
     });
-    this.paymentClient = axios.create({
+    this.paymentClient = createAuthenticatedAxios({
       baseURL: PAYMENT_API_BASE_URL,
       timeout: 10000,
       headers: { 'Content-Type': 'application/json' },
     });
   }
 
-  private async mapBackendOrderToOrder(backendOrder: any, userId: string): Promise<Order> {
+  private async mapBackendOrderToOrder(backendOrder: any): Promise<Order> {
     const enrichedItems = await Promise.all(
       (backendOrder.items || []).map(async (item: any) => {
         try {
@@ -115,7 +116,7 @@ class RemoteApiClient extends BaseApiClient implements ApiClientContract {
 
     return {
       id: orderId,
-      userId: backendOrder.userId || userId,
+      userId: backendOrder.userId || '',
       items: enrichedItems,
       total: backendTotal ?? computedTotal,
       status: this.normalizeOrderStatus(backendOrder.status || 'PENDING'),
@@ -244,8 +245,8 @@ class RemoteApiClient extends BaseApiClient implements ApiClientContract {
     });
   }
 
-  async getCart(userId: string): Promise<Cart> {
-    const response = await this.cartClient.get(`/cart/${userId}`);
+  async getCart(): Promise<Cart> {
+    const response = await this.cartClient.get('/cart');
     const backendCart = response.data;
     const cartItems: any[] = backendCart.shopping_cart_items || [];
     const skus: string[] = Array.from(new Set(cartItems.map((item) => String(item.sku))));
@@ -300,66 +301,34 @@ class RemoteApiClient extends BaseApiClient implements ApiClientContract {
     };
   }
 
-  async addToCart(userId: string, sku: string, productTitle: string, quantity: number, price: number, currency: string): Promise<Cart> {
-    const requestBody = {
-      user_id: userId,
-      items: [{sku: sku, productTitle, quantity, price, currency: currency.toUpperCase()}],
-    };
-    const response = await this.cartClient.post<ApiResponse<Cart>>(`/cart`, requestBody);
-    if (typeof response.data === 'number' || !response.data || !('items' in response.data)) {
-      return this.getCart(userId);
-    }
-    return response.data.data || response.data;
+  async addToCart(sku: string, productTitle: string, quantity: number, price: number, currency: string): Promise<Cart> {
+    await this.cartClient.post('/cart/items', [
+      {sku, productTitle, quantity, price, currency: currency.toUpperCase()},
+    ]);
+    return this.getCart();
   }
 
-  async removeFromCart(userId: string, sku: string): Promise<Cart> {
-    const response = await this.cartClient.delete<ApiResponse<Cart>>(`/cart/${userId}/${sku}`);
-    return response.data.data;
+  async removeFromCart(sku: string): Promise<Cart> {
+    await this.cartClient.delete(`/cart/items/${encodeURIComponent(sku)}`);
+    return this.getCart();
   }
 
   async updateCartItem(
-    userId: string,
     sku: string,
     quantity: number,
-    price: number,
-    currency: string,
+    _price: number,
+    _currency: string,
   ): Promise<Cart> {
-    const requestBody = {
-      user_id: userId,
-      items: [{sku: sku, quantity, price, currency: currency.toUpperCase()}],
-    };
-    try {
-      const response = await this.cartClient.put<ApiResponse<Cart>>(`/cart`, requestBody);
-      if (typeof response.data === 'number' || !response.data || !('items' in response.data)) {
-        return this.getCart(userId);
-      }
-      return response.data.data || response.data;
-    } catch (error) {
-      const status = axios.isAxiosError(error) ? error.response?.status : undefined;
-
-      // Some cart backends do not support PUT /cart and return 405.
-      // Fallback to remove + add so quantity changes still work.
-      if (status === 404 || status === 405) {
-        try {
-          await this.cartClient.delete(`/cart/${userId}/${sku}`);
-        } catch {
-          // Ignore delete failures (item may not exist yet).
-        }
-
-        const fallbackBody = {
-          user_id: userId,
-          items: [{sku, productTitle: sku, quantity, price, currency: currency.toUpperCase()}],
-        };
-        await this.cartClient.post(`/cart`, fallbackBody);
-        return this.getCart(userId);
-      }
-
-      throw error;
-    }
+    await this.cartClient.put(`/cart/items/${encodeURIComponent(sku)}`, {quantity});
+    return this.getCart();
   }
 
-  async createOrder(userId: string): Promise<Order> {
-    const response = await this.cartClient.post<any>(`/api/order`, { user_id: userId });
+  async clearCart(): Promise<void> {
+    await this.cartClient.delete('/cart');
+  }
+
+  async createOrder(): Promise<Order> {
+    const response = await this.cartClient.post<any>('/api/order');
     const backendOrder = response.data;
     const orderId = resolveOrderId(backendOrder);
     if (!orderId) {
@@ -413,7 +382,7 @@ class RemoteApiClient extends BaseApiClient implements ApiClientContract {
     const computedTotal = enrichedItems.reduce((sum, item) => sum + item.price * item.cartQuantity, 0);
     return {
       id: orderId,
-      userId: backendOrder.userId || backendOrder.userId || userId,
+      userId: backendOrder.userId || '',
       items: enrichedItems,
       total: backendTotal ?? computedTotal,
       status: this.normalizeOrderStatus(backendOrder.status || 'PENDING'),
@@ -421,21 +390,21 @@ class RemoteApiClient extends BaseApiClient implements ApiClientContract {
     };
   }
 
-  async getOrders(userId: string): Promise<Order[]> {
-    const response = await this.cartClient.get<Order[]>(`/api/order/customer/${userId}`);
+  async getOrders(): Promise<Order[]> {
+    const response = await this.cartClient.get<Order[]>('/api/order/me');
     const orders = Array.isArray(response.data) ? response.data : [];
-    return Promise.all(orders.map((backendOrder: any) => this.mapBackendOrderToOrder(backendOrder, userId)));
+    return Promise.all(orders.map((backendOrder: any) => this.mapBackendOrderToOrder(backendOrder)));
   }
 
-  async getOrdersPage(userId: string, limit = 10, offset = 0): Promise<PaginatedResult<Order>> {
-    const response = await this.cartClient.get(`/api/order/customer/${userId}/paged`, {
-      params: { limit, offset },
+  async getOrdersPage(limit = 10, offset = 0): Promise<PaginatedResult<Order>> {
+    const response = await this.cartClient.get('/api/order/me/paged', {
+      params: { offset, limit },
     });
     const payload = response.data || {};
     const items = Array.isArray(payload.items) ? payload.items : [];
 
     return {
-      items: await Promise.all(items.map((backendOrder: any) => this.mapBackendOrderToOrder(backendOrder, userId))),
+      items: await Promise.all(items.map((backendOrder: any) => this.mapBackendOrderToOrder(backendOrder))),
       offset: Number(payload.offset ?? offset),
       limit: Number(payload.limit ?? limit),
       total: Number(payload.total ?? items.length),

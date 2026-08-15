@@ -30,7 +30,7 @@ const mockUser: User = {
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
     <AuthProvider initialUser={mockUser}>
-      <CartProvider userId={mockUser.id}>
+      <CartProvider>
         {children}
       </CartProvider>
     </AuthProvider>

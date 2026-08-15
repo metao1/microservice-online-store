@@ -24,7 +24,7 @@ interface CheckoutResult {
 interface UseCheckoutResult {
   isProcessing: boolean;
   error: string | null;
-  processCheckout: (userId: string, options?: CheckoutOptions) => Promise<CheckoutResult | null>;
+  processCheckout: (options?: CheckoutOptions) => Promise<CheckoutResult | null>;
 }
 
 export const useCheckout = (): UseCheckoutResult => {
@@ -32,12 +32,12 @@ export const useCheckout = (): UseCheckoutResult => {
   const [error, setError] = useState<string | null>(null);
   const { cart, clearCart, getCartTotal } = useCartContext();
 
-  const processCheckout = async (userId: string, options?: CheckoutOptions): Promise<CheckoutResult | null> => {
+  const processCheckout = async (options?: CheckoutOptions): Promise<CheckoutResult | null> => {
     try {
       setIsProcessing(true);
       setError(null);
 
-      const order = await apiClient.createOrder(userId);
+      const order = await apiClient.createOrder();
 
       const currency =
         options?.payment?.currency ||
@@ -76,7 +76,7 @@ export const useCheckout = (): UseCheckoutResult => {
       const paymentSuccessful = payment?.isSuccessful || payment?.status === 'COMPLETED' || payment?.status === 'SUCCESSFUL';
 
       if (paymentSuccessful) {
-        clearCart();
+        await clearCart();
         toast.success('Payment processed and order placed successfully!');
       } else {
         toast.warn('Order created. Payment is pending or failed, please retry.');

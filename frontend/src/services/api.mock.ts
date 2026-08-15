@@ -87,7 +87,7 @@ export class MockApiClient extends BaseApiClient implements ApiClientContract {
     return matched.slice(offset, offset + limit);
   }
 
-  async getCart(userId: string): Promise<Cart> {
+  async getCart(): Promise<Cart> {
     const cartItems: any[] = this.cartData.shopping_cart_items || [];
     const skus = cartItems.map((item: any) => item.sku);
     const productsBySku = await this.getProductsBySkus(skus);
@@ -113,23 +113,22 @@ export class MockApiClient extends BaseApiClient implements ApiClientContract {
     };
   }
 
-  async addToCart(userId: string, sku: string, productTitle: string, quantity: number, price: number, currency: string): Promise<Cart> {
+  async addToCart(sku: string, productTitle: string, quantity: number, price: number, currency: string): Promise<Cart> {
     const item = this.cartData.shopping_cart_items.find((i: any) => i.sku === sku);
     if (item) {
       item.quantity += quantity;
     } else {
       this.cartData.shopping_cart_items.push({sku: sku, productTitle, quantity, price, currency});
     }
-    return this.getCart(userId);
+    return this.getCart();
   }
 
-  async removeFromCart(userId: string, sku: string): Promise<Cart> {
+  async removeFromCart(sku: string): Promise<Cart> {
     this.cartData.shopping_cart_items = this.cartData.shopping_cart_items.filter((i: any) => i.sku !== sku);
-    return this.getCart(userId);
+    return this.getCart();
   }
 
   async updateCartItem(
-    userId: string,
     sku: string,
     quantity: number,
     price: number,
@@ -141,15 +140,19 @@ export class MockApiClient extends BaseApiClient implements ApiClientContract {
       item.price = price;
       item.currency = currency;
     }
-    return this.getCart(userId);
+    return this.getCart();
   }
 
-  async createOrder(userId: string): Promise<Order> {
-    const cart = await this.getCart(userId);
+  async clearCart(): Promise<void> {
+    this.cartData.shopping_cart_items = [];
+  }
+
+  async createOrder(): Promise<Order> {
+    const cart = await this.getCart();
     const orderId = `ORDER-${Date.now()}`;
     return {
       id: orderId,
-      userId,
+      userId: '',
       items: cart.items,
       total: cart.total,
       status: this.normalizeOrderStatus("CREATED"),
@@ -157,7 +160,7 @@ export class MockApiClient extends BaseApiClient implements ApiClientContract {
     };
   }
 
-  async getOrders(userId: string): Promise<Order[]> {
+  async getOrders(): Promise<Order[]> {
     return this.orders.map((o) => ({
       id: o.id,
       userId: o.userId,
@@ -180,8 +183,8 @@ export class MockApiClient extends BaseApiClient implements ApiClientContract {
     }));
   }
 
-  async getOrdersPage(userId: string, limit = 10, offset = 0): Promise<PaginatedResult<Order>> {
-    const allOrders = await this.getOrders(userId);
+  async getOrdersPage(limit = 10, offset = 0): Promise<PaginatedResult<Order>> {
+    const allOrders = await this.getOrders();
     const items = allOrders.slice(offset, offset + limit);
     return {
       items,

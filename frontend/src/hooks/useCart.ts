@@ -1,8 +1,10 @@
 import {useCallback, useEffect, useState} from 'react';
 import {Cart} from '@types';
 import {apiClient} from '@services/api';
+import {useAuthContext} from '@context/AuthContext';
 
-export const useCart = (userId: string) => {
+export const useCart = () => {
+  const { initialized, isAuthenticated } = useAuthContext();
   const [cart, setCart] = useState<Cart>({ items: [], total: 0 });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -11,7 +13,7 @@ export const useCart = (userId: string) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await apiClient.getCart(userId);
+      const data = await apiClient.getCart();
       // Ensure cart always has items array
       setCart({
         items: data.items || [],
@@ -24,13 +26,13 @@ export const useCart = (userId: string) => {
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, []);
 
   const addToCart = useCallback(
       async (sku: string, productTitle: string, quantity: number, price: number, currency: string) => {
       try {
         console.log('useCart: Adding item to cart:', {sku, productTitle, quantity, price, currency});
-        const updatedCart = await apiClient.addToCart(userId, sku, productTitle, quantity, price, currency);
+        const updatedCart = await apiClient.addToCart(sku, productTitle, quantity, price, currency);
         console.log('useCart: Received updated cart:', updatedCart);
         // Ensure cart has proper structure
         const newCartState = {
@@ -46,13 +48,13 @@ export const useCart = (userId: string) => {
         throw err;
       }
     },
-    [userId]
+    []
   );
 
   const removeFromCart = useCallback(
       async (sku: string) => {
       try {
-        const updatedCart = await apiClient.removeFromCart(userId, sku);
+        const updatedCart = await apiClient.removeFromCart(sku);
         // Ensure cart has proper structure
         setCart({
           items: updatedCart.items || [],
@@ -64,13 +66,13 @@ export const useCart = (userId: string) => {
         throw err;
       }
     },
-    [userId]
+    []
   );
 
   const updateCartItem = useCallback(
       async (sku: string, quantity: number, price: number, currency: string) => {
       try {
-        const updatedCart = await apiClient.updateCartItem(userId, sku, quantity, price, currency);
+        const updatedCart = await apiClient.updateCartItem(sku, quantity, price, currency);
         // Ensure cart has proper structure
         setCart({
           items: updatedCart.items || [],
@@ -82,19 +84,25 @@ export const useCart = (userId: string) => {
         throw err;
       }
     },
-    [userId]
+    []
   );
 
   const getCartTotal = useCallback(() => {
     return (cart.items || []).reduce((total, item) => total + item.price * item.cartQuantity, 0);
   }, [cart.items]);
 
+  const clearCart = useCallback(async () => {
+    await apiClient.clearCart();
+    setCart({items: [], total: 0});
+  }, []);
+
   useEffect(() => {
-    // Enable cart fetching now that backend API is working
-    if (userId) {
+    if (initialized && isAuthenticated) {
       fetchCart();
+    } else if (initialized) {
+      setCart({items: [], total: 0});
     }
-  }, [userId, fetchCart]);
+  }, [initialized, isAuthenticated, fetchCart]);
 
   return {
     cart,
@@ -104,6 +112,7 @@ export const useCart = (userId: string) => {
     addToCart,
     removeFromCart,
     updateCartItem,
+    clearCart,
     getCartTotal,
   };
 };

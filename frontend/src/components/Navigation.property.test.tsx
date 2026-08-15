@@ -64,11 +64,9 @@ const createMockCart = (totalItems: number): Cart => {
 
 const TestWrapper: React.FC<{
   children: React.ReactNode;
-  userId?: string;
   cartItemCount?: number;
 }> = ({
   children,
-  userId = mockUser.id,
   cartItemCount = 0
 }) => {
     const mockCart = createMockCart(cartItemCount);
@@ -87,7 +85,7 @@ const TestWrapper: React.FC<{
     return (
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AuthProvider initialUser={mockUser}>
-          <CartProvider userId={userId}>
+          <CartProvider>
             {children}
           </CartProvider>
         </AuthProvider>

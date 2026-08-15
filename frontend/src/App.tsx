@@ -15,7 +15,7 @@ import OrdersPage from './pages/OrdersPage';
 import Navigation from './components/Navigation';
 import ErrorBoundary from './components/ErrorBoundary';
 import ProtectedRoute from './auth/ProtectedRoute';
-import { AuthProvider, useAuthContext } from '@context/AuthContext';
+import { AuthProvider } from '@context/AuthContext';
 import { CartProvider } from '@context/CartContext';
 
 const LoadingFallback: FC = () => (
@@ -26,16 +26,11 @@ const Protected: FC<PropsWithChildren> = ({ children }) => (
   <ProtectedRoute>{children}</ProtectedRoute>
 );
 
-const AuthenticatedCartProvider: FC<PropsWithChildren> = ({ children }) => {
-  const { user } = useAuthContext();
-  return <CartProvider userId={user?.id ?? ''}>{children}</CartProvider>;
-};
-
 const App: FC = () => {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <AuthenticatedCartProvider>
+        <CartProvider>
           <BrowserRouter>
             <Navigation />
             <div>
@@ -64,7 +59,7 @@ const App: FC = () => {
               pauseOnHover
             />
           </BrowserRouter>
-        </AuthenticatedCartProvider>
+        </CartProvider>
       </AuthProvider>
     </ErrorBoundary>
   );

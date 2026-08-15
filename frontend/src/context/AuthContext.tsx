@@ -1,6 +1,7 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { AuthenticatedUser, AuthContextValue } from '../auth/auth.types';
 import { keycloak } from '../auth/keycloak';
+import { configureAuthentication } from '../services/authenticatedAxios';
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 let initialization: Promise<boolean> | null = null;
@@ -41,31 +42,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setUser(null);
   }, []);
 
-  useEffect(() => {
-    let active = true;
-
-    void initializeKeycloak()
-      .then((authenticated) => {
-        if (!active) return;
-        setIsAuthenticated(authenticated);
-        setUser(authenticated ? profileFromToken() : null);
-      })
-      .catch(() => {
-        if (active) clearIdentity();
-      })
-      .finally(() => {
-        if (active) setInitialized(true);
-      });
-
-    const previousLogoutHandler = keycloak.onAuthLogout;
-    keycloak.onAuthLogout = clearIdentity;
-
-    return () => {
-      active = false;
-      keycloak.onAuthLogout = previousLogoutHandler;
-    };
-  }, [clearIdentity]);
-
   const login = useCallback((returnTo?: string) => {
     return keycloak.login({ redirectUri: absoluteReturnUrl(returnTo) });
   }, []);
@@ -93,6 +69,32 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       return undefined;
     }
   }, [clearIdentity]);
+
+  useEffect(() => {
+    let active = true;
+
+    void initializeKeycloak()
+      .then((authenticated) => {
+        if (!active) return;
+        configureAuthentication(getAccessToken, login);
+        setIsAuthenticated(authenticated);
+        setUser(authenticated ? profileFromToken() : null);
+      })
+      .catch(() => {
+        if (active) clearIdentity();
+      })
+      .finally(() => {
+        if (active) setInitialized(true);
+      });
+
+    const previousLogoutHandler = keycloak.onAuthLogout;
+    keycloak.onAuthLogout = clearIdentity;
+
+    return () => {
+      active = false;
+      keycloak.onAuthLogout = previousLogoutHandler;
+    };
+  }, [clearIdentity, getAccessToken, login]);
 
   const value: AuthContextValue = {
     initialized,

@@ -28,7 +28,7 @@ const OrdersPage: FC = () => {
     error,
     refetch,
     setCurrentPage,
-  } = useOrders(user?.id || null, PAGE_SIZE);
+  } = useOrders(PAGE_SIZE);
   const { processCheckout, isProcessing } = useCheckout();
   const { cart, getCartItemCount } = useCartContext();
   const [paymentsByOrderId, setPaymentsByOrderId] = useState<Record<string, Payment | null>>({});
@@ -79,7 +79,7 @@ const OrdersPage: FC = () => {
       return;
     }
 
-    await processCheckout(user.id, {
+    await processCheckout({
       payment: {
         method: 'CREDIT_CARD',
         currency: cart.items[0]?.currency || 'EUR',

@@ -63,7 +63,7 @@ const CartPage: FC = () => {
       return;
     }
 
-    await processCheckout(user.id, {
+    await processCheckout({
       payment: {
         method: paymentMethod,
         details: paymentDetails,

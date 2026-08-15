@@ -9,7 +9,7 @@ interface CartContextType {
   addToCart: (product: Product, quantity: number) => Promise<void>;
   removeFromCart: (sku: string) => Promise<void>;
   updateCartItem: (product: Product, quantity: number) => Promise<void>;
-  clearCart: () => void;
+  clearCart: () => Promise<void>;
   getCartTotal: () => number;
   getCartItemCount: () => number;
 }
@@ -18,11 +18,10 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 interface CartProviderProps {
   children: ReactNode;
-  userId: string;
 }
 
-export const CartProvider: React.FC<CartProviderProps> = ({ children, userId }) => {
-  const { cart, loading, error, addToCart: hookAddToCart, removeFromCart: hookRemoveFromCart, updateCartItem: hookUpdateCartItem, getCartTotal } = useCartHook(userId);
+export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
+  const { cart, loading, error, addToCart: hookAddToCart, removeFromCart: hookRemoveFromCart, updateCartItem: hookUpdateCartItem, clearCart: hookClearCart, getCartTotal } = useCartHook();
 
   const addToCart = useCallback(
     async (product: Product, quantity: number) => {
@@ -54,13 +53,9 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children, userId }) 
     [hookUpdateCartItem]
   );
 
-  const clearCart = useCallback(() => {
-    if (cart.items && Array.isArray(cart.items)) {
-      cart.items.forEach((item) => {
-        hookRemoveFromCart(item.sku).catch(err => console.error('Error removing item:', err));
-      });
-    }
-  }, [cart.items, hookRemoveFromCart]);
+  const clearCart = useCallback(async () => {
+    await hookClearCart();
+  }, [hookClearCart]);
 
   const getCartItemCount = useCallback(() => {
     return (cart.items || []).reduce((count, item) => count + item.cartQuantity, 0);

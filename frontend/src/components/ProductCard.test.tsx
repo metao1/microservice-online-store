@@ -50,7 +50,7 @@ const mockProduct: Product = {
 const renderProductCard = (product: Product = mockProduct, props = {}) => {
   return render(
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <CartProvider userId="test-user">
+      <CartProvider>
         <ProductCard product={product} {...props} />
       </CartProvider>
     </BrowserRouter>
