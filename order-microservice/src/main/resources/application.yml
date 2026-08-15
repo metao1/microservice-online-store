@@ -138,7 +138,7 @@ app:
       enabled: ${JWT_ENABLED:true}
       issuer-uri: ${JWT_ISSUER_URI:http://localhost:8080/realms/bookstore}
       jwk-set-uri: ${JWT_JWK_SET_URI:}
-      audience: ${JWT_AUDIENCE:account}
+      audience: ${JWT_AUDIENCE:bookstore-api}
   order:
     vat:
       # Integer VAT rate applied when computing order totals (e.g. 21 for 21 %).
