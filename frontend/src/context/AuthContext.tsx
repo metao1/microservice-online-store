@@ -1,8 +1,14 @@
-import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { AuthenticatedUser, AuthContextValue } from '../auth/auth.types';
 import { keycloak } from '../auth/keycloak';
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+let initialization: Promise<boolean> | null = null;
+
+function initializeKeycloak() {
+  initialization ??= keycloak.init({ onLoad: 'check-sso', pkceMethod: 'S256' });
+  return initialization;
+}
 
 function profileFromToken(): AuthenticatedUser | null {
   const claims = keycloak.tokenParsed;
@@ -29,7 +35,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [initialized, setInitialized] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<AuthenticatedUser | null>(null);
-  const initialization = useRef<Promise<boolean> | null>(null);
 
   const clearIdentity = useCallback(() => {
     setIsAuthenticated(false);
@@ -38,9 +43,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   useEffect(() => {
     let active = true;
-    initialization.current ??= keycloak.init({ onLoad: 'check-sso', pkceMethod: 'S256' });
 
-    void initialization.current
+    void initializeKeycloak()
       .then((authenticated) => {
         if (!active) return;
         setIsAuthenticated(authenticated);

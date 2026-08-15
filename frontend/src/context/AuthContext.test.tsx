@@ -16,8 +16,9 @@ const adapter = vi.hoisted(() => ({
 
 vi.mock('../auth/keycloak', () => ({ keycloak: adapter }));
 
-import ProtectedRoute from '../auth/ProtectedRoute';
-import { AuthProvider, useAuthContext } from './AuthContext';
+let ProtectedRoute: typeof import('../auth/ProtectedRoute').default;
+let AuthProvider: typeof import('./AuthContext').AuthProvider;
+let useAuthContext: typeof import('./AuthContext').useAuthContext;
 
 function AuthProbe() {
   const auth = useAuthContext();
@@ -43,21 +44,25 @@ function AuthProbe() {
   );
 }
 
-describe('AuthProvider', () => {
-  beforeEach(() => {
-    adapter.authenticated = false;
-    adapter.token = undefined;
-    adapter.tokenParsed = undefined;
-    adapter.onAuthLogout = undefined;
-    adapter.init.mockReset().mockResolvedValue(false);
-    adapter.login.mockReset().mockResolvedValue(undefined);
-    adapter.register.mockReset().mockResolvedValue(undefined);
-    adapter.logout.mockReset().mockResolvedValue(undefined);
-    adapter.updateToken.mockReset().mockResolvedValue(false);
-    delete document.body.dataset.accessToken;
-    window.history.replaceState({}, '', '/');
-  });
+beforeEach(async () => {
+  adapter.authenticated = false;
+  adapter.token = undefined;
+  adapter.tokenParsed = undefined;
+  adapter.onAuthLogout = undefined;
+  adapter.init.mockReset().mockResolvedValue(false);
+  adapter.login.mockReset().mockResolvedValue(undefined);
+  adapter.register.mockReset().mockResolvedValue(undefined);
+  adapter.logout.mockReset().mockResolvedValue(undefined);
+  adapter.updateToken.mockReset().mockResolvedValue(false);
+  delete document.body.dataset.accessToken;
+  window.history.replaceState({}, '', '/');
 
+  vi.resetModules();
+  ({ AuthProvider, useAuthContext } = await import('./AuthContext'));
+  ({ default: ProtectedRoute } = await import('../auth/ProtectedRoute'));
+});
+
+describe('AuthProvider', () => {
   it('initializes check-sso with PKCE S256 and maps identity from token claims', async () => {
     adapter.authenticated = true;
     adapter.token = 'access-token';
@@ -81,6 +86,25 @@ describe('AuthProvider', () => {
     expect(screen.getByLabelText('user')).toHaveTextContent(
       JSON.stringify({ id: 'customer-123', email: 'reader@example.com', name: 'Ada Reader' }),
     );
+  });
+
+  it('initializes the singleton adapter only once across provider remounts', async () => {
+    const firstMount = render(
+      <AuthProvider>
+        <AuthProbe />
+      </AuthProvider>,
+    );
+    await waitFor(() => expect(screen.getByLabelText('initialized')).toHaveTextContent('true'));
+
+    firstMount.unmount();
+    render(
+      <AuthProvider>
+        <AuthProbe />
+      </AuthProvider>,
+    );
+    await waitFor(() => expect(screen.getByLabelText('initialized')).toHaveTextContent('true'));
+
+    expect(adapter.init).toHaveBeenCalledTimes(1);
   });
 
   it('uses absolute return URLs for login, registration, and logout', async () => {
@@ -174,5 +198,31 @@ describe('ProtectedRoute', () => {
     });
     expect(adapter.login).toHaveBeenCalledTimes(1);
     expect(screen.queryByText('private orders')).not.toBeInTheDocument();
+  });
+
+  it('shows an accessible recovery action when login fails and retries only on request', async () => {
+    adapter.init.mockResolvedValue(false);
+    adapter.login
+      .mockRejectedValueOnce(new Error('identity provider unavailable'))
+      .mockResolvedValueOnce(undefined);
+
+    render(
+      <MemoryRouter initialEntries={['/cart']}>
+        <AuthProvider>
+          <ProtectedRoute>
+            <div>private cart</div>
+          </ProtectedRoute>
+        </AuthProvider>
+      </MemoryRouter>,
+    );
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('Unable to start sign in');
+    expect(adapter.login).toHaveBeenCalledTimes(1);
+
+    screen.getByRole('button', { name: 'Retry' }).click();
+
+    await waitFor(() => expect(adapter.login).toHaveBeenCalledTimes(2));
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 });
