@@ -17,6 +17,11 @@ public class JwtSecurityProperties {
     private String issuerUri;
 
     /**
+     * Optional JWK Set URI used by services that need to fetch keys through an internal network.
+     */
+    private String jwkSetUri;
+
+    /**
      * Expected audience claim value for token validation.
      * Optional - if not set, audience validation is skipped.
      */
@@ -34,6 +39,14 @@ public class JwtSecurityProperties {
 
     public void setIssuerUri(String issuerUri) {
         this.issuerUri = issuerUri;
+    }
+
+    public String getJwkSetUri() {
+        return jwkSetUri;
+    }
+
+    public void setJwkSetUri(String jwkSetUri) {
+        this.jwkSetUri = jwkSetUri;
     }
 
     public String getAudience() {

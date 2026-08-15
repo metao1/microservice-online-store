@@ -1,9 +1,6 @@
 package com.metao.book.shared.security;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -18,11 +15,12 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtDecoders;
+import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -41,7 +39,6 @@ public class JwtSecurityAutoConfiguration {
     @ConditionalOnProperty(prefix = "app.security.jwt", name = "enabled", havingValue = "true", matchIfMissing = true)
     public SecurityFilterChain resourceServerSecurityFilterChain(
         HttpSecurity http,
-        JwtSecurityProperties properties,
         Converter<Jwt, Collection<GrantedAuthority>> jwtAuthoritiesConverter,
         JwtDecoder jwtDecoder
     ) {
@@ -60,7 +57,7 @@ public class JwtSecurityAutoConfiguration {
             .oauth2ResourceServer(oauth2 -> oauth2
                 .jwt(jwt -> jwt
                     .decoder(jwtDecoder)
-                    .jwtAuthenticationConverter(jwtAuthenticationConverter(properties, jwtAuthoritiesConverter))
+                    .jwtAuthenticationConverter(jwtAuthenticationConverter(jwtAuthoritiesConverter))
                 )
             );
 
@@ -70,60 +67,27 @@ public class JwtSecurityAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public Converter<Jwt, Collection<GrantedAuthority>> jwtAuthoritiesConverter() {
-        return new JwtAuthoritiesConverter();
+        return new KeycloakJwtAuthoritiesConverter();
     }
 
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "app.security.jwt", name = "enabled", havingValue = "true", matchIfMissing = true)
     public JwtDecoder jwtDecoder(JwtSecurityProperties properties) {
-        return NimbusJwtDecoder.withJwkSetUri(properties.getIssuerUri() + "/protocol/openid-connect/certs")
-            .build();
-    }
-
-    private static final class JwtAuthoritiesConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
-
-        @Override
-        public Collection<GrantedAuthority> convert(Jwt jwt) {
-            List<String> roles = Optional.ofNullable((List<String>) jwt.getClaim("roles"))
-                .orElse(List.of());
-
-            List<String> scopes = Optional.ofNullable(jwt.getClaimAsStringList("scope"))
-                .orElse(List.of());
-
-            List<GrantedAuthority> roleAuthorities = roles.stream()
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-                .collect(Collectors.toList());
-
-            List<GrantedAuthority> scopeAuthorities = scopes.stream()
-                .map(scope -> new SimpleGrantedAuthority("SCOPE_" + scope))
-                .collect(Collectors.toList());
-
-            roleAuthorities.addAll(scopeAuthorities);
-            return roleAuthorities;
-        }
+        NimbusJwtDecoder decoder = properties.getJwkSetUri() == null || properties.getJwkSetUri().isBlank()
+            ? JwtDecoders.fromIssuerLocation(properties.getIssuerUri())
+            : NimbusJwtDecoder.withJwkSetUri(properties.getJwkSetUri()).build();
+        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
+            JwtValidators.createDefaultWithIssuer(properties.getIssuerUri()),
+            new AudienceValidator(properties.getAudience())
+        ));
+        return decoder;
     }
 
     private Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter(
-        JwtSecurityProperties properties,
         Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter
     ) {
-
-        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-        converter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
-        converter.setPrincipalClaimName("sub");
-
         return jwt -> {
-            if (properties.getAudience() != null && !properties.getAudience().isBlank()) {
-                List<String> aud = jwt.getAudience();
-                if (aud == null || !aud.contains(properties.getAudience())) {
-                    throw new IllegalStateException(
-                        "Invalid JWT audience. Expected: " + properties.getAudience() +
-                            ", got: " + aud
-                    );
-                }
-            }
-
             Collection<GrantedAuthority> authorities = authoritiesConverter.convert(jwt);
             return new JwtAuthenticationToken(jwt, authorities, jwt.getSubject());
         };
