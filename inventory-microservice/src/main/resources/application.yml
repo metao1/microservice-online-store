@@ -153,7 +153,8 @@ app:
     jwt:
       enabled: ${JWT_ENABLED:true}
       issuer-uri: ${JWT_ISSUER_URI:http://localhost:8080/realms/bookstore}
-      audience: ${JWT_AUDIENCE:account}
+      jwk-set-uri: ${JWT_JWK_SET_URI:}
+      audience: ${JWT_AUDIENCE:bookstore-api}
 
 product-sample-data-path: data/products.txt
 product:

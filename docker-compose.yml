@@ -206,6 +206,9 @@ services:
       DATABASE_PASSWORD: bookstore
       SECURITY_PROTOCOL: PLAINTEXT
       SASL_MECHANISM: PLAIN
+      JWT_ISSUER_URI: http://localhost:8080/realms/bookstore
+      JWT_JWK_SET_URI: http://keycloak:8080/realms/bookstore/protocol/openid-connect/certs
+      JWT_AUDIENCE: bookstore-api
     build:
       context: .
       dockerfile: inventory-microservice/src/main/docker/Dockerfile
@@ -216,6 +219,7 @@ services:
       - postgres-inventory
       - kafka1
       - kafka-schema-registry
+      - keycloak
 
   payment-microservice:
     image: payment-microservice
