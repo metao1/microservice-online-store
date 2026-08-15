@@ -137,6 +137,30 @@ class ShoppingCartControllerIT extends KafkaContainerBase {
     }
 
     @Test
+    void addItemToCart_ignoresCallerSuppliedUserId() {
+        given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer " + userToken)
+            .body("""
+                [{
+                  "user_id": "victim-user",
+                  "sku": "SKU002",
+                  "productTitle": "product123",
+                  "quantity": 2,
+                  "price": 20.0,
+                  "currency": "EUR"
+                }]
+                """)
+            .when()
+            .post("/cart/items")
+            .then()
+            .statusCode(HttpStatus.CREATED.value());
+
+        assertThat(shoppingCartRepository.findByUserIdAndSku(userId1, sku2)).isPresent();
+        assertThat(shoppingCartRepository.findByUserIdAndSku("victim-user", sku2)).isEmpty();
+    }
+
+    @Test
     void addItemToCart_existingItem_updatesQuantity() {
         var existingItemDto = List.of(
             new ShoppingCartItem(sku1, productTitle, BigDecimal.TWO, BigDecimal.TEN, currency)

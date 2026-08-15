@@ -12,7 +12,6 @@ import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.application.port.OrderRepository;
 import com.metao.book.order.infrastructure.persistence.repository.SpringDataOrderRepository;
-import com.metao.book.order.presentation.dto.CreateOrderRequestDTO;
 import com.metao.shared.test.KafkaContainerBase;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -90,7 +89,6 @@ class SecureOrderFlowIT extends KafkaContainerBase {
         String orderId = given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer " + USER_TOKEN)
-            .body(new CreateOrderRequestDTO(USER_ID))
             .post("/api/order")
             .then()
             .statusCode(HttpStatus.CREATED.value())
@@ -111,6 +109,29 @@ class SecureOrderFlowIT extends KafkaContainerBase {
     }
 
     @Test
+    @DisplayName("Order ownership cannot be overridden by a request body")
+    void orderOwnership_cannotBeOverriddenByRequestBody() {
+        shoppingCartService.addItemToCart(
+            USER_ID,
+            List.of(new ShoppingCartItem(SKU, PRODUCT_TITLE, BigDecimal.ONE, UNIT_PRICE, CURRENCY))
+        );
+
+        String orderId = given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer " + USER_TOKEN)
+            .body("{\"user_id\":\"victim-user\"}")
+            .post("/api/order")
+            .then()
+            .statusCode(HttpStatus.CREATED.value())
+            .extract()
+            .path("value");
+
+        OrderAggregate savedOrder = orderRepository.findById(OrderId.of(orderId)).orElseThrow();
+        assertThat(savedOrder.getUserId()).isEqualTo(UserId.of(USER_ID));
+        assertThat(savedOrder.getUserId()).isNotEqualTo(UserId.of("victim-user"));
+    }
+
+    @Test
     @DisplayName("Order creation without auth should fail")
     void orderCreationWithoutAuth_shouldFail() {
         shoppingCartService.addItemToCart(
@@ -120,7 +141,6 @@ class SecureOrderFlowIT extends KafkaContainerBase {
 
         given()
             .contentType(ContentType.JSON)
-            .body(new CreateOrderRequestDTO(USER_ID))
             .post("/api/order")
             .then()
             .statusCode(HttpStatus.UNAUTHORIZED.value());

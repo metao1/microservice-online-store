@@ -12,7 +12,6 @@ import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.application.port.OrderRepository;
 import com.metao.book.order.infrastructure.persistence.repository.SpringDataOrderRepository;
-import com.metao.book.order.presentation.dto.CreateOrderRequestDTO;
 import com.metao.book.order.presentation.dto.UpdateStatusRequestDto;
 import com.metao.shared.test.KafkaContainerBase;
 import io.restassured.RestAssured;
@@ -94,7 +93,6 @@ class OrderManagementControllerIT extends KafkaContainerBase {
             given()
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + USER_TOKEN)
-                .body(new CreateOrderRequestDTO("USER_ID"))
                 .post("/api/order")
                 .then()
                 .statusCode(HttpStatus.CREATED.value())
@@ -180,7 +178,6 @@ class OrderManagementControllerIT extends KafkaContainerBase {
         void shouldReturnUnauthorizedWithoutAuth() {
             given()
                 .contentType(ContentType.JSON)
-                .body(new CreateOrderRequestDTO("USER_ID"))
                 .post("/api/order")
                 .then()
                 .statusCode(HttpStatus.UNAUTHORIZED.value());

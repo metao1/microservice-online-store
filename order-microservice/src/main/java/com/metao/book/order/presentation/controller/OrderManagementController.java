@@ -1,10 +1,10 @@
 package com.metao.book.order.presentation.controller;
 
 import com.metao.book.order.domain.model.valueobject.OrderId;
+import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.application.usecase.CreateOrderUseCase;
 import com.metao.book.order.application.usecase.GetCustomerOrdersUseCase;
 import com.metao.book.order.application.usecase.UpdateOrderStatusUseCase;
-import com.metao.book.order.presentation.dto.CreateOrderRequestDTO;
 import com.metao.book.order.presentation.dto.OrderPageResponseDto;
 import com.metao.book.order.presentation.dto.OrderResponseDto;
 import com.metao.book.order.presentation.dto.UpdateStatusRequestDto;
@@ -43,10 +43,8 @@ public class OrderManagementController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('CUSTOMER') or hasAuthority('SCOPE_orders:write')")
-    public OrderId createOrder(@RequestBody CreateOrderRequestDTO request) { // TODO update this DTO to have all order info
-        // Use authenticated user's subject instead of client-provided userId
-        String userId = CurrentUser.subject();
-        return createOrderUseCase.createOrder(com.metao.book.order.domain.model.valueobject.UserId.of(userId));
+    public OrderId createOrder() {
+        return createOrderUseCase.createOrder(UserId.of(CurrentUser.subject()));
     }
 
     @PatchMapping("/{orderId}/status")
@@ -62,9 +60,7 @@ public class OrderManagementController {
     @GetMapping("/me")
     @PreAuthorize("hasRole('CUSTOMER') or hasAuthority('SCOPE_orders:read')")
     public List<OrderResponseDto> getCustomerOrders() {
-        // Use authenticated user's subject instead of path variable userId
-        String userId = CurrentUser.subject();
-        return getCustomerOrdersUseCase.getCustomerOrders(com.metao.book.order.domain.model.valueobject.UserId.of(userId)).stream()
+        return getCustomerOrdersUseCase.getCustomerOrders(UserId.of(CurrentUser.subject())).stream()
             .map(OrderResponseDto::fromDomain)
             .toList();
     }
@@ -75,9 +71,7 @@ public class OrderManagementController {
         @RequestParam(defaultValue = "0") int offset,
         @RequestParam(defaultValue = "10") int limit
     ) {
-        // Use authenticated user's subject instead of path variable userId
-        String userId = CurrentUser.subject();
-        var ordersPage = getCustomerOrdersUseCase.getCustomerOrders(com.metao.book.order.domain.model.valueobject.UserId.of(userId), offset, limit)
+        var ordersPage = getCustomerOrdersUseCase.getCustomerOrders(UserId.of(CurrentUser.subject()), offset, limit)
             .map(OrderResponseDto::fromDomain);
         return OrderPageResponseDto.from(ordersPage, offset, limit);
     }

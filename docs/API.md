@@ -68,12 +68,16 @@ Generated files:
 
 ### Order Service (Port 8086)
 
-- `GET /cart/{userId}` - Get cart
-- `POST /cart` - Add to cart
-- `PUT /cart/{userId}/{sku}` - Update quantity
-- `DELETE /cart/{userId}/{sku}` - Remove item
-- `POST /api/order` - Create order
-- `GET /api/order/customer/{userId}` - Get orders
+- `GET /cart` - Get the authenticated customer's cart
+- `POST /cart/items` - Add items to the authenticated customer's cart
+- `PUT /cart/items/{sku}` - Update an item quantity in the authenticated customer's cart
+- `DELETE /cart/items/{sku}` - Remove an item from the authenticated customer's cart
+- `DELETE /cart` - Clear the authenticated customer's cart
+- `POST /api/order` - Create an order from the authenticated customer's cart (no request body)
+- `GET /api/order/me` - Get the authenticated customer's orders
+- `GET /api/order/me/paged` - Get the authenticated customer's orders with pagination
+
+Customer-owned cart and order routes require a bearer token. Ownership is derived exclusively from the validated JWT `sub` claim; these routes do not accept a customer identifier in the request path or body. Unknown fields such as `user_id` cannot override ownership.
 
 ### Payment Service (Port 8084)
 

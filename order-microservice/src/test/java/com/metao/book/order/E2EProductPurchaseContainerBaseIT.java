@@ -13,7 +13,6 @@ import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.application.port.OrderRepository;
 import com.metao.book.order.infrastructure.persistence.cart.ShoppingCartRepository;
 import com.metao.book.order.infrastructure.persistence.repository.SpringDataOrderRepository;
-import com.metao.book.order.presentation.dto.CreateOrderRequestDTO;
 import com.metao.book.shared.InventoryReductionRequestedEvent;
 import com.metao.book.shared.OrderPaymentUpdatedEvent;
 import com.metao.book.shared.Status;
@@ -129,7 +128,6 @@ class E2EProductPurchaseContainerBaseIT extends KafkaContainerBase {
         OrderId orderId = given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer " + userToken)
-            .body(new CreateOrderRequestDTO(userId))
             .when()
             .post("/api/order")
             .then()
@@ -184,7 +182,6 @@ class E2EProductPurchaseContainerBaseIT extends KafkaContainerBase {
         OrderId orderId = given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer " + userToken)
-            .body(new CreateOrderRequestDTO(userId))
             .when()
             .post("/api/order")
             .then()
