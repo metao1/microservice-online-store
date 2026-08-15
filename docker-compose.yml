@@ -1,4 +1,23 @@
 services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4.2
+    command: ["start-dev", "--import-realm", "--health-enabled=true"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+    ports:
+      - "8080:8080"
+      - "9000:9000"
+    volumes:
+      - keycloak-data:/opt/keycloak/data
+      - ./infrastructure/keycloak/realm:/opt/keycloak/data/import:ro
+      - ./infrastructure/keycloak/themes/bookstore:/opt/keycloak/themes/bookstore:ro
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q '200 OK' <&3"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
   zoo1:
     image: confluentinc/cp-zookeeper:7.6.0
     hostname: zoo1
@@ -148,15 +167,23 @@ services:
       DATABASE_PASSWORD: bookstore
       SECURITY_PROTOCOL: PLAINTEXT
       SASL_MECHANISM: PLAIN
+      JWT_ISSUER_URI: http://localhost:8080/realms/bookstore
+      JWT_JWK_SET_URI: http://keycloak:8080/realms/bookstore/protocol/openid-connect/certs
+      JWT_AUDIENCE: bookstore-api
     build:
       context: .
       dockerfile: order-microservice/src/main/docker/Dockerfile
     ports:
       - "8086:8080"
     depends_on:
-      - postgres-order
-      - kafka1
-      - kafka-schema-registry
+      keycloak:
+        condition: service_healthy
+      postgres-order:
+        condition: service_started
+      kafka1:
+        condition: service_started
+      kafka-schema-registry:
+        condition: service_started
 
   inventory-microservice:
     image: inventory-microservice
@@ -210,15 +237,23 @@ services:
       DATABASE_PASSWORD: bookstore
       SECURITY_PROTOCOL: PLAINTEXT
       SASL_MECHANISM: PLAIN
+      JWT_ISSUER_URI: http://localhost:8080/realms/bookstore
+      JWT_JWK_SET_URI: http://keycloak:8080/realms/bookstore/protocol/openid-connect/certs
+      JWT_AUDIENCE: bookstore-api
     build:
       context: .
       dockerfile: payment-microservice/src/main/docker/Dockerfile
     ports:
       - "8084:8080"
     depends_on:
-      - kafka1
-      - kafka-schema-registry
-      - postgres-payment
+      keycloak:
+        condition: service_healthy
+      kafka1:
+        condition: service_started
+      kafka-schema-registry:
+        condition: service_started
+      postgres-payment:
+        condition: service_started
 
   frontend:
     image: frontend
@@ -263,6 +298,9 @@ services:
     command: sleep infinity
 
 volumes:
+  keycloak-data:
+    driver:
+      local
   postgres:
     driver:
       local
