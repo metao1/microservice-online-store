@@ -67,19 +67,24 @@ public class ProductGenerator {
     @Transactional
     public void loadProducts() {
         log.info("importing products data from resources");
-        final List<CreateProductCommand> products;
+        final List<ProductDTO> parsedProducts;
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
-            products = reader.lines()
+            parsedProducts = reader.lines()
                 .map(this::parseProduct)
                 .filter(Objects::nonNull)
-                .map(this::toCommand)
                 .toList();
         } catch (IOException e) {
             log.error("Error reading products file", e);
             return;
         }
 
-        log.info("Parsed {} products, starting batch save", products.size());
+        List<CreateProductCommand> products = parsedProducts.stream()
+                .filter(this::hasRequiredFields)
+                .map(this::toCommand)
+                .toList();
+        int invalidProductCount = parsedProducts.size() - products.size();
+
+        log.info("Parsed {} valid products, skipped {} incomplete products", products.size(), invalidProductCount);
 
         // Save in batches of 50
         int batchSize = 50;
@@ -109,11 +114,20 @@ public class ProductGenerator {
         }
 
         log.info(
-            "finished publishing products. parsed={}, saved={}, duplicates_skipped={}",
+            "finished publishing products. parsed={}, saved={}, duplicates_skipped={}, invalid_skipped={}",
             products.size(),
             savedCount,
-            skippedDuplicateCount
+            skippedDuplicateCount,
+            invalidProductCount
         );
+    }
+
+    private boolean hasRequiredFields(ProductDTO product) {
+        return product.sku() != null
+            && product.title() != null
+            && product.imageUrl() != null
+            && product.price() != null
+            && product.currency() != null;
     }
 
     private CreateProductCommand toCommand(ProductDTO dto) {

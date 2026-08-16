@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -90,6 +91,21 @@ class ProductGeneratorTest {
         ArgumentCaptor<CreateProductCommand> commandCaptor = ArgumentCaptor.forClass(CreateProductCommand.class);
         verify(productUseCase).createProduct(commandCaptor.capture());
         assertThat(commandCaptor.getValue().volume()).isEqualByComparingTo(new BigDecimal("100"));
+    }
+
+    @Test
+    void skipsSeedProductWithoutPriceAndCurrency() throws Exception {
+        Path seedFile = Files.createFile(temporaryDirectory.resolve("missing-commercial-fields-products.txt"));
+        Files.writeString(
+            seedFile,
+            "{\"sku\":\"1234567890\",\"title\":\"Incomplete Seed Product\",\"description\":\"Seed description\",\"imageUrl\":\"https://example.com/product.jpg\",\"categories\":[\"Books\"]}"
+        );
+        ProductUseCase productUseCase = mock(ProductUseCase.class);
+        ProductGenerator generator = new ProductGenerator(productUseCase, new ObjectMapper(), new FileSystemResource(seedFile));
+
+        generator.loadProducts();
+
+        verifyNoInteractions(productUseCase);
     }
 
     private ProductGenerator productGenerator(FileSystemResource resource) {
