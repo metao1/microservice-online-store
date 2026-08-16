@@ -26,7 +26,7 @@ vi.mock('../components/ProductGrid', () => ({
     hasMore: boolean;
     onLoadMore: () => void;
   }) => (
-    <div>
+    <div data-testid="product-list">
       {products.map((product) => <span key={product.sku}>{product.title}</span>)}
       {hasMore && <button type="button" onClick={onLoadMore}>Load more</button>}
     </div>
@@ -102,11 +102,15 @@ describe('ProductsPage pagination requests', () => {
     expect(screen.queryByText('Stale product')).not.toBeInTheDocument();
   });
 
-  it('keeps earlier products visible when a later page contains a segment match', async () => {
+  it('appends later pages without moving products already on screen', async () => {
     const nextPage = deferred<Product[]>();
     const firstPage = Array.from({ length: 16 }, (_, index) => (
       product(`history-${index}`, `History volume ${index}`)
     ));
+    window.sessionStorage.setItem('products-filters:/products', JSON.stringify({
+      sortBy: 'name',
+      sortOrder: 'asc',
+    }));
 
     api.getProducts.mockImplementation((_category: string, _limit: number, offset: number) => (
       offset === 0 ? Promise.resolve(firstPage) : nextPage.promise
@@ -122,9 +126,10 @@ describe('ProductsPage pagination requests', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Load more' }));
     await waitFor(() => expect(api.getProducts).toHaveBeenCalledWith('books', 16, 16));
 
-    await act(async () => nextPage.resolve([product('software-1', 'Software architecture')]));
+    await act(async () => nextPage.resolve([product('software-1', 'A Software architecture')]));
 
     expect(screen.getByText('History volume 0')).toBeInTheDocument();
-    expect(screen.getByText('Software architecture')).toBeInTheDocument();
+    expect(screen.getByText('A Software architecture')).toBeInTheDocument();
+    expect(screen.getByTestId('product-list').querySelector('span')).toHaveTextContent('History volume 0');
   });
 });

@@ -5,7 +5,6 @@ import ProductGrid from '../components/ProductGrid';
 import {Product, ProductVariant} from '@types';
 import { apiClient } from '../services/api';
 import { FILTER_GROUPS, createDefaultSelectedFilters } from './products/products.config';
-import { ProductSortBy, ProductSortOrder } from './products/products.types';
 import {
   applySegmentFilter,
   buildCategoryTabs,
@@ -13,7 +12,6 @@ import {
   filterProducts,
   formatCategoryLabel,
   getProductSearchText,
-  sortProducts,
 } from './products/products.utils';
 import './ProductsPage.css';
 
@@ -29,8 +27,6 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
   const [activeSegment, setActiveSegment] = useState<string>('');
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortBy, setSortBy] = useState<ProductSortBy>('name');
-  const [sortOrder, setSortOrder] = useState<ProductSortOrder>('asc');
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [isAllFiltersOpen, setIsAllFiltersOpen] = useState(false);
   const [canScrollFiltersLeft, setCanScrollFiltersLeft] = useState(false);
@@ -66,8 +62,6 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
     }
     try {
       const data = JSON.parse(raw);
-      if (data?.sortBy) setSortBy(data.sortBy);
-      if (data?.sortOrder) setSortOrder(data.sortOrder);
       if (data?.selectedFilters) {
         setSelectedFilters((prev) => ({ ...prev, ...data.selectedFilters }));
       }
@@ -103,13 +97,9 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
 
   useEffect(() => {
     if (!hasHydratedFilters.current) return;
-    const payload = {
-      sortBy,
-      sortOrder,
-      selectedFilters
-    };
+    const payload = { selectedFilters };
     window.sessionStorage.setItem(filtersKey, JSON.stringify(payload));
-  }, [filtersKey, sortBy, sortOrder, selectedFilters]);
+  }, [filtersKey, selectedFilters]);
 
 
   // Initialize search query and category from URL parameters
@@ -245,13 +235,6 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
     console.log('Quick view for product:', product.title);
   }, []);
 
-  const handleSortChange = (value: string) => {
-    const [newSortBy, newSortOrder] = value.split('-') as [ProductSortBy, ProductSortOrder];
-    setSortBy(newSortBy);
-    setSortOrder(newSortOrder);
-    setActiveFilter(null);
-  };
-
   const handleFilterChange = (filterType: keyof typeof selectedFilters, value: string) => {
     setSelectedFilters(prev => ({
       ...prev,
@@ -274,8 +257,6 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
 
   const resetAllFilters = () => {
     setSelectedFilters(createDefaultSelectedFilters());
-    setSortBy('name');
-    setSortOrder('asc');
   };
 
   const updateFilterScrollState = useCallback(() => {
@@ -313,14 +294,9 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
     };
   }, [isAllFiltersOpen]);
 
-  const sortedProducts = useMemo(
-    () => sortProducts(allProducts, sortBy, sortOrder),
-    [allProducts, sortBy, sortOrder]
-  );
-
   const filteredProducts = useMemo(
-    () => filterProducts(sortedProducts, selectedFilters),
-    [sortedProducts, selectedFilters]
+    () => filterProducts(allProducts, selectedFilters),
+    [allProducts, selectedFilters]
   );
 
   const segmentedProducts = useMemo(
@@ -397,43 +373,6 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
                   ref={filterButtonsRef}
                   onScroll={updateFilterScrollState}
                 >
-                  <div className="filter-dropdown">
-                  <button
-                      className={`filter-btn ${activeFilter === 'sort' ? 'active' : ''}`}
-                      onClick={() => toggleFilterDropdown('sort')}
-                  >
-                    Sort by
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="6,9 12,15 18,9"></polyline>
-                    </svg>
-                  </button>
-                  {activeFilter === 'sort' && (
-                      <div className="filter-dropdown-menu">
-                        <button onClick={() => handleSortChange('name-asc')}
-                                className={sortBy === 'name' && sortOrder === 'asc' ? 'selected' : ''}>
-                          Most Popular
-                          {sortBy === 'name' && sortOrder === 'asc' && <span className="checkmark">✓</span>}
-                        </button>
-                        <button onClick={() => handleSortChange('name-desc')}
-                                className={sortBy === 'name' && sortOrder === 'desc' ? 'selected' : ''}>
-                          Newest
-                        </button>
-                        <button onClick={() => handleSortChange('price-asc')}
-                                className={sortBy === 'price' && sortOrder === 'asc' ? 'selected' : ''}>
-                          Lowest Price
-                        </button>
-                        <button onClick={() => handleSortChange('price-desc')}
-                                className={sortBy === 'price' && sortOrder === 'desc' ? 'selected' : ''}>
-                          Highest Price
-                        </button>
-                        <button onClick={() => handleSortChange('rating-desc')}
-                                className={sortBy === 'rating' && sortOrder === 'desc' ? 'selected' : ''}>
-                          Deals
-                        </button>
-                      </div>
-                  )}
-                </div>
-
                 {FILTER_GROUPS.map((filter) => (
                     <div className="filter-dropdown" key={filter.id}>
                       <button
