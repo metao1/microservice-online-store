@@ -3,12 +3,19 @@ package com.metao.book.product.infrastructure.factory.handler;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.metao.book.product.application.dto.CreateProductCommand;
+import com.metao.book.product.application.service.CreateProductResult;
 import com.metao.book.product.application.usecase.ProductUseCase;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.mockito.ArgumentCaptor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -65,6 +72,24 @@ class ProductGeneratorTest {
     @Test
     void doesNotCreateGeneratorWithoutGeneratorProfile() {
         contextRunner.run(context -> assertThat(context).doesNotHaveBean(ProductGenerator.class));
+    }
+
+    @Test
+    void defaultsMissingSeedProductVolumeBeforeCreatingProduct() throws Exception {
+        Path seedFile = Files.createFile(temporaryDirectory.resolve("missing-volume-products.txt"));
+        Files.writeString(
+            seedFile,
+            "{\"sku\":\"1234567890\",\"title\":\"Valid Seed Product\",\"description\":\"Seed description\",\"imageUrl\":\"https://example.com/product.jpg\",\"price\":12.50,\"currency\":\"EUR\",\"categories\":[\"Books\"]}"
+        );
+        ProductUseCase productUseCase = mock(ProductUseCase.class);
+        when(productUseCase.createProduct(any())).thenReturn(CreateProductResult.CREATED);
+        ProductGenerator generator = new ProductGenerator(productUseCase, new ObjectMapper(), new FileSystemResource(seedFile));
+
+        generator.loadProducts();
+
+        ArgumentCaptor<CreateProductCommand> commandCaptor = ArgumentCaptor.forClass(CreateProductCommand.class);
+        verify(productUseCase).createProduct(commandCaptor.capture());
+        assertThat(commandCaptor.getValue().volume()).isEqualByComparingTo(new BigDecimal("100"));
     }
 
     private ProductGenerator productGenerator(FileSystemResource resource) {

@@ -11,6 +11,7 @@ import jakarta.transaction.Transactional;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
@@ -144,7 +145,7 @@ public class ProductGenerator {
                 .categories(productDto.categories())
                 .variants(productDto.variants())
                 .createdTime(Instant.now())
-                .volume(productDto.volume())
+                .volume(productDto.volume() == null ? BigDecimal.valueOf(100) : productDto.volume())
                 .build();
         } catch (Exception e) {
             log.error("Error parsing product: {}", str, e);
