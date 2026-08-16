@@ -4,6 +4,10 @@ import { vi } from 'vitest';
 // Make vi available globally as jest for compatibility
 (global as any).jest = vi;
 
+vi.stubEnv('VITE_KEYCLOAK_URL', 'http://localhost:8080');
+vi.stubEnv('VITE_KEYCLOAK_REALM', 'bookstore');
+vi.stubEnv('VITE_KEYCLOAK_CLIENT_ID', 'bookstore-frontend');
+
 vi.mock('../services/api', () => ({
   apiClient: {
     getCategories: vi.fn().mockResolvedValue([]),
