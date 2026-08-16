@@ -47,6 +47,8 @@ A single authentication-aware Axios interceptor will call `updateToken(30)` befo
 
 Frontend API contracts will stop accepting `userId` for cart and order operations and will use the existing user-neutral routes. `CreateOrderRequestDTO` will no longer contain `userId`. Resource ownership will be derived exclusively from the validated JWT `sub` claim at the HTTP adapter boundary. Domain and application services may continue accepting an explicit `UserId` passed by that trusted adapter.
 
+Authenticated customers may process only payments whose stored user identifier matches the validated JWT `sub`. A cross-customer processing attempt returns HTTP 403. Administrators may process any customer's payment. The ownership check occurs before payment state changes.
+
 ### Resource-server validation
 
 The shared security auto-configuration will validate the public issuer that appears in browser-issued tokens. Local Compose uses `http://localhost:8080/realms/bookstore` as that issuer, while backend containers fetch signing keys from the separately configured internal URL `http://keycloak:8080/realms/bookstore/protocol/openid-connect/certs`. Environments that can reach the issuer directly may omit the internal JWK Set URI and use issuer discovery. OAuth2 token validators ensure invalid issuer, signature, expiry, or audience is rejected as authentication failure with HTTP 401. Keycloak realm roles will be read from `realm_access.roles`; scopes will be read from the standard space-delimited `scope` claim. The existing top-level role claim may remain as a compatibility input during migration.
@@ -93,6 +95,7 @@ The existing account-page visual language will be implemented as Keycloak login 
 - Missing, expired, malformed, wrong-issuer, and wrong-audience tokens return 401.
 - Insufficient authority returns 403.
 - Cart and order ownership always follows `sub` and cannot be overridden in a payload or URL.
+- Customers can process their own payments, cannot process another customer's payment, and administrators can process any payment.
 
 ### Real end-to-end tests
 

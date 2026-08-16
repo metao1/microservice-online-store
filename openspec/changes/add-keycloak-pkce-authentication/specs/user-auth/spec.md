@@ -51,6 +51,21 @@ Customer-owned cart and order HTTP operations SHALL derive ownership exclusively
 - **WHEN** one authenticated customer uses customer-facing endpoints after another customer created cart or order data
 - **THEN** the first customer cannot read or mutate the other customer's data
 
+### Requirement: Payment Processing Ownership
+The payment service SHALL allow an authenticated customer to process a payment only when the payment owner matches the validated JWT `sub`, SHALL reject cross-customer processing with HTTP 403, and SHALL allow an administrator to process any customer's payment.
+
+#### Scenario: Customer processes owned payment
+- **WHEN** an authenticated customer processes a payment owned by the token subject
+- **THEN** the payment service processes the payment
+
+#### Scenario: Customer processes another customer's payment
+- **WHEN** an authenticated customer attempts to process a payment owned by a different subject
+- **THEN** the payment service responds with HTTP 403 before changing payment state
+
+#### Scenario: Administrator processes customer payment
+- **WHEN** an authenticated administrator processes any customer's payment
+- **THEN** the payment service processes the payment without applying the customer ownership restriction
+
 ### Requirement: Token-Aware Frontend API Calls
 The frontend SHALL refresh near-expiry tokens before protected requests, attach the active access token as a bearer token, and avoid infinite authentication redirects.
 
@@ -83,4 +98,3 @@ The project SHALL provide a serial browser test using the real Keycloak, fronten
 #### Scenario: Logout protection
 - **WHEN** an authenticated customer logs out through Keycloak
 - **THEN** subsequent protected API requests without a new login respond with HTTP 401
-

@@ -18,6 +18,7 @@
 - [ ] 3.2 Remove `userId` from `CreateOrderRequestDTO` and update order creation tests and documentation.
 - [ ] 3.3 Ensure all cart and customer-order controllers use only `CurrentUser.subject()` and retain administrator-only status operations.
 - [ ] 3.4 Add two-user integration tests proving cart and order isolation.
+- [ ] 3.5 Allow customers to process only payments owned by their JWT subject, retain administrator access, and add focused authorization tests.
 
 ## 4. React PKCE Integration
 
@@ -49,4 +50,3 @@
 - [ ] 7.2 Update API and architecture documentation to remove caller-supplied customer identifiers and describe JWT subject ownership.
 - [ ] 7.3 Run shared-security, order, payment, frontend unit, and Playwright E2E suites.
 - [ ] 7.4 Run the complete backend and frontend build/test suites and strict OpenSpec validation.
-
