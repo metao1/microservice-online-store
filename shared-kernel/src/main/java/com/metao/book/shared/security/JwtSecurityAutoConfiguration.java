@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.HttpMethod;
@@ -42,11 +43,15 @@ public class JwtSecurityAutoConfiguration {
     public SecurityFilterChain resourceServerSecurityFilterChain(
         HttpSecurity http,
         Converter<Jwt, Collection<GrantedAuthority>> jwtAuthoritiesConverter,
-        JwtDecoder jwtDecoder
+        JwtDecoder jwtDecoder,
+        ApplicationContext applicationContext
     ) {
+        if (applicationContext.containsBean("mvcHandlerMappingIntrospector")) {
+            http.cors(Customizer.withDefaults());
+        }
+
         http
             .csrf(AbstractHttpConfigurer::disable)
-            .cors(Customizer.withDefaults())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/actuator/health",
