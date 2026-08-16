@@ -43,7 +43,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write
 
     steps:
       - uses: actions/checkout@v4.2.2
@@ -65,17 +64,15 @@ jobs:
           :outbox-messaging:jacocoTestReport
           --no-parallel
 
-      - name: Upload combined backend coverage to Codecov
-        uses: codecov/codecov-action@v5
+      - name: Upload backend JaCoCo reports
+        uses: actions/upload-artifact@v7
         with:
-          files: >-
-            ./inventory-microservice/build/reports/jacoco/test/jacocoTestReport.xml,
-            ./order-microservice/build/reports/jacoco/test/jacocoTestReport.xml,
-            ./payment-microservice/build/reports/jacoco/test/jacocoTestReport.xml,
-            ./shared-kernel/build/reports/jacoco/test/jacocoTestReport.xml,
-            ./kafka-lib/build/reports/jacoco/test/jacocoTestReport.xml,
-            ./outbox-messaging/build/reports/jacoco/test/jacocoTestReport.xml
-          flags: backend
-          name: backend-coverage
-          fail_ci_if_error: true
-          use_oidc: true
+          name: backend-jacoco-reports
+          path: |
+            inventory-microservice/build/reports/jacoco/test/
+            order-microservice/build/reports/jacoco/test/
+            payment-microservice/build/reports/jacoco/test/
+            shared-kernel/build/reports/jacoco/test/
+            kafka-lib/build/reports/jacoco/test/
+            outbox-messaging/build/reports/jacoco/test/
+          if-no-files-found: error
