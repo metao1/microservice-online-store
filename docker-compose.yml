@@ -279,6 +279,9 @@ services:
         VITE_PAYMENT_API_URL: "http://localhost:8084"
         VITE_CART_API_URL: "http://localhost:8086"
         VITE_PROFILE: "prod"
+        VITE_KEYCLOAK_URL: "http://localhost:8080"
+        VITE_KEYCLOAK_REALM: "bookstore"
+        VITE_KEYCLOAK_CLIENT_ID: "bookstore-frontend"
     ports:
       - "3000:3000"
 
