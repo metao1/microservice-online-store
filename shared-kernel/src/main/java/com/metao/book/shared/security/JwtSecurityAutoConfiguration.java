@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -51,6 +52,8 @@ public class JwtSecurityAutoConfiguration {
                     "/actuator/liveness",
                     "/actuator/readiness",
                     "/api/*/health")
+                .permitAll()
+                .requestMatchers(HttpMethod.GET, "/products/**")
                 .permitAll()
                 .anyRequest().authenticated()
             )

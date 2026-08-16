@@ -353,6 +353,42 @@ public class ProductAggregateManagementIT extends KafkaContainerBase {
     }
 
     @Test
+    @DisplayName("should allow anonymous users to browse product categories")
+    void shouldAllowAnonymousUsersToBrowseProductCategories() {
+        var authenticatedSpecification = RestAssured.requestSpecification;
+        try {
+            RestAssured.requestSpecification = null;
+
+            given()
+                .when()
+                .get("/products/categories?limit=50&offset=0")
+                .then()
+                .statusCode(HttpStatus.OK.value());
+        } finally {
+            RestAssured.requestSpecification = authenticatedSpecification;
+        }
+    }
+
+    @Test
+    @DisplayName("should require authentication for product mutations")
+    void shouldRequireAuthenticationForProductMutations() {
+        var authenticatedSpecification = RestAssured.requestSpecification;
+        try {
+            RestAssured.requestSpecification = null;
+
+            given()
+                .contentType(ContentType.JSON)
+                .body("{}")
+                .when()
+                .post("/products")
+                .then()
+                .statusCode(HttpStatus.UNAUTHORIZED.value());
+        } finally {
+            RestAssured.requestSpecification = authenticatedSpecification;
+        }
+    }
+
+    @Test
     @DisplayName("should exclude out of stock products from category results")
     void shouldExcludeOutOfStockProductsFromCategoryResults() {
         String inStockSku = uniqueSku("BOOK");
