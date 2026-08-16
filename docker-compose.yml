@@ -197,6 +197,7 @@ services:
       PRODUCT_DATA_RESOURCE: file:/app/data/products.txt
       SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
       OTLP_TRACING_ENDPOINT: http://otel-collector:4318/v1/traces
+      SPRING_PROFILES_ACTIVE: "generator"
       TRACING_SAMPLING_PROBABILITY: "1.0"
       OTEL_TRACES_SAMPLER: parentbased_traceidratio
       OTEL_TRACES_SAMPLER_ARG: "1.0"
@@ -282,7 +283,7 @@ services:
       - "3000:3000"
 
   jaeger:
-    image: jaegertracing/all-in-one:1.62.0
+    image: jaegertracing/all-in-one:1.76.0
     hostname: jaeger
     container_name: jaeger
     ports:
@@ -291,7 +292,7 @@ services:
       COLLECTOR_OTLP_ENABLED: "true"
 
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.112.0
+    image: otel/opentelemetry-collector-contrib:0.158.0
     hostname: otel-collector
     container_name: otel-collector
     command: [ "--config=/etc/otelcol-contrib/config.yaml" ]

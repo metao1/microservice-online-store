@@ -5,7 +5,6 @@ import com.metao.book.product.application.dto.CreateProductCommand;
 import com.metao.book.product.application.dto.ProductDTO;
 import com.metao.book.product.application.service.CreateProductResult;
 import com.metao.book.product.application.usecase.ProductUseCase;
-import jakarta.persistence.EntityManager;
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import java.io.BufferedReader;
@@ -33,7 +32,6 @@ public class ProductGenerator {
 
     private final ProductUseCase productUseCase;
     private final ObjectMapper dtoMapper;
-    private EntityManager entityManager;
     private final Resource resource;
 
     public ProductGenerator(
