@@ -155,7 +155,7 @@ services:
     environment:
       DATABASE_URL: "jdbc:postgresql://postgres-order:5432/bookstore-order"
       SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
-      OTLP_TRACING_ENDPOINT: http://otel-collector:4318
+      OTLP_TRACING_ENDPOINT: http://otel-collector:4318/v1/traces
       TRACING_SAMPLING_PROBABILITY: "1.0"
       OTEL_TRACES_SAMPLER: parentbased_traceidratio
       OTEL_TRACES_SAMPLER_ARG: "1.0"
@@ -195,7 +195,7 @@ services:
     environment:
       DATABASE_URL: "jdbc:postgresql://postgres-inventory:5432/bookstore-inventory"
       SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
-      OTLP_TRACING_ENDPOINT: http://otel-collector:4318
+      OTLP_TRACING_ENDPOINT: http://otel-collector:4318/v1/traces
       TRACING_SAMPLING_PROBABILITY: "1.0"
       OTEL_TRACES_SAMPLER: parentbased_traceidratio
       OTEL_TRACES_SAMPLER_ARG: "1.0"
@@ -230,7 +230,7 @@ services:
     environment:
       DATABASE_URL: "jdbc:postgresql://postgres-payment:5432/bookstore-payment"
       SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
-      OTLP_TRACING_ENDPOINT: http://otel-collector:4318
+      OTLP_TRACING_ENDPOINT: http://otel-collector:4318/v1/traces
       TRACING_SAMPLING_PROBABILITY: "1.0"
       OTEL_TRACES_SAMPLER: parentbased_traceidratio
       OTEL_TRACES_SAMPLER_ARG: "1.0"
