@@ -1,11 +1,15 @@
 package com.metao.book.order.application.cart;
 
 import java.math.BigDecimal;
-import java.util.Set;
+import java.util.List;
+import com.metao.book.order.application.service.ShoppingCartService;
+import com.metao.book.order.application.usecase.ShoppingCartUseCase;
+import com.metao.book.shared.architecture.ApplicationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@ApplicationService
 @RequiredArgsConstructor
 public class ShoppingCartApplicationService implements ShoppingCartUseCase {
 
@@ -17,7 +21,7 @@ public class ShoppingCartApplicationService implements ShoppingCartUseCase {
     }
 
     @Override
-    public int addItemToCart(String userId, Set<ShoppingCartItem> items) {
+    public int addItemToCart(String userId, List<ShoppingCartItem> items) {
         return shoppingCartService.addItemToCart(userId, items);
     }
 
@@ -29,7 +33,7 @@ public class ShoppingCartApplicationService implements ShoppingCartUseCase {
         }
         return new ShoppingCartView(
             userId,
-            Set.of(new ShoppingCartItem(
+            List.of(new ShoppingCartItem(
                 item.sku(), item.productTitle(), item.quantity(), item.price(), item.currency()
             ))
         );

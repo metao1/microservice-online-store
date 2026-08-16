@@ -214,7 +214,7 @@ class OrderTest {
                         new OrderItemData("product1", "Product 1", BigDecimal.TWO, BigDecimal.valueOf(10.0)),
                         new OrderItemData("product2", "Product 2", BigDecimal.ONE, BigDecimal.valueOf(15.0))
                     ),
-                    BigDecimal.valueOf(41.7),
+                    BigDecimal.valueOf(41.65),
                     "Multiple items calculation: (2 * 10.0) + (1 * 15.0) * %19"
                 ),
                 Arguments.of(

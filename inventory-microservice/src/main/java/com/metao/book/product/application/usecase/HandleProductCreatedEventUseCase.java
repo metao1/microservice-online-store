@@ -2,6 +2,7 @@ package com.metao.book.product.application.usecase;
 
 import com.metao.book.product.application.port.ProcessedInventoryEventPort;
 import com.metao.book.shared.architecture.ApplicationUseCase;
+import com.metao.book.shared.architecture.ApplicationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
+@ApplicationService
 @ApplicationUseCase
 @RequiredArgsConstructor
 public class HandleProductCreatedEventUseCase {

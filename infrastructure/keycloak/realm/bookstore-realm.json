@@ -1,0 +1,74 @@
+{
+  "realm": "bookstore",
+  "enabled": true,
+  "registrationAllowed": true,
+  "resetPasswordAllowed": true,
+  "loginTheme": "bookstore",
+  "roles": {
+    "realm": [
+      { "name": "CUSTOMER" },
+      { "name": "ADMIN" }
+    ]
+  },
+  "defaultRole": {
+    "name": "default-roles-bookstore",
+    "composite": true,
+    "composites": { "realm": ["CUSTOMER"] }
+  },
+  "clients": [
+    {
+      "clientId": "bookstore-frontend",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://localhost:3000/*"],
+      "webOrigins": ["http://localhost:3000"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:3000/*"
+      },
+      "protocolMappers": [
+        {
+          "name": "bookstore-api-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "bookstore-api",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "e2e-customer",
+      "enabled": true,
+      "email": "e2e-customer@example.test",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "e2e-customer-password",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "e2e-admin",
+      "enabled": true,
+      "email": "e2e-admin@example.test",
+      "emailVerified": true,
+      "realmRoles": ["ADMIN"],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "e2e-admin-password",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

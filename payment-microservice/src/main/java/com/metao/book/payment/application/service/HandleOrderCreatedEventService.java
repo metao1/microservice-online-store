@@ -3,6 +3,7 @@ package com.metao.book.payment.application.service;
 import com.metao.book.payment.application.port.ConsumedMessagePort;
 import com.metao.book.payment.application.usecase.HandleOrderCreatedEventCommand;
 import com.metao.book.payment.application.usecase.HandleOrderCreatedEventUseCase;
+import com.metao.book.shared.architecture.ApplicationService;
 import com.metao.book.payment.application.usecase.PaymentUseCase;
 import io.micrometer.core.annotation.Timed;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
+@ApplicationService
 @RequiredArgsConstructor
 public class HandleOrderCreatedEventService implements HandleOrderCreatedEventUseCase {
 

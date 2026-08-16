@@ -8,6 +8,7 @@ import com.metao.book.payment.domain.model.valueobject.PaymentMethod;
 import com.metao.book.payment.domain.model.valueobject.PaymentStatus;
 import com.metao.book.payment.domain.exception.PaymentStateTransitionNotAllowed;
 import com.metao.book.shared.domain.base.AggregateRoot;
+import com.metao.book.shared.architecture.DomainComponent;
 import com.metao.book.shared.domain.financial.Money;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -19,6 +20,7 @@ import lombok.NonNull;
  * Payment aggregate root - contains all business logic for payment processing
  */
 @Getter
+@DomainComponent
 public class PaymentAggregate extends AggregateRoot<PaymentId> {
 
     private OrderId orderId;

@@ -3,6 +3,7 @@ package com.metao.book.product.infrastructure.persistence.repository;
 import com.metao.book.product.domain.model.entity.ProductCategory;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.product.domain.repository.CategoryRepository;
+import com.metao.book.shared.architecture.OutboundAdapter;
 import com.metao.book.product.infrastructure.persistence.entity.CategoryEntity;
 import com.metao.book.product.infrastructure.persistence.mapper.CategoryEntityMapper;
 import io.micrometer.observation.annotation.Observed;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Repository;
  * Infrastructure implementation of CategoryRepository
  */
 @Repository
+@OutboundAdapter
 @RequiredArgsConstructor
 @Observed(name = "product.persistence.category-repository", contextualName = "category-repository")
 public class CategoryRepositoryImpl implements CategoryRepository {

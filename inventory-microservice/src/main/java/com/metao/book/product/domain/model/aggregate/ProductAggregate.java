@@ -6,6 +6,7 @@ import com.metao.book.product.domain.model.event.DomainProductUpdatedEvent;
 import com.metao.book.product.domain.model.valueobject.ImageUrl;
 import com.metao.book.product.domain.model.valueobject.ProductDescription;
 import com.metao.book.shared.domain.base.AggregateRoot;
+import com.metao.book.shared.architecture.DomainComponent;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.domain.product.ProductTitle;
@@ -22,6 +23,7 @@ import lombok.Getter;
  * Product aggregate root - contains all business logic for product management
  */
 @Getter
+@DomainComponent
 public class ProductAggregate extends AggregateRoot<ProductSku> {
 
     @NotNull

@@ -20,6 +20,7 @@ class PaymentEventListenerMetricsTest {
         var registry = new SimpleMeterRegistry();
 
         var event = OrderPaymentUpdatedEvent.newBuilder()
+            .setEventId("event-1")
             .setOrderId("order-1")
             .setPaymentId("payment-1")
             .setStatus(Status.SUCCESSFUL)

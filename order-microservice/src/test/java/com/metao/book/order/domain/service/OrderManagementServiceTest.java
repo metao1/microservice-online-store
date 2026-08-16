@@ -6,17 +6,17 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.metao.book.order.application.cart.ShoppingCartView;
 import com.metao.book.order.application.cart.ShoppingCartItem;
-import com.metao.book.order.application.cart.ShoppingCartService;
+import com.metao.book.order.application.service.ShoppingCartService;
+import com.metao.book.order.application.cart.ShoppingCartView;
 import com.metao.book.order.application.service.OrderManagementApplicationService;
 import com.metao.book.order.domain.model.valueobject.UserId;
-import com.metao.book.order.domain.repository.OrderRepository;
-import com.metao.book.shared.application.messaging.DomainEventPublisher;
+import com.metao.book.order.application.port.OrderRepository;
+import com.metao.book.shared.application.messaging.DomainEventPublisherPort;
 import com.metao.book.shared.domain.financial.VAT;
 import java.math.BigDecimal;
 import java.util.Currency;
-import java.util.Set;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,7 +31,7 @@ class OrderManagementServiceTest {
     private OrderRepository orderRepository;
 
     @Mock
-    private DomainEventPublisher eventPublisher;
+    private DomainEventPublisherPort eventPublisher;
 
     @Mock
     private ShoppingCartService shoppingCartService;
@@ -54,7 +54,7 @@ class OrderManagementServiceTest {
         UserId userId = UserId.of("user123");
         ShoppingCartView shoppingCart = new ShoppingCartView(
             userId.value(),
-            Set.of(
+            List.of(
                 new ShoppingCartItem("SKU-1", "Book 1", BigDecimal.ONE, BigDecimal.valueOf(10.0),
                     Currency.getInstance("EUR")),
                 new ShoppingCartItem("SKU-2", "Book 2", BigDecimal.TWO, BigDecimal.valueOf(20.0),
@@ -66,7 +66,7 @@ class OrderManagementServiceTest {
 
         orderManagementService.createOrder(userId);
 
-        verify(orderRepository, never()).save(any());
+        verify(orderRepository).save(any());
         verify(eventPublisher, times(1)).publish(any());
     }
 }

@@ -11,6 +11,10 @@ import java.math.BigDecimal;
  */
 public record CreatePaymentCommand(
     @NotNull
+    @JsonProperty("userId")
+    String userId,
+
+    @NotNull
     @JsonProperty("orderId")
     String orderId,
 
@@ -30,4 +34,17 @@ public record CreatePaymentCommand(
     @JsonProperty("paymentMethodDetails")
     String paymentMethodDetails
 ) {
+    /**
+     * Compatibility constructor for order-originated commands that do not carry a user identity.
+     * The order identifier remains the stable fallback identity for this internal flow.
+     */
+    public CreatePaymentCommand(
+        String orderId,
+        BigDecimal amount,
+        String currency,
+        PaymentMethod.Type paymentMethodType,
+        String paymentMethodDetails
+    ) {
+        this(orderId, orderId, amount, currency, paymentMethodType, paymentMethodDetails);
+    }
 }

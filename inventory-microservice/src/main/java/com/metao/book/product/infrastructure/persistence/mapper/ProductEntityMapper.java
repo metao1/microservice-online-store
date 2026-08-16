@@ -6,6 +6,7 @@ import com.metao.book.product.domain.model.valueobject.CategoryId;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.product.infrastructure.persistence.entity.ProductEntity;
 import com.metao.book.shared.domain.financial.Money;
+import com.metao.book.shared.domain.product.ProductSku;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -58,11 +59,11 @@ public class ProductEntityMapper {
 
     public ProductAggregate toDomain(ProductEntity entity, Set<ProductCategory> categories) {
         return new ProductAggregate(
-            entity.getSku(),
+            ProductSku.of(entity.getSku()),
             entity.getTitle(),
             entity.getDescription(),
             entity.getVolume(),
-            Money.of(entity.getPrice().currency(), entity.getPrice().doubleAmount()),
+            entity.getPrice().toDomain(),
             entity.getCreatedTime(),
             entity.getUpdateTime(),
             entity.getImageUrl(),

@@ -1,6 +1,7 @@
 package com.metao.book.payment.infrastructure.persistence.repository;
 
 import com.metao.book.payment.infrastructure.persistence.entity.PaymentEntity;
+import com.metao.book.shared.architecture.OutboundAdapter;
 import io.micrometer.core.annotation.Timed;
 import jakarta.persistence.LockModeType;
 import java.util.List;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Repository;
  * JPA repository for PaymentEntity
  */
 @Repository
+@OutboundAdapter
 public interface JpaPaymentRepository extends JpaRepository<PaymentEntity, String> {
 
     @Timed(value = "payment.db.find-by-id-for-update")

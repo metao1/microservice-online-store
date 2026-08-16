@@ -1,4 +1,4 @@
-package com.metao.book.payment.infrastructure.config;
+package com.metao.book.payment.application.config;
 
 import com.metao.book.payment.domain.repository.PaymentRepository;
 import com.metao.book.payment.domain.service.PaymentDomainService;

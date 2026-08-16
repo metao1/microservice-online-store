@@ -10,6 +10,7 @@ import com.metao.book.payment.domain.model.valueobject.PaymentStatus;
 import com.metao.book.payment.domain.repository.PaymentRepository;
 import com.metao.book.payment.domain.port.PaymentGatewayPort;
 import com.metao.book.shared.domain.financial.Money;
+import com.metao.book.shared.architecture.DomainComponent;
 import java.math.BigDecimal;
 import java.util.List;
 import lombok.NonNull;
@@ -19,6 +20,7 @@ import lombok.RequiredArgsConstructor;
  * Domain service for complex business operations involving payments
  */
 @RequiredArgsConstructor
+@DomainComponent
 public class PaymentDomainService {
 
     private final PaymentRepository paymentRepository;
@@ -151,6 +153,7 @@ public class PaymentDomainService {
     /**
      * Payment statistics value object
      */
+    @DomainComponent
     public record PaymentStatistics(
         long totalPayments,
         long successfulPayments,

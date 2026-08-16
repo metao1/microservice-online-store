@@ -19,7 +19,7 @@ import com.metao.book.payment.domain.model.valueobject.PaymentMethod;
 import com.metao.book.payment.domain.model.valueobject.PaymentStatus;
 import com.metao.book.payment.domain.repository.PaymentRepository;
 import com.metao.book.payment.domain.service.PaymentDomainService;
-import com.metao.book.shared.application.messaging.DomainEventPublisher;
+import com.metao.book.shared.application.messaging.DomainEventPublisherPort;
 import com.metao.book.shared.domain.financial.Money;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -49,7 +49,7 @@ class PaymentAggregateApplicationServiceTest {
     private PaymentDomainService paymentDomainService;
 
     @Mock
-    private DomainEventPublisher eventPublisher;
+    private DomainEventPublisherPort eventPublisher;
 
     private PaymentApplicationService paymentApplicationService;
 

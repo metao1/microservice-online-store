@@ -1,3 +1,5 @@
 com.metao.book.shared.spring.jackson.ObjectMapperAutoConfiguration
 com.metao.book.shared.spring.web.WebSecurityAutoConfiguration
 com.metao.book.shared.infrastructure.messaging.protobuf.DomainTranslatorAutoConfiguration
+com.metao.book.shared.security.JwtSecurityAutoConfiguration
+com.metao.book.shared.spring.persistence.SharedTransactionManagerConfig

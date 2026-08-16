@@ -1,12 +1,9 @@
 package com.metao.book.shared.domain.financial;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
 import com.metao.book.shared.domain.base.ValueObject;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
-import org.springframework.lang.NonNull;
 
 /**
  * Value object representing a VAT (Value Added Tax) percentage.
@@ -20,7 +17,6 @@ public class VAT implements ValueObject {
      *
      * @param percentage the percentage as an integer where e.g. 24 means 24 %.
      */
-    @JsonCreator
     public VAT(int percentage) {
         if (percentage < 0) {
             throw new IllegalArgumentException("VAT should not be negative");
@@ -41,7 +37,6 @@ public class VAT implements ValueObject {
     /**
      * Returns the VAT percentage, e.g. 24 % returns 24.
      */
-    @JsonValue
     public int toInteger() {
         return percentage;
     }
@@ -59,8 +54,7 @@ public class VAT implements ValueObject {
      * @param amount the amount to add tax to.
      * @return the amount including tax.
      */
-    @NonNull
-    public Money addTax(@NonNull Money amount) {
+    public Money addTax(Money amount) {
         Objects.requireNonNull(amount, "amount must not be null");
         return amount.add(calculateTax(amount));
     }
@@ -71,8 +65,7 @@ public class VAT implements ValueObject {
      * @param amount the amount to subtract tax from.
      * @return the amount excluding tax.
      */
-    @NonNull
-    public Money subtractTax(@NonNull Money amount) {
+    public Money subtractTax(Money amount) {
         var withoutTax = (amount.fixedPointAmount().multiply(BigDecimal.valueOf(100))
             .divide(BigDecimal.valueOf(percentage + 100), RoundingMode.HALF_UP));
         Objects.requireNonNull(amount, "amount must not be null");
@@ -85,14 +78,13 @@ public class VAT implements ValueObject {
      * @param amount the amount to calculate the tax for.
      * @return the amount of tax.
      */
-    @NonNull
-    public Money calculateTax(@NonNull Money amount) {
+    public Money calculateTax(Money amount) {
         Objects.requireNonNull(amount, "amount must not be null");
         // Multiply before dividing to avoid a scale-0 intermediate that collapses
         // percentages under 100 to zero (e.g. 21 / 100 at scale 0 rounds to 0).
         var tax = amount.fixedPointAmount()
             .multiply(BigDecimal.valueOf(percentage))
-            .divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP);
+            .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
         return Money.of(amount.currency(), tax);
     }
 

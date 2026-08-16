@@ -10,6 +10,7 @@ import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.shared.domain.base.AggregateRoot;
+import com.metao.book.shared.architecture.DomainComponent;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.financial.VAT;
 import com.metao.book.shared.domain.product.ProductSku;
@@ -25,6 +26,7 @@ import lombok.Getter;
 
 @Getter
 @EqualsAndHashCode(of = {"id"}, callSuper = true)
+@DomainComponent
 public class OrderAggregate extends AggregateRoot<OrderId> {
     /**
      * Default VAT rate used when no explicit rate is supplied. Zero-rated so historical

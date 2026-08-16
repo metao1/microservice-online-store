@@ -1,6 +1,6 @@
-import {FC, Suspense} from 'react';
-import {BrowserRouter, Route, Routes} from 'react-router-dom';
-import {ToastContainer} from 'react-toastify';
+import { FC, PropsWithChildren, Suspense } from 'react';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'react-toastify/dist/ReactToastify.css';
 import './index.css';
@@ -14,28 +14,24 @@ import AccountPage from './pages/AccountPage';
 import OrdersPage from './pages/OrdersPage';
 import Navigation from './components/Navigation';
 import ErrorBoundary from './components/ErrorBoundary';
-import {AuthProvider} from '@context/AuthContext';
-import {CartProvider} from '@context/CartContext';
-import {User} from '@types';
+import ProtectedRoute from './auth/ProtectedRoute';
+import { AuthProvider } from '@context/AuthContext';
+import { CartProvider } from '@context/CartContext';
 
 const LoadingFallback: FC = () => (
   <div style={{ padding: '20px', textAlign: 'center' }}>Loading...</div>
 );
 
-// For demo purposes, create a default user
-const defaultUser: User = {
-  id: 'demo-user-1',
-  name: 'Demo User',
-  email: 'demo@example.com',
-  role: 'USER'
-};
+const Protected: FC<PropsWithChildren> = ({ children }) => (
+  <ProtectedRoute>{children}</ProtectedRoute>
+);
 
 const App: FC = () => {
   return (
     <ErrorBoundary>
-      <AuthProvider initialUser={defaultUser}>
-        <CartProvider userId={defaultUser.id}>
-          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <AuthProvider>
+        <CartProvider>
+          <BrowserRouter>
             <Navigation />
             <div>
               <Suspense fallback={<LoadingFallback />}>
@@ -43,9 +39,9 @@ const App: FC = () => {
                   <Route path="/" element={<HomePage />} />
                   <Route path="/products" element={<ProductsPage />} />
                   <Route path="/products/:sku" element={<ProductDetailPage />} />
-                  <Route path="/cart" element={<CartPage />} />
+                  <Route path="/cart" element={<Protected><CartPage /></Protected>} />
                   <Route path="/account" element={<AccountPage />} />
-                  <Route path="/orders" element={<OrdersPage />} />
+                  <Route path="/orders" element={<Protected><OrdersPage /></Protected>} />
                   <Route path="/demo" element={<ComponentDemo />} />
                   <Route path="*" element={<HomePage />} />
                 </Routes>

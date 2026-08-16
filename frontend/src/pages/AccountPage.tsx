@@ -1,59 +1,44 @@
-/**
- * Account Page Component
- * Handles user authentication (sign-in/sign-up) and account management
- */
-
-import { FC, useState } from 'react';
+import { FC } from 'react';
 import { Link } from 'react-router-dom';
+import ProtectedRoute from '../auth/ProtectedRoute';
+import { useAuthContext } from '../context/AuthContext';
 import './AccountPage.css';
 
-interface AccountPageProps {}
+const AccountPage: FC = () => {
+  const { initialized, isAuthenticated, user, login, register, logout } = useAuthContext();
 
-const AccountPage: FC<AccountPageProps> = () => {
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // This would come from auth context
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    firstName: '',
-    lastName: '',
-    confirmPassword: ''
-  });
+  if (!initialized) {
+    return <div className="account-page">Loading account…</div>;
+  }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Add authentication logic here
-    console.log('Form submitted:', formData);
-    // For demo purposes, simulate login
-    setIsLoggedIn(true);
-  };
-
-  const handleSignOut = () => {
-    setIsLoggedIn(false);
-    setFormData({
-      email: '',
-      password: '',
-      firstName: '',
-      lastName: '',
-      confirmPassword: ''
-    });
-  };
-
-  if (isLoggedIn) {
+  if (!isAuthenticated) {
     return (
+      <div className="account-page">
+        <div className="auth-container">
+          <div className="auth-header">
+            <h1>Your Account</h1>
+            <p>Sign in or create an account securely with ModernStore.</p>
+          </div>
+          <div className="auth-form">
+            <button type="button" className="auth-submit-btn" onClick={() => void login('/account')}>
+              Sign In
+            </button>
+            <button type="button" className="toggle-btn" onClick={() => void register('/account')}>
+              Create Account
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <ProtectedRoute>
       <div className="account-page">
         <div className="account-container">
           <div className="account-header">
             <h1>Your Account</h1>
-            <button onClick={handleSignOut} className="sign-out-btn">
+            <button type="button" onClick={() => void logout()} className="sign-out-btn">
               Sign Out
             </button>
           </div>
@@ -62,8 +47,8 @@ const AccountPage: FC<AccountPageProps> = () => {
             <div className="account-section">
               <h2>Account Overview</h2>
               <div className="account-info">
-                <p><strong>Email:</strong> {formData.email || 'user@example.com'}</p>
-                <p><strong>Name:</strong> {formData.firstName} {formData.lastName}</p>
+                <p><strong>Name:</strong> {user?.name ?? 'Not provided'}</p>
+                <p><strong>Email:</strong> {user?.email ?? 'Not provided'}</p>
               </div>
             </div>
 
@@ -74,139 +59,12 @@ const AccountPage: FC<AccountPageProps> = () => {
                   <h3>Orders</h3>
                   <p>View your order history and track current orders</p>
                 </Link>
-                <Link to="/returns" className="action-card">
-                  <h3>Returns</h3>
-                  <p>Return or exchange items from your orders</p>
-                </Link>
-                <Link to="/wishlist" className="action-card">
-                  <h3>Wishlist</h3>
-                  <p>View and manage your saved items</p>
-                </Link>
-                <Link to="/sizes" className="action-card">
-                  <h3>Your Sizes</h3>
-                  <p>Manage your size preferences</p>
-                </Link>
               </div>
             </div>
           </div>
         </div>
       </div>
-    );
-  }
-
-  return (
-    <div className="account-page">
-      <div className="auth-container">
-        <div className="auth-header">
-          <h1>{isSignUp ? 'Create Account' : 'Sign In'}</h1>
-          <p>
-            {isSignUp 
-              ? 'Join ModernStore to track orders and save your favorites'
-              : 'Welcome back! Sign in to your account'
-            }
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="auth-form">
-          {isSignUp && (
-            <>
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="firstName">First Name</label>
-                  <input
-                    type="text"
-                    id="firstName"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="lastName">Last Name</label>
-                  <input
-                    type="text"
-                    id="lastName"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-              </div>
-            </>
-          )}
-
-          <div className="form-group">
-            <label htmlFor="email">Email Address</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          {isSignUp && (
-            <div className="form-group">
-              <label htmlFor="confirmPassword">Confirm Password</label>
-              <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-          )}
-
-          <button type="submit" className="auth-submit-btn">
-            {isSignUp ? 'Create Account' : 'Sign In'}
-          </button>
-        </form>
-
-        <div className="auth-toggle">
-          <p>
-            {isSignUp ? 'Already have an account?' : "Don't have an account?"}
-            <button 
-              type="button"
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="toggle-btn"
-            >
-              {isSignUp ? 'Sign In' : 'Sign Up'}
-            </button>
-          </p>
-        </div>
-
-        <div className="auth-divider">
-          <span>or</span>
-        </div>
-
-        <div className="social-auth">
-          <button className="social-btn google-btn">
-            Continue with Google
-          </button>
-          <button className="social-btn facebook-btn">
-            Continue with Facebook
-          </button>
-        </div>
-      </div>
-    </div>
+    </ProtectedRoute>
   );
 };
 

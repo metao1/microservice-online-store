@@ -4,14 +4,17 @@ import com.metao.book.payment.infrastructure.persistence.entity.PaymentOutboxJpa
 import com.metao.book.outbox.application.OutboxMessage;
 import com.metao.book.outbox.application.OutboxStore;
 import com.metao.book.outbox.application.OutboxStatus;
+import com.metao.book.shared.architecture.OutboundAdapter;
 import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 
 @Repository
+@OutboundAdapter
 @RequiredArgsConstructor
 public class PaymentOutboxStore implements OutboxStore {
 
@@ -24,7 +27,7 @@ public class PaymentOutboxStore implements OutboxStore {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public List<OutboxMessage> claimPending(
         String workerId,
         int limit,
@@ -49,7 +52,7 @@ public class PaymentOutboxStore implements OutboxStore {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void markPublished(String eventId, String workerId, Instant publishedAt) {
         repository.findById(eventId)
             .filter(entity -> workerId.equals(entity.getLeaseOwner()))
@@ -63,7 +66,7 @@ public class PaymentOutboxStore implements OutboxStore {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void rescheduleFailure(
         String eventId,
         String workerId,

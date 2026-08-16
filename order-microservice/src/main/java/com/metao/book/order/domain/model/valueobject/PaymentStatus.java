@@ -1,7 +1,9 @@
 package com.metao.book.order.domain.model.valueobject;
 
 import com.metao.book.order.domain.exception.InvalidPaymentEventException;
+import com.metao.book.shared.architecture.DomainComponent;
 
+@DomainComponent
 public enum PaymentStatus {
     PENDING,
     SUCCESSFUL,

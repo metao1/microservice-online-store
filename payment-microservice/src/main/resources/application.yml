@@ -151,6 +151,12 @@ app:
       exposed-headers: ${CORS_EXPOSED_HEADERS:}
       allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
       max-age: ${CORS_MAX_AGE:30m}
+  security:
+    jwt:
+      enabled: ${JWT_ENABLED:true}
+      issuer-uri: ${JWT_ISSUER_URI:http://localhost:8080/realms/bookstore}
+      jwk-set-uri: ${JWT_JWK_SET_URI:}
+      audience: ${JWT_AUDIENCE:bookstore-api}
 
 kafka:
   enabled: ${KAFKA_ENABLED:true}

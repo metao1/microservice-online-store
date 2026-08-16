@@ -28,7 +28,7 @@ import com.metao.book.product.domain.repository.CategoryRepository;
 import com.metao.book.product.domain.repository.ProductRepository;
 import com.metao.book.product.infrastructure.persistence.repository.ProductCreateIdempotencyRepository;
 import com.metao.book.product.infrastructure.persistence.repository.ProductCreateIdempotencyRepository.ClaimResult;
-import com.metao.book.shared.application.messaging.DomainEventPublisher;
+import com.metao.book.shared.application.messaging.DomainEventPublisherPort;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.product.Quantity;
 import java.math.BigDecimal;
@@ -36,8 +36,8 @@ import java.time.Instant;
 import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -64,7 +64,7 @@ class ProductAggregateApplicationServiceTest {
     CategoryRepository categoryRepository;
 
     @Mock
-    DomainEventPublisher domainEventPublisher;
+    DomainEventPublisherPort domainEventPublisherPort;
 
     @Mock
     ProductCreateIdempotencyRepository productCreateIdempotencyRepository;

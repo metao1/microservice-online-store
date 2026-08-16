@@ -1,8 +1,7 @@
 package com.metao.book.shared.domain.product;
 
 import com.metao.book.shared.domain.base.ValueObject;
-import jakarta.persistence.Embeddable;
-import jakarta.validation.constraints.NotNull;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -10,7 +9,6 @@ import lombok.NonNull;
 /**
  * Product identifier value object
  */
-@Embeddable
 @NoArgsConstructor
 public class ProductSku implements ValueObject {
 
@@ -35,7 +33,22 @@ public class ProductSku implements ValueObject {
         return value;
     }
 
-    @NotNull
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof ProductSku that)) {
+            return false;
+        }
+        return Objects.equals(value, that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(value);
+    }
+
     @Override
     public String toString() {
         return value;

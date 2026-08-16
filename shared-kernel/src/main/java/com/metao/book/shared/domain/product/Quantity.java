@@ -1,8 +1,6 @@
 package com.metao.book.shared.domain.product;
 
 import com.metao.book.shared.domain.base.ValueObject;
-import jakarta.persistence.Embeddable;
-import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.Objects;
 import lombok.NoArgsConstructor;
@@ -12,7 +10,6 @@ import lombok.NonNull;
  * Quantity value object used across services (inventory/order).
  * Allows zero but disallows negative amounts.
  */
-@Embeddable
 @NoArgsConstructor
 public class Quantity implements ValueObject {
 
@@ -45,7 +42,22 @@ public class Quantity implements ValueObject {
         return Quantity.of(newValue);
     }
 
-    @NotNull
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof Quantity that)) {
+            return false;
+        }
+        return value.compareTo(that.value) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return value.stripTrailingZeros().hashCode();
+    }
+
     @Override
     public String toString() {
         return Objects.toString(value);

@@ -10,7 +10,7 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 
-import com.metao.shared.test.KafkaContainer;
+import com.metao.shared.test.KafkaContainerBase;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import jakarta.persistence.EntityManagerFactory;
@@ -29,14 +29,21 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import com.metao.book.product.infrastructure.persistence.entity.CategoryEntity;
+import io.restassured.builder.RequestSpecBuilder;
+import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
+import org.mockito.Mockito;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @Slf4j
 @ActiveProfiles("test")
 @TestPropertySource(properties = "kafka.enabled=true")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DisplayName("Product Management Integration Tests")
-public class ProductAggregateManagementIT extends KafkaContainer {
+public class ProductAggregateManagementIT extends KafkaContainerBase {
 
     @LocalServerPort
     private Integer port;
@@ -49,6 +56,9 @@ public class ProductAggregateManagementIT extends KafkaContainer {
 
     @Autowired
     private EntityManagerFactory entityManagerFactory;
+
+    @MockitoBean
+    private JwtDecoder jwtDecoder;
 
     @BeforeEach
     void setUp() {
@@ -66,6 +76,20 @@ public class ProductAggregateManagementIT extends KafkaContainer {
 
         RestAssured.port = port;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+        String token = "mock-jwt-token-admin";
+        Mockito.when(jwtDecoder.decode(token)).thenReturn(
+            Jwt.withTokenValue(token)
+                .header("alg", "none")
+                .subject("admin-user")
+                .audience(List.of("account"))
+                .claim("roles", List.of("ADMIN"))
+                .issuedAt(Instant.now())
+                .expiresAt(Instant.now().plusSeconds(3600))
+                .build()
+        );
+        RestAssured.requestSpecification = new RequestSpecBuilder()
+            .addHeader("Authorization", "Bearer " + token)
+            .build();
     }
 
     @Test
@@ -326,6 +350,42 @@ public class ProductAggregateManagementIT extends KafkaContainer {
             .body("currency", hasItem("EUR"))
             .body("volume", hasItem(50))
             .body("categories.flatten()", hasItem(equalToIgnoringCase("books")));
+    }
+
+    @Test
+    @DisplayName("should allow anonymous users to browse product categories")
+    void shouldAllowAnonymousUsersToBrowseProductCategories() {
+        var authenticatedSpecification = RestAssured.requestSpecification;
+        try {
+            RestAssured.requestSpecification = null;
+
+            given()
+                .when()
+                .get("/products/categories?limit=50&offset=0")
+                .then()
+                .statusCode(HttpStatus.OK.value());
+        } finally {
+            RestAssured.requestSpecification = authenticatedSpecification;
+        }
+    }
+
+    @Test
+    @DisplayName("should require authentication for product mutations")
+    void shouldRequireAuthenticationForProductMutations() {
+        var authenticatedSpecification = RestAssured.requestSpecification;
+        try {
+            RestAssured.requestSpecification = null;
+
+            given()
+                .contentType(ContentType.JSON)
+                .body("{}")
+                .when()
+                .post("/products")
+                .then()
+                .statusCode(HttpStatus.UNAUTHORIZED.value());
+        } finally {
+            RestAssured.requestSpecification = authenticatedSpecification;
+        }
     }
 
     @Test

@@ -22,7 +22,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 /** Publishes only durable, service-local outbox messages. */
 @Slf4j
 @RequiredArgsConstructor
-public final class OutboxKafkaPublisher {
+public class OutboxKafkaPublisher {
 
     private static final int BATCH_SIZE = 100;
     private static final long SEND_TIMEOUT_SECONDS = 10;

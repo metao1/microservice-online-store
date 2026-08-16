@@ -46,7 +46,7 @@ vi.mock('react-router-dom', async () => {
 // Test wrapper component
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-    <CartProvider userId="test-user">
+    <CartProvider>
       {children}
     </CartProvider>
   </BrowserRouter>

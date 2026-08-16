@@ -10,6 +10,7 @@ import com.metao.book.payment.domain.repository.PaymentRepository;
 import com.metao.book.payment.infrastructure.persistence.entity.PaymentEntity;
 import com.metao.book.payment.infrastructure.persistence.mapper.PaymentEntityMapper;
 import com.metao.book.shared.spring.persistence.OffsetBasedPageRequest;
+import com.metao.book.shared.architecture.OutboundAdapter;
 import io.micrometer.observation.annotation.Observed;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Repository;
  * Infrastructure implementation of PaymentRepository
  */
 @Repository
+@OutboundAdapter
 @RequiredArgsConstructor
 @Observed(name = "payment.persistence.repository", contextualName = "payment-repository")
 public class PaymentRepositoryImpl implements PaymentRepository, PaymentCreationLockPort, PaymentUpdateLockPort {

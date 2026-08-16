@@ -45,9 +45,10 @@ export const formatCategoryLabel = (category: string) =>
 export const buildSegmentTabsForCategory = (categoryName: string): SegmentTab[] => {
   const normalized = categoryName.trim().toLowerCase();
   if (normalized in CATEGORY_SEGMENT_PRESETS) {
-    return CATEGORY_SEGMENT_PRESETS[normalized];
+    return [{ id: 'all', name: 'All', terms: [] }, ...CATEGORY_SEGMENT_PRESETS[normalized]];
   }
   return [
+    { id: 'all', name: 'All', terms: [] },
     { id: `${normalized || 'general'}-popular`, name: 'Popular', terms: ['popular', 'featured', 'top'] },
     { id: `${normalized || 'general'}-new`, name: 'New', terms: ['new', 'latest', 'recent'] },
     { id: `${normalized || 'general'}-essentials`, name: 'Essentials', terms: ['essential', 'classic', 'core'] },
@@ -162,7 +163,7 @@ export const applySegmentFilter = (
   toSearchText: (product: Product) => string
 ): Product[] => {
   const activeTab = segmentTabs.find((tab) => tab.id === activeSegment);
-  if (!activeTab) {
+  if (!activeTab || activeTab.id === 'all') {
     return products;
   }
 
@@ -173,4 +174,3 @@ export const applySegmentFilter = (
 
   return segmentMatches.length > 0 ? segmentMatches : products;
 };
-

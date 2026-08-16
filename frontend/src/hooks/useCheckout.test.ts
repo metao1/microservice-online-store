@@ -93,12 +93,12 @@ describe('useCheckout', () => {
     const { result } = renderHook(() => useCheckout());
 
     await act(async () => {
-      await result.current.processCheckout('user-1', {
+      await result.current.processCheckout({
         payment: { method: 'CREDIT_CARD' as PaymentMethodType, details: '****4242' },
       });
     });
 
-    expect(hoisted.createOrder).toHaveBeenCalledWith('user-1');
+    expect(hoisted.createOrder).toHaveBeenCalledWith();
     expect(hoisted.createPayment).toHaveBeenCalledWith({
       orderId: 'ORDER-1',
       amount: 120,
@@ -116,7 +116,7 @@ describe('useCheckout', () => {
     const { result } = renderHook(() => useCheckout());
 
     await act(async () => {
-      await result.current.processCheckout('user-1', {
+      await result.current.processCheckout({
         payment: { method: 'PAYPAL', details: 'payer@example.com' },
       });
     });

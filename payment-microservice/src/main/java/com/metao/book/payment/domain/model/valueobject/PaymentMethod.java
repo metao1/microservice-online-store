@@ -1,8 +1,7 @@
 package com.metao.book.payment.domain.model.valueobject;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
 import com.metao.book.shared.domain.base.ValueObject;
+import com.metao.book.shared.architecture.DomainComponent;
 import java.util.Arrays;
 import java.util.Locale;
 import lombok.Getter;
@@ -13,6 +12,7 @@ import lombok.NonNull;
  *
  * @param details Masked card number, PayPal email, etc.
  */
+@DomainComponent
 public record PaymentMethod(PaymentMethod.Type type,
                             String details) implements ValueObject {
 
@@ -56,6 +56,7 @@ public record PaymentMethod(PaymentMethod.Type type,
     }
 
     @Getter
+    @DomainComponent
     public enum Type {
         CREDIT_CARD("Credit Card"),
         DEBIT_CARD("Debit Card"),
@@ -69,12 +70,10 @@ public record PaymentMethod(PaymentMethod.Type type,
             this.displayName = displayName;
         }
 
-        @JsonValue
         public String getDisplayName() {
             return displayName;
         }
 
-        @JsonCreator
         public static Type fromJson(String value) {
             if (value == null || value.trim().isEmpty()) {
                 throw new IllegalArgumentException("Payment method type cannot be null or empty");

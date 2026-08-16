@@ -20,7 +20,7 @@ public class InventoryReductionRequestedEventEventTranslator implements Protobuf
             .setSku(domainEvent.getSku().value())
             .setQuantity(domainEvent.getVolume().value().doubleValue())
             .setCorrelationId(domainEvent.getOrderId().value())
-            .setCausationId(domainEvent.getEventId())
+            .setCausationId(domainEvent.getEventId().toString())
             .setOccurredAt(Timestamp.newBuilder()
                 .setSeconds(event.getOccurredOn().getEpochSecond())
                 .setNanos(event.getOccurredOn().getNano())

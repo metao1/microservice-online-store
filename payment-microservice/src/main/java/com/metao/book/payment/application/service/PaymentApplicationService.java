@@ -18,9 +18,9 @@ import com.metao.book.payment.domain.model.valueobject.PaymentStatus;
 import com.metao.book.payment.domain.repository.PaymentRepository;
 import com.metao.book.payment.domain.service.PaymentDomainService;
 import com.metao.book.shared.domain.financial.Money;
-import com.metao.book.shared.application.messaging.DomainEventPublisher;
+import com.metao.book.shared.application.messaging.DomainEventPublisherPort;
+import com.metao.book.shared.architecture.ApplicationService;
 import io.micrometer.core.annotation.Timed;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -38,13 +38,14 @@ import org.springframework.validation.annotation.Validated;
  */
 @Slf4j
 @Service
+@ApplicationService
 @Validated
 @Transactional
 public class PaymentApplicationService implements PaymentUseCase {
 
     private final PaymentRepository paymentRepository;
     private final PaymentDomainService paymentDomainService;
-    private final DomainEventPublisher eventPublisher;
+    private final DomainEventPublisherPort eventPublisher;
     private final PaymentCreationLockPort paymentCreationLockPort;
     private final PaymentGatewayPort paymentGatewayPort;
     private final PaymentUpdateLockPort paymentUpdateLockPort;
@@ -53,7 +54,7 @@ public class PaymentApplicationService implements PaymentUseCase {
     public PaymentApplicationService(
         PaymentRepository paymentRepository,
         PaymentDomainService paymentDomainService,
-        DomainEventPublisher eventPublisher,
+        DomainEventPublisherPort eventPublisher,
         PaymentCreationLockPort paymentCreationLockPort,
         PaymentGatewayPort paymentGatewayPort,
         PaymentUpdateLockPort paymentUpdateLockPort
@@ -70,7 +71,7 @@ public class PaymentApplicationService implements PaymentUseCase {
     public PaymentApplicationService(
         PaymentRepository paymentRepository,
         PaymentDomainService paymentDomainService,
-        DomainEventPublisher eventPublisher
+        DomainEventPublisherPort eventPublisher
     ) {
         this(
             paymentRepository,
@@ -85,7 +86,7 @@ public class PaymentApplicationService implements PaymentUseCase {
     /**
      * Create a new payment and save it into database
      */
-    public PaymentDTO createPayment(@Valid CreatePaymentCommand command) {
+    public PaymentDTO createPayment(CreatePaymentCommand command) {
         log.info("Creating payment for order: {}", command.orderId());
 
         OrderId orderId = OrderId.of(command.orderId());
@@ -209,6 +210,7 @@ public class PaymentApplicationService implements PaymentUseCase {
         log.info("Processing order created event for order: {}", orderId);
 
         CreatePaymentCommand command = new CreatePaymentCommand(
+            orderId,
             orderId,
             amount,
             currency,

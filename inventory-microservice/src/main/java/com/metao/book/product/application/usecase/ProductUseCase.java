@@ -9,6 +9,8 @@ import com.metao.book.product.domain.model.entity.ProductCategory;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.domain.product.Quantity;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
@@ -16,13 +18,13 @@ import java.util.Set;
 @ApplicationUseCase
 public interface ProductUseCase {
 
-    CreateProductResult createProduct(CreateProductCommand command);
+    CreateProductResult createProduct(@Valid CreateProductCommand command);
 
-    CreateProductResult createProduct(CreateProductCommand command, String idempotencyKey);
+    CreateProductResult createProduct(@Valid CreateProductCommand command, String idempotencyKey);
 
-    ProductAggregate updateProduct(UpdateProductCommand command);
+    ProductAggregate updateProduct(@Valid UpdateProductCommand command);
 
-    ProductAggregate getProductBySku(String sku);
+    ProductAggregate getProductBySku(@NotNull String sku);
 
     List<ProductAggregate> getProductsBySkus(List<String> skus);
 

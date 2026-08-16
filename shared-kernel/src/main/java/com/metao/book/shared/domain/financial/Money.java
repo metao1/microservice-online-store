@@ -1,10 +1,6 @@
 package com.metao.book.shared.domain.financial;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.metao.book.shared.domain.base.ValueObject;
-import jakarta.persistence.Embeddable;
-import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Currency;
@@ -14,12 +10,9 @@ import java.util.Objects;
  * Value object representing an amount of money. The amount is stored as a fixed-point integer where the last two digits
  * represent the decimals.
  */
-@Embeddable
 public class Money implements ValueObject {
 
-    @JsonProperty("currency")
     private Currency currency;
-    @JsonProperty("amount")
     private BigDecimal amount;
 
     public static final Money ZERO = new Money();
@@ -34,8 +27,7 @@ public class Money implements ValueObject {
      * @param currency the currency.
      * @param amount   fixed-point integer where the last two digits represent decimals.
      */
-    @JsonCreator
-    public Money(@NotNull @JsonProperty("currency") Currency currency, @JsonProperty("amount") BigDecimal amount) {
+    public Money(Currency currency, BigDecimal amount) {
         this.currency = currency;
         this.amount = amount == null ? BigDecimal.ZERO : amount;
     }
@@ -47,8 +39,7 @@ public class Money implements ValueObject {
      * @return {@code this} + {@code augend}
      * @throws IllegalArgumentException if this object and {@code augend} have different currencies.
      */
-    @NotNull
-    public Money add(@NotNull Money augend) {
+    public Money add(Money augend) {
         if (currency != augend.currency) {
             throw new IllegalArgumentException("Cannot add two Money objects with different currencies");
         }
@@ -63,8 +54,7 @@ public class Money implements ValueObject {
      * @return {@code this} - {@code augend}
      * @throws IllegalArgumentException if this object and {@code subtrahend} have different currencies.
      */
-    @NotNull
-    public Money subtract(@NotNull Money subtrahend) {
+    public Money subtract(Money subtrahend) {
         if (currency != subtrahend.currency) {
             throw new IllegalArgumentException("Cannot subtract two Money objects with different currencies");
         }
@@ -77,7 +67,6 @@ public class Money implements ValueObject {
      * @param multiplicand the value to multiply the amount by.
      * @return {@code this} * {@code multiplicand}
      */
-    @NotNull
     public Money multiply(BigDecimal multiplicand) {
         return Money.of(currency, amount.multiply(multiplicand));
     }
@@ -88,7 +77,6 @@ public class Money implements ValueObject {
      * @param divisor the value to divide the amount by.
      * @return {@code this} / {@code divisor}
      */
-    @NotNull
     public Money divide(BigDecimal divisor) {
         return Money.of(currency, amount.divide(divisor, RoundingMode.HALF_UP));
     }
@@ -143,7 +131,6 @@ public class Money implements ValueObject {
     /**
      * Returns the currency.
      */
-    @NotNull
     public Currency currency() {
         return currency;
     }
@@ -185,13 +172,6 @@ public class Money implements ValueObject {
 
     @Override
     public String toString() {
-        String amountString;
-        if (Objects.equals(amount, BigDecimal.ZERO)) {
-            amountString = "000";
-        } else {
-            amountString = amount.toString();
-        }
-        return String.format("%s %s.%s", currency, amountString.substring(0, amountString.length() - 2),
-            amountString.substring(amountString.length() - 2));
+        return String.format("%s %s", currency, amount.setScale(2, RoundingMode.HALF_UP).toPlainString());
     }
 }

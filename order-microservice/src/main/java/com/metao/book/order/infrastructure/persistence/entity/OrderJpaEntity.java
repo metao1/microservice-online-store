@@ -3,10 +3,12 @@ package com.metao.book.order.infrastructure.persistence.entity;
 import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.domain.model.valueobject.UserId;
+import com.metao.book.order.infrastructure.persistence.converter.UserIdAttributeConverter;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -35,10 +37,8 @@ public class OrderJpaEntity {
     @Column(name = "id", updatable = false, nullable = false)
     private String id;
 
-    @Embedded
-    @AttributeOverrides({
-        @AttributeOverride(name = "value", column = @Column(name = "user_id"))
-    })
+    @Convert(converter = UserIdAttributeConverter.class)
+    @Column(name = "user_id")
     private UserId userId;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

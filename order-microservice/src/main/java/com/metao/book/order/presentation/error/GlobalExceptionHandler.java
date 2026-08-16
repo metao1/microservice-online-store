@@ -2,6 +2,7 @@ package com.metao.book.order.presentation.error;
 
 import com.metao.book.order.domain.exception.InvalidPaymentEventException;
 import com.metao.book.order.domain.exception.ShoppingCartIsEmptyException;
+import com.metao.book.order.domain.exception.ShoppingCartNotFoundException;
 import com.metao.book.shared.spring.web.BaseExceptionHandler;
 import com.metao.book.shared.spring.web.ApiError;
 import jakarta.persistence.OptimisticLockException;
@@ -27,6 +28,12 @@ public class GlobalExceptionHandler extends BaseExceptionHandler {
     public ResponseEntity<ApiError> handleShoppingCartEmpty(ShoppingCartIsEmptyException ex) {
         log.error(ex.getMessage(), ex);
         return buildResponse(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(ShoppingCartNotFoundException.class)
+    public ResponseEntity<ApiError> handleShoppingCartNotFound(ShoppingCartNotFoundException ex) {
+        log.warn(ex.getMessage());
+        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(InvalidPaymentEventException.class)

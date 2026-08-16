@@ -18,7 +18,8 @@ import com.metao.book.product.domain.repository.CategoryRepository;
 import com.metao.book.product.domain.repository.ProductRepository;
 import com.metao.book.product.infrastructure.persistence.repository.ProductCreateIdempotencyRepository;
 import com.metao.book.shared.domain.base.DomainEvent;
-import com.metao.book.shared.application.messaging.DomainEventPublisher;
+import com.metao.book.shared.application.messaging.DomainEventPublisherPort;
+import com.metao.book.shared.architecture.ApplicationService;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.domain.product.Quantity;
@@ -43,6 +44,7 @@ import org.springframework.validation.annotation.Validated;
  */
 @Slf4j
 @Service
+@ApplicationService
 @Validated
 @Transactional
 @RequiredArgsConstructor
@@ -53,7 +55,7 @@ public class ProductDomainService implements ProductUseCase {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductCreateIdempotencyRepository productCreateIdempotencyRepository;
-    private final DomainEventPublisher eventPublisher;
+    private final DomainEventPublisherPort eventPublisher;
     private final Cache<CategoryPageKey, List<ProductAggregate>> categoryPageCache = Caffeine.newBuilder()
         .maximumSize(CATEGORY_PAGE_CACHE_MAXIMUM_SIZE)
         .expireAfterWrite(Duration.ofSeconds(15))
@@ -61,11 +63,11 @@ public class ProductDomainService implements ProductUseCase {
     /**
      * Create a new product
      */
-    public CreateProductResult createProduct(@Valid CreateProductCommand command) {
+    public CreateProductResult createProduct(CreateProductCommand command) {
         return createProduct(command, UUID.randomUUID().toString());
     }
 
-    public CreateProductResult createProduct(@Valid CreateProductCommand command, String idempotencyKey) {
+    public CreateProductResult createProduct(CreateProductCommand command, String idempotencyKey) {
         log.info("Creating product with SKU: {}", command.sku());
 
         String normalizedIdempotencyKey = normalizeIdempotencyKey(idempotencyKey);
@@ -139,7 +141,7 @@ public class ProductDomainService implements ProductUseCase {
     /**
      * Update an existing product
      */
-    public ProductAggregate updateProduct(@Valid UpdateProductCommand command) {
+    public ProductAggregate updateProduct(UpdateProductCommand command) {
         var productSku = ProductSku.of(command.sku());
         var product = productRepository.findBySku(productSku)
             .orElseThrow(() -> new ProductNotFoundException(productSku));
@@ -161,7 +163,7 @@ public class ProductDomainService implements ProductUseCase {
      * Get product by SKU
      */
     @Transactional(readOnly = true)
-    public ProductAggregate getProductBySku(@NotNull String sku) {
+    public ProductAggregate getProductBySku(String sku) {
         log.debug("Getting product by SKU: {}", sku);
         return productRepository.findBySku(ProductSku.of(sku))
             .orElseThrow(() -> new ProductNotFoundException(ProductSku.of(sku)));

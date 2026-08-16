@@ -11,8 +11,9 @@ import com.metao.book.order.domain.model.aggregate.OrderAggregate;
 import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.domain.model.valueobject.PaymentStatus;
-import com.metao.book.order.domain.repository.OrderRepository;
-import com.metao.book.shared.application.messaging.DomainEventPublisher;
+import com.metao.book.order.application.port.OrderRepository;
+import com.metao.book.shared.application.messaging.DomainEventPublisherPort;
+import com.metao.book.shared.architecture.ApplicationService;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
+@ApplicationService
 @RequiredArgsConstructor
 public class HandleOrderPaymentEventService implements HandleOrderPaymentEventUseCase {
 
@@ -30,7 +32,7 @@ public class HandleOrderPaymentEventService implements HandleOrderPaymentEventUs
     private final OrderPort orderPort;
     private final ConsumedMessagePort consumedMessagePort;
     private final ShoppingCartCommandPort shoppingCartCommandPort;
-    private final DomainEventPublisher domainEventPublisher;
+    private final DomainEventPublisherPort domainEventPublisherPort;
 
     @Override
     @Transactional
@@ -88,7 +90,7 @@ public class HandleOrderPaymentEventService implements HandleOrderPaymentEventUs
     }
 
     private void publishAndClear(OrderAggregate order) {
-        order.getDomainEvents().forEach(domainEventPublisher::publish);
+        order.getDomainEvents().forEach(domainEventPublisherPort::publish);
         order.clearDomainEvents();
     }
 

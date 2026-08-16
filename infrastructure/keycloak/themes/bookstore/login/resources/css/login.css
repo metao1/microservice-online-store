@@ -1,0 +1,160 @@
+/* Storefront styling for the Keycloak-provided login and registration forms. */
+#keycloak-bg {
+  min-height: 100vh;
+  padding: 2rem 0;
+  background: #ffffff;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+#keycloak-bg .pf-v5-c-login {
+  min-height: inherit;
+}
+
+#keycloak-bg .pf-v5-c-login__container {
+  width: min(100% - 2rem, 400px);
+  margin: 0 auto;
+}
+
+#keycloak-bg .pf-v5-c-login__main {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+#keycloak-bg .pf-v5-c-login__main-body {
+  padding: 2rem;
+}
+
+#kc-header-wrapper,
+#kc-page-title {
+  margin: 0 0 2rem;
+  color: #000000;
+  font-size: 1.75rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+#kc-form-login label,
+#kc-register-form label,
+#kc-reset-password-form label,
+#kc-update-profile-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #333333;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+#kc-form-login #username,
+#kc-form-login #password,
+#kc-register-form input[type='text'],
+#kc-register-form input[type='email'],
+#kc-register-form input[type='password'],
+#kc-reset-password-form input[type='text'],
+#kc-reset-password-form input[type='email'],
+#kc-update-profile-form input[type='text'],
+#kc-update-profile-form input[type='email'] {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #333333;
+  font-size: 0.875rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#kc-form-login #username:focus-visible,
+#kc-form-login #password:focus-visible,
+#kc-register-form input[type='text']:focus-visible,
+#kc-register-form input[type='email']:focus-visible,
+#kc-register-form input[type='password']:focus-visible,
+#kc-reset-password-form input[type='text']:focus-visible,
+#kc-reset-password-form input[type='email']:focus-visible,
+#kc-update-profile-form input[type='text']:focus-visible,
+#kc-update-profile-form input[type='email']:focus-visible,
+#kc-login:focus-visible,
+#kc-register-form #kc-form-buttons input[type='submit']:focus-visible,
+#kc-registration a:focus-visible {
+  outline: 2px solid #000000;
+  outline-offset: 2px;
+}
+
+#kc-form-login #username:focus,
+#kc-form-login #password:focus,
+#kc-register-form input[type='text']:focus,
+#kc-register-form input[type='email']:focus,
+#kc-register-form input[type='password']:focus,
+#kc-reset-password-form input[type='text']:focus,
+#kc-reset-password-form input[type='email']:focus,
+#kc-update-profile-form input[type='text']:focus,
+#kc-update-profile-form input[type='email']:focus {
+  border-color: #000000;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+#kc-login,
+#kc-register-form #kc-form-buttons input[type='submit'] {
+  width: 100%;
+  margin: 1rem 0;
+  padding: 0.875rem;
+  border: 0;
+  border-radius: 4px;
+  background: #000000;
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+#kc-login:hover,
+#kc-register-form #kc-form-buttons input[type='submit']:hover {
+  background: #333333;
+}
+
+#kc-registration,
+#kc-info-wrapper {
+  margin-top: 1.5rem;
+  color: #666666;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+#kc-registration a,
+#kc-info-wrapper a {
+  margin-left: 0.25rem;
+  color: #000000;
+  font-weight: 500;
+  text-decoration: underline;
+}
+
+#kc-registration a:hover,
+#kc-info-wrapper a:hover {
+  color: #333333;
+}
+
+#keycloak-bg .pf-v5-c-alert.pf-m-danger {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  border: 1px solid #b42318;
+  border-radius: 4px;
+  background: #fef3f2;
+  color: #b42318;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 480px) {
+  #keycloak-bg {
+    padding: 1rem 0;
+  }
+
+  #keycloak-bg .pf-v5-c-login__container {
+    width: min(100% - 1rem, 400px);
+  }
+
+  #keycloak-bg .pf-v5-c-login__main-body {
+    padding: 1rem;
+  }
+}

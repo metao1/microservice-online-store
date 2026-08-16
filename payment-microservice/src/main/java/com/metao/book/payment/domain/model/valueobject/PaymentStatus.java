@@ -1,11 +1,13 @@
 package com.metao.book.payment.domain.model.valueobject;
 
+import com.metao.book.shared.architecture.DomainComponent;
 import lombok.Getter;
 
 /**
  * Payment status enumeration
  */
 @Getter
+@DomainComponent
 public enum PaymentStatus {
     PENDING("Payment is pending processing"),
     SUCCESSFUL("Payment completed successfully"),
