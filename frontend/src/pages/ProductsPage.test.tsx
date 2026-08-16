@@ -17,8 +17,19 @@ const api = vi.hoisted(() => ({
 vi.mock('../services/api', () => ({ apiClient: api }));
 
 vi.mock('../components/ProductGrid', () => ({
-  default: ({ products }: { products: Product[] }) => (
-    <div>{products.map((product) => <span key={product.sku}>{product.title}</span>)}</div>
+  default: ({
+    products,
+    hasMore,
+    onLoadMore,
+  }: {
+    products: Product[];
+    hasMore: boolean;
+    onLoadMore: () => void;
+  }) => (
+    <div>
+      {products.map((product) => <span key={product.sku}>{product.title}</span>)}
+      {hasMore && <button type="button" onClick={onLoadMore}>Load more</button>}
+    </div>
   ),
 }));
 
@@ -89,5 +100,31 @@ describe('ProductsPage pagination requests', () => {
 
     expect(screen.getByText('Latest product')).toBeInTheDocument();
     expect(screen.queryByText('Stale product')).not.toBeInTheDocument();
+  });
+
+  it('keeps earlier products visible when a later page contains a segment match', async () => {
+    const nextPage = deferred<Product[]>();
+    const firstPage = Array.from({ length: 16 }, (_, index) => (
+      product(`history-${index}`, `History volume ${index}`)
+    ));
+
+    api.getProducts.mockImplementation((_category: string, _limit: number, offset: number) => (
+      offset === 0 ? Promise.resolve(firstPage) : nextPage.promise
+    ));
+
+    render(
+      <MemoryRouter initialEntries={['/products?category=books']}>
+        <ProductsPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('History volume 0')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Load more' }));
+    await waitFor(() => expect(api.getProducts).toHaveBeenCalledWith('books', 16, 16));
+
+    await act(async () => nextPage.resolve([product('software-1', 'Software architecture')]));
+
+    expect(screen.getByText('History volume 0')).toBeInTheDocument();
+    expect(screen.getByText('Software architecture')).toBeInTheDocument();
   });
 });
