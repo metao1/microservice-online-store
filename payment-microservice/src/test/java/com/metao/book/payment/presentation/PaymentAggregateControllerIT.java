@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -29,7 +30,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class PaymentAggregateControllerIT extends KafkaContainerBase {
 
-    private static final String USER_TOKEN = "mock-payment-jwt-token";
+    private static final String CUSTOMER_A_TOKEN = "mock-payment-customer-a-token";
 
     @Autowired
     private PaymentRepository paymentRepository;
@@ -43,12 +44,12 @@ class PaymentAggregateControllerIT extends KafkaContainerBase {
     @BeforeEach
     void setUp() {
         RestAssured.port = port;
-        org.mockito.Mockito.when(jwtDecoder.decode(USER_TOKEN)).thenReturn(
-            Jwt.withTokenValue(USER_TOKEN)
+        Mockito.when(jwtDecoder.decode(CUSTOMER_A_TOKEN)).thenReturn(
+            Jwt.withTokenValue(CUSTOMER_A_TOKEN)
                 .header("alg", "none")
-                .subject("payment-test-user")
+                .subject("customer-a")
                 .audience(List.of("account"))
-                .claim("roles", List.of("CUSTOMER", "ADMIN"))
+                .claim("roles", List.of("CUSTOMER"))
                 .issuedAt(Instant.now())
                 .expiresAt(Instant.now().plusSeconds(3600))
                 .build()
@@ -70,7 +71,7 @@ class PaymentAggregateControllerIT extends KafkaContainerBase {
 
         // When & Then
         given()
-            .auth().oauth2(USER_TOKEN)
+            .auth().oauth2(CUSTOMER_A_TOKEN)
             .contentType(ContentType.JSON)
             .body(requestBody)
             .when()
@@ -98,7 +99,7 @@ class PaymentAggregateControllerIT extends KafkaContainerBase {
             """;
 
         var createdPaymentResponse = given()
-            .auth().oauth2(USER_TOKEN)
+            .auth().oauth2(CUSTOMER_A_TOKEN)
             .contentType(ContentType.JSON)
             .body(requestBody)
             .when()
@@ -114,7 +115,7 @@ class PaymentAggregateControllerIT extends KafkaContainerBase {
 
         // When & Then - Process the payment
         var processedPaymentResponse = given()
-            .auth().oauth2(USER_TOKEN)
+            .auth().oauth2(CUSTOMER_A_TOKEN)
             .contentType(ContentType.JSON)
             .when()
             .post("/payments/{paymentId}/process", paymentId)

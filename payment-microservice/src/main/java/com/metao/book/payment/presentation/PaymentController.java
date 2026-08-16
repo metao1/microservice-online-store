@@ -64,7 +64,7 @@ public class PaymentController {
      */
     @Timed(value = "payment.api.process")
     @PostMapping("/{paymentId}/process")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF') or hasAuthority('SCOPE_payments:process')")
+    @PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN') or hasRole('STAFF') or hasAuthority('SCOPE_payments:process')")
     public PaymentDTO processPayment(@PathVariable String paymentId) {
         log.info("Processing payment: {}", paymentId);
         return paymentUseCase.processPayment(paymentId);
