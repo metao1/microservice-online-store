@@ -22,7 +22,7 @@ interface ProductsPageProps {
 }
 
 const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
-  const { products, loading, error, fetchProducts, searchProducts } = useProducts();
+  const { loading, error, fetchProducts, searchProducts } = useProducts();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const [activeCategory, setActiveCategory] = useState<string>('books');
@@ -41,6 +41,8 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const seenSkusRef = useRef<Set<string>>(new Set());
   const requestKeyRef = useRef<string>('');
+  const lastStartedRequestRef = useRef<string>('');
+  const latestRequestRef = useRef(0);
   const loadingMoreStartedAtRef = useRef<number>(0);
   const loadingMoreTimerRef = useRef<number | null>(null);
   const filterButtonsRef = useRef<HTMLDivElement>(null);
@@ -159,10 +161,18 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
     const nextKey = urlSearchQuery ? `search:${urlSearchQuery}` : `category:${categoryToUse}`;
     if (requestKeyRef.current && requestKeyRef.current !== nextKey && currentPage !== 1) {
       requestKeyRef.current = nextKey;
+      latestRequestRef.current += 1;
+      lastStartedRequestRef.current = '';
+      setLoadingMore(false);
       setCurrentPage(1);
       return;
     }
     requestKeyRef.current = nextKey;
+
+    const pageRequestKey = `${nextKey}:page:${currentPage}`;
+    if (lastStartedRequestRef.current === pageRequestKey) return;
+    lastStartedRequestRef.current = pageRequestKey;
+    const requestId = ++latestRequestRef.current;
 
     if (currentPage === 1) {
       setAllProducts([]);
@@ -170,13 +180,39 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
       seenSkusRef.current = new Set();
     }
 
-    if (urlSearchQuery) {
+    const loadPage = async () => {
       const offset = (currentPage - 1) * limit;
-      searchProducts(urlSearchQuery, limit, offset);
-    } else {
-      const offset = (currentPage - 1) * limit;
-      fetchProducts(categoryToUse, limit, offset);
-    }
+      const pageProducts = urlSearchQuery
+        ? await searchProducts(urlSearchQuery, limit, offset)
+        : await fetchProducts(categoryToUse, limit, offset);
+
+      if (requestId !== latestRequestRef.current) return;
+
+      if (!pageProducts) {
+        setHasMore(false);
+      } else if (currentPage === 1) {
+        setAllProducts(pageProducts);
+        seenSkusRef.current = new Set(pageProducts.map((product) => product.sku));
+        setHasMore(pageProducts.length >= limit);
+      } else {
+        const seen = seenSkusRef.current;
+        const uniqueNext = pageProducts.filter((product) => !seen.has(product.sku));
+        uniqueNext.forEach((product) => seen.add(product.sku));
+
+        if (uniqueNext.length > 0) {
+          setAllProducts((previous) => [...previous, ...uniqueNext]);
+        }
+        setHasMore(uniqueNext.length > 0 && pageProducts.length >= limit);
+      }
+
+      if (currentPage > 1) {
+        const remaining = Math.max(0, 350 - (Date.now() - loadingMoreStartedAtRef.current));
+        if (loadingMoreTimerRef.current) window.clearTimeout(loadingMoreTimerRef.current);
+        loadingMoreTimerRef.current = window.setTimeout(() => setLoadingMore(false), remaining);
+      }
+    };
+
+    void loadPage();
   }, [searchParams, propCategory, activeCategory, currentPage, fetchProducts, searchProducts]);
 
   const handleSegmentClick = (segmentId: string) => {
@@ -188,54 +224,6 @@ const ProductsPage: FC<ProductsPageProps> = ({ category: propCategory }) => {
     setActiveCategory(categoryId);
     setCurrentPage(1);
   };
-
-  // Update aggregated list after each fetch completes.
-  // Important: handle the empty-array case to avoid getting stuck in "loadingMore".
-  useEffect(() => {
-    if (loading) return;
-
-    if (loadingMore) {
-      const minVisibleMs = 350;
-      const elapsed = Date.now() - loadingMoreStartedAtRef.current;
-      const remaining = Math.max(0, minVisibleMs - elapsed);
-
-      if (loadingMoreTimerRef.current) {
-        window.clearTimeout(loadingMoreTimerRef.current);
-      }
-
-      loadingMoreTimerRef.current = window.setTimeout(() => {
-        setLoadingMore(false);
-      }, remaining);
-    }
-
-    // If the backend errors, stop infinite scroll for this session.
-    if (error) {
-      setHasMore(false);
-      return;
-    }
-
-    if (currentPage === 1) {
-      setAllProducts(products);
-      seenSkusRef.current = new Set(products.map(p => p.sku));
-    } else if (products.length > 0) {
-      const seen = seenSkusRef.current;
-      const uniqueNext = products.filter(p => !seen.has(p.sku));
-      uniqueNext.forEach(p => seen.add(p.sku));
-
-      if (uniqueNext.length === 0) {
-        // If the backend ignores offset/limit and keeps returning the same items,
-        // stop requesting further pages to avoid an infinite loop.
-        setHasMore(false);
-        return;
-      }
-
-      setAllProducts(prev => [...prev, ...uniqueNext]);
-    }
-
-    // If the server returns fewer than `limit`, we assume there are no more pages.
-    // Use >= for safety in case the backend returns more than requested.
-    setHasMore(products.length >= limit);
-  }, [loading, error, products, currentPage, limit]);
 
   const handleLoadMore = useCallback(() => {
     if (!loadingMore && hasMore) {
