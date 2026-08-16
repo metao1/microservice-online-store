@@ -6,6 +6,7 @@ import com.metao.book.product.application.dto.ProductDTO;
 import com.metao.book.product.application.service.CreateProductResult;
 import com.metao.book.product.application.usecase.ProductUseCase;
 import jakarta.persistence.EntityManager;
+import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,7 +15,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -27,16 +27,30 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @Transactional
-@RequiredArgsConstructor
 @ConditionalOnProperty(name = "spring.profiles.active", havingValue = "generator")
 public class ProductGenerator {
 
-    @Value("classpath:data/products.txt")
-    Resource resource;
-
     private final ProductUseCase productUseCase;
     private final ObjectMapper dtoMapper;
-    private final EntityManager entityManager;
+    private EntityManager entityManager;
+    private final Resource resource;
+
+    public ProductGenerator(
+        ProductUseCase productUseCase,
+        ObjectMapper dtoMapper,
+        @Value("${product.seed.resource:classpath:data/products.txt}") Resource resource
+    ) {
+        this.productUseCase = productUseCase;
+        this.dtoMapper = dtoMapper;
+        this.resource = resource;
+    }
+
+    @PostConstruct
+    void validateSeedResource() {
+        if (!resource.exists() || !resource.isReadable()) {
+            throw new IllegalStateException("Product seed resource is not readable: " + resource.getDescription());
+        }
+    }
 
     /**
      * Waits for the {@link ReadinessState#ACCEPTING_TRAFFIC} and starts task execution

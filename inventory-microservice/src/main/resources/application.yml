@@ -158,6 +158,8 @@ app:
 
 product-sample-data-path: data/products.txt
 product:
+  seed:
+    resource: ${PRODUCT_DATA_RESOURCE:classpath:data/products.txt}
   prewarm:
     enabled: true
     categories: books
