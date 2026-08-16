@@ -2,6 +2,8 @@ package com.metao.book.order.integration;
 
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.containsStringIgnoringCase;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.matchesPattern;
 
@@ -74,6 +76,21 @@ class SecureOrderFlowIT extends KafkaContainerBase {
         );
         springDataOrderRepository.deleteAll();
         shoppingCartService.clearCart(USER_ID);
+    }
+
+    @Test
+    @DisplayName("Configured CORS preflight does not require authentication")
+    void shouldAllowConfiguredCorsPreflightWithoutAuthentication() {
+        given()
+            .header("Origin", "http://localhost:3000")
+            .header("Access-Control-Request-Method", "GET")
+            .header("Access-Control-Request-Headers", "Authorization")
+            .options("/cart")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .header("Access-Control-Allow-Origin", "http://localhost:3000")
+            .header("Access-Control-Allow-Methods", containsString("GET"))
+            .header("Access-Control-Allow-Headers", containsStringIgnoringCase("Authorization"));
     }
 
     @Test

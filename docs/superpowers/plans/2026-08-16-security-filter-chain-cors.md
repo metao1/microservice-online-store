@@ -26,7 +26,7 @@
 - Consumes: existing `WebSecurityAutoConfiguration` MVC CORS mappings and `app.api.cors.*` properties.
 - Produces: a `SecurityFilterChain` that delegates preflight policy to Spring CORS support before JWT authentication.
 
-- [ ] **Step 1: Write the failing preflight test**
+- [x] **Step 1: Write the failing preflight test**
 
 Add a test that sends:
 
@@ -43,13 +43,13 @@ given()
     .header("Access-Control-Allow-Headers", containsStringIgnoringCase("Authorization"));
 ```
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run: `./gradlew :order-microservice:test --tests com.metao.book.order.integration.SecureOrderFlowIT.shouldAllowConfiguredCorsPreflightWithoutAuthentication --no-parallel`
 
 Expected: FAIL because the preflight receives `401` before MVC CORS handling.
 
-- [ ] **Step 3: Enable standard Spring Security CORS integration**
+- [x] **Step 3: Enable standard Spring Security CORS integration**
 
 Import `org.springframework.security.config.Customizer` and add this to the existing `HttpSecurity` chain before authorization rules:
 
@@ -57,13 +57,13 @@ Import `org.springframework.security.config.Customizer` and add this to the exis
 .cors(Customizer.withDefaults())
 ```
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 Run the focused Gradle command from Step 2.
 
 Expected: PASS with status `200` and the configured CORS response headers.
 
-- [ ] **Step 5: Verify runtime behavior**
+- [x] **Step 5: Verify runtime behavior**
 
 Run: `docker compose up -d --build order-microservice`
 
@@ -71,7 +71,7 @@ Then repeat the unauthenticated `OPTIONS /cart` preflight with origin `http://lo
 
 Expected: `200`, `Access-Control-Allow-Origin: http://localhost:3000`, and authorization listed in allowed headers.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add shared-kernel/src/main/java/com/metao/book/shared/security/JwtSecurityAutoConfiguration.java order-microservice/src/test/java/com/metao/book/order/integration/SecureOrderFlowIT.java docs/superpowers/plans/2026-08-16-security-filter-chain-cors.md
