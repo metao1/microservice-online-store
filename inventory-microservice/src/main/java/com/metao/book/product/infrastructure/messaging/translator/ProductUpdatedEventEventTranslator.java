@@ -31,7 +31,8 @@ public class ProductUpdatedEventEventTranslator implements ProtobufDomainEventTr
             "product.updated",
             1,
             domainEvent.getProductSku().value(),
-            message.toByteArray()
+            message.toByteArray(),
+            "product-updated:" + domainEvent.getProductSku().value()
         );
     }
 

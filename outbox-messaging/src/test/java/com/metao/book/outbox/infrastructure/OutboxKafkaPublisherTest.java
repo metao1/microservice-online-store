@@ -1,14 +1,14 @@
 package com.metao.book.outbox.infrastructure;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.protobuf.Empty;
 import com.metao.book.outbox.application.OutboxMessage;
 import com.metao.book.outbox.application.OutboxStore;
-import com.metao.book.shared.infrastructure.messaging.protobuf.ProtobufMessageCodec;
-import com.metao.book.shared.infrastructure.messaging.protobuf.ProtobufMessageCodecRegistry;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -18,58 +18,127 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
 
 @ExtendWith(MockitoExtension.class)
 class OutboxKafkaPublisherTest {
 
     private static final OutboxMessage MESSAGE = new OutboxMessage(
         "event-1", "order", "order-1", "order.created", 1, "order-1",
-        new byte[] {1}, Instant.now());
+        new byte[] {1}, Instant.now(), "order-1");
 
     @Mock
     private OutboxStore outboxStore;
 
     @Mock
-    private KafkaTemplate<String, com.google.protobuf.Message> kafkaTemplate;
+    private KafkaTemplate<String, String> kafkaTemplate;
 
     @Test
     void marksMessagePublishedOnlyAfterKafkaAcknowledgesSend() {
-        OutboxKafkaPublisher publisher = publisher();
+        OutboxKafkaPublisher<String> publisher = publisher();
         when(outboxStore.claimPending(any(), any(Integer.class), any(), any()))
             .thenReturn(List.of(MESSAGE));
-        when(kafkaTemplate.send(any(ProducerRecord.class)))
+        when(kafkaTemplate.send(anyRecord()))
             .thenReturn(CompletableFuture.completedFuture(null));
 
         publisher.publishPending();
 
-        verify(kafkaTemplate).send(any(ProducerRecord.class));
+        verify(kafkaTemplate).send(anyRecord());
         verify(outboxStore).markPublished(any(), any(), any());
     }
 
     @Test
     void reschedulesMessageWhenKafkaSendFails() {
-        OutboxKafkaPublisher publisher = publisher();
+        OutboxKafkaPublisher<String> publisher = publisher();
         when(outboxStore.claimPending(any(), any(Integer.class), any(), any()))
             .thenReturn(List.of(MESSAGE));
-        CompletableFuture<?> failedSend = new CompletableFuture<>();
+        CompletableFuture<SendResult<String, String>> failedSend = new CompletableFuture<>();
         failedSend.completeExceptionally(new IllegalStateException("broker unavailable"));
-        when(kafkaTemplate.send(any(ProducerRecord.class))).thenReturn(failedSend);
+        when(kafkaTemplate.send(anyRecord())).thenReturn(failedSend);
 
         publisher.publishPending();
 
         verify(outboxStore).rescheduleFailure(any(), any(), any(), any());
     }
 
-    private OutboxKafkaPublisher publisher() {
-        ProtobufMessageCodec codec = new ProtobufMessageCodec() {
+    @Test
+    void stopsPublishingMessagesForSameOrderingKeyWhenEarlierSendFails() {
+        OutboxMessage nextMessage = new OutboxMessage(
+            "event-2", "order", "order-1", "order.created", 1, "order-1",
+            new byte[] {2}, MESSAGE.occurredAt().plusSeconds(1), "order-1");
+        OutboxKafkaPublisher<String> publisher = publisher();
+        when(outboxStore.claimPending(any(), any(Integer.class), any(), any()))
+            .thenReturn(List.of(MESSAGE, nextMessage));
+        CompletableFuture<SendResult<String, String>> failedSend = new CompletableFuture<>();
+        failedSend.completeExceptionally(new IllegalStateException("broker unavailable"));
+        when(kafkaTemplate.send(anyRecord()))
+            .thenReturn(failedSend, CompletableFuture.completedFuture(null));
+
+        publisher.publishPending();
+
+        verify(kafkaTemplate, times(1)).send(anyRecord());
+        verify(outboxStore).rescheduleFailure(eq("event-1"), any(), any(), any());
+        verify(outboxStore, never()).markPublished(eq("event-2"), any(), any());
+        verify(outboxStore).releaseClaim(eq("event-2"), any());
+    }
+
+    @Test
+    void continuesPublishingUnorderedMessagesWhenEarlierSendFails() {
+        OutboxMessage first = unorderedMessage("event-1", 1, MESSAGE.occurredAt());
+        OutboxMessage second = unorderedMessage("event-2", 2, MESSAGE.occurredAt().plusSeconds(1));
+        OutboxKafkaPublisher<String> publisher = publisher();
+        when(outboxStore.claimPending(any(), any(Integer.class), any(), any()))
+            .thenReturn(List.of(first, second));
+        CompletableFuture<SendResult<String, String>> failedSend = new CompletableFuture<>();
+        failedSend.completeExceptionally(new IllegalStateException("broker unavailable"));
+        when(kafkaTemplate.send(anyRecord()))
+            .thenReturn(failedSend, CompletableFuture.completedFuture(null));
+
+        publisher.publishPending();
+
+        verify(kafkaTemplate, times(2)).send(anyRecord());
+        verify(outboxStore).markPublished(eq("event-2"), any(), any());
+    }
+
+    @Test
+    void continuesPublishingDifferentOrderingKeyWhenEarlierSendFails() {
+        OutboxMessage nextMessage = new OutboxMessage(
+            "event-2", "order", "order-2", "order.created", 1, "order-2",
+            new byte[] {2}, MESSAGE.occurredAt().plusSeconds(1), "order-2");
+        OutboxKafkaPublisher<String> publisher = publisher();
+        when(outboxStore.claimPending(any(), any(Integer.class), any(), any()))
+            .thenReturn(List.of(MESSAGE, nextMessage));
+        CompletableFuture<SendResult<String, String>> failedSend = new CompletableFuture<>();
+        failedSend.completeExceptionally(new IllegalStateException("broker unavailable"));
+        when(kafkaTemplate.send(anyRecord()))
+            .thenReturn(failedSend, CompletableFuture.completedFuture(null));
+
+        publisher.publishPending();
+
+        verify(kafkaTemplate, times(2)).send(anyRecord());
+        verify(outboxStore).markPublished(eq("event-2"), any(), any());
+    }
+
+    private OutboxMessage unorderedMessage(String eventId, int payload, Instant occurredAt) {
+        return new OutboxMessage(
+            eventId, "order", "order-1", "order.created", 1, "order-1",
+            new byte[] {(byte) payload}, occurredAt);
+    }
+
+    private ProducerRecord<String, String> anyRecord() {
+        return any();
+    }
+
+    private OutboxKafkaPublisher<String> publisher() {
+        OutboxPayloadCodec<String> codec = new OutboxPayloadCodec<>() {
             @Override
             public boolean supports(String eventType, int schemaVersion) {
                 return eventType.equals(MESSAGE.eventType()) && schemaVersion == MESSAGE.schemaVersion();
             }
 
             @Override
-            public com.google.protobuf.Message deserialize(byte[] payload) {
-                return Empty.getDefaultInstance();
+            public String deserialize(byte[] payload) {
+                return "payload";
             }
 
             @Override
@@ -77,9 +146,9 @@ class OutboxKafkaPublisherTest {
                 return "order-created";
             }
         };
-        return new OutboxKafkaPublisher(
+        return new OutboxKafkaPublisher<>(
             outboxStore,
-            new ProtobufMessageCodecRegistry(List.of(codec)),
+            new OutboxPayloadCodecRegistry<>(List.of(codec)),
             kafkaTemplate
         );
     }

@@ -13,18 +13,19 @@ import * as fc from 'fast-check';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import ProductCard from './ProductCard';
 import { CartProvider } from '../context/CartContext';
+import { createMoney, zeroMoney } from '../types';
 
 // Mock the cart context
 const mockAddToCart = vi.fn();
 const mockCartContext = {
-  cart: { items: [], total: 0 },
+  cart: { items: [], total: zeroMoney() },
   loading: false,
   error: null,
   addToCart: mockAddToCart,
   removeFromCart: vi.fn(),
   updateCartItem: vi.fn(),
   clearCart: vi.fn(),
-  getCartTotal: vi.fn(() => 0),
+  getCartTotal: vi.fn(() => zeroMoney()),
   getCartItemCount: vi.fn(() => 0),
 };
 
@@ -90,7 +91,10 @@ describe('ProductCard Component - Property Tests', () => {
     reviews: reviewsArb,
     inStock: booleanArb,
     quantity: quantityArb,
-  });
+  }).map(({ price, currency, ...product }) => ({
+    ...product,
+    price: createMoney(price, currency),
+  }));
 
   const variantArb = fc.constantFrom('default', 'compact', 'featured');
 
@@ -151,12 +155,11 @@ describe('ProductCard Component - Property Tests', () => {
             expect(normalize(titleElement?.textContent || '')).toBe(normalize(product.title));
 
             // Property: Price should be displayed with currency (no space format)
-            const priceText = `${product.currency}${product.price.toFixed(2)}`;
             const priceElement = productCard.querySelector('.current-price');
             expect(priceElement).toBeInTheDocument();
             expect(priceElement).toHaveClass('current-price');
             expect(priceElement).toHaveAttribute('aria-label', 'Current price');
-            expect(priceElement).toHaveTextContent(new RegExp(`${product.currency}\\s*${product.price.toFixed(2)}`));
+            expect(priceElement).toHaveTextContent(product.price.format());
 
             // Property: Rating should be displayed when available
             if (product.rating !== undefined && product.rating > 0) {
@@ -238,7 +241,10 @@ describe('ProductCard Component - Property Tests', () => {
             ),
             inStock: booleanArb,
             quantity: quantityArb,
-          }),
+          }).map(({ price, currency, ...product }) => ({
+            ...product,
+            price: createMoney(price, currency),
+          })),
           fc.integer({ min: 1, max: 10000 }), // unique ID
           (product, uniqueId) => {
             const productWithTestId = { ...product, sku: `${product.sku}-edge-${uniqueId}` };
@@ -262,7 +268,7 @@ describe('ProductCard Component - Property Tests', () => {
 
             const priceElement = productCard.querySelector('.current-price');
             expect(priceElement).toBeInTheDocument();
-            expect(priceElement).toHaveTextContent(new RegExp(`${product.currency}\\s*${product.price.toFixed(2)}`));
+            expect(priceElement).toHaveTextContent(product.price.format());
 
             // Property: Brand name should be extracted even from edge case titles
             const brandElement = productCard.querySelector('.brand-name');
@@ -623,7 +629,10 @@ describe('ProductCard Component - Property Tests', () => {
             reviews: reviewsArb,
             inStock: booleanArb,
             quantity: quantityArb,
-          }),
+          }).map(({ price, currency, ...product }) => ({
+            ...product,
+            price: createMoney(price, currency),
+          })),
           fc.integer({ min: 1, max: 10000 }), // unique ID
           (product, uniqueId) => {
             const mockOnAddToCart = vi.fn();

@@ -32,7 +32,8 @@ public class OrderUpdatedEventEventTranslator implements ProtobufDomainEventTran
             "order.status-changed",
             1,
             domainEvent.getOrderId().value(),
-            message.toByteArray()
+            message.toByteArray(),
+            "order-status:" + domainEvent.getOrderId().value()
         );
     }
 

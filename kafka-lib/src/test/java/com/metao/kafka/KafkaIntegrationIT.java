@@ -41,7 +41,7 @@ import org.springframework.test.context.TestPropertySource;
 @SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = {
     KafkaEventHandler.class, KafkaEventConfiguration.class
 })
-class KafkaIntegrationITBase extends KafkaContainerBase {
+class KafkaIntegrationIT extends KafkaContainerBase {
 
     @Autowired
     KafkaEventHandler eventHandler;

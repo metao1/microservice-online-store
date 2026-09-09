@@ -36,7 +36,8 @@ public class PaymentProcessedEventEventTranslator implements ProtobufDomainEvent
             "payment.processed",
             1,
             domainEvent.getOrderId().value(),
-            message.toByteArray()
+            message.toByteArray(),
+            "order-payment:" + domainEvent.getOrderId().value()
         );
     }
 

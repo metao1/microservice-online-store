@@ -36,7 +36,8 @@ public class PaymentFailedEventEventTranslator implements ProtobufDomainEventTra
             "payment.failed",
             1,
             domainEvent.getOrderId().value(),
-            message.toByteArray()
+            message.toByteArray(),
+            "order-payment:" + domainEvent.getOrderId().value()
         );
     }
 

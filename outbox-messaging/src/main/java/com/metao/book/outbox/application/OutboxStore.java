@@ -12,4 +12,6 @@ public interface OutboxStore {
     void markPublished(String eventId, String workerId, Instant publishedAt);
 
     void rescheduleFailure(String eventId, String workerId, Instant nextAttemptAt, String errorMessage);
+
+    void releaseClaim(String eventId, String workerId);
 }

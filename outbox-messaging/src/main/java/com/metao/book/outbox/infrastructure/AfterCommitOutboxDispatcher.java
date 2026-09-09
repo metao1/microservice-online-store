@@ -10,7 +10,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @RequiredArgsConstructor
 public final class AfterCommitOutboxDispatcher {
 
-    private final OutboxKafkaPublisher publisher;
+    private final OutboxKafkaPublisher<?> publisher;
 
     public void dispatchAfterCommit() {
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {

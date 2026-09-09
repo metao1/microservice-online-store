@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Order, Payment, PaymentMethodType } from '@types';
+import { Money, Order, Payment, PaymentMethodType } from '@types';
 import { apiClient } from '../services/api';
 import { useCartContext } from '../context/CartContext';
 import { toast } from 'react-toastify';
@@ -7,8 +7,7 @@ import { toast } from 'react-toastify';
 interface PaymentInput {
   method?: PaymentMethodType;
   details?: string;
-  currency?: string;
-  amount?: number;
+  amount?: Money;
 }
 
 interface CheckoutOptions {
@@ -39,16 +38,7 @@ export const useCheckout = (): UseCheckoutResult => {
 
       const order = await apiClient.createOrder();
 
-      const currency =
-        options?.payment?.currency ||
-        cart.items[0]?.currency ||
-        'EUR';
-
-      const amount = Number(
-        options?.payment?.amount ??
-        getCartTotal() ??
-        0
-      );
+      const amount = options?.payment?.amount ?? getCartTotal();
 
       const paymentMethod = options?.payment?.method || 'CREDIT_CARD';
       const paymentDetails = options?.payment?.details || '';
@@ -58,8 +48,7 @@ export const useCheckout = (): UseCheckoutResult => {
       try {
         const createdPayment = await apiClient.createPayment({
           orderId: order.id,
-          amount: Number(amount.toFixed(2)),
-          currency,
+          amount,
           paymentMethodType: paymentMethod,
           paymentMethodDetails: paymentDetails
         });

@@ -17,7 +17,7 @@ const getFacet = (product: Product) => {
   const shoeWidth = ['narrow', 'regular', 'wide'][seed % 3];
   const toe = ['round', 'pointed'][seed % 2];
   const sustainable = seed % 7 === 0;
-  const premium = (product.isFeatured ?? false) || product.price >= 100 || seed % 5 === 0;
+  const premium = (product.isFeatured ?? false) || product.price.amount >= 100 || seed % 5 === 0;
 
   return { material, heel, shoeWidth, toe, sustainable, premium };
 };
@@ -90,8 +90,8 @@ export const sortProducts = (products: Product[], sortBy: ProductSortBy, sortOrd
         rightValue = right.title.toLowerCase();
         break;
       case 'price':
-        leftValue = left.price;
-        rightValue = right.price;
+        leftValue = left.price.amount;
+        rightValue = right.price.amount;
         break;
       case 'rating':
         leftValue = left.rating || 0;
@@ -132,8 +132,8 @@ export const filterProducts = (products: Product[], selectedFilters: SelectedFil
     if (selectedFilters.price) {
       const range = parsePriceRange(selectedFilters.price);
       if (range) {
-        if (product.price < range.min) return false;
-        if (range.max != null && product.price > range.max) return false;
+        if (product.price.amount < range.min) return false;
+        if (range.max != null && product.price.amount > range.max) return false;
       }
     }
 

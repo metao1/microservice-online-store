@@ -1,11 +1,9 @@
 package com.metao.book.outbox.infrastructure;
 
-import com.google.protobuf.Message;
 import com.metao.book.outbox.application.OutboxStore;
+import com.metao.book.outbox.infrastructure.persistence.OutboxJpaAutoConfiguration;
 import com.metao.book.shared.application.messaging.DomainEventPublisherPort;
 import com.metao.book.shared.infrastructure.messaging.protobuf.DelegatingDomainEventTranslator;
-import com.metao.book.shared.infrastructure.messaging.protobuf.ProtobufMessageCodec;
-import com.metao.book.shared.infrastructure.messaging.protobuf.ProtobufMessageCodecRegistry;
 import java.util.List;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -13,29 +11,29 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.core.KafkaTemplate;
 
-@AutoConfiguration
+@AutoConfiguration(after = OutboxJpaAutoConfiguration.class)
 @ConditionalOnBean(OutboxStore.class)
 public class OutboxMessagingAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    ProtobufMessageCodecRegistry protobufMessageCodecRegistry(List<ProtobufMessageCodec> codecs) {
-        return new ProtobufMessageCodecRegistry(codecs);
+    <T> OutboxPayloadCodecRegistry<T> outboxPayloadCodecRegistry(List<OutboxPayloadCodec<T>> codecs) {
+        return new OutboxPayloadCodecRegistry<>(codecs);
     }
 
     @Bean
     @ConditionalOnMissingBean
-    OutboxKafkaPublisher outboxKafkaPublisher(
+    <T> OutboxKafkaPublisher<T> outboxKafkaPublisher(
         OutboxStore outboxStore,
-        ProtobufMessageCodecRegistry codecRegistry,
-        KafkaTemplate<String, Message> kafkaTemplate
+        OutboxPayloadCodecRegistry<T> codecRegistry,
+        KafkaTemplate<String, T> kafkaTemplate
     ) {
-        return new OutboxKafkaPublisher(outboxStore, codecRegistry, kafkaTemplate);
+        return new OutboxKafkaPublisher<>(outboxStore, codecRegistry, kafkaTemplate);
     }
 
     @Bean
     @ConditionalOnMissingBean
-    AfterCommitOutboxDispatcher afterCommitOutboxDispatcher(OutboxKafkaPublisher publisher) {
+    AfterCommitOutboxDispatcher afterCommitOutboxDispatcher(OutboxKafkaPublisher<?> publisher) {
         return new AfterCommitOutboxDispatcher(publisher);
     }
 

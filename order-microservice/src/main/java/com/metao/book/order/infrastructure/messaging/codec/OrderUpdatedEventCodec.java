@@ -2,13 +2,13 @@ package com.metao.book.order.infrastructure.messaging.codec;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
+import com.metao.book.outbox.infrastructure.OutboxPayloadCodec;
 import com.metao.book.shared.OrderUpdatedEvent;
-import com.metao.book.shared.infrastructure.messaging.protobuf.ProtobufMessageCodec;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-public class OrderUpdatedEventCodec implements ProtobufMessageCodec {
+public class OrderUpdatedEventCodec implements OutboxPayloadCodec<Message> {
 
     private final String topic;
 

@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Product } from '@types';
+import { createMoney, Product } from '@types';
 import ProductGrid from './ProductGrid';
 
 vi.mock('./ProductCard', () => ({
@@ -10,8 +10,7 @@ vi.mock('./ProductCard', () => ({
 const product: Product = {
   sku: 'book-1',
   title: 'Book one',
-  price: 10,
-  currency: 'EUR',
+  price: createMoney(10, 'EUR'),
   imageUrl: '/book.png',
   description: 'Book one',
   inStock: true,

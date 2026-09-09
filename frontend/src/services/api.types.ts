@@ -1,9 +1,8 @@
-import { Cart, Category, Order, PaginatedResult, Payment, PaymentMethodType, PaymentStatistics, Product } from '@types';
+import { Cart, Category, Money, Order, PaginatedResult, Payment, PaymentMethodType, PaymentStatistics, Product } from '@types';
 
 export interface PaymentCommand {
   orderId: string;
-  amount: number;
-  currency: string;
+  amount: Money;
   paymentMethodType: PaymentMethodType;
   paymentMethodDetails?: string;
 }
@@ -16,9 +15,9 @@ export interface ApiClientContract {
   searchProducts(query: string, limit?: number, offset?: number): Promise<Product[]>;
   getSubcategories(query: string, limit?: number, offset?: number): Promise<Category[]>;
   getCart(): Promise<Cart>;
-  addToCart(sku: string, productTitle: string, quantity: number, price: number, currency: string): Promise<Cart>;
+  addToCart(sku: string, productTitle: string, quantity: number, price: Money): Promise<Cart>;
   removeFromCart(sku: string): Promise<Cart>;
-  updateCartItem(sku: string, quantity: number, price: number, currency: string): Promise<Cart>;
+  updateCartItem(sku: string, quantity: number, price: Money): Promise<Cart>;
   clearCart(): Promise<void>;
   createOrder(): Promise<Order>;
   getOrders(): Promise<Order[]>;

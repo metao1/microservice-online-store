@@ -3,6 +3,8 @@ spring:
     url: jdbc:tc:postgresql:16-alpine:///integration-tests-db
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
   kafka:
+    listener:
+      auto-startup: false
     properties:
       security.protocol: PLAINTEXT
       sasl.mechanism: PLAIN

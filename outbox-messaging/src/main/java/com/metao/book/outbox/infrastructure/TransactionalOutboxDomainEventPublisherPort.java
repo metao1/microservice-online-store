@@ -21,7 +21,7 @@ public final class TransactionalOutboxDomainEventPublisherPort implements Domain
         outboxStore.append(new OutboxMessage(
             event.getEventId(), translation.aggregateType(), translation.aggregateId(),
             translation.eventType(), translation.schemaVersion(), translation.partitionKey(),
-            translation.payload(), event.getOccurredOn()
+            translation.payload(), event.getOccurredOn(), translation.orderingKey()
         ));
         dispatcher.dispatchAfterCommit();
     }

@@ -1,4 +1,4 @@
-package com.metao.book.order.infrastructure.persistence.entity;
+package com.metao.book.outbox.infrastructure.persistence;
 
 import com.metao.book.outbox.application.OutboxMessage;
 import com.metao.book.outbox.application.OutboxStatus;
@@ -7,7 +7,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import lombok.Getter;
@@ -19,26 +18,29 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class OrderOutboxJpaEntity {
+public class JpaOutboxEntity {
 
     @Id
-    @Column(name = "event_id", nullable = false, updatable = false)
+    @Column(name = "event_id", nullable = false, updatable = false, length = 255)
     private String eventId;
 
-    @Column(name = "aggregate_type", nullable = false, updatable = false)
+    @Column(name = "aggregate_type", nullable = false, updatable = false, length = 100)
     private String aggregateType;
 
-    @Column(name = "aggregate_id", nullable = false, updatable = false)
+    @Column(name = "aggregate_id", nullable = false, updatable = false, length = 255)
     private String aggregateId;
 
-    @Column(name = "event_type", nullable = false, updatable = false)
+    @Column(name = "event_type", nullable = false, updatable = false, length = 255)
     private String eventType;
 
     @Column(name = "schema_version", nullable = false, updatable = false)
     private int schemaVersion;
 
-    @Column(name = "partition_key", nullable = false, updatable = false)
+    @Column(name = "partition_key", nullable = false, updatable = false, length = 255)
     private String partitionKey;
+
+    @Column(name = "ordering_key", updatable = false, length = 255)
+    private String orderingKey;
 
     @Column(name = "payload", nullable = false, updatable = false)
     private byte[] payload;
@@ -68,14 +70,15 @@ public class OrderOutboxJpaEntity {
     @Column(name = "published_at")
     private Instant publishedAt;
 
-    public static OrderOutboxJpaEntity from(OutboxMessage message) {
-        OrderOutboxJpaEntity entity = new OrderOutboxJpaEntity();
+    public static JpaOutboxEntity from(OutboxMessage message) {
+        JpaOutboxEntity entity = new JpaOutboxEntity();
         entity.eventId = message.eventId();
         entity.aggregateType = message.aggregateType();
         entity.aggregateId = message.aggregateId();
         entity.eventType = message.eventType();
         entity.schemaVersion = message.schemaVersion();
         entity.partitionKey = message.partitionKey();
+        entity.orderingKey = message.orderingKey();
         entity.payload = message.payload();
         entity.occurredAt = message.occurredAt();
         entity.status = OutboxStatus.PENDING;
@@ -92,7 +95,8 @@ public class OrderOutboxJpaEntity {
             schemaVersion,
             partitionKey,
             payload,
-            occurredAt
+            occurredAt,
+            orderingKey
         );
     }
 }

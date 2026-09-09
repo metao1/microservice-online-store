@@ -1,5 +1,5 @@
 import { createContext, useContext, ReactNode, useCallback } from 'react';
-import { Cart, Product } from '@types';
+import { Cart, Money, Product } from '@types';
 import { useCart as useCartHook } from '../hooks/useCart';
 
 interface CartContextType {
@@ -10,7 +10,7 @@ interface CartContextType {
   removeFromCart: (sku: string) => Promise<void>;
   updateCartItem: (product: Product, quantity: number) => Promise<void>;
   clearCart: () => Promise<void>;
-  getCartTotal: () => number;
+  getCartTotal: () => Money;
   getCartItemCount: () => number;
 }
 
@@ -27,7 +27,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     async (product: Product, quantity: number) => {
       try {
         console.log('CartContext: Adding product to cart:', product.sku);
-        await hookAddToCart(product.sku, product.title, quantity, product.price, product.currency);
+        await hookAddToCart(product.sku, product.title, quantity, product.price);
         console.log('CartContext: Product added successfully');
         console.log('CartContext: Current cart after add:', cart);
       } catch (error) {
@@ -48,7 +48,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   const updateCartItem = useCallback(
     async (product: Product, quantity: number) => {
-      await hookUpdateCartItem(product.sku, quantity, product.price, product.currency);
+      await hookUpdateCartItem(product.sku, quantity, product.price);
     },
     [hookUpdateCartItem]
   );

@@ -1,1 +1,2 @@
+com.metao.book.outbox.infrastructure.persistence.OutboxJpaAutoConfiguration
 com.metao.book.outbox.infrastructure.OutboxMessagingAutoConfiguration

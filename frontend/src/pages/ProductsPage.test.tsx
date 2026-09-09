@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, useNavigate } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Product } from '@types';
+import { createMoney, Product } from '@types';
 import ProductsPage from './ProductsPage';
 
 type Deferred<T> = {
@@ -44,8 +44,7 @@ const deferred = <T,>(): Deferred<T> => {
 const product = (sku: string, title: string): Product => ({
   sku,
   title,
-  price: 10,
-  currency: 'EUR',
+  price: createMoney(10, 'EUR'),
   imageUrl: '/product.png',
   description: title,
   inStock: true,

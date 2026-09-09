@@ -3,12 +3,12 @@ package com.metao.book.order.infrastructure.messaging.codec;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 import com.metao.book.shared.InventoryReductionRequestedEvent;
-import com.metao.book.shared.infrastructure.messaging.protobuf.ProtobufMessageCodec;
+import com.metao.book.outbox.infrastructure.OutboxPayloadCodec;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-public class InventoryReductionRequestedEventCodec implements ProtobufMessageCodec {
+public class InventoryReductionRequestedEventCodec implements OutboxPayloadCodec<Message> {
 
     private final String topic;
 

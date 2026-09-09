@@ -13,7 +13,8 @@ public record OutboxMessage(
     int schemaVersion,
     String partitionKey,
     byte[] payload,
-    Instant occurredAt
+    Instant occurredAt,
+    String orderingKey
 ) {
     public OutboxMessage {
         eventId = requireText(eventId, "eventId");
@@ -21,11 +22,27 @@ public record OutboxMessage(
         aggregateId = requireText(aggregateId, "aggregateId");
         eventType = requireText(eventType, "eventType");
         partitionKey = requireText(partitionKey, "partitionKey");
+        if (orderingKey != null) {
+            orderingKey = requireText(orderingKey, "orderingKey");
+        }
         if (schemaVersion < 1) {
             throw new IllegalArgumentException("schemaVersion must be greater than or equal to 1");
         }
         payload = Arrays.copyOf(Objects.requireNonNull(payload, "payload must not be null"), payload.length);
         occurredAt = Objects.requireNonNull(occurredAt, "occurredAt must not be null");
+    }
+
+    public OutboxMessage(
+        String eventId,
+        String aggregateType,
+        String aggregateId,
+        String eventType,
+        int schemaVersion,
+        String partitionKey,
+        byte[] payload,
+        Instant occurredAt
+    ) {
+        this(eventId, aggregateType, aggregateId, eventType, schemaVersion, partitionKey, payload, occurredAt, null);
     }
 
     @Override

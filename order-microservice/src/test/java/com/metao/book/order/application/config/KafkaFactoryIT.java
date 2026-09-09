@@ -31,7 +31,7 @@ import org.springframework.kafka.test.utils.ContainerTestUtils;
 
 @Slf4j
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)
-class KafkaFactoryITBase extends KafkaContainerBase {
+class KafkaFactoryIT extends KafkaContainerBase {
 
     private final CountDownLatch latch = new CountDownLatch(10);
 
