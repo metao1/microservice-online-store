@@ -62,3 +62,9 @@ htmlcov/
 *.tar.bz2
 *.tar.xz
 *.tar.zst
+
+# Playwright
+playwright-report/
+test-results/
+frontend/playwright/.cache/
+**/storage-state*.json
