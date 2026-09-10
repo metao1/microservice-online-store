@@ -6,7 +6,7 @@
 
 import React, { forwardRef } from 'react';
 import { cn } from '../../../styles/utils';
-import './Button.css';
+import './Button.scss';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Button variant */

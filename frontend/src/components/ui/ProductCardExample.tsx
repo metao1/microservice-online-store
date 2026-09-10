@@ -6,7 +6,7 @@
 
 import React, { useState } from 'react';
 import { Button, Badge, Skeleton } from './index';
-import './ProductCardExample.css';
+import './ProductCardExample.scss';
 
 interface Product {
   id: string;

@@ -1,3 +1,5 @@
+@use "../../../styles/breakpoints" as *;
+
 /**
  * Badge Component Styles
  * Professional badge styling with variants
@@ -219,7 +221,7 @@
 }
 
 /* ===== RESPONSIVE ADJUSTMENTS ===== */
-@media (max-width: calc(var(--breakpoint-md) - 1px)) {
+@media (max-width: ($breakpoint-md - 1px)) {
   .badge {
     /* Ensure badges are touch-friendly on mobile */
     min-height: 1.25rem;

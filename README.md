@@ -2,13 +2,16 @@
 
 Event-driven e-commerce platform with DDD, Kafka messaging, and choreography-based saga.
 
+[![Java CI with Gradle](https://github.com/metao1/microservice-online-store/actions/workflows/gradle.yml/badge.svg)](https://github.com/metao1/microservice-online-store/actions/workflows/gradle.yml)
+
 ## Tech Stack
 
-- **Backend:** Java 21, Spring Boot 4, Kafka, PostgreSQL
-- **Frontend:** React + Vite + TypeScript
+- **Backend:** Java 25, Spring Boot 4.1, Kafka, PostgreSQL
+- **Frontend:** React + Vite + TypeScript + Sass
+- **Authentication:** Keycloak 26 with OAuth2/OIDC JWTs
 - **Observability:** OpenTelemetry, Jaeger
 ---
-[![video](https://img.youtube.com/vi/-p2X7TLY8EU/maxresdefault.jpg)](https://youtu.be/-p2X7TLY8EU)
+<a href="https://youtu.be/-p2X7TLY8EU"><img src="docs/assets/video-thumbnail.svg" alt="Watch the Microservice Online Store walkthrough" width="960"></a>
 
 ## Services
 
@@ -19,12 +22,16 @@ Event-driven e-commerce platform with DDD, Kafka messaging, and choreography-bas
 | Order | 8086 | Shopping cart & orders |
 | Payment | 8084 | Payment processing |
 | Kafka | 9092 | Event streaming |
+| Keycloak | 8080 | Authentication and realm management |
+| Schema Registry | 8081 | Protobuf schema management |
 | Jaeger | 16686 | Distributed tracing |
+| ZooKeeper | 2181 | Kafka coordination |
+| PostgreSQL | 5433-5435 | Order, payment, and inventory databases |
 
 ## Quick Start
 
 ```bash
-docker-compose up -d
+docker-compose up -d --build
 ```
 
 Open http://localhost:3000

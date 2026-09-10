@@ -1,3 +1,5 @@
+@use "../../styles/breakpoints" as *;
+
 /**
  * Product Card Example Styles
  * Example styling showing how to use the foundational UI components
@@ -260,7 +262,7 @@
 }
 
 /* Responsive Design */
-@media (max-width: calc(var(--breakpoint-md) - 1px)) {
+@media (max-width: ($breakpoint-md - 1px)) {
   .product-card-example {
     border-radius: var(--border-radius-base);
   }

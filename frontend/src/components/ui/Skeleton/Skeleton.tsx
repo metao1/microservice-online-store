@@ -5,8 +5,8 @@
  */
 
 import React from 'react';
-import { cn } from '../../../styles/utils';
-import './Skeleton.css';
+import { cn } from '@styles/utils';
+import './Skeleton.scss';
 
 export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Skeleton variant */

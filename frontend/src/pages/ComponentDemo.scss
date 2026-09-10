@@ -1,3 +1,5 @@
+@use "../styles/breakpoints" as *;
+
 /**
  * Component Demo Page Styles
  * Styling for the UI components demonstration
@@ -217,7 +219,7 @@
 }
 
 /* Responsive Design */
-@media (max-width: calc(var(--breakpoint-md) - 1px)) {
+@media (max-width: ($breakpoint-md - 1px)) {
   .component-demo {
     padding: var(--spacing-4) var(--spacing-2);
   }
@@ -252,7 +254,7 @@
   }
 }
 
-@media (max-width: calc(var(--breakpoint-sm) - 1px)) {
+@media (max-width: ($breakpoint-sm - 1px)) {
   .demo-header h1 {
     font-size: var(--font-size-3xl);
   }
