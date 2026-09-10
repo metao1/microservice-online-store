@@ -6,6 +6,14 @@
   "loginTheme": "bookstore",
   "roles": {
     "realm": [
+      {
+        "name": "default-roles-bookstore",
+        "description": "${role_default-roles}",
+        "composite": true,
+        "clientRole": false,
+        "containerId": "bookstore",
+        "composites": { "realm": ["CUSTOMER"] }
+      },
       { "name": "CUSTOMER" },
       { "name": "ADMIN" }
     ]
@@ -13,6 +21,9 @@
   "defaultRole": {
     "name": "default-roles-bookstore",
     "composite": true,
+    "description": "${role_default-roles}",
+    "clientRole": false,
+    "containerId": "bookstore",
     "composites": { "realm": ["CUSTOMER"] }
   },
   "clients": [

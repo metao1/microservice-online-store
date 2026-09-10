@@ -10,11 +10,6 @@
 @import './responsive.css';
 
 /* Import UI component styles */
-@import '../components/ui/Button/Button.css';
-@import '../components/ui/Input/Input.css';
-@import '../components/ui/Badge/Badge.css';
-@import '../components/ui/Skeleton/Skeleton.css';
-@import '../components/ui/ProductCardExample.css';
 
 /* ===== GLOBAL RESET AND BASE STYLES ===== */
 

@@ -1,3 +1,5 @@
+@use "../../../styles/breakpoints" as *;
+
 /**
  * Skeleton Component Styles
  * Professional skeleton loading styles
@@ -244,7 +246,7 @@
 }
 
 /* ===== RESPONSIVE ADJUSTMENTS ===== */
-@media (max-width: calc(var(--breakpoint-lg) - 1px)) {
+@media (max-width: ($breakpoint-lg - 1px)) {
   .skeleton-grid {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -254,7 +256,7 @@
   }
 }
 
-@media (max-width: calc(var(--breakpoint-md) - 1px)) {
+@media (max-width: ($breakpoint-md - 1px)) {
   .skeleton-grid,
   .skeleton-grid-3,
   .skeleton-grid-4 {
@@ -270,7 +272,7 @@
   }
 }
 
-@media (max-width: calc(var(--breakpoint-sm) - 1px)) {
+@media (max-width: ($breakpoint-sm - 1px)) {
   .skeleton-grid,
   .skeleton-grid-2,
   .skeleton-grid-3,

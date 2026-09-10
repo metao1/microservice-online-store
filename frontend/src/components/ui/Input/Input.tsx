@@ -6,7 +6,7 @@
 
 import React, { forwardRef } from 'react';
 import { cn } from '../../../styles/utils';
-import './Input.css';
+import './Input.scss';
 
 export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   /** Input variant */

@@ -33,6 +33,6 @@ WORKDIR /app
 # Copy layers separately to leverage Docker cache
 COPY --from=build /workspace/layers/dependencies/ /workspace/layers/snapshot-dependencies/ /workspace/layers/spring-boot-loader/ /workspace/layers/application/ ./
 
-ENV JAVA_TOOL_OPTIONS="-XX:+UseContainerSupport -Xms128m -Xmx512m -XX:MaxMetaspaceSize=192m -XX:MaxDirectMemorySize=128m -XX:+ExitOnOutOfMemoryError"
+ENV JAVA_TOOL_OPTIONS="-XX:+UseContainerSupport -XX:InitialRAMPercentage=12.5 -XX:MaxRAMPercentage=50.0 -XX:MaxMetaspaceSize=192m -XX:MaxDirectMemorySize=128m -XX:+ExitOnOutOfMemoryError"
 
 ENTRYPOINT ["java", "-jar", "inventory-microservice.jar"]

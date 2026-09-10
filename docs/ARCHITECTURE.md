@@ -6,16 +6,22 @@ This document describes the complete microservices architecture for the online s
 
 ## Technology Stack
 
-- **Language**: Java 21+
-- **Framework**: Spring Boot 3.x
+- **Language**: Java 25+
+- **Framework**: Spring Boot 4.1.x
 - **Build Tool**: Gradle
 - **Databases**: PostgreSQL (per service)
 - **Message Broker**: Apache Kafka with Schema Registry
 - **Event Serialization**: Protocol Buffers (Protobuf)
 - **ORM**: Hibernate/JPA
 - **Database Migration**: Flyway
-- **Frontend**: React
+- **Frontend**: React, TypeScript, Vite, Sass
+- **Authentication**: Keycloak 26.x, OAuth2/OIDC JWTs
 - **Containerization**: Docker, Docker Compose
+
+## Runtime Resource Configuration
+
+- The inventory container has a 1 GiB memory limit and uses container-relative JVM heap sizing: -XX:InitialRAMPercentage=12.5 and -XX:MaxRAMPercentage=50.0. At the current limit this is approximately 128 MiB initial heap and 512 MiB maximum heap.
+- Metaspace and direct memory remain explicitly capped because the JVM does not provide percentage-based equivalents for those options.
 
 ## Service Maps (per microservice)
 
@@ -37,7 +43,7 @@ Notes:
 - `ProductKafkaListenerComponent` consumes dedicated inventory-reduction events to adjust stock; ordinary product updates remain separate.
 - Categories are natural-ID cached (`CategoryEntityMapper` uses Hibernate simple natural ID).
 
-### Order Service (port 8080)
+### Order Service (port 8086)
 
 ```mermaid
 graph LR
@@ -76,6 +82,19 @@ graph LR
 Notes:
 - `PaymentProcessingService` deterministically maps `PaymentApplicationService` result to SUCCESSFUL/FAILED `OrderPaymentEvent`.
 
+
+### Frontend Responsive Design and Checkout
+
+- Responsive component styles use Sass (.scss) with the shared build-time breakpoint source at frontend/src/styles/_breakpoints.scss. This avoids invalid runtime CSS variables inside media-query conditions while keeping breakpoint changes centralized.
+- The cart checkout flow creates the order, processes payment, clears the cart after successful payment, and redirects the browser to /orders. Failed or pending payments leave the cart available for retry.
+- The orders page is protected by the same Keycloak-backed authentication flow and is available at /orders.
+
+### Keycloak Realm and Default Roles
+
+- The realm definition is maintained in infrastructure/keycloak/realm/bookstore-realm.json.
+- The bookstore realm defines CUSTOMER and ADMIN realm roles.
+- CUSTOMER is included in the default-roles-bookstore composite, so newly registered users inherit CUSTOMER automatically and can access customer endpoints such as GET /cart and POST /api/order.
+- Keycloak's --import-realm option imports only when the realm is initially created; it does not synchronize an existing persistent realm. Changes to the realm export require recreating only the keycloak-data volume in a local environment.
 
 ## Complete Order Processing Saga Flow
 
@@ -277,17 +296,19 @@ sequenceDiagram
 
 ## Shopping Cart Operations
 
+Guest carts are persisted by the Order service in PostgreSQL. The browser receives only an opaque guest_cart_id cookie with HttpOnly and SameSite=Lax; production also enables Secure. Authenticated requests use the JWT sub claim. After login or registration, the frontend calls POST /cart/merge, which combines quantities, deletes the guest rows, and expires the cookie.
+
 ```mermaid
 sequenceDiagram
     actor User
     participant WebApp as React Web App
-    participant CartAPI as Shopping Cart API<br/>(OrderMS:8080)
+    participant CartAPI as Shopping Cart API<br/>(OrderMS:8086)
     participant CartService as ShoppingCartService
-    participant CartRepo as ShoppingCartRepository<br/>(In-Memory)
+    participant CartRepo as ShoppingCartRepository<br/>(PostgreSQL: shopping_cart)
 
     %% Add items to cart
     User->>WebApp: Add product to cart
-    WebApp->>CartAPI: POST /cart<br/>{userId, sku, quantity}
+    WebApp->>CartAPI: POST /cart/items<br/>{sku, quantity, price, currency}
     activate CartAPI
 
     CartAPI->>CartService: addItemsToCart(request)
@@ -317,7 +338,7 @@ sequenceDiagram
 
     %% Get cart
     User->>WebApp: View cart
-    WebApp->>CartAPI: GET /cart/{userId}
+    WebApp->>CartAPI: GET /cart
     activate CartAPI
 
     CartAPI->>CartService: getShoppingCart(userId)
@@ -335,7 +356,7 @@ sequenceDiagram
 
     %% Update item quantity
     User->>WebApp: Update quantity
-    WebApp->>CartAPI: PUT /cart/{userId}/{sku}<br/>{newQuantity}
+    WebApp->>CartAPI: PUT /cart/items/{sku}<br/>{quantity}
     activate CartAPI
 
     CartAPI->>CartService: updateItemQuantity(userId, sku, quantity)
@@ -360,7 +381,7 @@ sequenceDiagram
 
     %% Remove item
     User->>WebApp: Remove item
-    WebApp->>CartAPI: DELETE /cart/{userId}/{sku}
+    WebApp->>CartAPI: DELETE /cart/items/{sku}
     activate CartAPI
 
     CartAPI->>CartService: removeItem(userId, sku)
@@ -385,7 +406,7 @@ sequenceDiagram
 
     %% Clear cart
     User->>WebApp: Clear cart
-    WebApp->>CartAPI: DELETE /cart/{userId}
+    WebApp->>CartAPI: DELETE /cart
     activate CartAPI
 
     CartAPI->>CartService: clearCart(userId)
@@ -418,7 +439,7 @@ sequenceDiagram
 | POST | `/products/{sku}/volume/reduce` | Reduce product inventory |
 | POST | `/products/{sku}/volume/increase` | Increase product inventory |
 
-### Order Microservice (Port 8080)
+### Order Microservice (Port 8086)
 
 **Order Management:**
 | Method | Endpoint | Description |
@@ -426,16 +447,18 @@ sequenceDiagram
 | POST | `/api/order` | Create new order |
 | PUT | `/api/order/{orderId}/items` | Add items to order |
 | PATCH | `/api/order/{orderId}/status` | Update order status |
-| GET | `/api/order/customer/{userId}` | Get customer orders |
+| GET | `/api/order` | Get the authenticated customer's orders |
+| GET | `/api/order/paged` | Get the authenticated customer's orders with pagination |
 
 **Shopping Cart:**
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/cart/{userId}` | Get shopping cart |
-| POST | `/cart` | Add items to cart |
-| PUT | `/cart/{userId}/{sku}` | Update item quantity |
-| DELETE | `/cart/{userId}/{sku}` | Remove item from cart |
-| DELETE | `/cart/{userId}` | Clear cart |
+| GET | `/cart` | Get the current guest or authenticated user cart |
+| POST | `/cart/items` | Add items to the current cart |
+| PUT | `/cart/items/{sku}` | Update item quantity |
+| DELETE | `/cart/items/{sku}` | Remove an item from the current cart |
+| DELETE | `/cart` | Clear the current cart |
+| POST | `/cart/merge` | Merge the guest cart after authentication |
 
 ### Payment Microservice (Port 8084)
 
@@ -816,11 +839,11 @@ docker-compose up -d
 
 # Start microservices
 ./gradlew :inventory-microservice:bootRun    # Port 8083
-./gradlew :order-microservice:bootRun        # Port 8080
+./gradlew :order-microservice:bootRun        # Port 8086
 ./gradlew :payment-microservice:bootRun      # Port 8084
 
 # Start frontend
-cd frontend && npm start                      # Port 3000
+cd frontend && npm run dev                      # Port 3000
 ```
 
 ### Docker Setup
@@ -840,7 +863,7 @@ docker-compose logs -f <service-name>
 ### Scalability
 - Each microservice can scale independently
 - Kafka partitioning enables horizontal scaling
-- Stateless services (except shopping cart in-memory)
+- Stateless services; shopping carts are persisted in the Order service PostgreSQL database
 
 ### Fault Tolerance
 - Kafka message persistence
@@ -858,9 +881,8 @@ docker-compose logs -f <service-name>
 - API Gateway (Spring Cloud Gateway)
 - Service Discovery (Eureka)
 - Centralized Configuration (Spring Cloud Config)
-- Redis for distributed caching and cart persistence
+- Redis for distributed caching (cart persistence is currently handled by PostgreSQL)
 - Notification Service (email, SMS)
-- User/Authentication Service (OAuth2/JWT)
 - Monitoring Stack (Prometheus, Grafana, ELK, Jaeger)
 - Shipping Service
 - Inventory reservation on order creation

@@ -140,7 +140,7 @@ class OrderManagementControllerIT extends KafkaContainerBase {
             given()
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + USER_TOKEN)
-                .get("/api/order/me")
+                .get("/api/order")
                 .then()
                 .statusCode(HttpStatus.OK.value())
                 .body("$", hasSize(1));
@@ -157,7 +157,7 @@ class OrderManagementControllerIT extends KafkaContainerBase {
                 .header("Authorization", "Bearer " + USER_TOKEN)
                 .queryParam("offset", 0)
                 .queryParam("limit", 1)
-                .get("/api/order/me/paged")
+                .get("/api/order/paged")
                 .then()
                 .statusCode(HttpStatus.OK.value())
                 .body("items", hasSize(1))
@@ -188,7 +188,7 @@ class OrderManagementControllerIT extends KafkaContainerBase {
         void shouldReturnUnauthorizedForQueriesWithoutAuth() {
             given()
                 .contentType(ContentType.JSON)
-                .get("/api/order/me")
+                .get("/api/order")
                 .then()
                 .statusCode(HttpStatus.UNAUTHORIZED.value());
         }

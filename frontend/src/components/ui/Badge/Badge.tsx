@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { cn } from '../../../styles/utils';
-import './Badge.css';
+import './Badge.scss';
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   /** Badge variant */

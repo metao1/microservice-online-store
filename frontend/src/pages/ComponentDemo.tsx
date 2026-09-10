@@ -7,7 +7,7 @@
 import React, { useState } from 'react';
 import { Button, Input, Badge, Skeleton, SkeletonProductCard } from '../components/ui';
 import ProductCardExample from '../components/ui/ProductCardExample';
-import './ComponentDemo.css';
+import './ComponentDemo.scss';
 
 // Demo icons (simple SVG icons)
 const SearchIcon = () => (

@@ -1,3 +1,5 @@
+@use "../../../styles/breakpoints" as *;
+
 /**
  * Input Component Styles
  * Professional input styling with variants
@@ -276,7 +278,7 @@
 }
 
 /* ===== RESPONSIVE ADJUSTMENTS ===== */
-@media (max-width: calc(var(--breakpoint-md) - 1px)) {
+@media (max-width: ($breakpoint-md - 1px)) {
   .input-container {
     min-height: var(--touch-target-min);
   }
