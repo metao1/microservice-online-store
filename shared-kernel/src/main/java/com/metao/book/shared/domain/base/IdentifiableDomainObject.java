@@ -1,7 +1,6 @@
 package com.metao.book.shared.domain.base;
 
 import java.io.Serializable;
-import org.springframework.lang.Nullable;
 
 /**
  * Interface for domain objects that can be uniquely identified.
@@ -15,6 +14,5 @@ public interface IdentifiableDomainObject<T extends Serializable> extends Domain
      *
      * @return the ID or {@code null} if an ID has not been assigned yet.
      */
-    @Nullable
     T id();
 }

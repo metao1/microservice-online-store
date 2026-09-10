@@ -1,13 +1,13 @@
 package com.metao.book.product.domain.model.valueobject;
 
 import com.metao.book.shared.domain.base.ValueObject;
-import jakarta.persistence.Embeddable;
+import com.metao.book.shared.architecture.DomainComponent;
 import jakarta.validation.constraints.NotNull;
 
 /**
  * Product description value object
  */
-@Embeddable
+@DomainComponent
 public record ProductDescription(String value) implements ValueObject {
 
     public ProductDescription(String value) {

@@ -16,11 +16,17 @@ vi.mock('react-toastify', () => ({
 
 // Hoisted mocks to satisfy Vitest hoisting rules
 const hoisted = vi.hoisted(() => {
+  const checkoutAmount = {
+    amount: 120,
+    currency: 'EUR',
+    format: vi.fn(() => '€120.00'),
+    multiply: vi.fn(),
+  };
   const createOrder = vi.fn().mockResolvedValue({
     id: 'ORDER-1',
     userId: 'user-1',
     items: [],
-    total: 120,
+    total: checkoutAmount,
     status: 'PENDING',
     createdAt: '2024-01-01T00:00:00Z',
   });
@@ -28,8 +34,7 @@ const hoisted = vi.hoisted(() => {
   const createPayment = vi.fn().mockResolvedValue({
     paymentId: 'PAY-1',
     orderId: 'ORDER-1',
-    amount: 120,
-    currency: 'EUR',
+    amount: checkoutAmount,
     paymentMethodType: 'CREDIT_CARD',
     status: 'CREATED',
   });
@@ -37,15 +42,14 @@ const hoisted = vi.hoisted(() => {
   const processPayment = vi.fn().mockResolvedValue({
     paymentId: 'PAY-1',
     orderId: 'ORDER-1',
-    amount: 120,
-    currency: 'EUR',
+    amount: checkoutAmount,
     paymentMethodType: 'CREDIT_CARD',
     status: 'COMPLETED',
     isSuccessful: true,
   });
 
   const clearCart = vi.fn();
-  const getCartTotal = vi.fn(() => 120);
+  const getCartTotal = vi.fn(() => checkoutAmount);
 
   return {
     createOrder,
@@ -53,6 +57,7 @@ const hoisted = vi.hoisted(() => {
     processPayment,
     clearCart,
     getCartTotal,
+    checkoutAmount,
   };
 });
 
@@ -64,8 +69,7 @@ vi.mock('@context/CartContext', () => ({
         {
           sku: 'SKU-1',
           title: 'Item',
-          price: 120,
-          currency: 'EUR',
+          price: hoisted.checkoutAmount,
           cartQuantity: 1,
         },
       ],
@@ -93,16 +97,15 @@ describe('useCheckout', () => {
     const { result } = renderHook(() => useCheckout());
 
     await act(async () => {
-      await result.current.processCheckout('user-1', {
+      await result.current.processCheckout({
         payment: { method: 'CREDIT_CARD' as PaymentMethodType, details: '****4242' },
       });
     });
 
-    expect(hoisted.createOrder).toHaveBeenCalledWith('user-1');
+    expect(hoisted.createOrder).toHaveBeenCalledWith();
     expect(hoisted.createPayment).toHaveBeenCalledWith({
       orderId: 'ORDER-1',
-      amount: 120,
-      currency: 'EUR',
+      amount: hoisted.checkoutAmount,
       paymentMethodType: 'CREDIT_CARD',
       paymentMethodDetails: '****4242',
     });
@@ -116,7 +119,7 @@ describe('useCheckout', () => {
     const { result } = renderHook(() => useCheckout());
 
     await act(async () => {
-      await result.current.processCheckout('user-1', {
+      await result.current.processCheckout({
         payment: { method: 'PAYPAL', details: 'payer@example.com' },
       });
     });

@@ -1,0 +1,13 @@
+## 1. Implementation
+- [x] 1.1 Define the supported scenario file format and default runner behavior.
+- [x] 1.2 Extend the load runner to load named scenarios from config files as well as direct CLI flags.
+- [x] 1.3 Add request configuration support for headers, optional body files, and reusable scenario metadata.
+- [x] 1.3.1 Add multi-step scenario support with response value extraction and request templating for end-to-end flows.
+- [ ] 1.3.2 Add step-level response assertions for verifying side effects across service boundaries.
+- [x] 1.4 Add threshold evaluation for error rate, throughput, and latency percentiles with non-zero exit on failure.
+- [x] 1.5 Emit richer artifacts for each run, including machine-readable reports and a human-readable summary.
+- [x] 1.6 Add automated tests covering argument parsing, scenario loading, threshold evaluation, and report serialization.
+- [x] 1.6.1 Add automated tests covering multi-step scenario parsing and chained request execution.
+- [ ] 1.6.2 Add automated tests covering step assertions against extracted workflow values.
+- [x] 1.7 Update the profiling/load-test documentation with concrete examples for local runs and CI gates.
+- [x] 1.7.1 Add a sample bookstore checkout scenario that drives order, payment, and inventory across service boundaries.

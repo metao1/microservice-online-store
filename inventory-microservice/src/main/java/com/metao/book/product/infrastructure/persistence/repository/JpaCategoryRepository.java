@@ -1,6 +1,7 @@
 package com.metao.book.product.infrastructure.persistence.repository;
 
 import com.metao.book.product.infrastructure.persistence.entity.CategoryEntity;
+import com.metao.book.shared.architecture.OutboundAdapter;
 import io.micrometer.core.annotation.Timed;
 import java.util.Optional;
 import java.util.List;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Repository;
  * JPA repository for CategoryEntity
  */
 @Repository
+@OutboundAdapter
 public interface JpaCategoryRepository extends JpaRepository<CategoryEntity, String> {
 
     @Timed(value = "inventory.db.category.find-by-category")

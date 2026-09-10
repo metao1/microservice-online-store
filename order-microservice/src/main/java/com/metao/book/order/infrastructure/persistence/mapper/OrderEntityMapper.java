@@ -6,8 +6,10 @@ import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.infrastructure.persistence.entity.OrderItemEntity;
 import com.metao.book.order.infrastructure.persistence.entity.OrderJpaEntity;
 import com.metao.book.shared.domain.financial.VAT;
+import com.metao.book.shared.spring.persistence.MoneyEmbeddable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Currency;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
@@ -22,7 +24,7 @@ public class OrderEntityMapper {
                 itemEntity.setProductSku(item.getProductSku());
                 itemEntity.setQuantity(item.getQuantity());
                 itemEntity.setProductTitle(item.getTitle());
-                itemEntity.setUnitPrice(item.getUnitPrice());
+                itemEntity.setUnitPrice(MoneyEmbeddable.from(item.getUnitPrice()));
                 itemEntity.setOrder(entity);
                 return itemEntity;
             })
@@ -47,9 +49,26 @@ public class OrderEntityMapper {
                 itemEntity.getProductSku(),
                 itemEntity.getProductTitle(),
                 itemEntity.getQuantity(),
-                itemEntity.getUnitPrice()
+                itemEntity.getUnitPrice().toDomain()
             ))
             .toList();
+
+        VAT persistedVat = entity.getVatRate() == null ? vat : new VAT(entity.getVatRate());
+        if (entity.getSubtotalAmount() != null && entity.getFinancialCurrency() != null) {
+            Currency currency = Currency.getInstance(entity.getFinancialCurrency());
+            return OrderAggregate.reconstitute(
+                OrderId.of(entity.getId()),
+                entity.getUserId(),
+                items,
+                entity.getStatus(),
+                entity.getCreatedAt(),
+                entity.getUpdatedAt(),
+                persistedVat,
+                com.metao.book.shared.domain.financial.Money.of(currency, entity.getSubtotalAmount()),
+                com.metao.book.shared.domain.financial.Money.of(currency, entity.getTaxAmount()),
+                com.metao.book.shared.domain.financial.Money.of(currency, entity.getTotalAmount())
+            );
+        }
 
         return OrderAggregate.reconstitute(
             OrderId.of(entity.getId()),
@@ -58,7 +77,7 @@ public class OrderEntityMapper {
             entity.getStatus(),
             entity.getCreatedAt(),
             entity.getUpdatedAt(),
-            vat
+            persistedVat
         );
     }
 }

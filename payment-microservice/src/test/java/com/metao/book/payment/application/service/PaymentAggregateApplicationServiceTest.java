@@ -19,7 +19,7 @@ import com.metao.book.payment.domain.model.valueobject.PaymentMethod;
 import com.metao.book.payment.domain.model.valueobject.PaymentStatus;
 import com.metao.book.payment.domain.repository.PaymentRepository;
 import com.metao.book.payment.domain.service.PaymentDomainService;
-import com.metao.book.shared.config.KafkaDomainEventPublisher;
+import com.metao.book.shared.application.messaging.DomainEventPublisherPort;
 import com.metao.book.shared.domain.financial.Money;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -49,7 +49,7 @@ class PaymentAggregateApplicationServiceTest {
     private PaymentDomainService paymentDomainService;
 
     @Mock
-    private KafkaDomainEventPublisher eventPublisher;
+    private DomainEventPublisherPort eventPublisher;
 
     private PaymentApplicationService paymentApplicationService;
 
@@ -110,7 +110,6 @@ class PaymentAggregateApplicationServiceTest {
 
         // Then
         InOrder inOrder = inOrder(paymentRepository);
-        inOrder.verify(paymentRepository).lockOrderForCreation(any(OrderId.class));
         inOrder.verify(paymentRepository).findByOrderId(any(OrderId.class));
         inOrder.verify(paymentRepository).saveAndFlush(payment);
     }
@@ -188,18 +187,26 @@ class PaymentAggregateApplicationServiceTest {
     void processPayment_withValidPaymentId_shouldProcessAndReturnPayment() {
         // Given
         String paymentId = "payment-123";
-        PaymentAggregate payment = createPaymentAggregate(PaymentStatus.PENDING, null);
-        payment.processPayment();
-        PaymentDTO expectedDTO = PaymentApplicationMapper.toDTO(payment);
+        PaymentAggregate pendingPayment = createPaymentAggregate(PaymentStatus.PENDING, null);
+        PaymentAggregate processedPayment = new PaymentAggregate(
+            PaymentId.of(paymentId),
+            OrderId.of("order-123"),
+            Money.of(Currency.getInstance("EUR"), BigDecimal.valueOf(100)),
+            PaymentMethod.creditCard("****-1234")
+        );
+        processedPayment.processPayment();
+        PaymentDTO expectedDTO = PaymentApplicationMapper.toDTO(processedPayment);
 
-        when(paymentDomainService.processPayment(any(PaymentId.class))).thenReturn(payment);
+        when(paymentRepository.findById(any(PaymentId.class))).thenReturn(Optional.of(pendingPayment));
+        when(paymentDomainService.processPayment(any(PaymentAggregate.class), any()))
+            .thenReturn(processedPayment);
 
         // When
         PaymentDTO result = paymentApplicationService.processPayment(paymentId);
 
         // Then
         assertThat(result).isEqualTo(expectedDTO);
-        verify(paymentDomainService).processPayment(any(PaymentId.class));
+        verify(paymentDomainService).processPayment(any(PaymentAggregate.class), any());
         verify(eventPublisher, times(1)).publish(any());
         assertThat(result.isSuccessful()).isTrue();
     }
@@ -232,7 +239,7 @@ class PaymentAggregateApplicationServiceTest {
         when(paymentRepository.findById(any(PaymentId.class)))
             .thenReturn(Optional.of(pendingPayment))
             .thenReturn(Optional.of(successfulPayment));
-        when(paymentDomainService.processPayment(any(PaymentId.class)))
+        when(paymentDomainService.processPayment(any(PaymentAggregate.class), any()))
             .thenThrow(new IllegalStateException("Payment must be in PENDING status to be processed"));
 
         // When
@@ -337,7 +344,8 @@ class PaymentAggregateApplicationServiceTest {
         when(paymentDomainService.isPaymentMethodValidForAmount(any(), any())).thenReturn(true);
         when(paymentDomainService.createPayment(any(), any(), any())).thenReturn(createdPayment);
         when(paymentRepository.saveAndFlush(createdPayment)).thenReturn(createdPayment);
-        when(paymentDomainService.processPayment(any(PaymentId.class))).thenReturn(processedPayment);
+        when(paymentRepository.findById(any(PaymentId.class))).thenReturn(Optional.of(createdPayment));
+        when(paymentDomainService.processPayment(any(PaymentAggregate.class), any())).thenReturn(processedPayment);
 
         // When
         PaymentDTO result = paymentApplicationService.processOrderCreatedEvent(orderId, amount, currency);
@@ -345,7 +353,7 @@ class PaymentAggregateApplicationServiceTest {
         // Then
         assertThat(result).isEqualTo(paymentDTO);
         verify(paymentDomainService).createPayment(any(), any(), any());
-        verify(paymentDomainService).processPayment(any());
+        verify(paymentDomainService).processPayment(any(PaymentAggregate.class), any());
     }
 
     @Test

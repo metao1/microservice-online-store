@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Product } from '@types';
 import { apiClient } from '../services/api';
 
@@ -6,30 +6,49 @@ export const useProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const latestRequestRef = useRef(0);
 
   const fetchProducts = useCallback(async (category?: string, limit: number = 12, offset: number = 0) => {
+    const requestId = ++latestRequestRef.current;
     setLoading(true);
     setError(null);
     try {
       const data = await apiClient.getProducts(category, limit, offset);
-      setProducts(data);
+      if (requestId === latestRequestRef.current) {
+        setProducts(data);
+      }
+      return data;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch products');
+      if (requestId === latestRequestRef.current) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch products');
+      }
+      return null;
     } finally {
-      setLoading(false);
+      if (requestId === latestRequestRef.current) {
+        setLoading(false);
+      }
     }
   }, []);
 
   const searchProducts = useCallback(async (query: string, limit: number = 12, offset: number = 0) => {
+    const requestId = ++latestRequestRef.current;
     setLoading(true);
     setError(null);
     try {
       const data = await apiClient.searchProducts(query, limit, offset);
-      setProducts(data);
+      if (requestId === latestRequestRef.current) {
+        setProducts(data);
+      }
+      return data;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to search products');
+      if (requestId === latestRequestRef.current) {
+        setError(err instanceof Error ? err.message : 'Failed to search products');
+      }
+      return null;
     } finally {
-      setLoading(false);
+      if (requestId === latestRequestRef.current) {
+        setLoading(false);
+      }
     }
   }, []);
 

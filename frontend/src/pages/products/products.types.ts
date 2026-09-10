@@ -31,4 +31,3 @@ export interface SelectedFilters {
   shoeWidth: string;
   toe: string;
 }
-

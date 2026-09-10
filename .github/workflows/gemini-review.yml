@@ -51,6 +51,7 @@ jobs:
         uses: google-github-actions/run-gemini-cli@v0
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_CLI_TRUST_WORKSPACE: ${{ GEMINI_CLI_TRUST_WORKSPACE || 'true' }}
           GITHUB_TOKEN: ${{ steps.mint_identity_token.outputs.token || github.token }}
           ISSUE_TITLE: ${{ github.event.pull_request.title || github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.pull_request.body || github.event.issue.body }}
@@ -60,6 +61,7 @@ jobs:
         with:
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
           gemini_cli_version: ${{ vars.GEMINI_CLI_VERSION || 'latest' }}
+          gemini_cli_trust_workplace: ${{ GEMINI_CLI_TRUST_WORKSPACE || 'true' }}
           gemini_debug: ${{ fromJSON(vars.GEMINI_DEBUG || 'false') }}
           gemini_model: ${{ vars.GEMINI_MODEL }}
           workflow_name: gemini-review
@@ -77,6 +79,7 @@ jobs:
                     "-i",
                     "--rm",
                     "-e",
+                    "GEMINI_CLI_TRUST_WORKSPACE",
                     "GITHUB_PERSONAL_ACCESS_TOKEN",
                     "ghcr.io/github/github-mcp-server:v0.27.0"
                   ],
@@ -86,7 +89,8 @@ jobs:
                     "pull_request_review_write"
                   ],
                   "env": {
-                    "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+                    "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}",
+                    GEMINI_CLI_TRUST_WORKSPACE: "${GEMINI_CLI_TRUST_WORKSPACE}"
                   }
                 }
               },

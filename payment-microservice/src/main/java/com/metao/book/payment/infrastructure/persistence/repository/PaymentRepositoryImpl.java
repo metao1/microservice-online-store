@@ -4,10 +4,13 @@ import com.metao.book.payment.domain.model.aggregate.PaymentAggregate;
 import com.metao.book.payment.domain.model.valueobject.OrderId;
 import com.metao.book.payment.domain.model.valueobject.PaymentId;
 import com.metao.book.payment.domain.model.valueobject.PaymentStatus;
+import com.metao.book.payment.application.port.PaymentCreationLockPort;
+import com.metao.book.payment.application.port.PaymentUpdateLockPort;
 import com.metao.book.payment.domain.repository.PaymentRepository;
 import com.metao.book.payment.infrastructure.persistence.entity.PaymentEntity;
 import com.metao.book.payment.infrastructure.persistence.mapper.PaymentEntityMapper;
-import com.metao.book.shared.application.persistence.OffsetBasedPageRequest;
+import com.metao.book.shared.spring.persistence.OffsetBasedPageRequest;
+import com.metao.book.shared.architecture.OutboundAdapter;
 import io.micrometer.observation.annotation.Observed;
 import java.util.List;
 import java.util.Optional;
@@ -19,9 +22,10 @@ import org.springframework.stereotype.Repository;
  * Infrastructure implementation of PaymentRepository
  */
 @Repository
+@OutboundAdapter
 @RequiredArgsConstructor
 @Observed(name = "payment.persistence.repository", contextualName = "payment-repository")
-public class PaymentRepositoryImpl implements PaymentRepository {
+public class PaymentRepositoryImpl implements PaymentRepository, PaymentCreationLockPort, PaymentUpdateLockPort {
 
     private final JpaPaymentRepository jpaPaymentRepository;
     private final PaymentEntityMapper paymentEntityMapper;
@@ -42,20 +46,24 @@ public class PaymentRepositoryImpl implements PaymentRepository {
         return payment;
     }
 
-    @Override
     public void lockOrderForCreation(OrderId orderId) {
         jpaPaymentRepository.lockOrderForCreation(orderId.value());
     }
 
     @Override
+    public void lock(OrderId orderId) {
+        lockOrderForCreation(orderId);
+    }
+
+    @Override
     public Optional<PaymentAggregate> findById(PaymentId paymentId) {
-        return jpaPaymentRepository.findById(paymentId)
+        return jpaPaymentRepository.findById(paymentId.value())
             .map(paymentEntityMapper::toDomain);
     }
 
     @Override
     public Optional<PaymentAggregate> findByIdForUpdate(PaymentId paymentId) {
-        return jpaPaymentRepository.findByIdForUpdate(paymentId)
+        return jpaPaymentRepository.findByIdForUpdate(paymentId.value())
             .map(paymentEntityMapper::toDomain);
     }
 
@@ -100,7 +108,7 @@ public class PaymentRepositoryImpl implements PaymentRepository {
 
     @Override
     public void delete(PaymentAggregate payment) {
-        jpaPaymentRepository.deleteById(payment.getId());
+        jpaPaymentRepository.deleteById(payment.getId().value());
     }
 
     @Override

@@ -1,4 +1,4 @@
-package com.metao.book.product.infrastructure.factory.handler;
+package com.metao.book.product.infrastructure.messaging.kafka.consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -9,12 +9,12 @@ import com.metao.book.product.domain.model.valueobject.ProductDescription;
 import com.metao.book.product.infrastructure.persistence.entity.ProductEntity;
 import com.metao.book.product.infrastructure.persistence.repository.JpaProductRepository;
 import com.metao.book.shared.ProductUpdatedEvent;
-import com.metao.kafka.KafkaEventHandler;
-import com.metao.shared.test.KafkaContainer;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.book.shared.domain.product.Quantity;
+import com.metao.kafka.KafkaEventHandler;
+import com.metao.shared.test.KafkaContainerBase;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
@@ -33,7 +33,7 @@ import org.springframework.test.context.TestPropertySource;
 @ActiveProfiles("test")
 @TestPropertySource(properties = "kafka.enabled=true")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-class ProductUpdatedEventConsumptionIT extends KafkaContainer {
+class ProductUpdatedEventConsumptionIT extends KafkaContainerBase {
 
     private static final String INVENTORY_REDUCTION_MARKER = "INVENTORY_REDUCTION";
 
@@ -77,14 +77,16 @@ class ProductUpdatedEventConsumptionIT extends KafkaContainer {
             return null;
         });
 
-        await().atMost(Duration.ofSeconds(20)).pollInterval(Duration.ofMillis(300)).untilAsserted(() ->
-            assertThat(getCurrentVolume(sku)).isEqualByComparingTo(BigDecimal.valueOf(5))
-        );
+        await().atMost(Duration.ofSeconds(20))
+            .pollInterval(Duration.ofMillis(300))
+            .untilAsserted(() ->
+                assertThat(getCurrentVolume(sku)).isEqualByComparingTo(BigDecimal.valueOf(5))
+            );
     }
 
     private void createProduct(String sku, int volume) {
         ProductSku productSku = ProductSku.of(sku);
-        jpaProductRepository.deleteById(productSku);
+        jpaProductRepository.deleteById(productSku.value());
 
         ProductEntity entity = new ProductEntity(
             productSku,
@@ -100,7 +102,7 @@ class ProductUpdatedEventConsumptionIT extends KafkaContainer {
     }
 
     private BigDecimal getCurrentVolume(String sku) {
-        return jpaProductRepository.findById(ProductSku.of(sku))
+        return jpaProductRepository.findById(sku)
             .orElseThrow()
             .getVolume()
             .value();

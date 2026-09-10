@@ -1,11 +1,13 @@
 package com.metao.book.payment.domain.model.valueobject;
 
+import com.metao.book.shared.architecture.DomainComponent;
 import lombok.Getter;
 
 /**
  * Payment status enumeration
  */
 @Getter
+@DomainComponent
 public enum PaymentStatus {
     PENDING("Payment is pending processing"),
     SUCCESSFUL("Payment completed successfully"),
@@ -32,5 +34,13 @@ public enum PaymentStatus {
 
     public boolean canBeCancelled() {
         return this == PENDING;
+    }
+
+    public boolean canTransitionTo(PaymentStatus target) {
+        return switch (this) {
+            case PENDING -> target == SUCCESSFUL || target == FAILED || target == CANCELLED;
+            case FAILED -> target == PENDING;
+            case SUCCESSFUL, CANCELLED -> false;
+        };
     }
 }

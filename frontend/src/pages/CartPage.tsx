@@ -3,7 +3,7 @@ import { useCartContext } from '@context/CartContext';
 import { useAuthContext } from '@context/AuthContext';
 import { useCheckout } from '@hooks/useCheckout';
 import { Link, useNavigate } from 'react-router-dom';
-import { PaymentMethodType } from '@types';
+import { createMoney, PaymentMethodType } from '@types';
 import './CartPage.css';
 
 const CartPage: FC = () => {
@@ -30,7 +30,6 @@ const CartPage: FC = () => {
           sku: cartItem.sku,
           title: cartItem.title,
           price: cartItem.price,
-          currency: cartItem.currency,
           imageUrl: cartItem.imageUrl,
           description: cartItem.description,
           rating: cartItem.rating,
@@ -50,12 +49,11 @@ const CartPage: FC = () => {
     }
   };
 
-  const subtotal = getCartTotal() || 0;
-  const vatAmount = subtotal * vatRate;
-  const delivery: number = 0; // Free delivery
-  const total = subtotal + vatAmount + delivery;
+  const subtotal = getCartTotal();
+  const vatAmount = subtotal.multiply(vatRate);
+  const delivery = createMoney(0, subtotal.currency); // Free delivery
+  const total = createMoney(subtotal.amount + vatAmount.amount + delivery.amount, subtotal.currency);
   const totalItems = cart.items.reduce((acc, item) => acc + item.cartQuantity, 0);
-  const currency = cart.items.length > 0 ? cart.items[0].currency : 'EUR';
 
   const handleCheckout = async () => {
     if (!user) {
@@ -63,11 +61,10 @@ const CartPage: FC = () => {
       return;
     }
 
-    await processCheckout(user.id, {
+    await processCheckout({
       payment: {
         method: paymentMethod,
         details: paymentDetails,
-        currency,
         amount: total
       },
       onSuccess: () => {
@@ -110,10 +107,12 @@ const CartPage: FC = () => {
 
             <div className="cart-items-list">
               {cart.items.map((item) => {
-                const originalPrice = item.price * 1.25; // assume 20% off for visual parity
-                const discountPercentage = Math.round(((originalPrice - item.price) / originalPrice) * 100);
+                const originalPrice = item.price.multiply(1.25); // assume 20% off for visual parity
+                const discountPercentage = Math.round(
+                  ((originalPrice.amount - item.price.amount) / originalPrice.amount) * 100,
+                );
                 const maxAllowed = Math.max(1, item.quantity || 99);
-                const lineTotal = item.price * item.cartQuantity;
+                const lineTotal = item.price.multiply(item.cartQuantity);
 
                 return (
                   <div key={item.sku} className="cart-item">
@@ -125,13 +124,13 @@ const CartPage: FC = () => {
                         <p className="item-brand">ModernStore</p>
                         <p className="item-title">{item.title}</p>
                         <div className="item-price">
-                          <span className="current-price">{item.price.toFixed(2)} {item.currency}</span>
-                          <span className="original-price">{originalPrice.toFixed(2)} {item.currency}</span>
+                          <span className="current-price">{item.price.format()}</span>
+                          <span className="original-price">{originalPrice.format()}</span>
                           <span className="discount">-{discountPercentage}%</span>
                         </div>
                         <div className="item-line-total">
                           <span className="line-total-label">Line total</span>
-                          <span className="line-total-value">{lineTotal.toFixed(2)} {item.currency}</span>
+                          <span className="line-total-value">{lineTotal.format()}</span>
                         </div>
                         <div className="item-meta">
                           <span>Colour: black</span>
@@ -230,19 +229,19 @@ const CartPage: FC = () => {
               <div className="price-breakdown">
                 <div className="price-row">
                   <span>Subtotal (excl. VAT)</span>
-                  <span>{subtotal.toFixed(2)} {currency}</span>
+                  <span>{subtotal.format()}</span>
                 </div>
                 <div className="price-row">
                   <span>VAT ({Math.round(vatRate * 100)}%)</span>
-                  <span>{vatAmount.toFixed(2)} {currency}</span>
+                  <span>{vatAmount.format()}</span>
                 </div>
                 <div className="price-row">
                   <span>Delivery</span>
-                  <span>{delivery.toFixed(2)} {currency}</span>
+                  <span>{delivery.format()}</span>
                 </div>
                 <div className="price-row total-row">
                   <span>Total <span className="vat-note">VAT included</span></span>
-                  <span className="total-price">{total.toFixed(2)} {currency}</span>
+                  <span className="total-price">{total.format()}</span>
                 </div>
               </div>
 

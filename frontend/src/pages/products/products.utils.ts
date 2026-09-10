@@ -17,7 +17,7 @@ const getFacet = (product: Product) => {
   const shoeWidth = ['narrow', 'regular', 'wide'][seed % 3];
   const toe = ['round', 'pointed'][seed % 2];
   const sustainable = seed % 7 === 0;
-  const premium = (product.isFeatured ?? false) || product.price >= 100 || seed % 5 === 0;
+  const premium = (product.isFeatured ?? false) || product.price.amount >= 100 || seed % 5 === 0;
 
   return { material, heel, shoeWidth, toe, sustainable, premium };
 };
@@ -45,9 +45,10 @@ export const formatCategoryLabel = (category: string) =>
 export const buildSegmentTabsForCategory = (categoryName: string): SegmentTab[] => {
   const normalized = categoryName.trim().toLowerCase();
   if (normalized in CATEGORY_SEGMENT_PRESETS) {
-    return CATEGORY_SEGMENT_PRESETS[normalized];
+    return [{ id: 'all', name: 'All', terms: [] }, ...CATEGORY_SEGMENT_PRESETS[normalized]];
   }
   return [
+    { id: 'all', name: 'All', terms: [] },
     { id: `${normalized || 'general'}-popular`, name: 'Popular', terms: ['popular', 'featured', 'top'] },
     { id: `${normalized || 'general'}-new`, name: 'New', terms: ['new', 'latest', 'recent'] },
     { id: `${normalized || 'general'}-essentials`, name: 'Essentials', terms: ['essential', 'classic', 'core'] },
@@ -89,8 +90,8 @@ export const sortProducts = (products: Product[], sortBy: ProductSortBy, sortOrd
         rightValue = right.title.toLowerCase();
         break;
       case 'price':
-        leftValue = left.price;
-        rightValue = right.price;
+        leftValue = left.price.amount;
+        rightValue = right.price.amount;
         break;
       case 'rating':
         leftValue = left.rating || 0;
@@ -131,8 +132,8 @@ export const filterProducts = (products: Product[], selectedFilters: SelectedFil
     if (selectedFilters.price) {
       const range = parsePriceRange(selectedFilters.price);
       if (range) {
-        if (product.price < range.min) return false;
-        if (range.max != null && product.price > range.max) return false;
+        if (product.price.amount < range.min) return false;
+        if (range.max != null && product.price.amount > range.max) return false;
       }
     }
 
@@ -162,7 +163,7 @@ export const applySegmentFilter = (
   toSearchText: (product: Product) => string
 ): Product[] => {
   const activeTab = segmentTabs.find((tab) => tab.id === activeSegment);
-  if (!activeTab) {
+  if (!activeTab || activeTab.id === 'all') {
     return products;
   }
 
@@ -173,4 +174,3 @@ export const applySegmentFilter = (
 
   return segmentMatches.length > 0 ? segmentMatches : products;
 };
-

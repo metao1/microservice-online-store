@@ -1,4 +1,4 @@
-package com.metao.book.order.infrastructure.listener;
+package com.metao.book.order.infrastructure.messaging.kafka.consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -20,6 +20,7 @@ class PaymentEventListenerMetricsTest {
         var registry = new SimpleMeterRegistry();
 
         var event = OrderPaymentUpdatedEvent.newBuilder()
+            .setEventId("event-1")
             .setOrderId("order-1")
             .setPaymentId("payment-1")
             .setStatus(Status.SUCCESSFUL)

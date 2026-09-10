@@ -32,9 +32,9 @@ const ProductCard: FC<ProductCardProps> = ({
   
   // Enhanced product data with proper variant handling
   const productData = useMemo(() => {
-    const hasDiscount = product.originalPrice && product.originalPrice > product.price;
+    const hasDiscount = product.originalPrice && product.originalPrice.amount > product.price.amount;
     const discountPercentage = hasDiscount 
-      ? Math.round(((product.originalPrice! - product.price) / product.originalPrice!) * 100) 
+      ? Math.round(((product.originalPrice!.amount - product.price.amount) / product.originalPrice!.amount) * 100)
       : 0;
     
     // Get color variants
@@ -337,11 +337,11 @@ const ProductCard: FC<ProductCardProps> = ({
           <div className="price-container">
             {product.originalPrice && productData.hasDiscount && (
               <span className="original-price" aria-label="Original price">
-                {product.currency} {product.originalPrice.toFixed(2)}
+                {product.originalPrice.format()}
               </span>
             )}
             <span className="current-price" aria-label="Current price">
-              {product.currency} {product.price.toFixed(2)}
+              {product.price.format()}
             </span>
           </div>
         </div>

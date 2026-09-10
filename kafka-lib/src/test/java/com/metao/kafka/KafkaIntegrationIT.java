@@ -3,7 +3,7 @@ package com.metao.kafka;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-import com.metao.shared.test.KafkaContainer;
+import com.metao.shared.test.KafkaContainerBase;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
 import java.time.Duration;
 import java.util.HashMap;
@@ -41,7 +41,7 @@ import org.springframework.test.context.TestPropertySource;
 @SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = {
     KafkaEventHandler.class, KafkaEventConfiguration.class
 })
-class KafkaIntegrationIT extends KafkaContainer {
+class KafkaIntegrationIT extends KafkaContainerBase {
 
     @Autowired
     KafkaEventHandler eventHandler;

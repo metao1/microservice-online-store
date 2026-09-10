@@ -1,12 +1,14 @@
 package com.metao.book.order.domain.model.entity;
 
 import com.metao.book.shared.domain.financial.Money;
+import com.metao.book.shared.architecture.DomainComponent;
 import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.book.shared.domain.product.Quantity;
 import lombok.Getter;
 
 @Getter
+@DomainComponent
 public class OrderItem {
     private final ProductSku productSku;
     private final Money unitPrice;

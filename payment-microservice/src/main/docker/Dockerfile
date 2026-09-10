@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.6
 ## Build stage
-FROM gradle:9-jdk21 AS build
+FROM gradle:9-jdk25 AS build
 
 WORKDIR /workspace
 ENV GRADLE_USER_HOME=/home/gradle/.gradle
@@ -11,6 +11,8 @@ COPY shared-kernel/build.gradle /workspace/shared-kernel/build.gradle
 COPY shared-kernel/src/main /workspace/shared-kernel/src/main
 COPY kafka-lib/build.gradle /workspace/kafka-lib/build.gradle
 COPY kafka-lib/src/main /workspace/kafka-lib/src/main
+COPY outbox-messaging/src/main /workspace/outbox-messaging/src/main
+COPY outbox-messaging/build.gradle /workspace/outbox-messaging/build.gradle
 COPY payment-microservice/build.gradle /workspace/payment-microservice/build.gradle
 COPY payment-microservice/src/main /workspace/payment-microservice/src/main
 
@@ -18,11 +20,13 @@ COPY payment-microservice/src/main /workspace/payment-microservice/src/main
 RUN --mount=type=cache,id=bookstore-gradle-user-home,target=/home/gradle/.gradle,sharing=locked \
     --mount=type=cache,id=bookstore-payment-gradle-project-cache,target=/workspace/.gradle,sharing=shared \
     gradle :payment-microservice:bootJar -x test --no-daemon --configuration-cache --build-cache --max-workers=2 --console=plain
-# Extract layers for slimmer runtime image
-RUN java -Djarmode=layertools -jar payment-microservice/build/libs/payment-microservice.jar extract --destination /workspace/layers
+
+RUN java -Djarmode=tools \
+    -jar payment-microservice/build/libs/payment-microservice.jar \
+    extract --layers --destination /workspace/layers
 
 ## Runtime stage
-FROM gcr.io/distroless/java21-debian12 AS payment-microservice
+FROM gcr.io/distroless/java25-debian13 AS payment-microservice
 
 # Set working directory
 WORKDIR /app
@@ -32,4 +36,4 @@ COPY --from=build /workspace/layers/dependencies/ /workspace/layers/snapshot-dep
 
 ENV JAVA_TOOL_OPTIONS="-XX:+UseContainerSupport -Xms128m -Xmx512m -XX:MaxMetaspaceSize=192m -XX:MaxDirectMemorySize=128m -XX:+ExitOnOutOfMemoryError"
 
-ENTRYPOINT ["java","org.springframework.boot.loader.launch.JarLauncher"]
+ENTRYPOINT ["java", "-jar", "payment-microservice.jar"]

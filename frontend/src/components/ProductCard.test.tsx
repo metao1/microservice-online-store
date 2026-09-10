@@ -3,19 +3,19 @@ import { BrowserRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 import ProductCard from './ProductCard';
 import { CartProvider } from '../context';
-import { Product } from '../types';
+import { createMoney, Product, zeroMoney } from '../types';
 
 // Mock the cart context
 const mockAddToCart = vi.fn();
 const mockCartContext = {
-  cart: { items: [], total: 0 },
+  cart: { items: [], total: zeroMoney() },
   loading: false,
   error: null,
   addToCart: mockAddToCart,
   removeFromCart: vi.fn(),
   updateCartItem: vi.fn(),
   clearCart: vi.fn(),
-  getCartTotal: vi.fn(() => 0),
+  getCartTotal: vi.fn(() => zeroMoney()),
   getCartItemCount: vi.fn(() => 0),
 };
 
@@ -37,8 +37,7 @@ vi.mock('react-router-dom', async () => {
 const mockProduct: Product = {
   sku: 'TEST-001',
   title: 'Test Product Title',
-  price: 99.99,
-  currency: '$',
+  price: createMoney(99.99, 'USD'),
   imageUrl: 'https://example.com/test-image.jpg',
   description: 'Test product description',
   rating: 4.5,
@@ -50,7 +49,7 @@ const mockProduct: Product = {
 const renderProductCard = (product: Product = mockProduct, props = {}) => {
   return render(
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <CartProvider userId="test-user">
+      <CartProvider>
         <ProductCard product={product} {...props} />
       </CartProvider>
     </BrowserRouter>
@@ -68,7 +67,7 @@ describe('ProductCard Component', () => {
       
       expect(screen.getByTestId(`product-card-${mockProduct.sku}`)).toBeInTheDocument();
       expect(screen.getByText(mockProduct.title)).toBeInTheDocument();
-      expect(screen.getByText(`${mockProduct.currency} ${mockProduct.price.toFixed(2)}`)).toBeInTheDocument();
+      expect(screen.getByText(mockProduct.price.format())).toBeInTheDocument();
       expect(screen.getByAltText(mockProduct.title)).toBeInTheDocument();
     });
 

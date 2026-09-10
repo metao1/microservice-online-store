@@ -1,0 +1,16 @@
+plugins {
+  id 'java-library'
+}
+
+dependencies {
+  api project(':shared-kernel')
+  implementation 'org.springframework.boot:spring-boot-autoconfigure'
+  implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+  implementation 'org.springframework.kafka:spring-kafka'
+  implementation 'org.slf4j:slf4j-api'
+
+  testImplementation 'org.springframework.boot:spring-boot-starter-test'
+  testImplementation 'org.springframework.boot:spring-boot-starter-web'
+  testImplementation "org.testcontainers:testcontainers-jdbc:${testcontainersVersion}"
+  testRuntimeOnly 'org.postgresql:postgresql'
+}

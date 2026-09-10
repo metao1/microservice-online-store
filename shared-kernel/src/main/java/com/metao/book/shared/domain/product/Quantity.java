@@ -1,28 +1,33 @@
 package com.metao.book.shared.domain.product;
 
 import com.metao.book.shared.domain.base.ValueObject;
-import jakarta.persistence.Embeddable;
-import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.Objects;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 /**
  * Quantity value object used across services (inventory/order).
  * Allows zero but disallows negative amounts.
  */
-@Embeddable
-public record Quantity(BigDecimal value) implements ValueObject {
+@NoArgsConstructor
+public class Quantity implements ValueObject {
+
+    private BigDecimal value;
 
     public Quantity(@NonNull BigDecimal value) {
         if (value.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Quantity must be positive");
+            throw new IllegalArgumentException("Quantity must not be negative");
         }
         this.value = value;
     }
 
     public static Quantity of(BigDecimal value) {
         return new Quantity(value);
+    }
+
+    public BigDecimal value() {
+        return value;
     }
 
     public Quantity add(@NonNull Quantity other) {
@@ -37,7 +42,22 @@ public record Quantity(BigDecimal value) implements ValueObject {
         return Quantity.of(newValue);
     }
 
-    @NotNull
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof Quantity that)) {
+            return false;
+        }
+        return value.compareTo(that.value) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return value.stripTrailingZeros().hashCode();
+    }
+
     @Override
     public String toString() {
         return Objects.toString(value);

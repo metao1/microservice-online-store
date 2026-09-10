@@ -1,11 +1,13 @@
 package com.metao.book.product.domain.model.valueobject;
 
 import com.metao.book.shared.domain.base.ValueObject;
+import com.metao.book.shared.architecture.DomainComponent;
 import lombok.NonNull;
 
 /**
  * Category name value object
  */
+@DomainComponent
 public record CategoryName(String value) implements ValueObject {
 
     public CategoryName(@NonNull String value) {

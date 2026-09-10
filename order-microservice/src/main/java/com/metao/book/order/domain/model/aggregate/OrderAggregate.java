@@ -10,6 +10,7 @@ import com.metao.book.order.domain.model.valueobject.OrderId;
 import com.metao.book.order.domain.model.valueobject.OrderStatus;
 import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.shared.domain.base.AggregateRoot;
+import com.metao.book.shared.architecture.DomainComponent;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.financial.VAT;
 import com.metao.book.shared.domain.product.ProductSku;
@@ -25,6 +26,7 @@ import lombok.Getter;
 
 @Getter
 @EqualsAndHashCode(of = {"id"}, callSuper = true)
+@DomainComponent
 public class OrderAggregate extends AggregateRoot<OrderId> {
     /**
      * Default VAT rate used when no explicit rate is supplied. Zero-rated so historical
@@ -48,7 +50,7 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
     }
 
     public OrderAggregate(OrderId id, UserId userId, VAT vat) {
-        this(id, userId, new ArrayList<>(), OrderStatus.CREATED, Instant.now(), Instant.now(), vat);
+        this(id, userId, new ArrayList<>(), OrderStatus.PENDING_PAYMENT, Instant.now(), Instant.now(), vat);
     }
 
     private OrderAggregate(
@@ -115,6 +117,25 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
         return new OrderAggregate(id, userId, new ArrayList<>(items), status, createdAt, updatedAt, vat);
     }
 
+    public static OrderAggregate reconstitute(
+        OrderId id,
+        UserId userId,
+        List<OrderItem> items,
+        OrderStatus status,
+        Instant createdAt,
+        Instant updatedAt,
+        VAT vat,
+        Money subtotal,
+        Money tax,
+        Money total
+    ) {
+        OrderAggregate order = new OrderAggregate(id, userId, new ArrayList<>(items), status, createdAt, updatedAt, vat);
+        order.subtotal = subtotal;
+        order.tax = tax;
+        order.total = total;
+        return order;
+    }
+
     public void addItem(
         ProductSku productSku,
         ProductTitle productTitle,
@@ -169,11 +190,11 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
         addDomainEvent(new DomainOrderStatusChangedEvent(id, oldStatus, newStatus));
     }
 
-    public synchronized void updateItemQuantity() {
+    public synchronized void requestInventoryReduction() {
         validateMutableOrder();
         Instant occurredOn = Instant.now();
         items.forEach(item -> {
-            addDomainEvent(new DomainInventoryReductionRequestedEvent(occurredOn, item.getProductSku(), item.getQuantity()));
+            addDomainEvent(new DomainInventoryReductionRequestedEvent(occurredOn, id, item.getProductSku(), item.getQuantity()));
         });
         updatedAt = occurredOn;
         recomputeTotals();
@@ -223,20 +244,8 @@ public class OrderAggregate extends AggregateRoot<OrderId> {
     }
 
     private synchronized void validateStatusTransition(OrderStatus newStatus) {
-        if (status == OrderStatus.CREATED && newStatus != OrderStatus.PAID && newStatus != OrderStatus.CANCELLED) {
-            throw new OrderStateTransitionNotAllowed("Cannot transition from CREATED to " + newStatus);
-        }
-        if (status == OrderStatus.PAID && newStatus != OrderStatus.CANCELLED) {
-            throw new OrderStateTransitionNotAllowed("Cannot transition from PAID to " + newStatus);
-        }
-        if (status != OrderStatus.SHIPPED && newStatus == OrderStatus.DELIVERED) {
-            throw new OrderStateTransitionNotAllowed("Cannot transition from " + status + " to DELIVERED");
-        }
-        if (status == OrderStatus.DELIVERED) {
-            throw new OrderStateTransitionNotAllowed("Cannot change status of a DELIVERED order");
-        }
-        if (status == OrderStatus.CANCELLED) {
-            throw new OrderStateTransitionNotAllowed("Cannot change status of a CANCELLED order");
+        if (!status.canTransitionTo(newStatus)) {
+            throw new OrderStateTransitionNotAllowed("Cannot transition from " + status + " to " + newStatus);
         }
     }
 

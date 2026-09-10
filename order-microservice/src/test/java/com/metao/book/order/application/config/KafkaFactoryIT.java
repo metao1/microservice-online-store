@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 import com.metao.book.shared.OrderCreatedEvent;
-import com.metao.shared.test.KafkaContainer;
+import com.metao.shared.test.KafkaContainerBase;
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.IntStream;
@@ -31,7 +31,7 @@ import org.springframework.kafka.test.utils.ContainerTestUtils;
 
 @Slf4j
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)
-class KafkaFactoryIT extends KafkaContainer {
+class KafkaFactoryIT extends KafkaContainerBase {
 
     private final CountDownLatch latch = new CountDownLatch(10);
 

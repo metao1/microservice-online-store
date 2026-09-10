@@ -1,12 +1,16 @@
 package com.metao.book.order.infrastructure.persistence.entity;
 
-import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.book.shared.domain.product.Quantity;
+import com.metao.book.shared.spring.persistence.MoneyEmbeddable;
+import com.metao.book.shared.spring.persistence.ProductSkuAttributeConverter;
+import com.metao.book.shared.spring.persistence.ProductTitleAttributeConverter;
+import com.metao.book.shared.spring.persistence.QuantityAttributeConverter;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -31,22 +35,16 @@ public class OrderItemEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Embedded
-    @AttributeOverrides({
-        @AttributeOverride(name = "value", column = @Column(name = "product_id"))
-    })
+    @Convert(converter = ProductSkuAttributeConverter.class)
+    @Column(name = "product_id")
     private ProductSku productSku;
 
-    @Embedded
-    @AttributeOverrides({
-        @AttributeOverride(name = "value", column = @Column(name = "product_title"))
-    })
+    @Convert(converter = ProductTitleAttributeConverter.class)
+    @Column(name = "product_title")
     private ProductTitle productTitle;
 
-    @Embedded
-    @AttributeOverrides({
-        @AttributeOverride(name = "value", column = @Column(name = "quantity"))
-    })
+    @Convert(converter = QuantityAttributeConverter.class)
+    @Column(name = "quantity")
     private Quantity quantity;
 
     @Embedded
@@ -54,7 +52,7 @@ public class OrderItemEntity {
         @AttributeOverride(name = "amount", column = @Column(name = "unit_price")),
         @AttributeOverride(name = "currency", column = @Column(name = "currency"))
     })
-    private Money unitPrice;
+    private MoneyEmbeddable unitPrice;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")

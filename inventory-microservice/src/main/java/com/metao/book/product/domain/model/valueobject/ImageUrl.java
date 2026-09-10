@@ -1,7 +1,7 @@
 package com.metao.book.product.domain.model.valueobject;
 
 import com.metao.book.shared.domain.base.ValueObject;
-import jakarta.persistence.Embeddable;
+import com.metao.book.shared.architecture.DomainComponent;
 import java.util.regex.Pattern;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
@@ -13,10 +13,10 @@ import jakarta.validation.constraints.NotNull;
 /**
  * Product image URL value object
  */
-@Embeddable
 @Getter
 @EqualsAndHashCode
 @NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
+@DomainComponent
 public class ImageUrl implements ValueObject {
 
     private static final Pattern URL_PATTERN = Pattern.compile(

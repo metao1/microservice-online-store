@@ -1,11 +1,7 @@
 package com.metao.book.shared.domain.base;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
-import jakarta.validation.constraints.NotNull;
 import java.util.Objects;
 import java.util.UUID;
-import org.springframework.lang.NonNull;
 
 /**
  * Base class for value objects that are used as identifiers for {@link IdentifiableDomainObject}s. These are
@@ -15,16 +11,14 @@ public abstract class DomainObjectId implements ValueObject {
 
     private final String uuid;
 
-    @JsonCreator
-    protected DomainObjectId(@NonNull String uuid) {
+    protected DomainObjectId(String uuid) {
         this.uuid = Objects.requireNonNull(uuid, "uuid must not be null");
     }
 
     /**
      * Creates a new, random instance of the given {@code idClass}.
      */
-    @NotNull
-    public static <T extends DomainObjectId> T randomId(@NotNull Class<T> idClass) {
+    public static <T extends DomainObjectId> T randomId(Class<T> idClass) {
         try {
             return idClass.getConstructor(String.class).newInstance(UUID.randomUUID().toString());
         } catch (Exception ex) {
@@ -35,8 +29,6 @@ public abstract class DomainObjectId implements ValueObject {
     /**
      * Returns the ID as a UUID string.
      */
-    @JsonValue
-    @NonNull
     public String toUUID() {
         return uuid;
     }

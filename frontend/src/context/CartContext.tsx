@@ -1,5 +1,5 @@
 import { createContext, useContext, ReactNode, useCallback } from 'react';
-import { Cart, Product } from '@types';
+import { Cart, Money, Product } from '@types';
 import { useCart as useCartHook } from '../hooks/useCart';
 
 interface CartContextType {
@@ -9,8 +9,8 @@ interface CartContextType {
   addToCart: (product: Product, quantity: number) => Promise<void>;
   removeFromCart: (sku: string) => Promise<void>;
   updateCartItem: (product: Product, quantity: number) => Promise<void>;
-  clearCart: () => void;
-  getCartTotal: () => number;
+  clearCart: () => Promise<void>;
+  getCartTotal: () => Money;
   getCartItemCount: () => number;
 }
 
@@ -18,17 +18,16 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 interface CartProviderProps {
   children: ReactNode;
-  userId: string;
 }
 
-export const CartProvider: React.FC<CartProviderProps> = ({ children, userId }) => {
-  const { cart, loading, error, addToCart: hookAddToCart, removeFromCart: hookRemoveFromCart, updateCartItem: hookUpdateCartItem, getCartTotal } = useCartHook(userId);
+export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
+  const { cart, loading, error, addToCart: hookAddToCart, removeFromCart: hookRemoveFromCart, updateCartItem: hookUpdateCartItem, clearCart: hookClearCart, getCartTotal } = useCartHook();
 
   const addToCart = useCallback(
     async (product: Product, quantity: number) => {
       try {
         console.log('CartContext: Adding product to cart:', product.sku);
-        await hookAddToCart(product.sku, product.title, quantity, product.price, product.currency);
+        await hookAddToCart(product.sku, product.title, quantity, product.price);
         console.log('CartContext: Product added successfully');
         console.log('CartContext: Current cart after add:', cart);
       } catch (error) {
@@ -49,18 +48,14 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children, userId }) 
 
   const updateCartItem = useCallback(
     async (product: Product, quantity: number) => {
-      await hookUpdateCartItem(product.sku, quantity, product.price, product.currency);
+      await hookUpdateCartItem(product.sku, quantity, product.price);
     },
     [hookUpdateCartItem]
   );
 
-  const clearCart = useCallback(() => {
-    if (cart.items && Array.isArray(cart.items)) {
-      cart.items.forEach((item) => {
-        hookRemoveFromCart(item.sku).catch(err => console.error('Error removing item:', err));
-      });
-    }
-  }, [cart.items, hookRemoveFromCart]);
+  const clearCart = useCallback(async () => {
+    await hookClearCart();
+  }, [hookClearCart]);
 
   const getCartItemCount = useCallback(() => {
     return (cart.items || []).reduce((count, item) => count + item.cartQuantity, 0);

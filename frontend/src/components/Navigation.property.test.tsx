@@ -9,7 +9,7 @@ import * as fc from 'fast-check';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import Navigation from './Navigation';
 import {AuthProvider, CartProvider} from '../context';
-import {Cart, CartItem, User} from '../types';
+import {Cart, CartItem, createMoney, User} from '../types';
 import {useCart} from '../hooks';
 import {apiClient} from '../services/api';
 
@@ -36,8 +36,7 @@ const mockUser: User = {
 const createMockCartItem = (sku: string, quantity: number): CartItem => ({
   sku,
   title: `Product ${sku}`,
-  price: 10.99,
-  currency: 'EUR',
+  price: createMoney(10.99, 'EUR'),
   imageUrl: `https://example.com/image-${sku}.jpg`,
   description: `Description for product ${sku}`,
   inStock: true,
@@ -58,17 +57,18 @@ const createMockCart = (totalItems: number): Cart => {
 
   return {
     items,
-    total: items.reduce((sum, item) => sum + (item.price * item.cartQuantity), 0)
+    total: createMoney(
+      items.reduce((sum, item) => sum + item.price.multiply(item.cartQuantity).amount, 0),
+      'EUR',
+    ),
   };
 };
 
 const TestWrapper: React.FC<{
   children: React.ReactNode;
-  userId?: string;
   cartItemCount?: number;
 }> = ({
   children,
-  userId = mockUser.id,
   cartItemCount = 0
 }) => {
     const mockCart = createMockCart(cartItemCount);
@@ -87,7 +87,7 @@ const TestWrapper: React.FC<{
     return (
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AuthProvider initialUser={mockUser}>
-          <CartProvider userId={userId}>
+          <CartProvider>
             {children}
           </CartProvider>
         </AuthProvider>

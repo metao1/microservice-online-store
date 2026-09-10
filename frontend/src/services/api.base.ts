@@ -1,4 +1,4 @@
-import { OrderStatus, Payment, PaymentMethodType, PaymentStatistics, Product } from '@types';
+import { createMoney, createMoneyFrom, Money, OrderStatus, Payment, PaymentMethodType, PaymentStatistics, Product } from '@types';
 
 const KNOWN_ORDER_STATUSES = new Set<OrderStatus>([
   'CREATED',
@@ -81,7 +81,7 @@ export abstract class BaseApiClient {
   protected generateMockVariants(product: Product, index: number): {
     variants: any[];
     brand: string;
-    originalPrice?: number;
+    originalPrice?: Money;
     isNew?: boolean;
     isFeatured?: boolean;
     isSale?: boolean;
@@ -107,7 +107,7 @@ export abstract class BaseApiClient {
           value: color.value,
           hexColor: color.hexColor,
           inStock: Math.random() > 0.2,
-          priceModifier: 0,
+          priceModifier: createMoney(0, product.price.currency),
         }))
       : [];
     const sizeVariants = hasSize
@@ -117,14 +117,18 @@ export abstract class BaseApiClient {
           name: size,
           value: size,
           inStock: Math.random() > 0.3,
-          priceModifier: size === 'XXL' ? 5 : 0,
+          priceModifier: createMoney(size === 'XXL' ? 5 : 0, product.price.currency),
         }))
       : [];
     const brands = ['Nike', 'Adidas', 'Puma', 'Reebok', 'Converse', 'New Balance'];
     const brand = brands[index % brands.length];
     const hasDiscount = Math.random() > 0.7;
-    const originalPrice =
-      hasDiscount ? Math.round(product.price * (1.2 + Math.random() * 0.3) * 100) / 100 : undefined;
+    const originalPrice = hasDiscount
+      ? createMoney(
+          Math.round(product.price.amount * (1.2 + Math.random() * 0.3) * 100) / 100,
+          product.price.currency,
+        )
+      : undefined;
     const isNew = Math.random() > 0.8;
     const isFeatured = Math.random() > 0.9;
     const isSale = hasDiscount;
@@ -166,8 +170,7 @@ export abstract class BaseApiClient {
     return {
       paymentId: dto.paymentId || dto.id,
       orderId: dto.orderId,
-      amount: Number(dto.amount) || 0,
-      currency,
+      amount: createMoneyFrom(dto.amount, currency),
       paymentMethodType: (dto.paymentMethodType || dto.paymentMethod || 'CREDIT_CARD') as PaymentMethodType,
       paymentMethodDetails: dto.paymentMethodDetails || dto.details || '',
       status,

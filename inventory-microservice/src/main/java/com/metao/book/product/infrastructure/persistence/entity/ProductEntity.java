@@ -2,17 +2,23 @@ package com.metao.book.product.infrastructure.persistence.entity;
 
 import com.metao.book.product.domain.model.valueobject.ImageUrl;
 import com.metao.book.product.domain.model.valueobject.ProductDescription;
+import com.metao.book.product.infrastructure.persistence.converter.ImageUrlAttributeConverter;
+import com.metao.book.product.infrastructure.persistence.converter.ProductDescriptionAttributeConverter;
 import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.book.shared.domain.product.Quantity;
 import com.metao.book.shared.domain.financial.Money;
+import com.metao.book.shared.spring.persistence.MoneyEmbeddable;
+import com.metao.book.shared.spring.persistence.ProductTitleAttributeConverter;
+import com.metao.book.shared.spring.persistence.QuantityAttributeConverter;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Embedded;
-import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
@@ -36,29 +42,29 @@ import org.hibernate.annotations.BatchSize;
 @Table(name = "product_table")
 public class ProductEntity implements Serializable {
 
-    @EmbeddedId
-    @AttributeOverride(name = "value", column = @Column(name = "sku", nullable = false, unique = true, length = 10))
-    private ProductSku sku;
+    @Id
+    @Column(name = "sku", nullable = false, unique = true, length = 10)
+    private String sku;
 
     @Setter
     @Version
     @Column(name = "version")
     private Long version;
 
-    @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "volume", nullable = false))
+    @Convert(converter = QuantityAttributeConverter.class)
+    @Column(name = "volume", nullable = false)
     private Quantity volume;
 
-    @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "title", nullable = false))
+    @Convert(converter = ProductTitleAttributeConverter.class)
+    @Column(name = "title", nullable = false)
     private ProductTitle title;
 
-    @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "description", columnDefinition = "TEXT"))
+    @Convert(converter = ProductDescriptionAttributeConverter.class)
+    @Column(name = "description", columnDefinition = "TEXT")
     private ProductDescription description;
 
-    @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "image_url", nullable = false))
+    @Convert(converter = ImageUrlAttributeConverter.class)
+    @Column(name = "image_url", nullable = false)
     private ImageUrl imageUrl;
 
     @Embedded
@@ -66,7 +72,7 @@ public class ProductEntity implements Serializable {
         @AttributeOverride(name = "amount", column = @Column(name = "price_value")),
         @AttributeOverride(name = "currency", column = @Column(name = "price_currency"))
     })
-    private Money price;
+    private MoneyEmbeddable price;
 
     @Column(name = "created_time", nullable = false)
     private Instant createdTime;
@@ -93,11 +99,11 @@ public class ProductEntity implements Serializable {
         Instant createdTime,
         Instant updateTime
     ) {
-        this.sku = sku;
+        this.sku = sku.value();
         this.title = title;
         this.description = description;
         this.volume = volume;
-        this.price = price;
+        this.price = MoneyEmbeddable.from(price);
         this.imageUrl = imageUrl;
         this.createdTime = createdTime;
         this.updateTime = updateTime;

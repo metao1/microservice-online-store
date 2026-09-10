@@ -2,50 +2,54 @@ package com.metao.book.product.application.usecase;
 
 import com.metao.book.product.application.port.ProcessedInventoryEventPort;
 import com.metao.book.product.application.service.ProductDomainService;
-import lombok.RequiredArgsConstructor;
+import com.metao.book.shared.architecture.ApplicationService;
+import com.metao.book.shared.architecture.ApplicationUseCase;
+import java.math.BigDecimal;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
+@ApplicationService
+@ApplicationUseCase
 public class HandleProductUpdatedEventUseCase {
-
-    private static final String INVENTORY_REDUCTION_MARKER = "INVENTORY_REDUCTION";
 
     private final ProductDomainService productService;
     private final ProcessedInventoryEventPort processedInventoryEventPort;
 
+    @Autowired
+    public HandleProductUpdatedEventUseCase(
+        ProductDomainService productService,
+        ProcessedInventoryEventPort processedInventoryEventPort
+    ) {
+        this.productService = productService;
+        this.processedInventoryEventPort = processedInventoryEventPort;
+    }
+
     @Transactional
     public void handle(HandleProductUpdatedEventCommand command) {
+        if (!"INVENTORY_REDUCTION".equals(command.description())) {
+            return;
+        }
+
         if (command.eventId() == null || command.eventId().isBlank()) {
-            log.warn("Skipping ProductUpdatedEvent without idempotency key for sku {}", command.sku());
-            return;
+            throw new IllegalArgumentException("Inventory reduction event requires eventId");
         }
-
-        if (!INVENTORY_REDUCTION_MARKER.equals(command.description())) {
-            log.info("Product updated event received for SKU: {}", command.sku());
-            return;
+        if (command.sku() == null || command.sku().isBlank()) {
+            throw new IllegalArgumentException("Inventory reduction event requires sku");
         }
-
-        boolean firstProcessing = processedInventoryEventPort.markProcessed(command.eventId());
-        if (!firstProcessing) {
+        BigDecimal quantity = command.volume();
+        if (quantity == null || quantity.signum() <= 0) {
+            throw new IllegalArgumentException("Inventory reduction event requires positive quantity");
+        }
+        if (!processedInventoryEventPort.markProcessed(command.eventId())) {
             log.info("Inventory reduction event {} already processed, skipping.", command.eventId());
             return;
         }
 
-        boolean reduced = productService.reduceProductVolumeAtomically(command.sku(), command.volume());
-        if (!reduced) {
-            log.debug(
-                "Skipping inventory reduction for sku {} because stock is insufficient (event {}).",
-                command.sku(),
-                command.eventId()
-            );
-            return;
-        }
-
-        log.info("Inventory reduced for sku {} by {} (event {}).",
-            command.sku(), command.volume(), command.eventId());
+        productService.reduceProductVolumeAtomically(command.sku(), quantity);
+        log.info("Product updated event received for SKU: {}", command.sku());
     }
 }

@@ -1,6 +1,11 @@
 /**
  * Product Types
  */
+import { Money } from './money';
+
+export { createMoney, createMoneyFrom, zeroMoney } from './money';
+export type { Money } from './money';
+
 export interface ProductImage {
   id: string;
   url: string;
@@ -16,16 +21,15 @@ export interface ProductVariant {
   value: string;
   hexColor?: string;
   inStock: boolean;
-  priceModifier?: number;
+  priceModifier?: Money;
 }
 
 export interface Product {
   sku: string;
   title: string;
   brand?: string;
-  price: number;
-  originalPrice?: number;
-  currency: string;
+  price: Money;
+  originalPrice?: Money;
   imageUrl: string;
   images?: ProductImage[];
   description: string;
@@ -55,12 +59,12 @@ export interface CartItem extends Product {
    * (OrderItemResponse.totalPrice). Optional because items coming from the
    * shopping cart do not expose a server-computed total.
    */
-  lineTotal?: number;
+  lineTotal?: Money;
 }
 
 export interface Cart {
   items: CartItem[];
-  total: number;
+  total: Money;
 }
 
 /**
@@ -114,15 +118,13 @@ export interface Order {
   userId: string;
   items: CartItem[];
   /** Server-computed gross total (subtotal + VAT) in the order currency. */
-  total: number;
+  total: Money;
   /** Server-computed net total before VAT. Present when the backend returns it. */
-  subtotal?: number;
+  subtotal?: Money;
   /** Server-computed VAT amount. Present when the backend returns it. */
-  tax?: number;
+  tax?: Money;
   /** Integer VAT percentage applied to this order (e.g. 21 for 21%). */
   vatPercentage?: number | null;
-  /** ISO 4217 currency code of the order totals. */
-  currency?: string;
   status: OrderStatus;
   createdAt: string;
   updatedAt?: string;
@@ -160,8 +162,7 @@ export type PaymentStatus =
 export interface Payment {
   paymentId: string;
   orderId: string;
-  amount: number;
-  currency: string;
+  amount: Money;
   paymentMethodType: PaymentMethodType;
   paymentMethodDetails?: string;
   status: PaymentStatus;

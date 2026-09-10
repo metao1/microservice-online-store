@@ -31,6 +31,10 @@ spring:
     baseline-on-migrate: true
     validate-on-migrate: true
     default-schema: bookstore
+app:
+  security:
+    jwt:
+      jwk-set-uri: http://localhost:8080/realms/bookstore/protocol/openid-connect/certs
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%t]){yellow} %clr([%c{1.}]){green} %clr(:){red} %clr(%m){faint}%n"
   level:

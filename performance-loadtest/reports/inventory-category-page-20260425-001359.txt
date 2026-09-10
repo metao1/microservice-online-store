@@ -1,0 +1,19 @@
+Load test summary
+label=inventory-category-page
+source=performance-loadtest/scenarios/bookstore-scenarios.json#inventory-category-page
+url=http://localhost:8083/products/category/books?offset=0&limit=16
+method=GET
+workflows=4473, success=4473, failures=0
+workflowThroughputRps=73.71
+errorRatePct=0.000
+latencyMs (success-only) min=39.372 p50=596.478 p95=1866.750 p99=2371.582 p99.9=2703.358 p99.99=3115.006 max=3113.760
+Per-step breakdown:
++---+---------+--------+--------------------------------------------+-------+------+------+-------+---------+---------+---------+----------+
+| # | Step    | Method | Endpoint                                   | Count | OK   | Fail | Retry | p50(ms) | p95(ms) | p99(ms) | Status   |
++---+---------+--------+--------------------------------------------+-------+------+------+-------+---------+---------+---------+----------+
+| 1 | request | GET    | /products/category/books?offset=0&limit=16 |  4473 | 4473 |    0 |     0 |   596.5 |  1866.8 |  2371.6 | 200:4473 |
++---+---------+--------+--------------------------------------------+-------+------+------+-------+---------+---------+---------+----------+
+thresholds=failed
+ - p95Ms: expected <= 200.000, actual 1866.750
+ - p99Ms: expected <= 500.000, actual 2371.582
+jsonReport=/Users/mehrdad/projects/microservice-online-book-store/performance-loadtest/reports/inventory-category-page-20260425-001359.json

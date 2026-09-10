@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Objects;
 
 public record OrderCreatedEvent(
+    String eventId,
     OrderId orderId,
     UserId userId,
     List<OrderCreatedEventItem> items,
@@ -16,7 +17,23 @@ public record OrderCreatedEvent(
     Instant updatedAt
 ) {
 
+    /** Compatibility constructor for local callers that do not have a transport envelope. */
+    public OrderCreatedEvent(
+        OrderId orderId,
+        UserId userId,
+        List<OrderCreatedEventItem> items,
+        OrderStatus status,
+        Instant createdAt,
+        Instant updatedAt
+    ) {
+        this(orderId.value(), orderId, userId, items, status, createdAt, updatedAt);
+    }
+
     public OrderCreatedEvent {
+        Objects.requireNonNull(eventId, "eventId can't be null");
+        if (eventId.isBlank()) {
+            throw new IllegalArgumentException("eventId can't be blank");
+        }
         Objects.requireNonNull(orderId, "orderId can't be null");
         Objects.requireNonNull(userId, "userId can't be null");
         Objects.requireNonNull(items, "items can't be null");

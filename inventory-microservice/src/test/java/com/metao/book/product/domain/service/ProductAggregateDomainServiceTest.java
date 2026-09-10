@@ -22,7 +22,7 @@ import com.metao.book.shared.domain.product.ProductTitle;
 import com.metao.book.product.domain.repository.CategoryRepository;
 import com.metao.book.product.domain.repository.ProductRepository;
 import com.metao.book.product.infrastructure.persistence.repository.ProductCreateIdempotencyRepository;
-import com.metao.book.shared.domain.base.DomainEventPublisher;
+import com.metao.book.shared.application.messaging.DomainEventPublisherPort;
 import com.metao.book.shared.domain.financial.Money;
 import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.domain.product.Quantity;
@@ -59,7 +59,7 @@ class ProductAggregateDomainServiceTest {
     private ProductCreateIdempotencyRepository productCreateIdempotencyRepository;
 
     @Mock
-    DomainEventPublisher eventPublisher;
+    DomainEventPublisherPort eventPublisher;
 
     private ProductSku testSku;
     private CategoryName testCategoryName;

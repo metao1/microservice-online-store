@@ -133,6 +133,12 @@ app:
       exposed-headers: ${CORS_EXPOSED_HEADERS:}
       allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
       max-age: ${CORS_MAX_AGE:30m}
+  security:
+    jwt:
+      enabled: ${JWT_ENABLED:true}
+      issuer-uri: ${JWT_ISSUER_URI:http://localhost:8080/realms/bookstore}
+      jwk-set-uri: ${JWT_JWK_SET_URI:}
+      audience: ${JWT_AUDIENCE:bookstore-api}
   order:
     vat:
       # Integer VAT rate applied when computing order totals (e.g. 21 for 21 %).
@@ -163,6 +169,11 @@ kafka:
       name: "product-updated"
       group-id: "product-updated-group"
       class-path: "com.metao.book.shared.ProductUpdatedEvent"
+    inventory-reduction-requested:
+      id: "inventory-reduction-requested-id"
+      name: "inventory-reduction-requested"
+      group-id: "inventory-reduction-requested-group"
+      class-path: "com.metao.book.shared.InventoryReductionRequestedEvent"
 
 logging:
   pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%t]){yellow} %clr([trace=%X{traceId:-},span=%X{spanId:-}]){magenta} %clr(:){red} %clr(%m){faint}%n"

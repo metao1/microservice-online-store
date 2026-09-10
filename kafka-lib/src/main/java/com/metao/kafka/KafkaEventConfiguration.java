@@ -19,6 +19,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Fallback;
 import org.springframework.context.annotation.Primary;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.config.TopicBuilder;
@@ -100,6 +101,7 @@ public class KafkaEventConfiguration {
     }
 
     @Bean
+    @Fallback
     @ConditionalOnProperty(name = "spring.kafka.producer.transaction-id-prefix")
     public <K, V> KafkaTransactionManager<K, V> kafkaTransactionManager(ProducerFactory<K, V> producerFactory) {
         return new KafkaTransactionManager<>(producerFactory);

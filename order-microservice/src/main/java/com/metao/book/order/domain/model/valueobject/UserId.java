@@ -1,10 +1,10 @@
 package com.metao.book.order.domain.model.valueobject;
 
-import jakarta.persistence.Embeddable;
+import com.metao.book.shared.architecture.DomainComponent;
 import jakarta.validation.constraints.NotNull;
 import java.util.Objects;
 
-@Embeddable
+@DomainComponent
 public record UserId(String value) {
 
     public static UserId of(String value) {

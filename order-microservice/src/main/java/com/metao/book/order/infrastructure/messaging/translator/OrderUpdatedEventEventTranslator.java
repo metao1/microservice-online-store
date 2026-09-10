@@ -1,0 +1,58 @@
+package com.metao.book.order.infrastructure.messaging.translator;
+
+import com.google.protobuf.Timestamp;
+import com.metao.book.order.domain.model.event.DomainOrderStatusChangedEvent;
+import com.metao.book.order.domain.model.valueobject.OrderStatus;
+import com.metao.book.shared.OrderUpdatedEvent;
+import com.metao.book.shared.OrderUpdatedEvent.Status;
+import com.metao.book.shared.domain.base.DomainEvent;
+import com.metao.book.shared.infrastructure.messaging.protobuf.ProtobufDomainEventTranslator;
+import com.metao.book.shared.infrastructure.messaging.protobuf.ProtobufTranslation;
+import java.time.ZoneOffset;
+import org.springframework.stereotype.Component;
+
+@Component
+public class OrderUpdatedEventEventTranslator implements ProtobufDomainEventTranslator {
+
+    @Override
+    public ProtobufTranslation translate(DomainEvent event) {
+        DomainOrderStatusChangedEvent domainEvent = (DomainOrderStatusChangedEvent) event;
+        OrderUpdatedEvent message = OrderUpdatedEvent.newBuilder()
+            .setId(domainEvent.getEventId())
+            .setStatus(mapOrderStatus(domainEvent.getNewStatus()))
+            .setUpdateTime(Timestamp.newBuilder()
+                .setSeconds(domainEvent.getOccurredOn().atZone(ZoneOffset.UTC).toEpochSecond())
+                .setNanos(domainEvent.getOccurredOn().getNano())
+            )
+            .build();
+
+        return new ProtobufTranslation(
+            "order",
+            domainEvent.getOrderId().value(),
+            "order.status-changed",
+            1,
+            domainEvent.getOrderId().value(),
+            message.toByteArray(),
+            "order-status:" + domainEvent.getOrderId().value()
+        );
+    }
+
+    @Override
+    public boolean supports(DomainEvent event) {
+        return event instanceof DomainOrderStatusChangedEvent;
+    }
+
+    private OrderUpdatedEvent.Status mapOrderStatus(OrderStatus status) {
+        return switch (status) {
+            case CREATED -> Status.CREATED;
+            case PENDING_PAYMENT -> Status.PENDING_PAYMENT;
+            case PAID -> Status.PAID;
+            case PAYMENT_FAILED -> Status.PAYMENT_FAILED;
+            case PROCESSING -> Status.PROCESSING;
+            case SHIPPED -> Status.SHIPPED;
+            case DELIVERED -> Status.DELIVERED;
+            case CANCELLED -> Status.CANCELLED;
+            default -> throw new IllegalArgumentException("Unknown status " + status);
+        };
+    }
+}

@@ -1,4 +1,23 @@
 services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4.2
+    command: ["start-dev", "--import-realm", "--health-enabled=true"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+    ports:
+      - "8080:8080"
+      - "9000:9000"
+    volumes:
+      - keycloak-data:/opt/keycloak/data
+      - ./infrastructure/keycloak/realm:/opt/keycloak/data/import:ro
+      - ./infrastructure/keycloak/themes/bookstore:/opt/keycloak/themes/bookstore:ro
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q '200 OK' <&3"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
   zoo1:
     image: confluentinc/cp-zookeeper:7.6.0
     hostname: zoo1
@@ -136,27 +155,35 @@ services:
     environment:
       DATABASE_URL: "jdbc:postgresql://postgres-order:5432/bookstore-order"
       SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
-      OTLP_TRACING_ENDPOINT: http://otel-collector:4318
+      OTLP_TRACING_ENDPOINT: http://otel-collector:4318/v1/traces
       TRACING_SAMPLING_PROBABILITY: "1.0"
       OTEL_TRACES_SAMPLER: parentbased_traceidratio
       OTEL_TRACES_SAMPLER_ARG: "1.0"
       CORS_ENABLED: "true"
       VAT_PERCENTAGE: 19
-      CORS_ALLOWED_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000"
+      CORS_ALLOWED_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173"
       BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:9092
       DATABASE_USER: bookstore
       DATABASE_PASSWORD: bookstore
       SECURITY_PROTOCOL: PLAINTEXT
       SASL_MECHANISM: PLAIN
+      JWT_ISSUER_URI: http://localhost:8080/realms/bookstore
+      JWT_JWK_SET_URI: http://keycloak:8080/realms/bookstore/protocol/openid-connect/certs
+      JWT_AUDIENCE: bookstore-api
     build:
       context: .
       dockerfile: order-microservice/src/main/docker/Dockerfile
     ports:
       - "8086:8080"
     depends_on:
-      - postgres-order
-      - kafka1
-      - kafka-schema-registry
+      keycloak:
+        condition: service_healthy
+      postgres-order:
+        condition: service_started
+      kafka1:
+        condition: service_started
+      kafka-schema-registry:
+        condition: service_started
 
   inventory-microservice:
     image: inventory-microservice
@@ -167,28 +194,39 @@ services:
     mem_reservation: 512m
     environment:
       DATABASE_URL: "jdbc:postgresql://postgres-inventory:5432/bookstore-inventory"
+      PRODUCT_DATA_RESOURCE: file:/app/data/products.txt
       SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
-      OTLP_TRACING_ENDPOINT: http://otel-collector:4318
+      OTLP_TRACING_ENDPOINT: http://otel-collector:4318/v1/traces
+      SPRING_PROFILES_ACTIVE: "generator"
       TRACING_SAMPLING_PROBABILITY: "1.0"
       OTEL_TRACES_SAMPLER: parentbased_traceidratio
       OTEL_TRACES_SAMPLER_ARG: "1.0"
       CORS_ENABLED: "true"
-      CORS_ALLOWED_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000"
+      CORS_ALLOWED_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173"
       BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:9092
       DATABASE_USER: bookstore
       DATABASE_PASSWORD: bookstore
       SECURITY_PROTOCOL: PLAINTEXT
       SASL_MECHANISM: PLAIN
+      JWT_ISSUER_URI: http://localhost:8080/realms/bookstore
+      JWT_JWK_SET_URI: http://keycloak:8080/realms/bookstore/protocol/openid-connect/certs
+      JWT_AUDIENCE: bookstore-api
     build:
       context: .
       dockerfile: inventory-microservice/src/main/docker/Dockerfile
     #platform: linux/amd64
     ports:
       - "8083:8080"
+    volumes:
+      - type: bind
+        source: ./inventory-microservice/src/main/resources/data/products.txt
+        target: /app/data/products.txt
+        read_only: true
     depends_on:
       - postgres-inventory
       - kafka1
       - kafka-schema-registry
+      - keycloak
 
   payment-microservice:
     image: payment-microservice
@@ -199,26 +237,34 @@ services:
     environment:
       DATABASE_URL: "jdbc:postgresql://postgres-payment:5432/bookstore-payment"
       SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
-      OTLP_TRACING_ENDPOINT: http://otel-collector:4318
+      OTLP_TRACING_ENDPOINT: http://otel-collector:4318/v1/traces
       TRACING_SAMPLING_PROBABILITY: "1.0"
       OTEL_TRACES_SAMPLER: parentbased_traceidratio
       OTEL_TRACES_SAMPLER_ARG: "1.0"
       CORS_ENABLED: "true"
-      CORS_ALLOWED_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000"
+      CORS_ALLOWED_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173"
       BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:9092
       DATABASE_USER: bookstore
       DATABASE_PASSWORD: bookstore
       SECURITY_PROTOCOL: PLAINTEXT
       SASL_MECHANISM: PLAIN
+      JWT_ISSUER_URI: http://localhost:8080/realms/bookstore
+      JWT_JWK_SET_URI: http://keycloak:8080/realms/bookstore/protocol/openid-connect/certs
+      JWT_AUDIENCE: bookstore-api
     build:
       context: .
       dockerfile: payment-microservice/src/main/docker/Dockerfile
     ports:
       - "8084:8080"
     depends_on:
-      - kafka1
-      - kafka-schema-registry
-      - postgres-payment
+      keycloak:
+        condition: service_healthy
+      kafka1:
+        condition: service_started
+      kafka-schema-registry:
+        condition: service_started
+      postgres-payment:
+        condition: service_started
 
   frontend:
     image: frontend
@@ -233,11 +279,14 @@ services:
         VITE_PAYMENT_API_URL: "http://localhost:8084"
         VITE_CART_API_URL: "http://localhost:8086"
         VITE_PROFILE: "prod"
+        VITE_KEYCLOAK_URL: "http://localhost:8080"
+        VITE_KEYCLOAK_REALM: "bookstore"
+        VITE_KEYCLOAK_CLIENT_ID: "bookstore-frontend"
     ports:
       - "3000:3000"
 
   jaeger:
-    image: jaegertracing/all-in-one:1.62.0
+    image: jaegertracing/all-in-one:1.76.0
     hostname: jaeger
     container_name: jaeger
     ports:
@@ -246,7 +295,7 @@ services:
       COLLECTOR_OTLP_ENABLED: "true"
 
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.112.0
+    image: otel/opentelemetry-collector-contrib:0.158.0
     hostname: otel-collector
     container_name: otel-collector
     command: [ "--config=/etc/otelcol-contrib/config.yaml" ]
@@ -263,6 +312,9 @@ services:
     command: sleep infinity
 
 volumes:
+  keycloak-data:
+    driver:
+      local
   postgres:
     driver:
       local

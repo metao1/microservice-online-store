@@ -87,7 +87,7 @@ export const ProductGrid: FC<ProductGridProps> = ({
   emptyAction,
   className = '',
   infiniteScroll = true,
-  scrollThreshold = 200
+  scrollThreshold = 800
 }) => {
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -142,7 +142,7 @@ export const ProductGrid: FC<ProductGridProps> = ({
       const scrollTop = window.scrollY || doc.scrollTop || 0;
       const viewportH = window.innerHeight || doc.clientHeight || 0;
       const pageH = doc.scrollHeight || document.body.scrollHeight || 0;
-      const nearBottom = scrollTop + viewportH >= pageH - 80;
+      const nearBottom = scrollTop + viewportH >= pageH - scrollThreshold;
       if (nearBottom) {
         triggerLoadMore();
       }

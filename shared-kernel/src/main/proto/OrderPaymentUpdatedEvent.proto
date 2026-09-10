@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package com.metao.book;
+
 import "google/protobuf/timestamp.proto";
 import "Payment.proto";
 
@@ -9,13 +10,14 @@ option java_package = "com.metao.book.shared";
 
 message OrderPaymentUpdatedEvent {
   string id = 1;
-  // Created updated date.
-  google.protobuf.Timestamp updated_time = 2;
-  string userId = 3;
-  string sku = 4;
-  string paymentId = 5;
-  string orderId = 6;
-  Status status = 7;
-  string errorMessage = 8;
-}
 
+  google.protobuf.Timestamp updated_time = 2;
+
+  string user_id = 3;
+  string sku = 4;
+  string payment_id = 5;
+  string order_id = 6;
+  Status status = 7;
+  string error_message = 8;
+  string event_id = 9;
+}

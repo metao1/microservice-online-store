@@ -165,7 +165,7 @@ const ProductDetailPage: FC = () => {
 
           <div className="price-section">
             <div className="current-price" data-testid="product-price">
-              {product.currency} {product.price.toFixed(2)}
+              {product.price.format()}
             </div>
             <div className="price-note">VAT included</div>
           </div>

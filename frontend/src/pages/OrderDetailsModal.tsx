@@ -8,25 +8,13 @@
 import {FC, useEffect, useRef} from 'react';
 import {Order, Payment} from '@types';
 import './OrderDetailsModal.css';
+import { resolveOrderDisplayMoney } from './orders.utils';
 
 interface OrderDetailsModalProps {
   order: Order;
   payment: Payment | null | undefined;
   onClose: () => void;
 }
-
-const formatCurrency = (amount: number, currency: string): string => {
-  const code = (currency || 'EUR').toUpperCase();
-  try {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: code,
-      minimumFractionDigits: 2,
-    }).format(amount);
-  } catch {
-    return `${code} ${amount.toFixed(2)}`;
-  }
-};
 
 const formatDateTime = (value?: string): string => {
   if (!value) {
@@ -120,13 +108,8 @@ const OrderDetailsModal: FC<OrderDetailsModalProps> = ({ order, payment, onClose
     }
   };
 
-  const currency = order.items[0]?.currency || payment?.currency || 'EUR';
   const itemCount = order.items.reduce((sum, item) => sum + item.cartQuantity, 0);
-  const computedSubtotal = order.items.reduce(
-    (sum, item) => sum + item.price * item.cartQuantity,
-    0,
-  );
-  const total = Number.isFinite(order.total) ? order.total : computedSubtotal;
+  const total = resolveOrderDisplayMoney(order, payment);
 
   return (
     <div
@@ -185,7 +168,7 @@ const OrderDetailsModal: FC<OrderDetailsModalProps> = ({ order, payment, onClose
               </div>
               <div className="order-details-grid-row">
                 <dt>Order total</dt>
-                <dd className="order-details-total">{formatCurrency(total, currency)}</dd>
+                <dd className="order-details-total">{total.format()}</dd>
               </div>
             </dl>
           </section>
@@ -196,7 +179,7 @@ const OrderDetailsModal: FC<OrderDetailsModalProps> = ({ order, payment, onClose
             </h3>
             <ul className="order-details-items">
               {order.items.map((item) => {
-                const lineTotal = item.price * item.cartQuantity;
+                const lineTotal = item.price.multiply(item.cartQuantity);
                 return (
                   <li key={item.sku} className="order-details-item">
                     <img
@@ -208,12 +191,12 @@ const OrderDetailsModal: FC<OrderDetailsModalProps> = ({ order, payment, onClose
                       <p className="order-details-item-title">{item.title}</p>
                       <p className="order-details-item-meta">SKU: {item.sku}</p>
                       <p className="order-details-item-meta">
-                        {formatCurrency(item.price, item.currency)} ×{' '}
+                        {item.price.format()} ×{' '}
                         {item.cartQuantity}
                       </p>
                     </div>
                     <div className="order-details-item-price">
-                      {formatCurrency(lineTotal, item.currency)}
+                      {lineTotal.format()}
                     </div>
                   </li>
                 );
@@ -244,7 +227,7 @@ const OrderDetailsModal: FC<OrderDetailsModalProps> = ({ order, payment, onClose
                 </div>
                 <div className="order-details-grid-row">
                   <dt>Amount</dt>
-                  <dd>{formatCurrency(payment.amount, payment.currency)}</dd>
+                  <dd>{payment.amount.format()}</dd>
                 </div>
                 <div className="order-details-grid-row">
                   <dt>Processed</dt>

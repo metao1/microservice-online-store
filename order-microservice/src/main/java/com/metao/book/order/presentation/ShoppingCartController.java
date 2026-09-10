@@ -1,16 +1,19 @@
 package com.metao.book.order.presentation;
 
-import com.metao.book.order.application.cart.ShoppingCart;
-import com.metao.book.order.application.cart.ShoppingCartDto;
-import com.metao.book.order.application.cart.ShoppingCartService;
-import com.metao.book.order.application.cart.UpdateCartItemQtyDTO;
-import com.metao.book.order.presentation.dto.AddItemRequestDto;
+import com.metao.book.order.application.usecase.ShoppingCartUseCase;
+import com.metao.book.order.presentation.dto.ShoppingCartResponseDto;
+import com.metao.book.order.presentation.dto.ShoppingCartItemDto;
+import com.metao.book.order.presentation.dto.UpdateCartItemQtyDto;
+import com.metao.book.shared.architecture.InboundAdapter;
+import com.metao.book.shared.security.CurrentUser;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +26,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@InboundAdapter(InboundAdapter.Kind.HTTP)
 @RequestMapping("/cart")
 @RequiredArgsConstructor
 @Validated
@@ -30,49 +34,59 @@ import org.springframework.web.bind.annotation.RestController;
 @Observed(name = "order.cart.api.controller", contextualName = "shopping-cart-controller")
 public class ShoppingCartController {
 
-    private final ShoppingCartService shoppingCartService;
+    private final ShoppingCartUseCase shoppingCartUseCase;
 
-    @GetMapping("/{userId}")
-    public ShoppingCartDto getCart(@PathVariable String userId) {
-        return shoppingCartService.getCartForUser(userId);
+    @GetMapping
+    @PreAuthorize("hasRole('CUSTOMER') or hasAuthority('SCOPE_cart:read')")
+    public ShoppingCartResponseDto getCart() {
+        String userId = CurrentUser.subject();
+        return ShoppingCartResponseDto.from(shoppingCartUseCase.getCartForUser(userId));
     }
 
-    @PostMapping
+    @PostMapping("/items")
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('CUSTOMER') or hasAuthority('SCOPE_cart:write')")
     public int addItemToCart(
-        @Valid @RequestBody AddItemRequestDto dto
+        @Valid @RequestBody List<ShoppingCartItemDto> items
     ) {
-        return shoppingCartService.addItemToCart(dto.userId(), dto.items());
+        String userId = CurrentUser.subject();
+        return shoppingCartUseCase.addItemToCart(userId, items.stream()
+            .map(ShoppingCartItemDto::toApplicationItem)
+            .toList());
     }
 
-    @PutMapping("/{userId}/{sku}")
-    public ResponseEntity<ShoppingCart> updateItemQuantity(
-        @PathVariable String userId,
+    @PutMapping("/items/{sku}")
+    @PreAuthorize("hasRole('CUSTOMER') or hasAuthority('SCOPE_cart:write')")
+    public ResponseEntity<ShoppingCartResponseDto> updateItemQuantity(
         @PathVariable String sku,
-        @RequestBody UpdateCartItemQtyDTO updateCartItemQtyDTO
+        @Valid @RequestBody UpdateCartItemQtyDto updateCartItemQtyDto
     ) {
-        ShoppingCart cartItem = shoppingCartService.updateItemQuantity(userId,
+        String userId = CurrentUser.subject();
+        var cartItem = shoppingCartUseCase.updateItemQuantity(userId,
             sku,
-            updateCartItemQtyDTO.quantity());
+            updateCartItemQtyDto.quantity());
         if (cartItem == null) {
             // This case handles when quantity is set to 0 or less, and item is removed.
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(cartItem);
+        return ResponseEntity.ok(ShoppingCartResponseDto.from(cartItem));
     }
 
-    @DeleteMapping("/{userId}/{sku}")
+    @DeleteMapping("/items/{sku}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('CUSTOMER') or hasAuthority('SCOPE_cart:write')")
     public void removeItemFromCart(
-        @PathVariable String userId,
         @PathVariable String sku
     ) {
-        shoppingCartService.removeItemFromCart(userId, sku);
+        String userId = CurrentUser.subject();
+        shoppingCartUseCase.removeItemFromCart(userId, sku);
     }
 
-    @DeleteMapping("/{userId}")
+    @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void clearCart(@PathVariable String userId) {
-        shoppingCartService.clearCart(userId);
+    @PreAuthorize("hasRole('CUSTOMER') or hasAuthority('SCOPE_cart:write')")
+    public void clearCart() {
+        String userId = CurrentUser.subject();
+        shoppingCartUseCase.clearCart(userId);
     }
 }

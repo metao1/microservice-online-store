@@ -1,15 +1,17 @@
 package com.metao.book.shared.domain.product;
 
 import com.metao.book.shared.domain.base.ValueObject;
-import jakarta.persistence.Embeddable;
-import jakarta.validation.constraints.NotNull;
+import java.util.Objects;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 /**
  * Product title value object
  */
-@Embeddable
-public record ProductTitle(String value) implements ValueObject {
+@NoArgsConstructor
+public class ProductTitle implements ValueObject {
+
+    private String value;
 
     public ProductTitle(@NonNull String value) {
         if (value.trim().isEmpty()) {
@@ -22,7 +24,26 @@ public record ProductTitle(String value) implements ValueObject {
         return new ProductTitle(value);
     }
 
-    @NotNull
+    public String value() {
+        return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof ProductTitle that)) {
+            return false;
+        }
+        return Objects.equals(value, that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(value);
+    }
+
     @Override
     public String toString() {
         return value;

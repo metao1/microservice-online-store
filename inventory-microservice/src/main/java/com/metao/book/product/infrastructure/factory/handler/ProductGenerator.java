@@ -4,17 +4,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.metao.book.product.application.dto.CreateProductCommand;
 import com.metao.book.product.application.dto.ProductDTO;
 import com.metao.book.product.application.service.CreateProductResult;
-import com.metao.book.product.application.service.ProductDomainService;
-import jakarta.persistence.EntityManager;
+import com.metao.book.product.application.usecase.ProductUseCase;
+import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -27,16 +27,29 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @Transactional
-@RequiredArgsConstructor
 @ConditionalOnProperty(name = "spring.profiles.active", havingValue = "generator")
 public class ProductGenerator {
 
-    @Value("classpath:data/products.txt")
-    Resource resource;
-
-    private final ProductDomainService productDomainService;
+    private final ProductUseCase productUseCase;
     private final ObjectMapper dtoMapper;
-    private final EntityManager entityManager;
+    private final Resource resource;
+
+    public ProductGenerator(
+        ProductUseCase productUseCase,
+        ObjectMapper dtoMapper,
+        @Value("${product.seed.resource:classpath:data/products.txt}") Resource resource
+    ) {
+        this.productUseCase = productUseCase;
+        this.dtoMapper = dtoMapper;
+        this.resource = resource;
+    }
+
+    @PostConstruct
+    void validateSeedResource() {
+        if (!resource.exists() || !resource.isReadable()) {
+            throw new IllegalStateException("Product seed resource is not readable: " + resource.getDescription());
+        }
+    }
 
     /**
      * Waits for the {@link ReadinessState#ACCEPTING_TRAFFIC} and starts task execution
@@ -54,19 +67,24 @@ public class ProductGenerator {
     @Transactional
     public void loadProducts() {
         log.info("importing products data from resources");
-        final List<CreateProductCommand> products;
+        final List<ProductDTO> parsedProducts;
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
-            products = reader.lines()
+            parsedProducts = reader.lines()
                 .map(this::parseProduct)
                 .filter(Objects::nonNull)
-                .map(this::toCommand)
                 .toList();
         } catch (IOException e) {
             log.error("Error reading products file", e);
             return;
         }
 
-        log.info("Parsed {} products, starting batch save", products.size());
+        List<CreateProductCommand> products = parsedProducts.stream()
+                .filter(this::hasRequiredFields)
+                .map(this::toCommand)
+                .toList();
+        int invalidProductCount = parsedProducts.size() - products.size();
+
+        log.info("Parsed {} valid products, skipped {} incomplete products", products.size(), invalidProductCount);
 
         // Save in batches of 50
         int batchSize = 50;
@@ -75,7 +93,7 @@ public class ProductGenerator {
         int processed = 0;
         for (CreateProductCommand product : products) {
             try {
-                var createProductResult = productDomainService.createProduct(product);
+                var createProductResult = productUseCase.createProduct(product);
                 if (createProductResult.equals(CreateProductResult.ALREADY_EXISTS)) {
                     skippedDuplicateCount++;
                 } else {
@@ -96,11 +114,20 @@ public class ProductGenerator {
         }
 
         log.info(
-            "finished publishing products. parsed={}, saved={}, duplicates_skipped={}",
+            "finished publishing products. parsed={}, saved={}, duplicates_skipped={}, invalid_skipped={}",
             products.size(),
             savedCount,
-            skippedDuplicateCount
+            skippedDuplicateCount,
+            invalidProductCount
         );
+    }
+
+    private boolean hasRequiredFields(ProductDTO product) {
+        return product.sku() != null
+            && product.title() != null
+            && product.imageUrl() != null
+            && product.price() != null
+            && product.currency() != null;
     }
 
     private CreateProductCommand toCommand(ProductDTO dto) {
@@ -130,7 +157,7 @@ public class ProductGenerator {
                 .categories(productDto.categories())
                 .variants(productDto.variants())
                 .createdTime(Instant.now())
-                .volume(productDto.volume())
+                .volume(productDto.volume() == null ? BigDecimal.valueOf(100) : productDto.volume())
                 .build();
         } catch (Exception e) {
             log.error("Error parsing product: {}", str, e);

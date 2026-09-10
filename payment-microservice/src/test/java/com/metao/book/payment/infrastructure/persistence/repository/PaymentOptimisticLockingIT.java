@@ -8,7 +8,7 @@ import com.metao.book.payment.domain.model.valueobject.PaymentId;
 import com.metao.book.payment.domain.model.valueobject.PaymentMethod;
 import com.metao.book.payment.domain.repository.PaymentRepository;
 import com.metao.book.shared.domain.financial.Money;
-import com.metao.shared.test.KafkaContainer;
+import com.metao.shared.test.KafkaContainerBase;
 import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.UUID;
@@ -23,7 +23,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-class PaymentOptimisticLockingIT extends KafkaContainer {
+class PaymentOptimisticLockingIT extends KafkaContainerBase {
 
     @Autowired
     private PaymentRepository paymentRepository;

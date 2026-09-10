@@ -14,35 +14,32 @@ version = commitRefName
 group = "com.metao.book.shared"
 
 dependencies {
-  // Spring
+  api "com.google.protobuf:protobuf-java:4.31.1"
+
+  // Spring Security OAuth2 Resource Server for JWT validation
+  api "org.springframework.boot:spring-boot-starter-security"
+  api "org.springframework.boot:spring-boot-starter-oauth2-resource-server"
+
+  compileOnly "org.springframework.boot:spring-boot-autoconfigure"
+  compileOnly "org.springframework.boot:spring-boot-starter-web"
   compileOnly "org.springframework.boot:spring-boot-starter-validation"
   compileOnly "org.springframework.boot:spring-boot-starter-data-jpa"
-  compileOnly "org.springframework.boot:spring-boot-starter-web"
-  testImplementation "org.springframework.boot:spring-boot-starter-validation"
-  testImplementation "org.springframework.boot:spring-boot-starter-data-jpa"
-  testImplementation "org.springframework.boot:spring-boot-starter-web"
-
-  // OpenAPI/Swagger for shared OpenApiConfigFactory
-  compileOnly "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9"
-
   compileOnly "org.springframework.kafka:spring-kafka"
-  compileOnly project(":kafka-lib")
 
-  // Jackson - needed for JSON annotations
-  compileOnly "org.springframework.boot:spring-boot-jackson"
+  // Spring Security needs web MVC for MvcRequestMatcher
+  implementation "org.springframework:spring-webmvc"
+  implementation "org.springframework.security:spring-security-web"
+
   compileOnly "com.fasterxml.jackson.core:jackson-databind"
   compileOnly "com.fasterxml.jackson.core:jackson-annotations"
+
+  compileOnly project(":kafka-lib")
+
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "org.springframework.boot:spring-boot-starter-data-jpa"
+  testImplementation "org.springframework.boot:spring-boot-starter-security"
+  testImplementation "org.springframework.security:spring-security-test"
   testImplementation "com.fasterxml.jackson.core:jackson-databind"
-  testImplementation "com.fasterxml.jackson.core:jackson-annotations"
-
-  // Micrometer (version via BOM to stay aligned with Spring Boot)
-  compileOnly "io.micrometer:micrometer-core"
-  compileOnly "io.micrometer:micrometer-registry-prometheus"
-  testImplementation "io.micrometer:micrometer-core"
-  testImplementation "io.micrometer:micrometer-registry-prometheus"
-
-  // Protobuf runtime needed by generated domain events
-  api "com.google.protobuf:protobuf-java:4.31.1"
 
 }
 

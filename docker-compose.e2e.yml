@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  order-microservice:
+    environment:
+      SPRING_PROFILES_ACTIVE: e2e
+
+  inventory-microservice:
+    environment:
+      SPRING_PROFILES_ACTIVE: generator,e2e
+
+  payment-microservice:
+    environment:
+      SPRING_PROFILES_ACTIVE: e2e

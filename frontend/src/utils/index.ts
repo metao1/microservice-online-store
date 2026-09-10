@@ -4,23 +4,6 @@
  */
 
 /**
- * Format currency amount
- */
-export const formatCurrency = (
-  amount: number,
-  currency: string = '€'
-): string => {
-  return `${currency} ${amount.toFixed(2)}`;
-};
-
-/**
- * Format product price with currency
- */
-export const formatPrice = (price: number, currency: string = '€'): string => {
-  return formatCurrency(price, currency);
-};
-
-/**
  * Truncate string to specified length
  */
 export const truncateString = (

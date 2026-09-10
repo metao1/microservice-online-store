@@ -12,6 +12,7 @@ import {useCartContext} from '@context/CartContext';
 import {Order, Payment} from '@types';
 import {apiClient} from '@services/api';
 import OrderDetailsModal from './OrderDetailsModal';
+import {resolveOrderDisplayMoney} from './orders.utils';
 import './OrdersPage.css';
 
 const PAGE_SIZE = 10;
@@ -28,7 +29,7 @@ const OrdersPage: FC = () => {
     error,
     refetch,
     setCurrentPage,
-  } = useOrders(user?.id || null, PAGE_SIZE);
+  } = useOrders(PAGE_SIZE);
   const { processCheckout, isProcessing } = useCheckout();
   const { cart, getCartItemCount } = useCartContext();
   const [paymentsByOrderId, setPaymentsByOrderId] = useState<Record<string, Payment | null>>({});
@@ -79,11 +80,10 @@ const OrdersPage: FC = () => {
       return;
     }
 
-    await processCheckout(user.id, {
+    await processCheckout({
       payment: {
         method: 'CREDIT_CARD',
-        currency: cart.items[0]?.currency || 'EUR',
-        amount: cart.items.reduce((sum, item) => sum + item.price * item.cartQuantity, 0)
+        amount: cart.total,
       },
       onSuccess: () => {
         // Refresh orders list after successful checkout
@@ -261,7 +261,9 @@ const OrdersPage: FC = () => {
           </div>
         ) : (
           <div className="orders-list">
-            {orders.map((order) => (
+            {orders.map((order) => {
+              const displayMoney = resolveOrderDisplayMoney(order, paymentsByOrderId[order.id]);
+              return (
               <div key={order.id} className="order-card">
                 {isPaymentUnsuccessful(paymentsByOrderId[order.id]) && (
                   <div className="payment-retry-banner" role="alert">
@@ -293,7 +295,9 @@ const OrdersPage: FC = () => {
                     >
                       {getStatusDisplay(order.status)}
                     </span>
-                    <p className="order-total">${order.total}</p>
+                    <p className="order-total">
+                      {displayMoney.format()}
+                    </p>
                   </div>
                 </div>
 
@@ -308,7 +312,7 @@ const OrdersPage: FC = () => {
                       <div className="item-details">
                         <h4>{item.title}</h4>
                         <p className="item-price">
-                          ${item.price} × ${item.cartQuantity}
+                          {item.price.format()} × {item.cartQuantity}
                         </p>
                       </div>
                     </div>
@@ -332,7 +336,8 @@ const OrdersPage: FC = () => {
                   )}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

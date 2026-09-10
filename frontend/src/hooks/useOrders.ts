@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Order, PaginatedResult } from '@types';
 import { apiClient } from '../services/api';
+import { useAuthContext } from '@context/AuthContext';
 
 interface UseOrdersResult {
   orders: Order[];
@@ -15,7 +16,8 @@ interface UseOrdersResult {
   setCurrentPage: (page: number) => void;
 }
 
-export const useOrders = (userId: string | null, pageSize: number = 10): UseOrdersResult => {
+export const useOrders = (pageSize: number = 10): UseOrdersResult => {
+  const { initialized, isAuthenticated } = useAuthContext();
   const [orders, setOrders] = useState<Order[]>([]);
   const [total, setTotal] = useState(0);
   const [hasNext, setHasNext] = useState(false);
@@ -25,12 +27,12 @@ export const useOrders = (userId: string | null, pageSize: number = 10): UseOrde
   const [error, setError] = useState<string | null>(null);
 
   const fetchOrders = async () => {
-    if (!userId) {
+    if (!initialized || !isAuthenticated) {
       setOrders([]);
       setTotal(0);
       setHasNext(false);
       setHasPrevious(false);
-      setLoading(false);
+      setLoading(!initialized);
       return;
     }
 
@@ -38,7 +40,7 @@ export const useOrders = (userId: string | null, pageSize: number = 10): UseOrde
       setLoading(true);
       setError(null);
       const offset = (currentPage - 1) * pageSize;
-      const page: PaginatedResult<Order> = await apiClient.getOrdersPage(userId, pageSize, offset);
+      const page: PaginatedResult<Order> = await apiClient.getOrdersPage(pageSize, offset);
       setOrders(page.items);
       setTotal(page.total);
       setHasNext(page.hasNext);
@@ -54,7 +56,7 @@ export const useOrders = (userId: string | null, pageSize: number = 10): UseOrde
 
   useEffect(() => {
     fetchOrders();
-  }, [userId, currentPage, pageSize]);
+  }, [initialized, isAuthenticated, currentPage, pageSize]);
 
   return {
     orders,

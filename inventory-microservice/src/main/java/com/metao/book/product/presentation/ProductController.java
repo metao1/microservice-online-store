@@ -6,11 +6,12 @@ import com.metao.book.product.application.dto.ProductDTO;
 import com.metao.book.product.application.dto.UpdateProductCommand;
 import com.metao.book.product.application.mapper.ProductApplicationMapper;
 import com.metao.book.product.application.service.CreateProductResult;
-import com.metao.book.product.application.service.ProductDomainService;
-import com.metao.book.product.domain.category.dto.CategoryDTO;
+import com.metao.book.product.application.usecase.ProductUseCase;
+import com.metao.book.product.presentation.dto.CategoryResponseDto;
 import com.metao.book.product.domain.model.valueobject.CategoryName;
 import com.metao.book.shared.domain.product.ProductSku;
 import com.metao.book.shared.domain.product.Quantity;
+import com.metao.book.shared.architecture.InboundAdapter;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import jakarta.validation.Valid;
@@ -23,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,30 +39,32 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @Slf4j
 @RestController
+@InboundAdapter(InboundAdapter.Kind.HTTP)
 @RequiredArgsConstructor
 @RequestMapping(path = "/products")
 @Observed(name = "product.api.controller", contextualName = "product-controller")
 public class ProductController {
 
-    private final ProductDomainService productDomainService;
+    private final ProductUseCase productUseCase;
     private final ProductApplicationMapper productMapper;
 
     @GetMapping(value = "/{sku}")
     public ProductDTO getProduct(@PathVariable @Valid @NotBlank String sku) {
         log.debug("Getting product with SKU: {}", sku);
-        var product = productDomainService.getProductBySku(sku);
+        var product = productUseCase.getProductBySku(sku);
         return productMapper.toDTO(product);
     }
 
     @GetMapping(value = "/by-skus")
     public List<ProductDTO> getProductsBySkus(@RequestParam("skus") List<String> skus) {
-        var products = productDomainService.getProductsBySkus(skus);
+        var products = productUseCase.getProductsBySkus(skus);
         return products.stream()
             .map(productMapper::toDTO)
             .toList();
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF') or hasAuthority('SCOPE_products:write')")
     public ResponseEntity<String> createProduct(
         @Valid @RequestBody CreateProductDto dto,
         @RequestHeader(name = "Idempotency-Key", required = false) String idempotencyKey
@@ -85,7 +89,7 @@ public class ProductController {
             .buildAndExpand(dto.sku())
             .toUri();
 
-        var result = productDomainService.createProduct(command, idempotencyKey);
+        var result = productUseCase.createProduct(command, idempotencyKey);
         if (result == null) {
             result = CreateProductResult.CREATED;
         }
@@ -98,6 +102,7 @@ public class ProductController {
 
     @PutMapping("/{sku}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF') or hasAuthority('SCOPE_products:write')")
     public ProductDTO updateProduct(
         @PathVariable String sku,
         @Valid @RequestBody UpdateProductCommand command
@@ -107,7 +112,7 @@ public class ProductController {
         var updatedCommand = new UpdateProductCommand(
             sku, command.title(), command.description(), command.price(), command.currency()
         );
-        var product = productDomainService.updateProduct(updatedCommand);
+        var product = productUseCase.updateProduct(updatedCommand);
         return productMapper.toDTO(product);
     }
 
@@ -119,7 +124,7 @@ public class ProductController {
         @RequestParam(value = "limit", defaultValue = "10") int limit
     ) {
         log.debug("Getting products by category: {}", categoryName);
-        return productDomainService.getProductsByCategory(categoryName, offset, limit).stream()
+        return productUseCase.getProductsByCategory(categoryName, offset, limit).stream()
             .map(productMapper::toDTO)
             .toList();
     }
@@ -131,20 +136,20 @@ public class ProductController {
         @RequestParam(value = "limit", defaultValue = "10") int limit
     ) {
         log.info("Searching products with keyword: {}", keyword);
-        var products = productDomainService.searchProducts(keyword, offset, limit);
+        var products = productUseCase.searchProducts(keyword, offset, limit);
         return products.stream()
             .map(productMapper::toDTO)
             .toList();
     }
 
     @GetMapping("/categories")
-    public List<CategoryDTO> getCategories(
+    public List<CategoryResponseDto> getCategories(
         @RequestParam(value = "offset", defaultValue = "0") int offset,
         @RequestParam(value = "limit", defaultValue = "10") int limit
     ) {
-        var categories = productDomainService.getCategories(offset, limit);
+        var categories = productUseCase.getCategories(offset, limit);
         return categories.stream()
-            .map(category-> new CategoryDTO(category.getName().value()))
+            .map(category -> new CategoryResponseDto(category.getName().value()))
             .toList();
     }
 
@@ -154,7 +159,7 @@ public class ProductController {
         @RequestParam(value = "limit", defaultValue = "5") int limit
     ) {
         log.info("Getting related products for SKU: {}", sku);
-        var relatedProducts = productDomainService.getRelatedProducts(ProductSku.of(sku), limit);
+        var relatedProducts = productUseCase.getRelatedProducts(ProductSku.of(sku), limit);
         return relatedProducts.stream()
             .map(productMapper::toDTO)
             .toList();
@@ -162,31 +167,34 @@ public class ProductController {
 
     @PostMapping("/{sku}/categories/{categoryName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF') or hasAuthority('SCOPE_products:write')")
     public void assignProductToCategory(
         @PathVariable String sku,
         @PathVariable String categoryName
     ) {
         log.info("Assigning product {} to category {}", sku, categoryName);
-        productDomainService.assignProductToCategory(ProductSku.of(sku), CategoryName.of(categoryName));
+        productUseCase.assignProductToCategory(ProductSku.of(sku), CategoryName.of(categoryName));
     }
 
     @PostMapping("/{sku}/volume/reduce")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF') or hasAuthority('SCOPE_products:write')")
     public void reduceProductVolume(
         @PathVariable String sku,
         @RequestParam BigDecimal quantity
     ) {
         log.info("Reducing volume for product {} by {}", sku, quantity);
-        productDomainService.reduceProductVolume(ProductSku.of(sku), Quantity.of(quantity));
+        productUseCase.reduceProductVolume(ProductSku.of(sku), Quantity.of(quantity));
     }
 
     @PostMapping("/{sku}/volume/increase")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF') or hasAuthority('SCOPE_products:write')")
     public void increaseProductVolume(
         @PathVariable String sku,
         @RequestParam BigDecimal quantity
     ) {
         log.info("Increasing volume for product {} by {}", sku, quantity);
-        productDomainService.increaseProductVolume(ProductSku.of(sku), Quantity.of(quantity));
+        productUseCase.increaseProductVolume(ProductSku.of(sku), Quantity.of(quantity));
     }
 }

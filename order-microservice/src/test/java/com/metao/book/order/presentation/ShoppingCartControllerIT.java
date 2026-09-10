@@ -7,17 +7,20 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
-import com.metao.book.order.application.cart.ShoppingCart;
 import com.metao.book.order.application.cart.ShoppingCartItem;
-import com.metao.book.order.application.cart.ShoppingCartRepository;
-import com.metao.book.order.application.cart.UpdateCartItemQtyDTO;
+import com.metao.book.order.infrastructure.persistence.cart.ShoppingCartJpaEntity;
+import com.metao.book.order.infrastructure.persistence.cart.ShoppingCartRepository;
 import com.metao.book.order.presentation.dto.AddItemRequestDto;
-import com.metao.shared.test.KafkaContainer;
+import com.metao.book.order.presentation.dto.UpdateCartItemQtyDto;
+import com.metao.book.outbox.infrastructure.OutboxKafkaPublisher;
+import com.metao.shared.test.KafkaContainerBase;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Currency;
-import java.util.Set;
+import java.util.List;
+import org.mockito.Mockito;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,13 +28,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @ActiveProfiles("test")
 @TestPropertySource(properties = "kafka.enabled=true")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class ShoppingCartControllerIT extends KafkaContainer {
+class ShoppingCartControllerIT extends KafkaContainerBase {
+
+    private static final String USER_ID = "user_secure_123";
 
     @LocalServerPort
     private Integer port;
@@ -39,33 +47,38 @@ class ShoppingCartControllerIT extends KafkaContainer {
     @Autowired
     private ShoppingCartRepository shoppingCartRepository;
 
+    @MockitoBean
+    private JwtDecoder jwtDecoder;
+
+    @MockitoBean
+    private OutboxKafkaPublisher outboxKafkaPublisher;
+
     private final String userId1 = "user123";
+    private final String userToken = "mock-jwt-token-user";
 
     private final String sku1 = "SKU001";
-
     private final String sku2 = "SKU002";
-
     private final String productTitle = "product123";
-
-    private Currency currency;
+    private final BigDecimal quantity = BigDecimal.ONE;
+    private final BigDecimal price = BigDecimal.valueOf(12.99);
+    private final Currency currency = Currency.getInstance("EUR");
 
     @BeforeEach
     void setUp() {
         RestAssured.port = port;
-
-        shoppingCartRepository.deleteAll(); // Clean up before each test
-
-        currency = Currency.getInstance("EUR");
-
-        // Initial item for user1
-        // Constructor: public ShoppingCart(String userId, String sku, BigDecimal buyPrice, BigDecimal sellPrice, BigDecimal quantity, Currency currency)
-        ShoppingCart cartItem1User1 = new ShoppingCart(userId1, sku1, productTitle, BigDecimal.TEN, BigDecimal.TEN,
-                BigDecimal.ONE,
-            currency);
-        // Need to set createdOn and updatedOn as the entity might expect them (e.g. non-null db constraints if any, or for DTO mapping)
-        // The constructor ShoppingCart(...) sets createdOn. Let's assume updatedOn is also set or can be null initially.
-        // For safety, let's set it here if the entity expects it. The entity has @NoArgsConstructor, so fields can be null.
-        // The constructor used here sets createdOn. updatedOn will be set upon actual update.
+        Mockito.when(jwtDecoder.decode(userToken)).thenReturn(
+            Jwt.withTokenValue(userToken)
+                .header("alg", "none")
+                .subject(userId1)
+                .audience(List.of("account"))
+                .claim("roles", List.of("CUSTOMER"))
+                .issuedAt(Instant.now())
+                .expiresAt(Instant.now().plusSeconds(3600))
+                .build()
+        );
+        shoppingCartRepository.deleteAll();
+        ShoppingCartJpaEntity cartItem1User1 = new ShoppingCartJpaEntity(userId1, sku1, productTitle, BigDecimal.TEN, BigDecimal.TEN,
+            BigDecimal.ONE, currency);
         shoppingCartRepository.save(cartItem1User1);
     }
 
@@ -75,92 +88,112 @@ class ShoppingCartControllerIT extends KafkaContainer {
     }
 
     @Test
-    void getCartByUserId_whenCartExists_returnsCart() {
+    void getCart_whenCartExists_returnsCart() {
         given()
             .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer " + userToken)
             .when()
-            .get("/cart/{userId}", userId1)
+            .get("/cart")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("user_id", equalTo(userId1)) // Matches ShoppingCartDto's @JsonProperty
             .body("shopping_cart_items", hasSize(1))
             .body("shopping_cart_items[0].sku", equalTo(sku1))
-            // Using closeTo for BigDecimal comparisons with Hamcrest for robustness
             .body("shopping_cart_items[0].quantity", is(1))
             .body("shopping_cart_items[0].price", is(10));
     }
 
     @Test
-    void getCartByUserId_whenCartDoesNotExist_returnsEmptyCart() {
-        // Assuming service returns a ShoppingCartDto with an empty item list
+    void getCart_whenCartDoesNotExist_returnsEmptyCart() {
+        shoppingCartRepository.deleteAll();
         given()
             .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer " + userToken)
             .when()
-            .get("/cart/{userId}", "nonexistentuser")
+            .get("/cart")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("user_id", equalTo("nonexistentuser")) // Service populates userId in DTO
             .body("shopping_cart_items", empty());
     }
 
     @Test
     void addItemToCart_newItem_returnsCreatedItem() {
-        var newItemDto = new AddItemRequestDto(
-            userId1,
-            Set.of(new ShoppingCartItem(sku2, productTitle, BigDecimal.TWO, BigDecimal.valueOf(20.0), currency))
+        var newItemDto = List.of(
+            new ShoppingCartItem(sku2, productTitle, BigDecimal.TWO, BigDecimal.valueOf(20.0), currency)
         );
 
         given()
             .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer " + userToken)
             .body(newItemDto)
             .when()
-            .post("/cart")
+            .post("/cart/items")
             .then()
             .statusCode(HttpStatus.CREATED.value())
-            .body(equalTo("1")); // Controller returns int count
+            .body(equalTo("1"));
 
-        // Verify in DB
-        ShoppingCart dbItem = shoppingCartRepository.findByUserIdAndSku(userId1, sku2).orElse(null);
+        ShoppingCartJpaEntity dbItem = shoppingCartRepository.findByUserIdAndSku(userId1, sku2).orElse(null);
         assertThat(dbItem).isNotNull();
         assertThat(dbItem.getQuantity()).isEqualByComparingTo(BigDecimal.TWO);
     }
 
     @Test
-    void addItemToCart_existingItem_updatesQuantity() {
+    void addItemToCart_ignoresCallerSuppliedUserId() {
+        given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer " + userToken)
+            .body("""
+                [{
+                  "user_id": "victim-user",
+                  "sku": "SKU002",
+                  "productTitle": "product123",
+                  "quantity": 2,
+                  "price": 20.0,
+                  "currency": "EUR"
+                }]
+                """)
+            .when()
+            .post("/cart/items")
+            .then()
+            .statusCode(HttpStatus.CREATED.value());
 
-        var existingItemDto = new AddItemRequestDto(
-            userId1,
-            Set.of(new ShoppingCartItem(sku1, productTitle, BigDecimal.TWO, BigDecimal.TEN, currency))
+        assertThat(shoppingCartRepository.findByUserIdAndSku(userId1, sku2)).isPresent();
+        assertThat(shoppingCartRepository.findByUserIdAndSku("victim-user", sku2)).isEmpty();
+    }
+
+    @Test
+    void addItemToCart_existingItem_updatesQuantity() {
+        var existingItemDto = List.of(
+            new ShoppingCartItem(sku1, productTitle, BigDecimal.TWO, BigDecimal.TEN, currency)
         );
 
         given()
             .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer " + userToken)
             .body(existingItemDto)
             .when()
-            .post("/cart")
+            .post("/cart/items")
             .then()
             .statusCode(HttpStatus.CREATED.value())
-            .body(equalTo("1")); // Controller returns int count
+            .body(equalTo("1"));
 
-        // Verify in DB
-        ShoppingCart dbItem = shoppingCartRepository.findByUserIdAndSku(userId1, sku1).orElse(null);
+        ShoppingCartJpaEntity dbItem = shoppingCartRepository.findByUserIdAndSku(userId1, sku1).orElse(null);
         assertThat(dbItem).isNotNull();
         assertThat(dbItem.getQuantity()).isEqualByComparingTo(BigDecimal.valueOf(3));
     }
 
     @Test
     void updateItemQuantity_toZero_removesItemAndReturnsNoContent() {
-        UpdateCartItemQtyDTO updateDto = new UpdateCartItemQtyDTO(BigDecimal.ZERO);
+        UpdateCartItemQtyDto updateDto = new UpdateCartItemQtyDto(BigDecimal.ZERO);
 
         given()
             .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer " + userToken)
             .body(updateDto)
             .when()
-            .put("/cart/{userId}/{sku}", userId1, sku1)
+            .put("/cart/items/{sku}", sku1)
             .then()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        // Verify in DB
         assertThat(shoppingCartRepository.findByUserIdAndSku(userId1, sku1)).isEmpty();
     }
 
@@ -168,63 +201,86 @@ class ShoppingCartControllerIT extends KafkaContainer {
     void removeItemFromCart_removesAndReturnsNoContent() {
         given()
             .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer " + userToken)
             .when()
-            .delete("/cart/{userId}/{sku}", userId1, sku1)
+            .delete("/cart/items/{sku}", sku1)
             .then()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        // Verify in DB
         assertThat(shoppingCartRepository.findByUserIdAndSku(userId1, sku1)).isEmpty();
     }
 
-    // Test for clearing the whole cart for a user
     @Test
     void clearCart_removesAllItemsForUserAndReturnsNoContent() {
-        // Add another item to the cart for user1 to ensure clearCart works for multiple items
-        ShoppingCart cartItem2User1 = new ShoppingCart(userId1, sku2,
-                productTitle, BigDecimal.valueOf(5), BigDecimal.valueOf(5),
+        ShoppingCartJpaEntity cartItem2User1 = new ShoppingCartJpaEntity(userId1, sku2,
+            productTitle, BigDecimal.valueOf(5), BigDecimal.valueOf(5),
             BigDecimal.ONE, currency);
         shoppingCartRepository.save(cartItem2User1);
 
-        assertThat(shoppingCartRepository.findByUserId(userId1)).hasSize(2); // Verify two items exist
+        assertThat(shoppingCartRepository.findByUserId(userId1)).hasSize(2);
 
         given()
             .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer " + userToken)
             .when()
-            .delete("/cart/{userId}", userId1)
+            .delete("/cart")
             .then()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        // Verify in DB
         assertThat(shoppingCartRepository.findByUserId(userId1)).isEmpty();
     }
 
-    // Test case for updating the quantity of a non-existent item (should result in 404)
     @Test
     void updateItemQuantity_itemNotFound_returnsNotFound() {
-        UpdateCartItemQtyDTO updateDto = new UpdateCartItemQtyDTO(BigDecimal.valueOf(5));
+        UpdateCartItemQtyDto updateDto = new UpdateCartItemQtyDto(BigDecimal.valueOf(5));
         String nonExistentSku = "SKUNONEXIST";
 
         given()
             .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer " + userToken)
             .body(updateDto)
             .when()
-            .put("/cart/{userId}/{sku}", userId1, nonExistentSku)
+            .put("/cart/items/{sku}", nonExistentSku)
             .then()
-            .statusCode(HttpStatus.NOT_FOUND.value()); // Assuming OrderNotFoundException leads to 404
+            .statusCode(HttpStatus.NOT_FOUND.value());
     }
 
-    // Test case for removing a non-existent item (should result in 404)
     @Test
     void removeItemFromCart_itemNotFound_returnsNotFound() {
         String nonExistentSku = "SKUNONEXIST";
 
         given()
             .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer " + userToken)
             .when()
-            .delete("/cart/{userId}/{sku}", userId1, nonExistentSku)
+            .delete("/cart/items/{sku}", nonExistentSku)
             .then()
-            .statusCode(HttpStatus.NOT_FOUND.value()); // Assuming OrderNotFoundException leads to 404
+            .statusCode(HttpStatus.NOT_FOUND.value());
+    }
+
+    @Test
+    void getCart_withoutAuth_returnsUnauthorized() {
+        given()
+            .contentType(ContentType.JSON)
+            .when()
+            .get("/cart")
+            .then()
+            .statusCode(HttpStatus.UNAUTHORIZED.value());
+    }
+
+    @Test
+    void addItemToCart_withoutAuth_returnsUnauthorized() {
+        AddItemRequestDto addItemDTO = new AddItemRequestDto(
+            USER_ID, List.of(new ShoppingCartItem(sku1, productTitle, quantity, price, currency))
+        );
+
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(addItemDTO)
+            .when()
+            .post("/cart/items")
+            .then()
+            .statusCode(HttpStatus.UNAUTHORIZED.value());
     }
 }
-

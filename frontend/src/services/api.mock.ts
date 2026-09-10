@@ -1,4 +1,4 @@
-import {Cart, Category, Order, OrderStatus, PaginatedResult, Payment, PaymentStatistics, Product} from '@types';
+import {Cart, Category, createMoney, Money, Order, OrderStatus, PaginatedResult, Payment, PaymentStatistics, Product} from '@types';
 import {ApiClientContract, PaymentCommand} from './api.types';
 import {BaseApiClient} from './api.base';
 import mockProducts from '../../dev/api-mocks/products.json';
@@ -8,7 +8,13 @@ import mockOrders from '../../dev/api-mocks/orders.json';
 import mockPayments from '../../dev/api-mocks/payments.json';
 
 export class MockApiClient extends BaseApiClient implements ApiClientContract {
-  private products = mockProducts as Product[];
+  private products: Product[] = (mockProducts as any[]).map((product) => ({
+    ...product,
+    price: createMoney(product.price, product.currency || 'EUR'),
+    originalPrice: product.originalPrice == null
+      ? undefined
+      : createMoney(product.originalPrice, product.currency || 'EUR'),
+  }));
   private categories = mockCategories as Category[];
   private payments = mockPayments as any[];
   private cartData = mockCart as any;
@@ -32,7 +38,7 @@ export class MockApiClient extends BaseApiClient implements ApiClientContract {
         isFeatured: mockData.isFeatured,
         isSale: mockData.isSale,
         salePercentage: mockData.originalPrice
-          ? Math.round(((mockData.originalPrice - product.price) / mockData.originalPrice) * 100)
+          ? Math.round(((mockData.originalPrice.amount - product.price.amount) / mockData.originalPrice.amount) * 100)
           : undefined,
       };
     });
@@ -66,7 +72,7 @@ export class MockApiClient extends BaseApiClient implements ApiClientContract {
       isFeatured: mockData.isFeatured,
       isSale: mockData.isSale,
       salePercentage: mockData.originalPrice
-        ? Math.round(((mockData.originalPrice - product.price) / mockData.originalPrice) * 100)
+        ? Math.round(((mockData.originalPrice.amount - product.price.amount) / mockData.originalPrice.amount) * 100)
         : undefined,
     };
   }
@@ -87,7 +93,7 @@ export class MockApiClient extends BaseApiClient implements ApiClientContract {
     return matched.slice(offset, offset + limit);
   }
 
-  async getCart(userId: string): Promise<Cart> {
+  async getCart(): Promise<Cart> {
     const cartItems: any[] = this.cartData.shopping_cart_items || [];
     const skus = cartItems.map((item: any) => item.sku);
     const productsBySku = await this.getProductsBySkus(skus);
@@ -96,8 +102,7 @@ export class MockApiClient extends BaseApiClient implements ApiClientContract {
       return {
         sku: item.sku,
         title: productDetails?.title || `Product ${item.sku}`,
-        price: item.price,
-        currency: item.currency,
+        price: createMoney(item.price, item.currency || 'EUR'),
         imageUrl: productDetails?.imageUrl || this.getPlaceholderImage(item.sku, 0),
         description: productDetails?.description || 'Product description',
         rating: productDetails?.rating || 4.2,
@@ -105,51 +110,63 @@ export class MockApiClient extends BaseApiClient implements ApiClientContract {
         inStock: productDetails?.inStock ?? true,
         quantity: productDetails?.quantity || 0,
         cartQuantity: item.quantity,
+        lineTotal: createMoney(item.price, item.currency || 'EUR').multiply(item.quantity),
       };
     });
     return {
       items: enrichedItems,
-      total: cartItems.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0),
+      total: createMoney(
+        cartItems.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0),
+        cartItems[0]?.currency || 'EUR',
+      ),
     };
   }
 
-  async addToCart(userId: string, sku: string, productTitle: string, quantity: number, price: number, currency: string): Promise<Cart> {
+  async addToCart(sku: string, productTitle: string, quantity: number, price: Money): Promise<Cart> {
     const item = this.cartData.shopping_cart_items.find((i: any) => i.sku === sku);
     if (item) {
       item.quantity += quantity;
     } else {
-      this.cartData.shopping_cart_items.push({sku: sku, productTitle, quantity, price, currency});
+      this.cartData.shopping_cart_items.push({
+        sku,
+        productTitle,
+        quantity,
+        price: price.amount,
+        currency: price.currency,
+      });
     }
-    return this.getCart(userId);
+    return this.getCart();
   }
 
-  async removeFromCart(userId: string, sku: string): Promise<Cart> {
+  async removeFromCart(sku: string): Promise<Cart> {
     this.cartData.shopping_cart_items = this.cartData.shopping_cart_items.filter((i: any) => i.sku !== sku);
-    return this.getCart(userId);
+    return this.getCart();
   }
 
   async updateCartItem(
-    userId: string,
     sku: string,
     quantity: number,
-    price: number,
-    currency: string,
+    price: Money,
   ): Promise<Cart> {
     const item = this.cartData.shopping_cart_items.find((i: any) => i.sku === sku);
     if (item) {
       item.quantity = quantity;
-      item.price = price;
-      item.currency = currency;
+      item.price = price.amount;
+      item.currency = price.currency;
     }
-    return this.getCart(userId);
+    return this.getCart();
   }
 
-  async createOrder(userId: string): Promise<Order> {
-    const cart = await this.getCart(userId);
+  async clearCart(): Promise<void> {
+    this.cartData.shopping_cart_items = [];
+  }
+
+  async createOrder(): Promise<Order> {
+    const cart = await this.getCart();
     const orderId = `ORDER-${Date.now()}`;
     return {
       id: orderId,
-      userId,
+      userId: '',
       items: cart.items,
       total: cart.total,
       status: this.normalizeOrderStatus("CREATED"),
@@ -157,15 +174,14 @@ export class MockApiClient extends BaseApiClient implements ApiClientContract {
     };
   }
 
-  async getOrders(userId: string): Promise<Order[]> {
+  async getOrders(): Promise<Order[]> {
     return this.orders.map((o) => ({
       id: o.id,
       userId: o.userId,
       items: (o.items || []).map((item: any) => ({
         sku: item.sku,
         title: this.products.find((p) => p.sku === item.sku)?.title || item.sku,
-        price: item.price,
-        currency: item.currency,
+        price: createMoney(item.price, item.currency || 'EUR'),
         imageUrl: this.products.find((p) => p.sku === item.sku)?.imageUrl || this.getPlaceholderImage(item.sku, 0),
         description: this.products.find((p) => p.sku === item.sku)?.description || '',
         rating: 4.2,
@@ -173,15 +189,16 @@ export class MockApiClient extends BaseApiClient implements ApiClientContract {
         inStock: true,
         quantity: 0,
         cartQuantity: item.quantity,
+        lineTotal: createMoney(item.price, item.currency || 'EUR').multiply(item.quantity),
       })),
-      total: o.total,
+      total: createMoney(o.total?.amount ?? o.total, o.total?.currency || o.currency || 'EUR'),
       status: this.normalizeOrderStatus(o.status),
       createdAt: o.createdAt,
     }));
   }
 
-  async getOrdersPage(userId: string, limit = 10, offset = 0): Promise<PaginatedResult<Order>> {
-    const allOrders = await this.getOrders(userId);
+  async getOrdersPage(limit = 10, offset = 0): Promise<PaginatedResult<Order>> {
+    const allOrders = await this.getOrders();
     const items = allOrders.slice(offset, offset + limit);
     return {
       items,
@@ -198,8 +215,8 @@ export class MockApiClient extends BaseApiClient implements ApiClientContract {
     const payment = {
       paymentId,
       orderId: command.orderId,
-      amount: command.amount,
-      currency: command.currency,
+      amount: command.amount.amount,
+      currency: command.amount.currency,
       paymentMethodType: command.paymentMethodType,
       paymentMethodDetails: command.paymentMethodDetails,
       status: 'CREATED',
