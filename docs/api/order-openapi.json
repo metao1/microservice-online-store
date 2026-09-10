@@ -106,26 +106,6 @@
                 }
             }
         },
-        "/api/order": {
-            "post": {
-                "tags": [
-                    "order-management-controller"
-                ],
-                "operationId": "createOrder",
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "content": {
-                            "*/*": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/OrderId"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/order/{orderId}/status": {
             "patch": {
                 "tags": [
@@ -190,7 +170,7 @@
                 }
             }
         },
-        "/api/order/me": {
+        "/api/order": {
             "get": {
                 "tags": [
                     "order-management-controller"
@@ -213,7 +193,7 @@
                 }
             }
         },
-        "/api/order/me/paged": {
+        "/api/order/paged": {
             "get": {
                 "tags": [
                     "order-management-controller"

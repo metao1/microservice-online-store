@@ -1,7 +1,7 @@
 # Roadmap Implementation Plan
 
 ## Goal
-Build a horizontally scalable architecture (10+ instances per service) with shared cache consistency, safe concurrency controls, and Java 21 runtime improvements.
+Build a horizontally scalable architecture (10+ instances per service) with shared cache consistency, safe concurrency controls, and Java 25 runtime improvements.
 
 ## Phase 1: Shared Cache Foundation (Redis)
 
@@ -87,10 +87,10 @@ Build a horizontally scalable architecture (10+ instances per service) with shar
 
 ---
 
-## Phase 5: Java 21 Runtime Rollout
+## Phase 5: Java 25 Runtime Rollout
 
 ### Scope
-- Adopt Java 21 capabilities with controlled risk.
+- Adopt Java 25 capabilities with controlled risk.
 
 ### Tasks
 1. Keep feature flag for virtual threads:

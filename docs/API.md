@@ -68,16 +68,17 @@ Generated files:
 
 ### Order Service (Port 8086)
 
-- `GET /cart` - Get the authenticated customer's cart
-- `POST /cart/items` - Add items to the authenticated customer's cart
-- `PUT /cart/items/{sku}` - Update an item quantity in the authenticated customer's cart
-- `DELETE /cart/items/{sku}` - Remove an item from the authenticated customer's cart
-- `DELETE /cart` - Clear the authenticated customer's cart
-- `POST /api/order` - Create an order from the authenticated customer's cart (no request body)
-- `GET /api/order/me` - Get the authenticated customer's orders
-- `GET /api/order/me/paged` - Get the authenticated customer's orders with pagination
+- `GET /cart` - Get the current guest or authenticated customer cart
+- `POST /cart/items` - Add items to the current cart
+- `PUT /cart/items/{sku}` - Update an item quantity in the current cart
+- `DELETE /cart/items/{sku}` - Remove an item from the current cart
+- `DELETE /cart` - Clear the current cart
+- `POST /cart/merge` - Merge the guest cart into the authenticated customer cart and expire the guest cookie
+- `POST /api/order` - Create an order from the authenticated customer orders cart (no request body)
+- `GET /api/order` - Get the authenticated customer orders orders
+- `GET /api/order/paged` - Get the authenticated customer orders orders with pagination
 
-Customer-owned cart and order routes require a bearer token. Ownership is derived exclusively from the validated JWT `sub` claim; these routes do not accept a customer identifier in the request path or body. Unknown fields such as `user_id` cannot override ownership.
+Authenticated cart and order routes derive ownership exclusively from the validated JWT `sub` claim; guest cart requests use an opaque HttpOnly `guest_cart_id` cookie, and `POST /cart/merge` transfers that cart after login. Unknown fields such as `user_id` cannot override ownership.
 
 ### Payment Service (Port 8084)
 

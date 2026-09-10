@@ -345,6 +345,10 @@ const ProductCard: FC<ProductCardProps> = ({
             </span>
           </div>
         </div>
+
+        <button type="button" className="card-add-to-cart-button" disabled={!product.inStock || isLoading} onClick={handleQuickAdd} data-testid={'card-add-button-' + product.sku} aria-label={product.inStock ? 'Add ' + product.title + ' to cart' : product.title + ' is sold out'}>
+          {isLoading ? 'Adding...' : product.inStock ? (quantityInCart > 0 ? 'Add More (' + quantityInCart + ')' : 'Add to cart') : 'Sold Out'}
+        </button>
       </div>
     </div>
   );

@@ -57,7 +57,7 @@ public class OrderManagementController {
         updateOrderStatusUseCase.updateOrderStatus(OrderId.of(orderId), request.statusEnum());
     }
 
-    @GetMapping("/me")
+    @GetMapping
     @PreAuthorize("hasRole('CUSTOMER') or hasAuthority('SCOPE_orders:read')")
     public List<OrderResponseDto> getCustomerOrders() {
         return getCustomerOrdersUseCase.getCustomerOrders(UserId.of(CurrentUser.subject())).stream()
@@ -65,7 +65,7 @@ public class OrderManagementController {
             .toList();
     }
 
-    @GetMapping("/me/paged")
+    @GetMapping("/paged")
     @PreAuthorize("hasRole('CUSTOMER') or hasAuthority('SCOPE_orders:read')")
     public OrderPageResponseDto getCustomerOrdersPaged(
         @RequestParam(defaultValue = "0") int offset,

@@ -43,7 +43,7 @@ Notes:
 - `ProductKafkaListenerComponent` consumes dedicated inventory-reduction events to adjust stock; ordinary product updates remain separate.
 - Categories are natural-ID cached (`CategoryEntityMapper` uses Hibernate simple natural ID).
 
-### Order Service (port 8080)
+### Order Service (port 8086)
 
 ```mermaid
 graph LR
@@ -296,11 +296,13 @@ sequenceDiagram
 
 ## Shopping Cart Operations
 
+Guest carts are persisted by the Order service in PostgreSQL. The browser receives only an opaque guest_cart_id cookie with HttpOnly and SameSite=Lax; production also enables Secure. Authenticated requests use the JWT sub claim. After login or registration, the frontend calls POST /cart/merge, which combines quantities, deletes the guest rows, and expires the cookie.
+
 ```mermaid
 sequenceDiagram
     actor User
     participant WebApp as React Web App
-    participant CartAPI as Shopping Cart API<br/>(OrderMS:8080)
+    participant CartAPI as Shopping Cart API<br/>(OrderMS:8086)
     participant CartService as ShoppingCartService
     participant CartRepo as ShoppingCartRepository<br/>(PostgreSQL: shopping_cart)
 
@@ -437,7 +439,7 @@ sequenceDiagram
 | POST | `/products/{sku}/volume/reduce` | Reduce product inventory |
 | POST | `/products/{sku}/volume/increase` | Increase product inventory |
 
-### Order Microservice (Port 8080)
+### Order Microservice (Port 8086)
 
 **Order Management:**
 | Method | Endpoint | Description |
@@ -445,16 +447,18 @@ sequenceDiagram
 | POST | `/api/order` | Create new order |
 | PUT | `/api/order/{orderId}/items` | Add items to order |
 | PATCH | `/api/order/{orderId}/status` | Update order status |
-| GET | `/api/order/customer/{userId}` | Get customer orders |
+| GET | `/api/order` | Get the authenticated customer's orders |
+| GET | `/api/order/paged` | Get the authenticated customer's orders with pagination |
 
 **Shopping Cart:**
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | /cart | Get the authenticated user cart |
-| POST | /cart/items | Add items to the authenticated user cart |
-| PUT | /cart/items/{sku} | Update item quantity |
-| DELETE | /cart/items/{sku} | Remove an item from the authenticated user cart |
-| DELETE | /cart | Clear the authenticated user cart |
+| GET | `/cart` | Get the current guest or authenticated user cart |
+| POST | `/cart/items` | Add items to the current cart |
+| PUT | `/cart/items/{sku}` | Update item quantity |
+| DELETE | `/cart/items/{sku}` | Remove an item from the current cart |
+| DELETE | `/cart` | Clear the current cart |
+| POST | `/cart/merge` | Merge the guest cart after authentication |
 
 ### Payment Microservice (Port 8084)
 
@@ -835,7 +839,7 @@ docker-compose up -d
 
 # Start microservices
 ./gradlew :inventory-microservice:bootRun    # Port 8083
-./gradlew :order-microservice:bootRun        # Port 8080
+./gradlew :order-microservice:bootRun        # Port 8086
 ./gradlew :payment-microservice:bootRun      # Port 8084
 
 # Start frontend

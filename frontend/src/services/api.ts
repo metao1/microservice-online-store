@@ -396,13 +396,13 @@ class RemoteApiClient extends BaseApiClient implements ApiClientContract {
   }
 
   async getOrders(): Promise<Order[]> {
-    const response = await this.cartClient.get<Order[]>('/api/order/me');
+    const response = await this.cartClient.get<Order[]>('/api/order');
     const orders = Array.isArray(response.data) ? response.data : [];
     return Promise.all(orders.map((backendOrder: any) => this.mapBackendOrderToOrder(backendOrder)));
   }
 
   async getOrdersPage(limit = 10, offset = 0): Promise<PaginatedResult<Order>> {
-    const response = await this.cartClient.get('/api/order/me/paged', {
+    const response = await this.cartClient.get('/api/order/paged', {
       params: { offset, limit },
     });
     const payload = response.data || {};

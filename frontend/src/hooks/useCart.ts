@@ -2,6 +2,7 @@ import {useCallback, useEffect, useState} from 'react';
 import {Cart, createMoney, Money, zeroMoney} from '@types';
 import {apiClient} from '@services/api';
 import {useAuthContext} from '@context/AuthContext';
+import {addGuestCartLine, clearGuestCart, guestCartAsCart, readGuestCart} from '@services/guestCart';
 
 export const useCart = () => {
   const { initialized, isAuthenticated } = useAuthContext();
@@ -30,6 +31,13 @@ export const useCart = () => {
 
   const addToCart = useCallback(
       async (sku: string, productTitle: string, quantity: number, price: Money) => {
+      if (!isAuthenticated) {
+        const lines = addGuestCartLine({ sku, title: productTitle, quantity, price: {amount: price.amount, currency: price.currency} });
+        const guestCart = guestCartAsCart(lines);
+        setCart(guestCart);
+        return guestCart;
+      }
+
       try {
         console.log('useCart: Adding item to cart:', {sku, productTitle, quantity, price});
         const updatedCart = await apiClient.addToCart(sku, productTitle, quantity, price);
@@ -48,7 +56,7 @@ export const useCart = () => {
         throw err;
       }
     },
-    []
+    [isAuthenticated]
   );
 
   const removeFromCart = useCallback(
@@ -105,7 +113,24 @@ export const useCart = () => {
 
   useEffect(() => {
     if (initialized && isAuthenticated) {
-      fetchCart();
+      const mergeGuestCart = async () => {
+        const guestLines = readGuestCart();
+        if (guestLines.length === 0) { await fetchCart(); return; }
+        setLoading(true);
+        setError(null);
+        try {
+          for (const line of guestLines) {
+            await apiClient.addToCart(line.sku, line.title, line.quantity, createMoney(line.price.amount, line.price.currency));
+          }
+          clearGuestCart();
+          await fetchCart();
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Failed to merge guest cart');
+        } finally {
+          setLoading(false);
+        }
+      };
+      void mergeGuestCart();
     } else if (initialized) {
       setCart({items: [], total: zeroMoney()});
     }

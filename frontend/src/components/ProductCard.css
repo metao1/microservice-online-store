@@ -226,6 +226,29 @@
   color: var(--color-error, #e74c3c);
 }
 
+.card-add-to-cart-button {
+  width: 100%;
+  min-height: 44px;
+  margin-top: auto;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--color-primary, #000000);
+  background: var(--color-primary, #000000);
+  color: var(--color-text-inverse, #ffffff);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 150ms ease, background-color 150ms ease;
+}
+
+.card-add-to-cart-button:hover:not(:disabled) {
+  opacity: 0.8;
+}
+
+.card-add-to-cart-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 /* Product Information Section */
 .product-info {
   padding: var(--spacing-4, 1rem);

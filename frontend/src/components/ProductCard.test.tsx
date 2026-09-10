@@ -91,6 +91,11 @@ describe('ProductCard Component', () => {
       expect(screen.getByText('Bestseller')).toBeInTheDocument();
     });
 
+    it('provides a visible add-to-cart button for in-stock products', () => {
+      renderProductCard();
+      expect(screen.getByTestId('card-add-button-' + mockProduct.sku)).toBeInTheDocument();
+    });
+
     it('displays sold out badge for out-of-stock products', () => {
       const outOfStockProduct = { ...mockProduct, inStock: false };
       const { container } = renderProductCard(outOfStockProduct);
@@ -124,6 +129,11 @@ describe('ProductCard Component', () => {
   });
 
   describe('Quick Actions', () => {
+    it('adds the product from the visible card button', async () => {
+      renderProductCard();
+      fireEvent.click(screen.getByTestId('card-add-button-' + mockProduct.sku));
+      await waitFor(() => expect(mockAddToCart).toHaveBeenCalledWith(mockProduct, 1));
+    });
     it('shows action buttons on hover', () => {
       renderProductCard();
       

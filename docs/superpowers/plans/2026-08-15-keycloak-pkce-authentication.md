@@ -339,7 +339,7 @@ git commit -m "fix: validate Keycloak JWT claims"
 - Test: `order-microservice/src/test/java/com/metao/book/order/integration/SecureOrderFlowIT.java`
 
 **Interfaces:**
-- Produces: `POST /api/order` with no customer identifier, `GET /api/order/me`, `GET /api/order/me/paged`, and existing user-neutral `/cart` routes.
+- Produces: `POST /api/order` with no customer identifier, `GET /api/order`, `GET /api/order/paged`, and existing user-neutral `/cart` routes.
 - Consumes: authenticated `CurrentUser.subject()` from the shared security layer.
 
 - [ ] **Step 1: Add failing body-free order creation and ownership override tests**
@@ -538,8 +538,8 @@ PUT    /cart/items/{sku}
 DELETE /cart/items/{sku}
 DELETE /cart
 POST   /api/order
-GET    /api/order/me
-GET    /api/order/me/paged?offset={offset}&limit={limit}
+GET    /api/order
+GET    /api/order/paged?offset={offset}&limit={limit}
 ```
 
 Remove every `user_id` body field, `/customer/{userId}` route, `/cart/{userId}` route, and fallback that recreates legacy requests.
@@ -594,7 +594,7 @@ The test opens `/cart`, expects a Keycloak redirect, asserts the themed login fo
 
 - [ ] **Step 2: Add a failing purchase choreography**
 
-Seed SKU `E2EAUTH01` with volume 8 through the inventory API, add quantity 3 through the browser, create an order, assert initial `PENDING_PAYMENT`, poll `/api/order/me` through the browser session until `PAID`, assert cart empty, and query inventory until volume equals 5.
+Seed SKU `E2EAUTH01` with volume 8 through the inventory API, add quantity 3 through the browser, create an order, assert initial `PENDING_PAYMENT`, poll `/api/order` through the browser session until `PAID`, assert cart empty, and query inventory until volume equals 5.
 
 - [ ] **Step 3: Add failing isolation and authorization scenarios**
 
