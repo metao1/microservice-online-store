@@ -59,6 +59,7 @@ const renderProductCard = (product: Product = mockProduct, props = {}) => {
 describe('ProductCard Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockCartContext.cart.items = [];
   });
 
   describe('Rendering', () => {
@@ -220,6 +221,21 @@ describe('ProductCard Component', () => {
       
       const productImage = screen.getByAltText(mockProduct.title);
       expect(productImage).toBeInTheDocument();
+    });
+
+    it('keeps the product action simple when the item is already in the cart', () => {
+      mockCartContext.cart.items = [{ sku: mockProduct.sku, cartQuantity: 2 } as any];
+      renderProductCard();
+
+      expect(screen.queryByText('In cart')).not.toBeInTheDocument();
+      expect(screen.getByTestId('card-add-button-' + mockProduct.sku)).toHaveTextContent(/^Add$/);
+    });
+
+    it('renders a compact cart icon inside the add-to-cart action', () => {
+      renderProductCard();
+
+      expect(screen.getByTestId('cart-icon-' + mockProduct.sku)).toBeInTheDocument();
+      expect(screen.getByTestId('card-add-button-' + mockProduct.sku)).toHaveTextContent(/^Add$/);
     });
 
     it('has proper ARIA labels for price information', () => {
