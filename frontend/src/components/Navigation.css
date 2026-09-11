@@ -651,3 +651,67 @@
     height: 28px;
   }
 }
+
+
+/* Desktop mega menu: keep the pointer path continuous and reduce visual noise. */
+.nav-secondary {
+  position: relative;
+  padding-bottom: 0.75rem;
+}
+
+.nav-mega-panel {
+  top: 100%;
+  padding: 1.25rem 1.5rem 1.5rem;
+  border-top: 1px solid #e6e6e6;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.1);
+}
+
+.nav-mega-columns {
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.4fr) minmax(180px, 0.8fr);
+  gap: 2.5rem;
+}
+
+.nav-mega-column h4 {
+  margin-bottom: 0.65rem;
+  color: #737373;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.nav-mega-column ul {
+  gap: 0.25rem;
+}
+
+.nav-mega-column li button {
+  width: 100%;
+  padding: 0.45rem 0;
+  color: #222222;
+  font-size: 0.9rem;
+}
+
+.nav-mega-column li button:hover,
+.nav-mega-column li button:focus-visible {
+  color: #a300c4;
+  outline: none;
+}
+
+.nav-mega-actions {
+  border-left: 1px solid #eeeeee;
+  padding-left: 2rem;
+}
+
+.nav-mega-all {
+  font-weight: 600;
+}
+
+.nav-mega-visual,
+.nav-mega-card {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .nav-secondary {
+    padding-bottom: 0;
+  }
+}
