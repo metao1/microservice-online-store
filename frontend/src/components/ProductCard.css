@@ -706,3 +706,217 @@
 .product-card.hovered::before {
   opacity: 1;
 }
+
+
+/* Minimal listing-card treatment. The listing page keeps the card action
+   visible, so the card can stay useful without hover-only controls. */
+.products-page .product-card {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.products-page .product-card:hover,
+.products-page .product-card.hovered {
+  border-color: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.products-page .product-image-container {
+  height: auto;
+  aspect-ratio: 4 / 5;
+  background: #f3f1ed;
+}
+
+.products-page .product-image {
+  object-fit: cover;
+  transition: transform 220ms ease;
+}
+
+.products-page .product-card:hover .product-image,
+.products-page .product-card.hovered .product-image {
+  transform: scale(1.025);
+}
+
+.products-page .wishlist-btn {
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: none;
+}
+
+.products-page .status-badge {
+  top: 0.75rem;
+  left: 0.75rem;
+  right: auto;
+  border-radius: 2px;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+}
+
+.products-page .status-badge.new,
+.products-page .status-badge.bestseller,
+.products-page .status-badge.discount {
+  right: auto;
+  left: 0.75rem;
+}
+
+.products-page .product-info {
+  padding: 0.9rem 0 0;
+}
+
+.products-page .brand-name {
+  margin-bottom: 0.35rem;
+  color: #737373;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+
+.products-page .product-title {
+  min-height: 2.7rem;
+  margin-bottom: 0.45rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.products-page .rating-section {
+  display: flex;
+  margin-bottom: 0.65rem;
+}
+
+.products-page .star {
+  font-size: 0.7rem;
+}
+
+.products-page .price-section {
+  margin: 0 0 0.75rem;
+}
+
+.products-page .current-price {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.products-page .original-price {
+  font-size: 0.85rem;
+}
+
+.products-page .card-add-to-cart-button {
+  min-height: 42px;
+  padding: 0.65rem 0.8rem;
+  border-radius: 2px;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.products-page .card-add-to-cart-button:hover:not(:disabled) {
+  background: #2a2a2a;
+  opacity: 1;
+}
+
+@media (max-width: 576px) {
+  .products-page .product-info {
+    padding-top: 0.7rem;
+  }
+
+  .products-page .product-title {
+    font-size: 0.85rem;
+  }
+
+  .products-page .card-add-to-cart-button {
+    min-height: 40px;
+    font-size: 0.7rem;
+  }
+}
+
+
+/* Compact product-card rhythm and action sizing. */
+.products-page-grid .product-grid-container {
+  column-gap: 1.25rem;
+  row-gap: 2rem;
+}
+
+.products-page .product-info {
+  padding-top: 0.7rem;
+}
+
+.products-page .brand-name {
+  margin-bottom: 0.25rem;
+  font-size: 0.62rem;
+}
+
+.products-page .product-title {
+  min-height: 2.4rem;
+  margin-bottom: 0.3rem;
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+
+.products-page .rating-section {
+  margin-bottom: 0.45rem;
+}
+
+.products-page .price-section {
+  margin-bottom: 0.6rem;
+}
+
+.products-page .current-price {
+  font-size: 0.92rem;
+}
+
+.products-page .card-add-to-cart-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: auto;
+  min-height: 38px;
+  padding: 0.5rem 0.7rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.products-page .cart-button-icon {
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+}
+
+@media (max-width: 576px) {
+  .products-page-grid .product-grid-container {
+    column-gap: 0.75rem;
+    row-gap: 1.5rem;
+  }
+
+  .products-page .product-info {
+    padding-top: 0.55rem;
+  }
+
+  .products-page .product-title {
+    min-height: 2.3rem;
+    font-size: 0.8rem;
+  }
+
+  .products-page .card-add-to-cart-button {
+    min-height: 36px;
+    padding: 0.45rem 0.6rem;
+    font-size: 0.65rem;
+  }
+
+  .products-page .cart-button-icon {
+    width: 14px;
+    height: 14px;
+  }
+}

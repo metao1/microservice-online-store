@@ -173,6 +173,7 @@ const Navigation: FC<NavigationProps> = ({
   // Refs
   const desktopSearchRef = useRef<HTMLInputElement>(null);
   const mobileSearchRef = useRef<HTMLInputElement>(null);
+  const megaCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -317,6 +318,26 @@ const Navigation: FC<NavigationProps> = ({
     setIsMobileSearchActive(false);
   };
 
+  const clearMegaCloseTimeout = () => {
+    if (megaCloseTimeoutRef.current) {
+      clearTimeout(megaCloseTimeoutRef.current);
+      megaCloseTimeoutRef.current = null;
+    }
+  };
+
+  const openMegaCategory = (category: string) => {
+    clearMegaCloseTimeout();
+    setActiveMegaCategory(category);
+  };
+
+  const scheduleMegaClose = () => {
+    clearMegaCloseTimeout();
+    megaCloseTimeoutRef.current = setTimeout(() => {
+      setActiveMegaCategory(null);
+      megaCloseTimeoutRef.current = null;
+    }, 180);
+  };
+
   const handleCategoryClick = (category: Category) => {
     const label = category.category || category.name || '';
     onCategorySelect?.(label);
@@ -341,6 +362,8 @@ const Navigation: FC<NavigationProps> = ({
       mobileSearchRef.current.blur();
     }
   };
+
+  useEffect(() => () => clearMegaCloseTimeout(), []);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -502,7 +525,8 @@ const Navigation: FC<NavigationProps> = ({
             className="nav-secondary"
             role="navigation"
             aria-label="Secondary navigation"
-            onMouseLeave={() => setActiveMegaCategory(null)}
+            onMouseEnter={clearMegaCloseTimeout}
+            onMouseLeave={scheduleMegaClose}
         >
           {isLoadingCategories && secondaryCategories.length === 0 ? (
               <span className="nav-secondary-loading">Loading...</span>
@@ -511,8 +535,8 @@ const Navigation: FC<NavigationProps> = ({
                   <button
                       key={category}
                       className={`nav-secondary-link ${/sale/i.test(category) ? 'sale' : ''}`}
-                      onMouseEnter={() => setActiveMegaCategory(category)}
-                      onFocus={() => setActiveMegaCategory(category)}
+                      onMouseEnter={() => openMegaCategory(category)}
+                      onFocus={() => openMegaCategory(category)}
                   >
                     {category}
                   </button>
@@ -520,7 +544,13 @@ const Navigation: FC<NavigationProps> = ({
           )}
 
           {activeMegaCategory && (
-              <div className="nav-mega-panel" role="dialog" aria-label={`${activeMegaCategory} categories`}>
+              <div
+                className="nav-mega-panel"
+                role="dialog"
+                aria-label={`${activeMegaCategory} categories`}
+                onMouseEnter={clearMegaCloseTimeout}
+                onMouseLeave={scheduleMegaClose}
+              >
                 <div className="nav-mega-columns">
                   <div className="nav-mega-column">
                     <h4>Categories</h4>
@@ -552,26 +582,18 @@ const Navigation: FC<NavigationProps> = ({
                       })}
                     </ul>
                   </div>
-                  <div className="nav-mega-column">
-                    <h4>Highlights</h4>
+                  <div className="nav-mega-column nav-mega-actions">
+                    <h4>Explore</h4>
                     <ul>
                       <li>
-                        <button onClick={() => handleCategoryClick({category: 'New arrivals'})}>New arrivals</button>
-                      </li>
-                      <li>
-                        <button onClick={() => handleCategoryClick({category: 'Latest sneaker'})}>Latest sneaker
+                        <button
+                          className="nav-mega-all"
+                          onClick={() => handleCategoryClick({category: activeMegaCategory})}
+                        >
+                          View all {activeMegaCategory}
                         </button>
                       </li>
-                      <li>
-                        <button onClick={() => handleCategoryClick({category: 'Gift cards'})}>Gift cards</button>
-                      </li>
                     </ul>
-                  </div>
-                  <div className="nav-mega-visual">
-                    <div className="nav-mega-card">
-                      <span className="nav-mega-card-title">Dreamly cozy</span>
-                      <span className="nav-mega-card-cta">Shop now →</span>
-                    </div>
                   </div>
                 </div>
               </div>

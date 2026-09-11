@@ -255,13 +255,7 @@ const ProductCard: FC<ProductCardProps> = ({
         {/* Product Title */}
         <h3 className="product-title">{product.title}</h3>
 
-        {quantityInCart > 0 && (
-          <div className="cart-presence" aria-label={`${quantityInCart} item${quantityInCart === 1 ? '' : 's'} of this product in cart`}>
-            <span className="cart-presence-label">In cart</span>
-            <span className="cart-presence-value">{quantityInCart}</span>
-          </div>
-        )}
-        
+      
         {/* Rating */}
         {product.rating && (
           <div className="rating-section">
@@ -347,7 +341,11 @@ const ProductCard: FC<ProductCardProps> = ({
         </div>
 
         <button type="button" className="card-add-to-cart-button" disabled={!product.inStock || isLoading} onClick={handleQuickAdd} data-testid={'card-add-button-' + product.sku} aria-label={product.inStock ? 'Add ' + product.title + ' to cart' : product.title + ' is sold out'}>
-          {isLoading ? 'Adding...' : product.inStock ? (quantityInCart > 0 ? 'Add More (' + quantityInCart + ')' : 'Add to cart') : 'Sold Out'}
+          <svg className="cart-button-icon" data-testid={'cart-icon-' + product.sku} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M6 7h12l1 13H5L6 7Z" />
+            <path d="M9 7a3 3 0 0 1 6 0" />
+          </svg>
+          <span>{isLoading ? 'Adding...' : product.inStock ? 'Add' : 'Sold out'}</span>
         </button>
       </div>
     </div>

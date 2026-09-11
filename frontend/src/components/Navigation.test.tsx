@@ -108,6 +108,23 @@ describe('Navigation Component', () => {
     });
   });
 
+  describe('Mega menu pointer behavior', () => {
+    it('keeps the drawer open while moving from a category into the panel', async () => {
+      await renderNavigation();
+
+      const mainCategory = await screen.findByText('Computers & Accessories');
+      const secondaryNav = mainCategory.closest('.nav-secondary');
+      expect(secondaryNav).toBeInTheDocument();
+
+      fireEvent.mouseEnter(mainCategory);
+      const panel = document.querySelector('.nav-mega-panel');
+      expect(panel).toBeInTheDocument();
+
+      fireEvent.mouseLeave(secondaryNav!);
+      expect(document.querySelector('.nav-mega-panel')).toBeInTheDocument();
+    });
+  });
+
   describe('Search Functionality', () => {
     it('renders the search input', async () => {
       await renderNavigation();
