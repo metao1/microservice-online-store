@@ -19,8 +19,7 @@ on:
       - 'gradle/**'
       - 'gradlew'
       - 'gradlew.bat'
-      - '.github/workflows/gradle.yml'
-      - '.github/workflows/test-coverage.yml'
+      - '.github/workflows/**'
   pull_request:
     branches:
       - '**'
@@ -39,8 +38,8 @@ on:
       - 'gradle/**'
       - 'gradlew'
       - 'gradlew.bat'
-      - '.github/workflows/gradle.yml'
-      - '.github/workflows/test-coverage.yml'
+      - '.github/workflows/**'
+      - '.github/workflows/**'
 
 jobs:
   build:

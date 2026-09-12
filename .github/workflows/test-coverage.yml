@@ -18,7 +18,7 @@ on:
       - 'gradle/**'
       - 'gradlew'
       - 'gradlew.bat'
-      - '.github/workflows/test-coverage.yml'
+      - '.github/workflows/**'
   pull_request:
     branches:
       - '**'
@@ -36,7 +36,7 @@ on:
       - 'gradle/**'
       - 'gradlew'
       - 'gradlew.bat'
-      - '.github/workflows/test-coverage.yml'
+      - '.github/workflows/**'
 
 jobs:
   test-coverage:
