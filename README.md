@@ -9,7 +9,6 @@ Event-driven e-commerce platform with DDD, Kafka messaging, and choreography-bas
 - **Backend:** Java 25, Spring Boot 4.1, Kafka, PostgreSQL
 - **Frontend:** React + Vite + TypeScript + Sass
 - **Authentication:** Keycloak 26 with OAuth2/OIDC JWTs
-- **Cart:** Server-side guest carts with HttpOnly cookies and authenticated cart merging
 - **Observability:** OpenTelemetry, Jaeger
 ---
 <a href="https://youtu.be/-p2X7TLY8EU"><img src="docs/assets/video-thumbnail.svg" alt="Watch the Microservice Online Store walkthrough" width="960"></a>
