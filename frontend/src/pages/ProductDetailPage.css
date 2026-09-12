@@ -75,7 +75,7 @@
   padding: var(--spacing-3, 0.75rem) 0;
 }
 
-.breadcrumb-nav {
+.breadcrumb {
   max-width: var(--container-xl, 1200px);
   margin: 0 auto;
   padding: 0 var(--spacing-4, 1rem);
@@ -639,7 +639,7 @@
 }
 
 @media (max-width: 480px) {
-  .breadcrumb-nav {
+  .breadcrumb {
     padding: 0 var(--spacing-3, 0.75rem);
   }
   

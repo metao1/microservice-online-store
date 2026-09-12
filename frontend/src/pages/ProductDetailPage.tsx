@@ -82,11 +82,11 @@ const ProductDetailPage: FC = () => {
     <div className="product-detail-page">
       {/* Breadcrumb Navigation */}
       <div className="breadcrumb-container">
-        <nav className="breadcrumb-nav">
+        <nav className="breadcrumb">
           <Link to="/" className="breadcrumb-link">Home</Link>
-          <span className="breadcrumb-separator">/</span>
+          <span className="breadcrumb-separator">›</span>
           <Link to="/products" className="breadcrumb-link">Products</Link>
-          <span className="breadcrumb-separator">/</span>
+          <span className="breadcrumb-separator">›</span>
           <span className="breadcrumb-current">{product.title}</span>
         </nav>
       </div>
