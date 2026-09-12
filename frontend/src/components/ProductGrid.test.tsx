@@ -44,5 +44,7 @@ describe('ProductGrid infinite scrolling', () => {
     );
 
     expect(observerOptions?.rootMargin).toBe('0px 0px 800px 0px');
+    const grid = document.querySelector('.product-grid-container');
+    expect(grid).toHaveClass('grid-cols-xs-2', 'grid-cols-md-4', 'grid-cols-xl-5');
   });
 });
