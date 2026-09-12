@@ -7,4 +7,4 @@ export const resolveOrderDisplayMoney = (
   order: OrderMoney,
   payment: PaymentMoney,
   fallback: Money = order.total,
-): Money => payment?.amount ?? fallback;
+): Money => order.total.amount > 0 ? order.total : payment?.amount ?? fallback;
