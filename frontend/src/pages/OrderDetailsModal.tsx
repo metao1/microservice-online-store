@@ -167,6 +167,10 @@ const OrderDetailsModal: FC<OrderDetailsModalProps> = ({ order, payment, onClose
                 </dd>
               </div>
               <div className="order-details-grid-row">
+                <dt>VAT{order.vatPercentage == null ? '' : ` (${order.vatPercentage}%)`}</dt>
+                <dd>{order.tax?.format() ?? '—'}</dd>
+              </div>
+              <div className="order-details-grid-row">
                 <dt>Order total</dt>
                 <dd className="order-details-total">{total.format()}</dd>
               </div>
