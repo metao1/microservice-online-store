@@ -117,7 +117,8 @@
 }
 
 .products-page .product-image-container {
-  height: 360px;
+  height: auto;
+  aspect-ratio: 3 / 4;
   background: #f6f6f6;
 }
 

@@ -232,7 +232,7 @@ export const ProductGrid: FC<ProductGridProps> = ({
     return (
       <div className={gridClasses}>
         <Grid 
-          columns={{ xs: 2, md: 3, xl: 3 }} 
+          columns={{ xs: 2, md: 4, xl: 5 }} 
           gap="md" 
           className="product-grid-container"
         >
@@ -255,7 +255,7 @@ export const ProductGrid: FC<ProductGridProps> = ({
   return (
     <div className={gridClasses}>
       <Grid 
-        columns={{ xs: 2, md: 3, xl: 3 }} 
+        columns={{ xs: 2, md: 4, xl: 5 }} 
         gap="md" 
         className="product-grid-container"
         alignItems="stretch"
