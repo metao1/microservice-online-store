@@ -13,6 +13,10 @@ import com.metao.book.order.domain.model.valueobject.UserId;
 import com.metao.book.order.application.port.OrderRepository;
 import com.metao.book.order.infrastructure.persistence.repository.SpringDataOrderRepository;
 import com.metao.book.order.presentation.dto.UpdateStatusRequestDto;
+import com.metao.book.shared.domain.financial.Money;
+import com.metao.book.shared.domain.product.ProductSku;
+import com.metao.book.shared.domain.product.ProductTitle;
+import com.metao.book.shared.domain.product.Quantity;
 import com.metao.shared.test.KafkaContainerBase;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -167,6 +171,38 @@ class OrderManagementControllerIT extends KafkaContainerBase {
                 .body("hasNext", equalTo(true))
                 .body("hasPrevious", equalTo(false));
         }
+    }
+
+    @Test
+    @DisplayName("Should serialize order money fields in paged responses")
+    void shouldSerializeOrderMoneyFieldsInPagedResponses() {
+        var order = new OrderAggregate(new OrderId("order-money"), UserId.of(USER_ID));
+        order.addItem(
+            ProductSku.of(SKU),
+            ProductTitle.of(PRODUCT_TITLE),
+            Quantity.of(BigDecimal.valueOf(3)),
+            Money.of(CURRENCY, UNIT_PRICE)
+        );
+        orderRepository.save(order);
+
+        given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer " + USER_TOKEN)
+            .queryParam("offset", 0)
+            .queryParam("limit", 10)
+            .get("/api/order/paged")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .body("items[0].items[0].unitPrice.amount", equalTo(12.99f))
+            .body("items[0].items[0].unitPrice.currency", equalTo("EUR"))
+            .body("items[0].items[0].totalPrice.amount", equalTo(38.97f))
+            .body("items[0].items[0].totalPrice.currency", equalTo("EUR"))
+            .body("items[0].subtotal.amount", equalTo(38.97f))
+            .body("items[0].subtotal.currency", equalTo("EUR"))
+            .body("items[0].tax.amount", equalTo(7.40f))
+            .body("items[0].tax.currency", equalTo("EUR"))
+            .body("items[0].total.amount", equalTo(46.37f))
+            .body("items[0].total.currency", equalTo("EUR"));
     }
 
     @Nested

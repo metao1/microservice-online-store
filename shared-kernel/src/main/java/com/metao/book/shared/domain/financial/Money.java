@@ -136,6 +136,20 @@ public class Money implements ValueObject {
     }
 
     /**
+     * JavaBean-compatible read accessor for JSON serializers.
+     */
+    public Currency getCurrency() {
+        return currency;
+    }
+
+    /**
+     * JavaBean-compatible read accessor for JSON serializers.
+     */
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    /**
      * Returns the amount as a fixed-point integer where the last two digits represent decimals.
      */
     public BigDecimal fixedPointAmount() {

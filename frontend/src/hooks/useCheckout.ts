@@ -29,7 +29,7 @@ interface UseCheckoutResult {
 export const useCheckout = (): UseCheckoutResult => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { cart, clearCart, getCartTotal } = useCartContext();
+  const { clearCart } = useCartContext();
 
   const processCheckout = async (options?: CheckoutOptions): Promise<CheckoutResult | null> => {
     try {
@@ -38,7 +38,8 @@ export const useCheckout = (): UseCheckoutResult => {
 
       const order = await apiClient.createOrder();
 
-      const amount = options?.payment?.amount ?? getCartTotal();
+      // The order service is the source of truth for totals and VAT.
+      const amount = order.total;
 
       const paymentMethod = options?.payment?.method || 'CREDIT_CARD';
       const paymentDetails = options?.payment?.details || '';

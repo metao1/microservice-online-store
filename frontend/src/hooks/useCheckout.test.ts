@@ -114,6 +114,33 @@ describe('useCheckout', () => {
     expect(toast.success).toHaveBeenCalled();
   });
 
+  it('uses the backend order total when creating a payment', async () => {
+    const backendTotal = { ...hoisted.checkoutAmount, amount: 99.99 };
+    hoisted.createOrder.mockResolvedValueOnce({
+      id: 'ORDER-2',
+      userId: 'user-1',
+      items: [],
+      total: backendTotal,
+      status: 'PENDING',
+      createdAt: '2024-01-01T00:00:00Z',
+    });
+
+    const { result } = renderHook(() => useCheckout());
+
+    await act(async () => {
+      await result.current.processCheckout({
+        payment: { method: 'CREDIT_CARD' as PaymentMethodType, details: '****4242' },
+      });
+    });
+
+    expect(hoisted.createPayment).toHaveBeenCalledWith({
+      orderId: 'ORDER-2',
+      amount: backendTotal,
+      paymentMethodType: 'CREDIT_CARD',
+      paymentMethodDetails: '****4242',
+    });
+  });
+
   it('leaves cart intact and surfaces warning when payment processing fails', async () => {
     hoisted.processPayment.mockRejectedValueOnce(new Error('gateway down'));
     const { result } = renderHook(() => useCheckout());

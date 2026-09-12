@@ -12,6 +12,15 @@ describe('resolveOrderDisplayMoney', () => {
     expect(result).toMatchObject({ amount: 24.25, currency: 'EUR' });
   });
 
+  it('prefers the backend order total over a payment amount', () => {
+    const result = resolveOrderDisplayMoney(
+      { total: createMoney(29.10, 'EUR'), items: [] },
+      { amount: createMoney(29.58, 'EUR') },
+    );
+
+    expect(result).toMatchObject({ amount: 29.10, currency: 'EUR' });
+  });
+
   it('falls back to the order total and item currency without a payment', () => {
     const result = resolveOrderDisplayMoney(
       { total: createMoney(19.5, 'USD'), items: [] },
